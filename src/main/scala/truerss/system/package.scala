@@ -16,6 +16,12 @@ package object system {
 
     case class MarkAsReadSource(num: Long) extends BaseMessage
     case class MarkAsUnreadSource(num: Long) extends BaseMessage
+
+
+    // util:
+    case class UrlIsUniq(url: String) extends BaseMessage
+    case class NameIsUniq(url: String) extends BaseMessage
+
   }
 
 

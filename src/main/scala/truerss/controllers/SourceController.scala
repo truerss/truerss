@@ -39,6 +39,7 @@ trait SourceController extends BaseController with ProxyRefProvider {
         case ModelsResponse(xs) => ctx.complete(OK, xs.toJson.toString)
         case ModelResponse(x) => ctx.complete(OK, x.toJson.toString)
         case NotFoundResponse(msg) => ctx.complete(NotFound, msg)
+        case BadRequestResponse(msg) => ctx.complete(BadRequest, msg)
       }
   }
 
@@ -54,8 +55,6 @@ trait SourceController extends BaseController with ProxyRefProvider {
 
   def create = entity(as[String]) { sourceString =>
 
-    //TODO validate url and interval
-    //TODO check uniq (name, url)
     //TODO check if plugin
     //TODO Skip normalized
 

@@ -47,11 +47,15 @@ class SourceApiTest extends FunSpec with BeforeAndAfterAll with Matchers
     (driver.query.sources.ddl ++ driver.query.feeds.ddl).create
   }
 
+  val sources = Vector(genSource(Some(1)), genSource(Some(2)), genSource(Some(3)))
+  var ids = scala.collection.mutable.ArrayBuffer[Long]()
+
   override def beforeAll() = {
     db withSession { implicit session =>
-      driver.query.sources.insert(genSource())
-      driver.query.sources.insert(genSource())
-      driver.query.sources.insert(genSource())
+      val z = sources.map { source =>
+        (driver.query.sources returning driver.query.sources.map(_.id)) += source
+      }
+      ids = z.to[scala.collection.mutable.ArrayBuffer]
     }
   }
 
@@ -74,8 +78,9 @@ class SourceApiTest extends FunSpec with BeforeAndAfterAll with Matchers
   }
 
   describe("Get source") {
+
     it("should return one source on request") {
-      Get(s"${sourceUrl}/1") ~> computeRoute ~> check {
+      Get(s"${sourceUrl}/${ids.head}") ~> computeRoute ~> check {
         status should be(StatusCodes.OK)
       }
     }
@@ -106,6 +111,22 @@ class SourceApiTest extends FunSpec with BeforeAndAfterAll with Matchers
     it("bad request on not valid json") {
       Post(s"${sourceUrl}/create", "{}") ~> computeRoute ~> check {
         responseAs[String] should be("Not valid json")
+        status should be(StatusCodes.BadRequest)
+      }
+    }
+
+    it("bad request when url and interval not valid") {
+      val json = genSource().copy(interval = -10, url = "abc").toJson.toString
+      Post(s"${sourceUrl}/create", json) ~> computeRoute ~> check {
+        responseAs[String] should be("Interval must be great than 0, Not valid url")
+        status should be(StatusCodes.BadRequest)
+      }
+    }
+
+    it("bad request when url and name not uniq") {
+      val json = sources.head.toJson.toString
+      Post(s"${sourceUrl}/create", json) ~> computeRoute ~> check {
+        responseAs[String] should be("Url already present in db, Name not unique")
         status should be(StatusCodes.BadRequest)
       }
     }

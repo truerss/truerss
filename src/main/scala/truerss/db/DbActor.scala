@@ -37,6 +37,19 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor {
     } pipeTo sender
 
 
+    case UrlIsUniq(url) =>
+      Future.successful {
+      db withSession { implicit session =>
+        sources.filter(s => s.url === url).length.run
+      }
+    } pipeTo sender
+
+    case NameIsUniq(name) => Future.successful {
+      db withSession { implicit session =>
+        sources.filter(s => s.name === name).length.run
+      }
+    } pipeTo sender
+
   }
 
 
