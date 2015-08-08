@@ -22,7 +22,7 @@ trait ResponseHelper { self : ProxyRefProvider with ActorRefExt =>
 
   import spray.http.MediaTypes.`application/json`
 
-  def r[T <: BaseMessage](msg: BaseMessage) =
+  def end[T <: BaseMessage](msg: BaseMessage) =
     respondWithMediaType(`application/json`) { implicit ctx =>
       proxyRef <| msg
     }

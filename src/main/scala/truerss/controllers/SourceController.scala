@@ -26,33 +26,32 @@ trait SourceController extends BaseController
   with ProxyRefProvider with ActorRefExt with ResponseHelper {
 
   import HttpService._
-  import truerss.controllers.{Response, ModelsResponse, ModelResponse}
   import spray.json._
   import ApiJsonProtocol._
   import db._
 
-  def all = r(GetAll)
+  def all = end(GetAll)
 
-  def show(num: Long) = r(GetSource(num))
+  def show(num: Long) = end(GetSource(num))
 
   def create = entity(as[String]) { sourceString =>
     //TODO check if plugin
     //TODO Skip normalized
     catching(classOf[spray.json.DeserializationException])
       .opt((JsonParser(sourceString).convertTo[Source])) match {
-      case Some(source) => r(AddSource(source.normalize))
+      case Some(source) => end(AddSource(source.normalize))
       case None => complete(spray.http.StatusCodes.BadRequest, "Not valid json")
     }
   }
 
-  def delete(num: Long) = r(DeleteSource(num))
+  def delete(num: Long) = end(DeleteSource(num))
 
   def update(num: Long) = entity(as[String]) { sourceString =>
     //TODO check if plugin
     //TODO Skip normalized
     catching(classOf[spray.json.DeserializationException])
       .opt((JsonParser(sourceString).convertTo[Source])) match {
-      case Some(source) => r(UpdateSource(num, source.normalize.copy(id = num.some)))
+      case Some(source) => end(UpdateSource(num, source.normalize.copy(id = num.some)))
       case None => complete(spray.http.StatusCodes.BadRequest, "Not valid json")
     }
   }

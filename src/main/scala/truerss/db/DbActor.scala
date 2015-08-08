@@ -53,6 +53,13 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor {
       }
     } pipeTo sender
 
+    case Favorites => Future.successful {
+      db withSession { implicit session =>
+        feeds.filter(_.favorite === true).buildColl
+      }
+    } pipeTo sender
+
+
 
     case UrlIsUniq(url, id) =>
       Future.successful {

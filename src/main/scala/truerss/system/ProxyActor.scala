@@ -95,6 +95,8 @@ class ProxyActor(dbRef: ActorRef) extends Actor {
           BadRequestResponse(errs.toList.mkString(", ")))
       }) pipeTo sender
 
+    case Favorites => (dbRef ? Favorites).mapTo[Vector[Feed]]
+      .map(ModelsResponse(_)) pipeTo sender
 
 
 

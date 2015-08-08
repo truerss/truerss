@@ -134,6 +134,7 @@ object Truerssbuild extends Build {
       name := "truerss",
       ideaExcludeFolders := ".idea" :: ".idea_modules" :: Nil,
       version := "0.0.3",
+      parallelExecution in Test := false,
       assemblyJarName in assembly := "truerss-0.0.3.jar",
       mainClass in assembly := Some("truerss.Boot"),
       mergeStrategy in assembly := {

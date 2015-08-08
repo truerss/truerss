@@ -44,20 +44,18 @@ class SourceApiTest extends FunSpec with BeforeAndAfterAll with Matchers
   val driver = new CurrentDriver(dbProfile.profile)
   import driver.profile.simple._
 
-  db withSession { implicit session =>
-    (driver.query.sources.ddl ++ driver.query.feeds.ddl).create
-  }
-
   val sources = Vector(genSource(Some(1)), genSource(Some(2)), genSource(Some(3)))
   var ids = scala.collection.mutable.ArrayBuffer[Long]()
 
   override def beforeAll() = {
     db withSession { implicit session =>
+      (driver.query.sources.ddl ++ driver.query.feeds.ddl).create
       val z = sources.map { source =>
         (driver.query.sources returning driver.query.sources.map(_.id)) += source
       }
       ids = z.to[scala.collection.mutable.ArrayBuffer]
     }
+
   }
 
 
@@ -227,7 +225,11 @@ class SourceApiTest extends FunSpec with BeforeAndAfterAll with Matchers
   }
 
 
-  override def afterAll() = {}
+  override def afterAll() = {
+    db withSession { implicit session =>
+      (driver.query.sources.ddl ++ driver.query.feeds.ddl).drop
+    }
+  }
 
 
 

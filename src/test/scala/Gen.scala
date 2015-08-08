@@ -7,7 +7,7 @@ import truerss.models
  */
 object Gen {
   import truerss.util.Util._
-  import models.Source
+  import models.{Source, Feed}
 
   private val fairy = Fairy.create()
 
@@ -33,6 +33,10 @@ object Gen {
 
   def genUrl = fairy.company().url()
 
+  def genAuthor = fairy.person().fullName()
+
+  def genText = fairy.textProducer().paragraph()
+
   def genSource(id: Option[Long] = None) = {
     val name = genName
     Source(id = id,
@@ -43,6 +47,24 @@ object Gen {
       normalized = name.normalize,
       lastUpdate = new Date(),
       error = false
+    )
+  }
+
+  def genFeed(sourceId: Long, sourceUrl: String) = {
+    val title = genName
+    Feed(
+      id = None,
+      sourceId = sourceId,
+      url = s"${sourceUrl}/feed/${genId}",
+      title = title,
+      author = genAuthor,
+      publishedDate = new Date(),
+      description = Some(genText),
+      content = None,
+      normalized = title.normalize,
+      favorite = fairy.baseProducer().trueOrFalse(),
+      read = false,
+      delete = false
     )
   }
 
