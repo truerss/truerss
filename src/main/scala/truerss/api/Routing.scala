@@ -38,13 +38,12 @@ trait Routing extends Routable {
 //            delete0[SourceController](LongNumber ~> "delete") ~
 //            post0[SourceController]("import" ~> "fromFile")
           } ~ scope("feeds") {
-            get0[FeedController]("favorites")
-//            get0[FeedController](LongNumber ~> "show") ~
-//            put0[FeedController](("mark" / LongNumber) ~> "mark") ~
-//            put0[FeedController](("unmark" / LongNumber) ~> "unmark") ~
-//            put0[FeedController](("read" / LongNumber) ~> "read") ~
-//            put0[FeedController](("unread" / LongNumber) ~> "unread") ~
-//            delete0[FeedController](LongNumber ~> "drop")
+            get0[FeedController]("favorites") ~
+            get0[FeedController](LongNumber ~> "show") ~
+            put0[FeedController](("mark" / LongNumber) ~> "mark") ~
+            put0[FeedController](("unmark" / LongNumber) ~> "unmark") ~
+            put0[FeedController](("read" / LongNumber) ~> "read") ~
+            put0[FeedController](("unread" / LongNumber) ~> "unread")
           }
         }
       }

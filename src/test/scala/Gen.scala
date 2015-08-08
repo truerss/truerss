@@ -63,7 +63,7 @@ object Gen {
       content = None,
       normalized = title.normalize,
       favorite = fairy.baseProducer().trueOrFalse(),
-      read = false,
+      read = fairy.baseProducer().trueOrFalse(),
       delete = false
     )
   }

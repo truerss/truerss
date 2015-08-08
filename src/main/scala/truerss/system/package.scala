@@ -17,6 +17,11 @@ package object system {
     case class UpdateSource(num: Long, source: Source) extends BaseMessage
 
     case object Favorites extends BaseMessage
+    case class GetFeed(num: Long) extends BaseMessage
+    case class MarkFeed(num: Long) extends BaseMessage
+    case class UnmarkFeed(num: Long) extends BaseMessage
+    case class MarkAsReadFeed(num: Long) extends BaseMessage
+    case class MarkAsUnreadFeed(num: Long) extends BaseMessage
 
     case class MarkAsReadSource(num: Long) extends BaseMessage
     case class MarkAsUnreadSource(num: Long) extends BaseMessage

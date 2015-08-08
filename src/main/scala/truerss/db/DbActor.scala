@@ -59,7 +59,44 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor {
       }
     } pipeTo sender
 
+    case GetFeed(num) => Future.successful {
+      db withSession { implicit session =>
+        feeds.filter(_.id === num).firstOption
+      }
+    } pipeTo sender
 
+    case MarkFeed(feedId) => Future.successful {
+      db withSession { implicit session =>
+        val res = feeds.filter(_.id === feedId).firstOption
+        feeds.filter(_.id === feedId).map(e => e.favorite).update(true)
+        res
+      }
+    } pipeTo sender
+
+    case UnmarkFeed(feedId) => Future.successful {
+      db withSession { implicit session =>
+        val res = feeds.filter(_.id === feedId).firstOption
+        feeds.filter(_.id === feedId).map(e => e.favorite).update(false)
+        res
+      }
+    } pipeTo sender
+
+    case MarkAsReadFeed(feedId) => Future.successful {
+      db withSession { implicit session =>
+        val res = feeds.filter(_.id === feedId).firstOption
+        feeds.filter(_.id === feedId).map(e => e.read).update(true)
+        res
+      }
+    } pipeTo sender
+
+
+    case MarkAsUnreadFeed(feedId) => Future.successful {
+      db withSession { implicit session =>
+        val res = feeds.filter(_.id === feedId).firstOption
+        feeds.filter(_.id === feedId).map(e => e.read).update(false)
+        res
+      }
+    } pipeTo sender
 
     case UrlIsUniq(url, id) =>
       Future.successful {

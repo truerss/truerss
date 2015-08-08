@@ -9,7 +9,7 @@ import truerss.controllers.BadRequestResponse
 import scala.language.postfixOps
 import scala.concurrent.duration._
 
-import truerss.util.SourceValidator
+import truerss.util.{Jsonize, SourceValidator}
 import scala.concurrent.Future
 import scalaz._
 import Scalaz._
@@ -26,6 +26,12 @@ class ProxyActor(dbRef: ActorRef) extends Actor {
   implicit val timeout = Timeout(7 seconds)
 
   def sourceNotFound(num: Long) = NotFoundResponse(s"Source with id = ${num} not found")
+  def feedNotFound = NotFoundResponse(s"Feed not found")
+  def feedNotFound(num: Long) = NotFoundResponse(s"Feed with id = ${num} not found")
+  def optionToResponse[T <: Jsonize](x: Option[T]) = x match {
+    case Some(m) => ModelResponse(m)
+    case None => feedNotFound
+  }
 
   def receive = LoggingReceive {
     case GetAll => (dbRef ? GetAll).mapTo[Vector[Source]].map(ModelsResponse(_)) pipeTo sender
@@ -98,7 +104,22 @@ class ProxyActor(dbRef: ActorRef) extends Actor {
     case Favorites => (dbRef ? Favorites).mapTo[Vector[Feed]]
       .map(ModelsResponse(_)) pipeTo sender
 
+    case msg: GetFeed => (dbRef ? msg).mapTo[Option[Feed]].map{
+      case Some(x) => ModelResponse(x)
+      case None => feedNotFound(msg.num)
+    } pipeTo sender
 
+    case msg: MarkFeed => (dbRef ? msg).mapTo[Option[Feed]]
+      .map(optionToResponse) pipeTo sender
+
+    case msg: UnmarkFeed => (dbRef ? msg).mapTo[Option[Feed]]
+      .map(optionToResponse) pipeTo sender
+
+    case msg: MarkAsReadFeed => (dbRef ? msg).mapTo[Option[Feed]]
+      .map(optionToResponse) pipeTo sender
+
+    case msg: MarkAsUnreadFeed => (dbRef ? msg).mapTo[Option[Feed]]
+      .map(optionToResponse) pipeTo sender
 
   }
 
