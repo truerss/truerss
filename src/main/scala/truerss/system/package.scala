@@ -13,6 +13,7 @@ package object system {
     case object GetAll extends BaseMessage
     case class GetSource(num: Long) extends BaseMessage
     case class AddSource(source: Source) extends BaseMessage
+    case class DeleteSource(num: Long) extends BaseMessage
 
     case class MarkAsReadSource(num: Long) extends BaseMessage
     case class MarkAsUnreadSource(num: Long) extends BaseMessage

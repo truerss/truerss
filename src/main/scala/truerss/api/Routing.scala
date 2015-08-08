@@ -25,12 +25,12 @@ trait Routing extends Routable {
           scope("sources") {
             get0[SourceController]("all" ~> "all") ~
             get0[SourceController](LongNumber ~> "show") ~
-            post0[SourceController]("create")
+            post0[SourceController]("create") ~
+            delete0[SourceController](LongNumber ~> "delete")
             //put0[SourceController](("mark" / LongNumber) ~> "markAll")// ~
             //get0[SourceController]("latest") ~
 
 //            get0[SourceController](("feeds" / LongNumber) ~> "feeds") ~
-//            post0[SourceController]("create") ~
 //            put0[SourceController]("refresh") ~
 //            put0[SourceController](("refresh" / LongNumber) ~> "refresh_one") ~
 //            put0[SourceController](LongNumber ~> "update") ~

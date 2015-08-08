@@ -63,10 +63,9 @@ trait SourceController extends BaseController with ProxyRefProvider {
       case Some(source) => r(AddSource(source.normalize))
       case None => complete(spray.http.StatusCodes.BadRequest, "Not valid json")
     }
-
-
-
   }
+
+  def delete(num: Long) = r(DeleteSource(num))
 
 
 }

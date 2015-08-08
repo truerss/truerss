@@ -35,6 +35,11 @@ class ProxyActor(dbRef: ActorRef) extends Actor {
       case None => sourceNotFound(msg.num)
     } pipeTo sender
 
+    case msg: DeleteSource => (dbRef ? msg).mapTo[Option[Source]].map {
+      case Some(source) => ModelResponse(source)
+      case None => sourceNotFound(msg.num)
+    } pipeTo sender
+
     case msg: AddSource =>
       (SourceValidator.validate(msg.source) match {
         case Right(source) =>

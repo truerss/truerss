@@ -133,6 +133,28 @@ class SourceApiTest extends FunSpec with BeforeAndAfterAll with Matchers
 
   }
 
+  describe("Delete source") {
+    it("delete source from db") {
+      val last = ids.last
+      Delete(s"${sourceUrl}/${last}") ~> computeRoute ~> check {
+        val source = JsonParser(responseAs[String]).convertTo[Source]
+        source.id should be(Some(last))
+        status should be(StatusCodes.OK)
+        val extract = db withSession { implicit session =>
+          driver.query.sources.buildColl
+        }
+        extract.map(_.id.get).contains(last) should be(false)
+      }
+    }
+
+    it("404 when source not found") {
+       Delete(s"${sourceUrl}/1000") ~> computeRoute ~> check {
+         responseAs[String] should be("Source with id = 1000 not found")
+         status should be(StatusCodes.NotFound)
+       }
+    }
+  }
+
 
   override def afterAll() = {}
 

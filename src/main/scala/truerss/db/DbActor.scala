@@ -30,6 +30,14 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor {
       }
     } pipeTo sender
 
+    case DeleteSource(sourceId) => Future.successful {
+      db withSession { implicit session =>
+        val res = sources.filter(_.id === sourceId).firstOption
+        sources.filter(_.id === sourceId).delete
+        res
+      }
+    } pipeTo sender
+
     case AddSource(source) => Future.successful {
       db withSession { implicit session =>
         (sources returning sources.map(_.id)) += source
