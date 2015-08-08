@@ -16,6 +16,8 @@ import spray.routing.{RequestContext, HttpService}
 import scala.concurrent.Future
 
 import scala.util.control.Exception._
+import scalaz._
+import Scalaz._
 
 /**
  * Created by mike on 1.8.15.
@@ -54,10 +56,8 @@ trait SourceController extends BaseController with ProxyRefProvider {
   def show(num: Long) = r(GetSource(num))
 
   def create = entity(as[String]) { sourceString =>
-
     //TODO check if plugin
     //TODO Skip normalized
-
     catching(classOf[spray.json.DeserializationException])
       .opt((JsonParser(sourceString).convertTo[Source])) match {
       case Some(source) => r(AddSource(source.normalize))
@@ -66,6 +66,16 @@ trait SourceController extends BaseController with ProxyRefProvider {
   }
 
   def delete(num: Long) = r(DeleteSource(num))
+
+  def update(num: Long) = entity(as[String]) { sourceString =>
+    //TODO check if plugin
+    //TODO Skip normalized
+    catching(classOf[spray.json.DeserializationException])
+      .opt((JsonParser(sourceString).convertTo[Source])) match {
+      case Some(source) => r(UpdateSource(num, source.normalize.copy(id = num.some)))
+      case None => complete(spray.http.StatusCodes.BadRequest, "Not valid json")
+    }
+  }
 
 
 }

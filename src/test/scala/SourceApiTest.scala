@@ -36,6 +36,7 @@ class SourceApiTest extends FunSpec with BeforeAndAfterAll with Matchers
 
   import Gen._
   import truerss.models.ApiJsonProtocol._
+  import truerss.util.Util._
 
   def actorRefFactory = system
   val dbProfile = DBProfile.create(H2)
@@ -95,7 +96,11 @@ class SourceApiTest extends FunSpec with BeforeAndAfterAll with Matchers
 
   describe("Add source") {
     it("should create source on valid json") {
-      val source = genSource(None)
+      val name = genName(sources.map(_.name))
+      val url = genUrl(sources.map(_.url))
+      val normalized = name.normalize
+      val source = genSource(None).copy(url = url, name = name,
+        normalized = normalized)
       val json = source.toJson
       Post(s"${sourceUrl}/create", json.toString) ~> computeRoute ~> check {
         val givenSource = JsonParser(responseAs[String]).convertTo[Source]
@@ -143,6 +148,8 @@ class SourceApiTest extends FunSpec with BeforeAndAfterAll with Matchers
         val extract = db withSession { implicit session =>
           driver.query.sources.buildColl
         }
+        // !!!!
+        ids = ids - last
         extract.map(_.id.get).contains(last) should be(false)
       }
     }
@@ -152,6 +159,70 @@ class SourceApiTest extends FunSpec with BeforeAndAfterAll with Matchers
          responseAs[String] should be("Source with id = 1000 not found")
          status should be(StatusCodes.NotFound)
        }
+    }
+  }
+
+  describe("Update source") {
+    it ("update - 400 bad request when json not valid") {
+      Put(s"${sourceUrl}/2", "{}") ~> computeRoute ~> check {
+        responseAs[String] should be("Not valid json")
+        status should be(StatusCodes.BadRequest)
+      }
+    }
+
+    it ("update - 400 when url already present in db") {
+      val last = ids.last
+      val first = ids(0)
+      val url = sources(first.toInt).url
+      val json = sources(last.toInt).copy(url = url).toJson.toString
+      Put(s"${sourceUrl}/${last}", json) ~> computeRoute ~> check {
+        responseAs[String] should be("Url already present in db")
+        status should be(StatusCodes.BadRequest)
+      }
+    }
+
+    it ("400 when name already present in db") {
+      val last = ids.last
+      val first = ids(0)
+      val name = sources(first.toInt).name
+      val json = sources(last.toInt).copy(name = name).toJson.toString
+      Put(s"${sourceUrl}/${last}", json) ~> computeRoute ~> check {
+        responseAs[String] should be("Name not unique")
+        status should be(StatusCodes.BadRequest)
+      }
+    }
+
+    it ("400 when interval or url not valid") {
+      val last = ids.last
+      val json = sources(last.toInt).copy(interval = 0, url = "abc").toJson.toString
+      Put(s"${sourceUrl}/${last}", json) ~> computeRoute ~> check {
+        responseAs[String] should be("Interval must be great than 0, Not valid url")
+        status should be(StatusCodes.BadRequest)
+      }
+    }
+
+    it ("200 ok update source") {
+      val last = ids.last
+      val newUrl = genUrl(sources.map(_.url))
+      val newName = genName(sources.map(_.name))
+      val normalized = newName.normalize
+      val source = sources(last.toInt).copy(id = Some(last), url = newUrl,
+        name = newName, normalized = normalized)
+      val json = source.toJson.toString
+
+      Put(s"${sourceUrl}/${last}", json) ~> computeRoute ~> check {
+        val resp = JsonParser(responseAs[String]).convertTo[Source]
+        resp.id should be(source.id)
+        resp.name should be(source.name)
+        resp.url should be(source.url)
+        resp.interval should be(source.interval)
+        status should be(StatusCodes.OK)
+        val updated = db withSession { implicit session =>
+          driver.query.sources.filter(s => s.id === last).firstOption
+        }
+        updated.get.url should be(newUrl)
+        updated.get.name should be(newName)
+      }
     }
   }
 

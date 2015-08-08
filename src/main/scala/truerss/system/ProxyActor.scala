@@ -59,7 +59,8 @@ class ProxyActor(dbRef: ActorRef) extends Actor {
               } else {
                 ""
               }
-              Future.successful(BadRequestResponse(Vector(urlError, nameError).mkString(", ")))
+              val errs = Vector(urlError, nameError).filterNot(_.isEmpty)
+              Future.successful(BadRequestResponse(errs.mkString(", ")))
             }
           }).flatMap(identity(_))
 
@@ -67,6 +68,32 @@ class ProxyActor(dbRef: ActorRef) extends Actor {
           BadRequestResponse(errs.toList.mkString(", ")))
       }) pipeTo sender
 
+    case msg: UpdateSource =>
+      (SourceValidator.validate(msg.source) match {
+        case Right(source) =>
+          (for {
+            urlIsUniq <- (dbRef ? UrlIsUniq(msg.source.url, msg.num.some)).mapTo[Int]
+            nameIsUniq <- (dbRef ? NameIsUniq(msg.source.name, msg.num.some)).mapTo[Int]
+          } yield {
+              if (urlIsUniq == 0 && nameIsUniq == 0) {
+                (dbRef ? msg).mapTo[Int]
+                  .map{x => ModelResponse(msg.source)}
+              } else {
+                val urlError = if (urlIsUniq > 0) {
+                  "Url already present in db"
+                } else { "" }
+                val nameError = if(nameIsUniq > 0) {
+                  "Name not unique"
+                } else {
+                  ""
+                }
+                val errs = Vector(urlError, nameError).filterNot(_.isEmpty)
+                Future.successful(BadRequestResponse(errs.mkString(", ")))
+              }
+            }).flatMap(identity(_))
+        case Left(errs) => Future.successful(
+          BadRequestResponse(errs.toList.mkString(", ")))
+      }) pipeTo sender
 
 
 

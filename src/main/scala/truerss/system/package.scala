@@ -14,14 +14,15 @@ package object system {
     case class GetSource(num: Long) extends BaseMessage
     case class AddSource(source: Source) extends BaseMessage
     case class DeleteSource(num: Long) extends BaseMessage
+    case class UpdateSource(num: Long, source: Source) extends BaseMessage
 
     case class MarkAsReadSource(num: Long) extends BaseMessage
     case class MarkAsUnreadSource(num: Long) extends BaseMessage
 
 
     // util:
-    case class UrlIsUniq(url: String) extends BaseMessage
-    case class NameIsUniq(url: String) extends BaseMessage
+    case class UrlIsUniq(url: String, id: Option[Long] = None) extends BaseMessage
+    case class NameIsUniq(name: String, id: Option[Long] = None) extends BaseMessage
 
   }
 
