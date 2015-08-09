@@ -53,6 +53,14 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor {
       }
     } pipeTo sender
 
+    case MarkAll(sourceId) => Future.successful {
+      db withSession { implicit session =>
+        val source = sources.filter(_.id === sourceId).firstOption
+        feeds.filter(_.sourceId === sourceId).map(f => f.read).update(true)
+        source
+      }
+    } pipeTo sender
+
     case Favorites => Future.successful {
       db withSession { implicit session =>
         feeds.filter(_.favorite === true).buildColl

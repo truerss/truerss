@@ -56,5 +56,7 @@ trait SourceController extends BaseController
     }
   }
 
+  def markAll(num: Long) = end(MarkAll(num))
+
 
 }

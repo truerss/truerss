@@ -23,8 +23,7 @@ package object system {
     case class MarkAsReadFeed(num: Long) extends BaseMessage
     case class MarkAsUnreadFeed(num: Long) extends BaseMessage
 
-    case class MarkAsReadSource(num: Long) extends BaseMessage
-    case class MarkAsUnreadSource(num: Long) extends BaseMessage
+    case class MarkAll(num: Long) extends BaseMessage
 
 
     // util:

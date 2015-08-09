@@ -203,4 +203,24 @@ class SourceApiTest extends FunSpec with Matchers
     }
   }
 
+  describe("Mark all") {
+    it("404 when source not found") {
+      Put(s"$sourceUrl/mark/1000") ~> computeRoute ~> check {
+        responseAs[String] should be("Source not found")
+        status should be(StatusCodes.NotFound)
+      }
+    }
+
+    it("mark all as read for source") {
+      val sourceId = feeds.filterNot(_.read)(0).sourceId
+      Put(s"$sourceUrl/mark/${sourceId}") ~> computeRoute ~> check {
+        val count = db withSession { implicit session =>
+          driver.query.feeds
+            .filter(f => f.sourceId === sourceId && f.read === false).length.run
+        }
+        count should be(0)
+      }
+    }
+  }
+
 }

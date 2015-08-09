@@ -27,8 +27,8 @@ trait Routing extends Routable {
             get0[SourceController](LongNumber ~> "show") ~
             post0[SourceController]("create") ~
             delete0[SourceController](LongNumber ~> "delete") ~
-            put0[SourceController](LongNumber ~> "update")
-            //put0[SourceController](("mark" / LongNumber) ~> "markAll")// ~
+            put0[SourceController](LongNumber ~> "update") ~
+            put0[SourceController](("mark" / LongNumber) ~> "markAll")
             //get0[SourceController]("latest") ~
 
 //            get0[SourceController](("feeds" / LongNumber) ~> "feeds") ~

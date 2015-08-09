@@ -26,13 +26,19 @@ class ProxyActor(dbRef: ActorRef) extends Actor {
   implicit val timeout = Timeout(7 seconds)
 
   def sourceNotFound(num: Long) = NotFoundResponse(s"Source with id = ${num} not found")
+  def sourceNotFound = NotFoundResponse(s"Source not found")
   def feedNotFound = NotFoundResponse(s"Feed not found")
   def feedNotFound(num: Long) = NotFoundResponse(s"Feed with id = ${num} not found")
-  def optionToResponse[T <: Jsonize](x: Option[T]) = x match {
+  def optionFeedResponse[T <: Jsonize](x: Option[T]) = x match {
     case Some(m) => ModelResponse(m)
     case None => feedNotFound
   }
-
+  def optionSourceResponse[T <: Jsonize](x: Option[T]) = x match {
+    case Some(m) => ModelResponse(m)
+    case None => sourceNotFound
+  }
+  
+  
   def receive = LoggingReceive {
     case GetAll => (dbRef ? GetAll).mapTo[Vector[Source]].map(ModelsResponse(_)) pipeTo sender
 
@@ -101,6 +107,9 @@ class ProxyActor(dbRef: ActorRef) extends Actor {
           BadRequestResponse(errs.toList.mkString(", ")))
       }) pipeTo sender
 
+    case msg: MarkAll => (dbRef ? msg).mapTo[Option[Source]]
+      .map(optionSourceResponse) pipeTo sender
+
     case Favorites => (dbRef ? Favorites).mapTo[Vector[Feed]]
       .map(ModelsResponse(_)) pipeTo sender
 
@@ -110,16 +119,16 @@ class ProxyActor(dbRef: ActorRef) extends Actor {
     } pipeTo sender
 
     case msg: MarkFeed => (dbRef ? msg).mapTo[Option[Feed]]
-      .map(optionToResponse) pipeTo sender
+      .map(optionFeedResponse) pipeTo sender
 
     case msg: UnmarkFeed => (dbRef ? msg).mapTo[Option[Feed]]
-      .map(optionToResponse) pipeTo sender
+      .map(optionFeedResponse) pipeTo sender
 
     case msg: MarkAsReadFeed => (dbRef ? msg).mapTo[Option[Feed]]
-      .map(optionToResponse) pipeTo sender
+      .map(optionFeedResponse) pipeTo sender
 
     case msg: MarkAsUnreadFeed => (dbRef ? msg).mapTo[Option[Feed]]
-      .map(optionToResponse) pipeTo sender
+      .map(optionFeedResponse) pipeTo sender
 
   }
 
