@@ -31,39 +31,18 @@ import scala.slick.jdbc.JdbcBackend
 /**
  * Created by mike on 2.8.15.
  */
-class SourceApiTest extends FunSpec with BeforeAndAfterAll with Matchers
-  with ScalatestRouteTest with Routing {
+class SourceApiTest extends FunSpec with Matchers
+  with ScalatestRouteTest with Routing with Common {
 
   import Gen._
   import truerss.models.ApiJsonProtocol._
   import truerss.util.Util._
 
   def actorRefFactory = system
-  val dbProfile = DBProfile.create(H2)
-  val db = JdbcBackend.Database.forURL("jdbc:h2:mem:test1;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1", driver = dbProfile.driver)
-  val driver = new CurrentDriver(dbProfile.profile)
-  import driver.profile.simple._
-
-  val sources = Vector(genSource(Some(1)), genSource(Some(2)), genSource(Some(3)))
-  var ids = scala.collection.mutable.ArrayBuffer[Long]()
-
-  override def beforeAll() = {
-    db withSession { implicit session =>
-      (driver.query.sources.ddl ++ driver.query.feeds.ddl).create
-      val z = sources.map { source =>
-        (driver.query.sources returning driver.query.sources.map(_.id)) += source
-      }
-      ids = z.to[scala.collection.mutable.ArrayBuffer]
-    }
-
-  }
-
 
   val dbRef = system.actorOf(Props(new DbActor(db, driver)), "test-db")
   val proxyRef = system.actorOf(Props(new ProxyActor(dbRef)), "test-proxy")
   val context = system
-
-  val sourceUrl = "/api/v1/sources"
 
   val computeRoute = route(proxyRef, context)
 
@@ -223,14 +202,5 @@ class SourceApiTest extends FunSpec with BeforeAndAfterAll with Matchers
       }
     }
   }
-
-
-  override def afterAll() = {
-    db withSession { implicit session =>
-      (driver.query.sources.ddl ++ driver.query.feeds.ddl).drop
-    }
-  }
-
-
 
 }
