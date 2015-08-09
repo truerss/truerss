@@ -29,7 +29,7 @@ import scala.slick.jdbc.JdbcBackend
 /**
  * Created by mike on 8.8.15.
  */
-class FeedApiTest extends FunSpec with BeforeAndAfterAll with BeforeAndAfter with Matchers
+class FeedApiTest extends FunSpec with BeforeAndAfterAll with Matchers
 with ScalatestRouteTest with Routing  {
 
   import Gen._
@@ -45,29 +45,15 @@ with ScalatestRouteTest with Routing  {
   val sources = Vector(genSource(Some(1)), genSource(Some(2)), genSource(Some(3)))
   var ids = scala.collection.mutable.ArrayBuffer[Long]()
   var feedIds = scala.collection.mutable.ArrayBuffer[Long]()
+  var unfavAndUnReadId: Long = _
+  var favAndReadId: Long = _
+  var unfavAndUnRead: Feed = _
+  var favAndRead: Feed = _
   var feeds = scala.collection.mutable.ArrayBuffer[Feed]()
 
   override def beforeAll() = {
     db withSession { implicit session =>
       (driver.query.sources.ddl ++ driver.query.feeds.ddl).create
-    }
-  }
-
-  def getId(id: Long, max: Int = 2): Int = {
-    val k = (id / max).toInt
-    if (k > max) {
-      getId(k, max)
-    } else {
-      if (k == 0) {
-        k
-      } else {
-        k - 1
-      }
-    }
-  }
-
-  before {
-    db withSession { implicit session =>
       ids = scala.collection.mutable.ArrayBuffer[Long]()
       feedIds = scala.collection.mutable.ArrayBuffer[Long]()
       feeds = scala.collection.mutable.ArrayBuffer[Feed]()
@@ -85,13 +71,30 @@ with ScalatestRouteTest with Routing  {
           fId
         }
       }.flatten
+
+      val sId = ids(0)
+      val url = sources(sId.toInt).url
+      val feed = genFeed(sId, url).copy(favorite = false, read = false)
+      unfavAndUnReadId = (driver.query.feeds returning driver.query.feeds.map(_.id)) += feed
+      unfavAndUnRead = feed.copy(id = Some(unfavAndUnReadId))
+
+      val feed1 = genFeed(sId, url).copy(favorite = true, read = true)
+      favAndReadId = (driver.query.feeds returning driver.query.feeds.map(_.id)) += feed1
+      favAndRead = feed1.copy(id = Some(favAndReadId))
+
     }
   }
 
-  after {
-    db withSession { implicit session =>
-      driver.query.feeds.delete
-      driver.query.sources.delete
+  def getId(id: Long, max: Int = 2): Int = {
+    val k = (id / max).toInt
+    if (k > max) {
+      getId(k, max)
+    } else {
+      if (k == 0) {
+        k
+      } else {
+        k - 1
+      }
     }
   }
 
@@ -108,7 +111,7 @@ with ScalatestRouteTest with Routing  {
     it("return all favorites feeds") {
       Get(s"${feedUrl}/favorites") ~> computeRoute ~> check {
         JsonParser(responseAs[String]).convertTo[Vector[Feed]].size should be(
-          feeds.filter(_.favorite).size)
+          feeds.filter(_.favorite).size + 1)
         status should be(StatusCodes.OK)
       }
     }
@@ -147,8 +150,8 @@ with ScalatestRouteTest with Routing  {
     }
 
     it("mark feed as favorite") {
-      val feed = feeds.filterNot(_.favorite).head
-      val firstNonFavorite = feed.id.get
+      val feed = unfavAndUnRead
+      val firstNonFavorite = unfavAndUnReadId
       Put(s"${feedUrl}/mark/${firstNonFavorite}") ~> computeRoute ~> check {
         val resp = JsonParser(responseAs[String]).convertTo[Feed]
         feed.title should be(resp.title)
@@ -172,16 +175,16 @@ with ScalatestRouteTest with Routing  {
     }
 
     it("unmark feed") {
-      val feed = feeds.filter(_.favorite).reverse.head
-      val firstFavorite = feed.id.get
-      Put(s"${feedUrl}/unmark/${firstFavorite}") ~> computeRoute ~> check {
+      val feed = favAndRead
+      val favId = feed.id.get
+      Put(s"${feedUrl}/unmark/${favId}") ~> computeRoute ~> check {
         val resp = JsonParser(responseAs[String]).convertTo[Feed]
         feed.title should be(resp.title)
         feed.url should be(resp.url)
         status should be(StatusCodes.OK)
 
         val extract = db withSession { implicit session =>
-          driver.query.feeds.filter(_.id === firstFavorite).firstOption
+          driver.query.feeds.filter(_.id === favId).firstOption
         }
         extract.get.favorite should be(false)
       }
@@ -196,16 +199,16 @@ with ScalatestRouteTest with Routing  {
       }
     }
     it("mark feed as read") {
-      val feed = feeds.filterNot(_.read).reverse.head
-      val first = feed.id.get
-      Put(s"${feedUrl}/read/${first}") ~> computeRoute ~> check {
+      val feed = unfavAndUnRead
+      val fId = feed.id.get
+      Put(s"${feedUrl}/read/${fId}") ~> computeRoute ~> check {
         val resp = JsonParser(responseAs[String]).convertTo[Feed]
         feed.title should be(resp.title)
         feed.url should be(resp.url)
         status should be(StatusCodes.OK)
 
         val extract = db withSession { implicit session =>
-          driver.query.feeds.filter(_.id === first).firstOption
+          driver.query.feeds.filter(_.id === fId).firstOption
         }
         extract.get.favorite should be(true)
       }
@@ -220,16 +223,16 @@ with ScalatestRouteTest with Routing  {
       }
     }
     it("mark feed as unread") {
-      val feed = feeds.filter(_.read).head
-      val first = feed.id.get
-      Put(s"${feedUrl}/unread/${first}") ~> computeRoute ~> check {
+      val feed = favAndRead
+      val fId = feed.id.get
+      Put(s"${feedUrl}/unread/${fId}") ~> computeRoute ~> check {
         val resp = JsonParser(responseAs[String]).convertTo[Feed]
         feed.title should be(resp.title)
         feed.url should be(resp.url)
         status should be(StatusCodes.OK)
 
         val extract = db withSession { implicit session =>
-          driver.query.feeds.filter(_.id === first).firstOption
+          driver.query.feeds.filter(_.id === fId).firstOption
         }
         extract.get.favorite should be(false)
       }
