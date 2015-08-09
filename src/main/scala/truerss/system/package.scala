@@ -7,9 +7,10 @@ import truerss.models.Source
  */
 package object system {
 
+  sealed trait BaseMessage
   // for communication with db
   object db {
-    sealed trait BaseMessage
+
 
     case object GetAll extends BaseMessage
     case class GetSource(num: Long) extends BaseMessage
@@ -40,7 +41,9 @@ package object system {
   }
 
   object util {
-    case object Start
+    case object Start extends BaseMessage
+    case object Update extends BaseMessage
+    case class UpdateOne(num: Long) extends BaseMessage
   }
 
 

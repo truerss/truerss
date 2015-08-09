@@ -7,9 +7,10 @@ import com.github.fntzr.spray.routing.ext.BaseController
 import spray.http.HttpRequest
 import truerss.models.Source
 import truerss.system.db
+import truerss.system.util
 import truerss.models.ApiJsonProtocol
+
 import scala.concurrent.duration._
-import scala.language.postfixOps
 import spray.httpx.SprayJsonSupport._
 import spray.json.DefaultJsonProtocol
 import spray.routing.{RequestContext, HttpService}
@@ -29,6 +30,7 @@ trait SourceController extends BaseController
   import spray.json._
   import ApiJsonProtocol._
   import db._
+  import util._
 
   def all = end(GetAll)
 
@@ -61,6 +63,10 @@ trait SourceController extends BaseController
   def latest(count: Long) = end(Latest(count))
 
   def feeds(num: Long) = end(ExtractFeedsForSource(num))
+
+  def refresh = end(Update)
+
+  def refreshOne(num: Long) = end(UpdateOne(num))
 
 
 }

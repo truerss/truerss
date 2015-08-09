@@ -30,9 +30,9 @@ trait Routing extends Routable {
             put0[SourceController](LongNumber ~> "update") ~
             put0[SourceController](("mark" / LongNumber) ~> "markAll") ~
             get0[SourceController](("latest"  / LongNumber) ~> "latest") ~
-            get0[SourceController](("feeds" / LongNumber) ~> "feeds")
-//            put0[SourceController]("refresh") ~
-//            put0[SourceController](("refresh" / LongNumber) ~> "refresh_one") ~
+            get0[SourceController](("feeds" / LongNumber) ~> "feeds") ~
+            put0[SourceController]("refresh") ~
+            put0[SourceController](("refresh" / LongNumber) ~> "refreshOne")
 //            post0[SourceController]("import" ~> "fromFile")
           } ~ scope("feeds") {
             get0[FeedController]("favorites") ~

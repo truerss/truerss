@@ -1,13 +1,15 @@
 
-import io.codearte.jfairy.Fairy
 import java.util.{Date, UUID}
+
+import io.codearte.jfairy.Fairy
+import org.joda.time._
 import truerss.models
 /**
  * Created by mike on 2.8.15.
  */
 object Gen {
+  import models.{Feed, Source}
   import truerss.util.Util._
-  import models.{Source, Feed}
 
   private val fairy = Fairy.create()
 
@@ -39,13 +41,15 @@ object Gen {
 
   def genSource(id: Option[Long] = None) = {
     val name = genName
+    val z = new DateTime()
+
     Source(id = id,
       url = genUrl,
       name = name,
       interval = fairy.baseProducer().randomBetween(1, 12),
       plugin = false,
       normalized = name.normalize,
-      lastUpdate = new Date(),
+      lastUpdate = z.plusDays(1).toDate,
       error = false
     )
   }

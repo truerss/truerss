@@ -13,7 +13,7 @@ class NetworkActor extends Actor {
   import network._
 
   def receive = LoggingReceive {
-    case Grep(url) =>
+    case Grep(url) => 
 
     case ExtractContent(url) =>
   }

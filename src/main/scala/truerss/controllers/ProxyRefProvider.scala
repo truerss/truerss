@@ -6,7 +6,7 @@ import akka.util.Timeout
 import spray.routing.HttpService._
 import spray.routing.RequestContext
 import truerss.models.ApiJsonProtocol
-import truerss.system.db.BaseMessage
+import truerss.system.BaseMessage
 
 import scala.concurrent.duration._
 import scala.language.postfixOps

@@ -1,6 +1,6 @@
 package truerss.system
 
-import akka.actor.{ActorRef, Actor}
+import akka.actor.{ActorRef, Actor, Props}
 import akka.util.Timeout
 import akka.pattern._
 import akka.event.LoggingReceive
@@ -17,12 +17,16 @@ import Scalaz._
   * Created by mike on 2.8.15.
  */
 class ProxyActor(dbRef: ActorRef, networkRef: ActorRef) extends Actor {
+  //TODO make a router
 
   import truerss.controllers.{ModelsResponse, ModelResponse, NotFoundResponse}
   import db._
   import network._
+  import util.Update
   import truerss.models.{Source, Feed}
   import context.dispatcher
+
+  val sourcesRef = context.actorOf(Props(new SourcesActor(self)), "sources")
 
   implicit val timeout = Timeout(7 seconds)
 
@@ -140,6 +144,10 @@ class ProxyActor(dbRef: ActorRef, networkRef: ActorRef) extends Actor {
   def networkReceive: Receive = LoggingReceive {
     case msg: Grep => networkRef forward msg
     case msg: ExtractContent => networkRef forward msg
+  }
+
+  def utilReceive: Receive = LoggingReceive {
+    case Update => sourcesRef ! Update
   }
 
   def receive = dbReceive orElse networkReceive
