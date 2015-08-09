@@ -67,6 +67,12 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor {
       }
     }  pipeTo sender
 
+    case ExtractFeedsForSource(sourceId) => Future.successful {
+      db withSession { implicit session =>
+        feeds.filter(_.sourceId === sourceId).buildColl
+      }
+    } pipeTo sender
+
     case Favorites => Future.successful {
       db withSession { implicit session =>
         feeds.filter(_.favorite === true).buildColl

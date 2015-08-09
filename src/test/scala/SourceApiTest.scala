@@ -232,4 +232,14 @@ class SourceApiTest extends FunSpec with Matchers
     }
   }
 
+  describe("Extract feeds for source") {
+    it("return all feeds for source") {
+      val sourceId = ids(0)
+      Get(s"${sourceUrl}/feeds/${sourceId}") ~> computeRoute ~> check {
+        val result = JsonParser(responseAs[String]).convertTo[Vector[Feed]]
+        result.forall(_.sourceId == sourceId) should be(true)
+      }
+    }
+  }
+
 }

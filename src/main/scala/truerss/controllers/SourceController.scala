@@ -60,5 +60,7 @@ trait SourceController extends BaseController
 
   def latest(count: Long) = end(Latest(count))
 
+  def feeds(num: Long) = end(ExtractFeedsForSource(num))
+
 
 }

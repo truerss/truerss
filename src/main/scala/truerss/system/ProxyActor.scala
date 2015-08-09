@@ -113,6 +113,9 @@ class ProxyActor(dbRef: ActorRef) extends Actor {
     case msg: Latest => (dbRef ? msg).mapTo[Vector[Feed]]
       .map(ModelsResponse(_)) pipeTo sender
 
+    case msg: ExtractFeedsForSource => (dbRef ? msg).mapTo[Vector[Feed]]
+      .map(ModelsResponse(_)) pipeTo sender
+
     case Favorites => (dbRef ? Favorites).mapTo[Vector[Feed]]
       .map(ModelsResponse(_)) pipeTo sender
 

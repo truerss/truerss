@@ -25,6 +25,7 @@ package object system {
 
     case class MarkAll(num: Long) extends BaseMessage
     case class Latest(count: Long) extends BaseMessage
+    case class ExtractFeedsForSource(sourceId: Long) extends BaseMessage
 
     // util:
     case class UrlIsUniq(url: String, id: Option[Long] = None) extends BaseMessage
