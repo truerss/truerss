@@ -58,5 +58,7 @@ trait SourceController extends BaseController
 
   def markAll(num: Long) = end(MarkAll(num))
 
+  def latest(count: Long) = end(Latest(count))
+
 
 }

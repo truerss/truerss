@@ -223,4 +223,13 @@ class SourceApiTest extends FunSpec with Matchers
     }
   }
 
+  describe("Lates") {
+    it("return all non read feeds") {
+      Get(s"${sourceUrl}/latest/10") ~> computeRoute ~> check {
+        val res = JsonParser(responseAs[String]).convertTo[Vector[Feed]]
+        res.size should be > 0
+      }
+    }
+  }
+
 }
