@@ -42,6 +42,7 @@ trait ActorRefExt { self : ProxyRefProvider =>
       (ref ? x).mapTo[Response].map {
         case ModelsResponse(xs) => ctx.complete(OK, xs.toJson.toString)
         case ModelResponse(x) => ctx.complete(OK, x.toJson.toString)
+        case OkResponse(x) => ctx.complete(OK, x.toString)
         case NotFoundResponse(msg) => ctx.complete(NotFound, msg)
         case BadRequestResponse(msg) => ctx.complete(BadRequest, msg)
       }

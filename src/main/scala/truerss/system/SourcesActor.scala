@@ -45,6 +45,7 @@ class SourcesActor(proxyRef: ActorRef) extends Actor with ActorLogging {
 
     case Update =>
       context.children.foreach{ _ ! Update }
+      sender ! OkResponse("updated")
 
     case UpdateOne(num) => //TODO use actorSelection and id insead of normalize
       val original = sender

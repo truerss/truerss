@@ -16,17 +16,15 @@ import Scalaz._
 /**
   * Created by mike on 2.8.15.
  */
-class ProxyActor(dbRef: ActorRef, networkRef: ActorRef) extends Actor {
+class ProxyActor(dbRef: ActorRef, networkRef: ActorRef, sourcesRef: ActorRef) extends Actor {
   //TODO make a router
 
   import truerss.controllers.{ModelsResponse, ModelResponse, NotFoundResponse}
   import db._
   import network._
-  import util.Update
+  import util._
   import truerss.models.{Source, Feed}
   import context.dispatcher
-
-  val sourcesRef = context.actorOf(Props(new SourcesActor(self)), "sources")
 
   implicit val timeout = Timeout(7 seconds)
 
@@ -147,10 +145,11 @@ class ProxyActor(dbRef: ActorRef, networkRef: ActorRef) extends Actor {
   }
 
   def utilReceive: Receive = LoggingReceive {
-    case Update => sourcesRef ! Update
+    case Update => sourcesRef forward Update
+    case msg: UpdateOne => sourcesRef forward msg
   }
 
-  def receive = dbReceive orElse networkReceive
+  def receive = dbReceive orElse networkReceive orElse utilReceive
 
 
 }

@@ -8,6 +8,7 @@ import akka.pattern.ask
 import org.scalatest._
 import spray.http.{StatusCodes, MediaTypes, HttpEntity}
 import spray.httpx.unmarshalling.Unmarshaller
+import truerss.controllers.{NotFoundResponse, OkResponse}
 import truerss.system.ProxyActor
 import truerss.db._
 import truerss.models.{Source, Feed, CurrentDriver}
@@ -37,12 +38,14 @@ class SourceApiTest extends FunSpec with Matchers
   import Gen._
   import truerss.models.ApiJsonProtocol._
   import truerss.util.Util._
+  import truerss.system.util.{UpdateOne, Update}
 
   def actorRefFactory = system
 
   val dbRef = system.actorOf(Props(new DbActor(db, driver)), "test-db")
-  val networkRef = TestProbe().ref
-  val proxyRef = system.actorOf(Props(new ProxyActor(dbRef, networkRef)), "test-proxy")
+  val networkRef = TestProbe()
+  val sourcesRef = TestProbe()
+  val proxyRef = system.actorOf(Props(new ProxyActor(dbRef, networkRef.ref, sourcesRef.ref)), "test-proxy")
   val context = system
 
   val computeRoute = route(proxyRef, context)
@@ -242,5 +245,27 @@ class SourceApiTest extends FunSpec with Matchers
       }
     }
   }
+
+  describe("Refresh") {
+    it("refresh all source actors") {
+      Put(s"${sourceUrl}/refresh") ~> computeRoute ~> check {
+        sourcesRef.expectMsg(10 seconds, Update)
+        sourcesRef.reply(OkResponse("ok"))
+        responseAs[String] should be("ok")
+        status should be(StatusCodes.OK)
+      }
+    }
+  }
+
+//  describe("Refresh One") {
+//    it("404 when source not found") {
+//      Put(s"${sourceUrl}/refreshOne/100") ~> computeRoute ~> check {
+//        sourcesRef.expectMsg(10 seconds, UpdateOne)
+//        sourcesRef.reply(NotFoundResponse("not found"))
+//        responseAs[String] should be("not found")
+//        status should be(StatusCodes.OK)
+//      }
+//    }
+//  }
 
 }

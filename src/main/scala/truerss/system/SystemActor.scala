@@ -17,13 +17,15 @@ class SystemActor(dbDef: DatabaseDef, driver: CurrentDriver) extends Actor
 
   val networkRef = context.actorOf(Props(new NetworkActor), "network")
 
-  val proxyRef = context.actorOf(Props(new ProxyActor(dbRef, networkRef)), "proxy")
+  val proxyRef = context.actorOf(Props(new ProxyActor(dbRef, networkRef, sourcesRef)), "proxy")
+
+  val sourcesRef = context.actorOf(Props(new SourcesActor(self)), "sources")
 
   val api = context.actorOf(Props(new RoutingService(proxyRef)), "api")
 
 
   def receive = {
-    case x => log.warning(s"Unexpected Message: ${x}")
+    case x => proxyRef forward x
   }
 
 }

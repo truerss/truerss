@@ -39,7 +39,8 @@ with ScalatestRouteTest with Routing with Common {
 
   val dbRef = system.actorOf(Props(new DbActor(db, driver)), "test-db")
   val networkRef = TestProbe().ref
-  val proxyRef = system.actorOf(Props(new ProxyActor(dbRef, networkRef)), "test-proxy")
+  val sourcesRef = TestProbe()
+  val proxyRef = system.actorOf(Props(new ProxyActor(dbRef, networkRef, sourcesRef.ref)), "test-proxy")
   val context = system
 
   val computeRoute = route(proxyRef, context)
