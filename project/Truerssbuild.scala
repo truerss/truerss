@@ -18,7 +18,18 @@ object Truerssbuild extends Build {
     resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
     resolvers += "JCenter" at "http://jcenter.bintray.com/",
     resolvers += "karussell_releases" at "https://github.com/karussell/mvnrepo",
-    scalaVersion := "2.10.5"
+    scalaVersion := "2.10.5",
+    scalacOptions ++= Seq("-Xlog-free-terms", "-deprecation", "-feature",
+      "-encoding", "UTF-8",
+      "-feature",
+      "-language:higherKinds",
+      "-language:implicitConversions",
+      "-language:postfixOps",
+      "-deprecation",
+      "-unchecked",
+      "-Xcheckinit",
+      "-Xverify",
+      "-Xfuture")
   )
 
   val sprayVersion = "1.3.3"

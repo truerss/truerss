@@ -15,10 +15,11 @@ class SystemActor(dbDef: DatabaseDef, driver: CurrentDriver) extends Actor
 
   val dbRef = context.actorOf(Props(new DbActor(dbDef, driver)), "db")
 
-  val proxyRef = context.actorOf(Props(new ProxyActor(dbRef)), "proxy")
+  val networkRef = context.actorOf(Props(new NetworkActor), "network")
+
+  val proxyRef = context.actorOf(Props(new ProxyActor(dbRef, networkRef)), "proxy")
 
   val api = context.actorOf(Props(new RoutingService(proxyRef)), "api")
-
 
 
   def receive = {

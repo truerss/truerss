@@ -16,10 +16,11 @@ import Scalaz._
 /**
   * Created by mike on 2.8.15.
  */
-class ProxyActor(dbRef: ActorRef) extends Actor {
+class ProxyActor(dbRef: ActorRef, networkRef: ActorRef) extends Actor {
 
   import truerss.controllers.{ModelsResponse, ModelResponse, NotFoundResponse}
   import db._
+  import network._
   import truerss.models.{Source, Feed}
   import context.dispatcher
 
@@ -38,8 +39,7 @@ class ProxyActor(dbRef: ActorRef) extends Actor {
     case None => sourceNotFound
   }
   
-  
-  def receive = LoggingReceive {
+  def dbReceive: Receive = LoggingReceive {
     case GetAll => (dbRef ? GetAll).mapTo[Vector[Source]].map(ModelsResponse(_)) pipeTo sender
 
     case msg: GetSource => (dbRef ? msg).mapTo[Option[Source]].map{
@@ -59,22 +59,22 @@ class ProxyActor(dbRef: ActorRef) extends Actor {
             urlIsUniq <- (dbRef ? UrlIsUniq(msg.source.url)).mapTo[Int]
             nameIsUniq <- (dbRef ? NameIsUniq(msg.source.name)).mapTo[Int]
           } yield {
-            if (urlIsUniq == 0 && nameIsUniq == 0) {
-              (dbRef ? msg).mapTo[Long]
-                .map{x => ModelResponse(msg.source.copy(id = Some(x)))}
-            } else {
-              val urlError = if (urlIsUniq > 0) {
-                "Url already present in db"
-              } else { "" }
-              val nameError = if(nameIsUniq > 0) {
-                "Name not unique"
+              if (urlIsUniq == 0 && nameIsUniq == 0) {
+                (dbRef ? msg).mapTo[Long]
+                  .map{x => ModelResponse(msg.source.copy(id = Some(x)))}
               } else {
-                ""
+                val urlError = if (urlIsUniq > 0) {
+                  "Url already present in db"
+                } else { "" }
+                val nameError = if(nameIsUniq > 0) {
+                  "Name not unique"
+                } else {
+                  ""
+                }
+                val errs = Vector(urlError, nameError).filterNot(_.isEmpty)
+                Future.successful(BadRequestResponse(errs.mkString(", ")))
               }
-              val errs = Vector(urlError, nameError).filterNot(_.isEmpty)
-              Future.successful(BadRequestResponse(errs.mkString(", ")))
-            }
-          }).flatMap(identity(_))
+            }).flatMap(identity(_))
 
         case Left(errs) => Future.successful(
           BadRequestResponse(errs.toList.mkString(", ")))
@@ -135,8 +135,14 @@ class ProxyActor(dbRef: ActorRef) extends Actor {
 
     case msg: MarkAsUnreadFeed => (dbRef ? msg).mapTo[Option[Feed]]
       .map(optionFeedResponse) pipeTo sender
-
   }
+
+  def networkReceive: Receive = LoggingReceive {
+    case msg: Grep => networkRef forward msg
+    case msg: ExtractContent => networkRef forward msg
+  }
+
+  def receive = dbReceive orElse networkReceive
 
 
 }

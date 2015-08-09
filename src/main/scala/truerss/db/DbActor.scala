@@ -121,14 +121,14 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor {
     case UrlIsUniq(url, id) =>
       Future.successful {
       db withSession { implicit session =>
-        id.map(id => sources.filter(s => s.url === url && s.id != id))
+        id.map(id => sources.filter(s => s.url === url && !(s.id === id)))
           .getOrElse(sources.filter(s => s.url === url)).length.run
       }
     } pipeTo sender
 
     case NameIsUniq(name, id) => Future.successful {
       db withSession { implicit session =>
-        id.map(id => sources.filter(s => s.name === name && s.id != id))
+        id.map(id => sources.filter(s => s.name === name && !(s.id === id)))
         .getOrElse(sources.filter(s => s.name === name)).length.run
       }
     } pipeTo sender
