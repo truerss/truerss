@@ -45,6 +45,7 @@ trait ActorRefExt { self : ProxyRefProvider =>
         case OkResponse(x) => ctx.complete(OK, x.toString)
         case NotFoundResponse(msg) => ctx.complete(NotFound, msg)
         case BadRequestResponse(msg) => ctx.complete(BadRequest, msg)
+        case InternalServerErrorResponse(msg) => ctx.complete(InternalServerError, msg)
       }
   }
 }

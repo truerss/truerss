@@ -56,6 +56,9 @@ class SourcesActor(proxyRef: ActorRef) extends Actor with ActorLogging {
         case NotFoundResponse(msg) =>
           log.debug(s"Not found source with id = ${num}")
           original ! NotFoundResponse(msg)
+        case x =>
+          log.warning(s"Unexpected message ${x}")
+          original ! InternalServerErrorResponse("Unexpected error")
       }
 
     case x => context.parent forward x
