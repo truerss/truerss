@@ -248,24 +248,18 @@ class SourceApiTest extends FunSpec with Matchers
 
   describe("Refresh") {
     it("refresh all source actors") {
-      Put(s"${sourceUrl}/refresh") ~> computeRoute ~> check {
-        sourcesRef.expectMsg(10 seconds, Update)
-        sourcesRef.reply(OkResponse("ok"))
+      val resp = Put(s"${sourceUrl}/refresh") ~> computeRoute
+
+      sourcesRef.expectMsg(1 seconds, Update)
+      sourcesRef.reply(OkResponse("ok"))
+
+      resp ~> check {
         responseAs[String] should be("ok")
         status should be(StatusCodes.OK)
       }
     }
   }
 
-//  describe("Refresh One") {
-//    it("404 when source not found") {
-//      Put(s"${sourceUrl}/refreshOne/100") ~> computeRoute ~> check {
-//        sourcesRef.expectMsg(10 seconds, UpdateOne)
-//        sourcesRef.reply(NotFoundResponse("not found"))
-//        responseAs[String] should be("not found")
-//        status should be(StatusCodes.OK)
-//      }
-//    }
-//  }
+
 
 }
