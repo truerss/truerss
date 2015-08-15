@@ -39,9 +39,7 @@ class SourceActor(source: Source) extends Actor  with ActorLogging {
 
   def receive = {
     case Update =>
-      // update lastUpdate time in db
-      // use plugin
-      //context.parent ! Grep(source.url)
+      context.parent ! Grep(source.id.get, source.url)
   }
 
 

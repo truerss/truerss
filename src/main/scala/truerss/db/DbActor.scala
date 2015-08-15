@@ -1,5 +1,7 @@
 package truerss.db
 
+import java.util.Date
+
 import akka.actor.Actor
 import akka.event.LoggingReceive
 import akka.pattern._
@@ -15,6 +17,7 @@ import truerss.system
 class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor {
 
   import system.db._
+  import system.util.SourceLastUpdate
   import driver.query._
   import driver.profile.simple._
   import context.dispatcher
@@ -132,6 +135,12 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor {
         .getOrElse(sources.filter(s => s.name === name)).length.run
       }
     } pipeTo sender
+
+    case SourceLastUpdate(sourceId) =>
+      db withSession { implicit session =>
+        sources.filter(_.id === sourceId)
+          .map(s => s.lastUpdate).update(new Date())
+      }
 
   }
 

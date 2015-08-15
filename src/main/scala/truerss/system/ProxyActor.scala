@@ -28,6 +28,10 @@ class ProxyActor(dbRef: ActorRef, networkRef: ActorRef, sourcesRef: ActorRef) ex
 
   implicit val timeout = Timeout(7 seconds)
 
+  val stream = context.system.eventStream
+
+  stream.subscribe(dbRef, classOf[SourceLastUpdate])
+
   def sourceNotFound(num: Long) = NotFoundResponse(s"Source with id = ${num} not found")
   def sourceNotFound = NotFoundResponse(s"Source not found")
   def feedNotFound = NotFoundResponse(s"Feed not found")
@@ -140,7 +144,9 @@ class ProxyActor(dbRef: ActorRef, networkRef: ActorRef, sourcesRef: ActorRef) ex
   }
 
   def networkReceive: Receive = LoggingReceive {
-    case msg: Grep => networkRef forward msg
+    case msg: Grep =>
+      stream.publish(SourceLastUpdate(msg.sourceId))
+      networkRef forward msg
     case msg: ExtractContent => networkRef forward msg
   }
 

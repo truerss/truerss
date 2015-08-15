@@ -1,21 +1,42 @@
 package truerss.system
 
-import akka.actor.Actor
+import akka.actor.{ActorLogging, Actor}
 import akka.event.LoggingReceive
+import truerss.plugins.BasePlugin
 
+import scala.util._
 
-/**
- * Created by mike on 9.8.15.
- *
- */
-class NetworkActor extends Actor {
+class NetworkActor extends Actor with ActorLogging {
 
   import network._
 
-  def receive = LoggingReceive {
-    case Grep(url) => 
+  var pluginMap: Map[Long, BasePlugin] = Map.empty
 
-    case ExtractContent(url) =>
+  def receive = LoggingReceive {
+    case NetworkInitialize(z) =>
+      pluginMap = z.map(x => x.sourceId -> x.plugin).toMap
+
+    case Grep(sourceId, url) =>
+      pluginMap.get(sourceId) match {
+        case Some(plugin) =>
+          plugin.newEntries(url) match {
+            case Right(xs) => sender ! ExtractedEntries(sourceId, xs)
+            case Left(error) => sender ! ExtractError(error)
+          }
+        case None =>
+          sender ! SourceNotFound(sourceId)
+      }
+
+    case ExtractContent(sourceId, feedId, url) =>
+      pluginMap.get(sourceId) match {
+        case Some(plugin) => plugin.content(url) match {
+          case Right(content) =>
+            sender ! ExtractContentForEntry(sourceId, feedId, content)
+          case Left(error) =>
+            sender ! ExtractError(error)
+        }
+        case None => sender ! SourceNotFound(sourceId)
+      }
   }
 
 }

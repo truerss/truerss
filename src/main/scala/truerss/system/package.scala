@@ -1,7 +1,7 @@
 package truerss
 
 import truerss.models.Source
-
+import truerss.plugins.Entry
 /**
  * Created by mike on 2.8.15.
  */
@@ -33,17 +33,28 @@ package object system {
     case class UrlIsUniq(url: String, id: Option[Long] = None) extends BaseMessage
     case class NameIsUniq(name: String, id: Option[Long] = None) extends BaseMessage
 
+
   }
 
   object network {
-    case class Grep(url: String)
-    case class ExtractContent(url: String) // TODO use plugin
+    import truerss.plugins.BasePlugin
+    case class SourceInfo(sourceId: Long, plugin: BasePlugin)
+    case class Grep(sourceId: Long, url: String)
+    case class ExtractContent(sourceId: Long, feedId: Long, url: String)
+    case class NetworkInitialize(xs: Vector[SourceInfo])
+
+    case class ExtractedEntries(sourceId: Long, entries: Vector[Entry])
+    case class ExtractContentForEntry(sourceId: Long, feedId: Long, content: Option[String])
+    case class ExtractError(message: String)
+    case class SourceNotFound(sourceId: Long)
   }
 
   object util {
     case object Start extends BaseMessage
     case object Update extends BaseMessage
     case class UpdateOne(num: Long) extends BaseMessage
+
+    case class SourceLastUpdate(sourceId: Long)
   }
 
 
