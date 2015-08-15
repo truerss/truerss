@@ -1,19 +1,16 @@
 package truerss.plugins
 
-import java.io.{ByteArrayInputStream, File}
-import java.net.URL
+import java.io.ByteArrayInputStream
 import java.util.Date
-
 
 import com.rometools.rome.feed.synd.SyndEntry
 import com.rometools.rome.io.{SyndFeedInput, XmlReader}
-
-import org.apache.commons.io.FileUtils
 import org.jsoup.Jsoup
 import org.jsoup.parser._
 
 import scala.collection.JavaConversions._
 import scala.util.control.Exception._
+import com.rometools.rome.io.ParsingFeedException
 
 class DefaultSiteReader(config: Map[String, String]) extends BasePlugin(config) {
 
@@ -29,7 +26,7 @@ class DefaultSiteReader(config: Map[String, String]) extends BasePlugin(config) 
   override def matchUrl(url: String) = true
 
   override def newEntries(url: String) = {
-    catching(classOf[RuntimeException]) either extract(url) fold(
+    catching(classOf[Exception]) either extract(url) fold(
       err => Left(err.getMessage),
       ok => Right(ok)
     )
@@ -52,28 +49,34 @@ class DefaultSiteReader(config: Map[String, String]) extends BasePlugin(config) 
       case entry: SyndEntry =>
         val author = entry.getAuthor
         val date = Option(entry.getPublishedDate).getOrElse(new Date())
-        val title = Option(entry.getTitle)
+        val title = Option(entry.getTitle).map(_.trim)
 
         val link = if (entry.getLink != "") {
-          entry.getLink
+          entry.getLink.trim
         } else {
-          entry.getUri
+          entry.getUri.trim
         }
 
         val cont = None
 
         val description = Option(entry.getDescription)
-          .map(d => Jsoup.parse(d.getValue).select("img").remove().toString).
+          .map(d => Jsoup.parse(d.getValue).select("img").remove().text()).
           orElse(None)
 
-        Entry(link, title.get, author, date, description, cont)
+        val d = if (description.map(_.trim.size).getOrElse(0) == 0) {
+          None
+        } else {
+          description
+        }
+
+        Entry(link, title.get, author, date, d, cont)
     }
 
     entries.toVector.reverse
   }
 
   override def content(url: String) = {
-    catching(classOf[RuntimeException]) either extractContent(url) fold(
+    catching(classOf[Exception]) either extractContent(url) fold(
       err => Left(err.getMessage),
       ok => Right(ok)
     )
@@ -83,7 +86,7 @@ class DefaultSiteReader(config: Map[String, String]) extends BasePlugin(config) 
     val response = getResponse(url)
 
     if (response.isError) {
-      throw new RuntimeException(s"Connection error for ${url}") //FIXME
+      throw new RuntimeException(s"Connection error for ${url}") 
     }
 
     val doc = Jsoup.parse(response.body.toString).select("article")

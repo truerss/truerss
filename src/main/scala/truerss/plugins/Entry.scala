@@ -9,4 +9,11 @@ case class Entry(
   publishedDate: Date,
   description: Option[String],
   content: Option[String]
-)
+) {
+  override def toString = {
+    s"""Entry[url = ${url}, title=${title}; author=${author};date=${publishedDate};
+        description=${description};
+        content=$content
+    ]"""
+  }
+}
