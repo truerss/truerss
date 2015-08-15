@@ -20,7 +20,8 @@ trait Common extends BeforeAndAfterAll { self : org.scalatest.Suite =>
   val driver = new CurrentDriver(dbProfile.profile)
   import driver.profile.simple._
 
-  val sources = Vector(genSource(), genSource(), genSource())
+  val source1 = genSource()
+  val sources = Vector(source1, genSource(), genSource())
   var ids = scala.collection.mutable.ArrayBuffer[Long]()
   var feedIds = scala.collection.mutable.ArrayBuffer[Long]()
   var unfavAndUnReadId: Long = _

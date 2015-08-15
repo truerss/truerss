@@ -153,8 +153,7 @@ class SourceApiTest extends FunSpec with Matchers
 
     it ("update - 400 when url already present in db") {
       val last = ids.last
-      val first = ids(0)
-      val url = sources(first.toInt).url
+      val url = source1.url
       val json = sources(last.toInt).copy(url = url).toJson.toString
       Put(s"${sourceUrl}/${last}", json) ~> computeRoute ~> check {
         responseAs[String] should be("Url already present in db")
@@ -164,8 +163,7 @@ class SourceApiTest extends FunSpec with Matchers
 
     it ("400 when name already present in db") {
       val last = ids.last
-      val first = ids(0)
-      val name = sources(first.toInt).name
+      val name = source1.name
       val json = sources(last.toInt).copy(name = name).toJson.toString
       Put(s"${sourceUrl}/${last}", json) ~> computeRoute ~> check {
         responseAs[String] should be("Name not unique")
