@@ -21,7 +21,7 @@ class NetworkActor extends Actor with ActorLogging {
         case Some(plugin) =>
           plugin.newEntries(url) match {
             case Right(xs) => sender ! ExtractedEntries(sourceId, xs)
-            case Left(error) => sender ! ExtractError(error)
+            case Left(error) => sender ! ExtractError(error.error)
           }
         case None =>
           sender ! SourceNotFound(sourceId)
@@ -33,7 +33,7 @@ class NetworkActor extends Actor with ActorLogging {
           case Right(content) =>
             sender ! ExtractContentForEntry(sourceId, feedId, content)
           case Left(error) =>
-            sender ! ExtractError(error)
+            sender ! ExtractError(error.error)
         }
         case None => sender ! SourceNotFound(sourceId)
       }

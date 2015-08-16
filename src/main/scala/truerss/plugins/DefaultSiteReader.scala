@@ -10,11 +10,18 @@ import org.jsoup.parser._
 
 import scala.collection.JavaConversions._
 import scala.util.control.Exception._
-import com.rometools.rome.io.ParsingFeedException
+import com.rometools.rome.io.{ParsingFeedException => PE}
 
 class DefaultSiteReader(config: Map[String, String]) extends BasePlugin(config) {
 
   import truerss.util.Request._
+  import Errors._
+
+  implicit def exception2error(x: Throwable) = x match {
+    case x: PE => Left(ParsingError(x.getMessage))
+    case x: RuntimeException => Left(ConnectionError(x.getMessage))
+    case x: Exception => Left(UnexpectedError(x.getMessage))
+  }
 
   override val author = "fntz"
   override val about = "default rss|atom reader"
@@ -27,7 +34,7 @@ class DefaultSiteReader(config: Map[String, String]) extends BasePlugin(config) 
 
   override def newEntries(url: String) = {
     catching(classOf[Exception]) either extract(url) fold(
-      err => Left(err.getMessage),
+      err => err,
       ok => Right(ok)
     )
   }
@@ -77,7 +84,7 @@ class DefaultSiteReader(config: Map[String, String]) extends BasePlugin(config) 
 
   override def content(url: String) = {
     catching(classOf[Exception]) either extractContent(url) fold(
-      err => Left(err.getMessage),
+      err => err,
       ok => Right(ok)
     )
   }

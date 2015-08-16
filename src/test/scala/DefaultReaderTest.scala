@@ -20,7 +20,7 @@ class DefaultReaderTest extends FunSpec with Matchers
 with ScalatestRouteTest with BeforeAndAfterAll {
 
   implicit val timeout = Timeout(10 seconds)
-
+  import truerss.plugins.Errors.ParsingError
   override def beforeAll() = {}
 
   val rssServer = system.actorOf(Props[Server])
@@ -68,7 +68,9 @@ with ScalatestRouteTest with BeforeAndAfterAll {
     it("return error when parse failed") {
       val result = defaultReader.newEntries(badRss)
       result.isLeft should be(true)
-      result.left.get should be("Invalid XML: Error on line 1: Content is not allowed in prolog.")
+      result.left.get should be(ParsingError(
+        "Invalid XML: Error on line 1: Content is not allowed in prolog.")
+      )
     }
 
     it("return error when connection failed") {

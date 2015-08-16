@@ -4,6 +4,8 @@ import scala.util.Either
 
 trait BaseReader { self: BasePlugin =>
 
+  import Errors.Error
+
   /**
    * This method check url, and return `true` when url for this site
    *
@@ -18,7 +20,7 @@ trait BaseReader { self: BasePlugin =>
    * @param url
    * @return List[Entry]
    */
-  def newEntries(url: String): Either[String, Vector[Entry]]
+  def newEntries(url: String): Either[Error, Vector[Entry]]
 
   /**
    * Extract content for given title
@@ -26,7 +28,7 @@ trait BaseReader { self: BasePlugin =>
    * @param url
    * @return
    */
-  def content(url: String): Either[String, Option[String]]
+  def content(url: String): Either[Error, Option[String]]
 
 
   val priority = 0
