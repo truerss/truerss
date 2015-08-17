@@ -23,10 +23,23 @@ object Boot extends App {
 
   import driver.profile.simple._
 
+  import truerss.models.Source
+  import java.util.Date
 
   db withSession { implicit session =>
     if (MTable.getTables("sources").list.isEmpty) {
       (driver.query.sources.ddl ++ driver.query.feeds.ddl).create
+
+      val s = Source(id = None,
+        url = "http://localhost:8000",
+        name = "new source",
+        interval = 12,
+        plugin = false,
+        normalized = "new-source",
+        lastUpdate = new Date(2015, 8, 17),
+        error = false
+      )
+      driver.query.sources.insert(s)
     }
   }
 
