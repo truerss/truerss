@@ -56,9 +56,6 @@ trait Routing extends Routable {
       } ~
       pathPrefix("templates") {
         getFromResourceDirectory("templates")
-      } ~
-      pathPrefix("img") {
-        getFromResourceDirectory("images")
       }
 
 
