@@ -9,7 +9,8 @@ import spray.routing.HttpService
 trait MainController extends BaseController {
 
   import HttpService._
+  import spray.httpx.TwirlSupport._
 
-  def root = complete("123")
+  def root = complete(truerss.html.index.render)
 
 }

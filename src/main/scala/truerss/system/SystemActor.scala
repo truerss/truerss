@@ -1,17 +1,22 @@
 package truerss.system
 
-import akka.actor.{ActorLogging, Actor, Props}
+import akka.actor.{Actor, ActorLogging, Props}
+import akka.io.IO
+
+import scala.slick.jdbc.JdbcBackend.DatabaseDef
+import spray.can.Http
+
+import truerss.api.RoutingService
 import truerss.db.DbActor
 import truerss.models.CurrentDriver
 
-import scala.slick.jdbc.JdbcBackend.DatabaseDef
-import truerss.api.RoutingService
 /**
  * Created by mike on 2.8.15.
  */
 class SystemActor(dbDef: DatabaseDef, driver: CurrentDriver) extends Actor
- with ActorLogging {
+  with ActorLogging {
 
+  implicit val system = context.system
 
   val dbRef = context.actorOf(Props(new DbActor(dbDef, driver)), "db")
 
@@ -23,6 +28,7 @@ class SystemActor(dbDef: DatabaseDef, driver: CurrentDriver) extends Actor
 
   val api = context.actorOf(Props(new RoutingService(proxyRef)), "api")
 
+  IO(Http) ! Http.Bind(api, interface = "localhost", port = 8000)
 
   def receive = {
     case x => proxyRef forward x

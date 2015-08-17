@@ -44,6 +44,21 @@ trait Routing extends Routable {
             put0[FeedController](("unread" / LongNumber) ~> "unread")
           }
         }
+      } ~
+      pathPrefix("css") {
+        getFromResourceDirectory("css")
+      } ~
+      pathPrefix("js") {
+        getFromResourceDirectory("javascript")
+      } ~
+      pathPrefix("fonts") {
+        getFromResourceDirectory("fonts")
+      } ~
+      pathPrefix("templates") {
+        getFromResourceDirectory("templates")
+      } ~
+      pathPrefix("img") {
+        getFromResourceDirectory("images")
       }
 
 
