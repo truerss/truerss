@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+
+<head lang="en">
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title></title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="/css/uikit.almost-flat.min.css">
+    <link rel="stylesheet" href="/css/truerss.css">
+
+</head>
+<body class="tm-background">
+
+<nav class="tm-navbar uk-navbar uk-navbar-attached">
+    <div class="uk-container uk-container-center">
+
+        <a class="uk-navbar-brand uk-hidden-small" href="http://truerss.net/">TrueRSS</a>
+
+        <ul class="uk-navbar-nav uk-hidden-small">
+            <li class="uk-active"><a href="/">Home</a></li>
+            <li><a href="#add-modal" data-uk-modal>add</a></li>
+            <li><a href="#import-modal" data-uk-modal>import</a></li>
+            <li><a id="refresh" class="cursor">refresh</a></li>
+            <li><a id="mark-all" class="cursor">mark all</a></li>
+            <li><a href="/favorites" rel="noreferrer">favorites</a></li>
+            <li><a href="/sources" rel="noreferrer">sources</a></li>
+            <li><a href="/plugins" rel="noreferrer">plugins</a></li>
+            <li><a href="#about-modal" data-uk-modal>about</a></li>
+        </ul>
+
+        <a href="#tm-offcanvas" class="uk-navbar-toggle uk-visible-small" data-uk-offcanvas></a>
+
+
+
+    </div>
+</nav>
+
+<div class="tm-middle">
+    <div class="uk-container uk-container-center">
+
+        <div class="uk-grid" data-uk-grid-margin>
+            <div class="tm-sidebar uk-width-medium-1-4 uk-hidden-small">
+
+                <ul class="tm-nav uk-nav" data-uk-nav>
+
+                    <li class="uk-nav-header">Defaults</li>
+                    <li><a href="base.html">Base</a></li>
+                    <li><a href="print.html">Print</a></li>
+
+
+
+                </ul>
+
+            </div>
+            <div class="tm-main uk-width-medium-3-4">
+
+                <article class="uk-article">
+
+                    <h1 class="uk-article-title">title</h1>
+
+                    <hr class="uk-article-divider">
+
+                    <p>article</p>
+
+
+                    <button class="uk-button" data-uk-offcanvas="{target:'#offcanvas-5'}">Open</button>
+
+                    <div id="offcanvas-5" class="uk-offcanvas">
+                        <div class="uk-offcanvas-bar">
+                            <div class="uk-panel">
+                                <h3 class="uk-panel-title">Panel title</h3>
+                                Lorem ipsum dolor sit amet, <a href="#">consectetur</a> adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                            </div>
+
+                            <div class="uk-panel">
+                                <h3 class="uk-panel-title">Panel title</h3>
+                                Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                            </div>
+                        </div>
+                    </div>
+
+
+                </article>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<div id="about-modal" class="uk-modal">
+    <div class="uk-modal-dialog">
+        <a class="uk-modal-close uk-close"></a>
+        <div class="uk-modal-header">About TrueRSS</div>
+        ...
+    </div>
+</div>
+
+<div id="import-modal" class="uk-modal">
+    <div class="uk-modal-dialog">
+        <a class="uk-modal-close uk-close"></a>
+        <div class="uk-modal-header">Import from OPML file</div>
+        <form class="uk-form" method="POST" id="upload-form" enctype="multipart/form-data">
+            <fieldset data-uk-margin>
+                <div class="uk-form-file">
+                    <input id="file-upload" type="file" name="file">
+                </div>
+                <button id="start-import" class="uk-button">upload</button>
+                <span class="filesize-error error"></span>
+                <span  class="fileformat-error error"></span>
+            </fieldset>
+        </form>
+    </div>
+</div>
+
+<div id="add-modal" class="uk-modal">
+    <div class="uk-modal-dialog">
+        <a class="uk-modal-close uk-close"></a>
+        <div class="uk-modal-header">Add new source</div>
+        <form class="uk-form-horizontal">
+            <fieldset data-uk-margin>
+                <div class="uk-form-row">
+                    <label class="uk-form-label">Title</label>
+                    <input type="text" name="title" class="title"  placeholder="enter title" />
+                </div>
+                <div class="uk-form-row">
+                    <label class="uk-form-label">Url</label>
+                    <input type="text" name="url"  placeholder="enter url" />
+                </div>
+                <div class="uk-form-row">
+                    <label class="uk-form-label">Update every</label>
+                    <input id="update-spinner" name="updateEvery" type="text" value="1">
+                </div>
+                <span id="add" class="uk-button">add</span>
+                <span class="source-url-error error"></span>
+            </fieldset>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

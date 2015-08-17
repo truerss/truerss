@@ -8,16 +8,13 @@ import scala.slick.jdbc.JdbcBackend
 /**
  * Created by mike on 9.8.15.
  */
-trait Common extends BeforeAndAfterAll { self : org.scalatest.Suite =>
+trait Common extends BeforeAndAfterAll with DbHelper { self : org.scalatest.Suite =>
 
   import Gen._
 
   val sourceUrl = "/api/v1/sources"
   val feedUrl = "/api/v1/feeds"
 
-  val dbProfile = DBProfile.create(H2)
-  val db = JdbcBackend.Database.forURL("jdbc:h2:mem:test1;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1", driver = dbProfile.driver)
-  val driver = new CurrentDriver(dbProfile.profile)
   import driver.profile.simple._
 
   val source1 = genSource()
