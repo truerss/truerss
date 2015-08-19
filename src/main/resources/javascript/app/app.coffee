@@ -4,6 +4,7 @@ $ ->
   routes =
     "application:run" : controller: MainController, action: "start"
     "/sources" : controller: SourcesController, action: "all"
+    "/" : controller: MainController, action: "view"
 
   app = Sirius.Application.run
     route: routes

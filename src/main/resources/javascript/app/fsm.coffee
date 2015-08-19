@@ -24,6 +24,9 @@ class FSM
   current: () -> @_state
   get: () -> @current()
 
+  hasState: (state) ->
+    @_swap[state] is @_state
+
 
 ControllerStatesExt =
   state: new FSM()
