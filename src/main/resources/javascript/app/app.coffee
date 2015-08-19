@@ -8,8 +8,6 @@ $ ->
   app = Sirius.Application.run
     route: routes
     adapter: new JQueryAdapter()
-    controller_wrapper: {
-      redirect: Sirius.redirect
-      log: (msg) -> console.log(msg)
-    }
+    mix_logger_into_controller: true
+    controller_wrapper: ControllerStatesExt
     log: false

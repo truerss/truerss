@@ -1,0 +1,26 @@
+<table class="uk-table uk-table-striped uk-table-condensed">
+  <caption>All sources</caption>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Url</th>
+            <th>Update interval</th>
+            <th>Last Update</th>
+            <th>Feed count</th>
+            <th>Refresh</th>
+            <th>Delete</th>
+        </tr>
+    </thead>
+  <% for (var i = 0; i < sources.length; i++) { %>
+    <tr>
+      <td><%= sources[i].name() %></td>
+      <td><a href="<%= sources[i].url() %>"><%= sources[i].url() %></a></td>
+      <td><%= sources[i].interval() %></td>
+      <td>every <%= sources[i].last_update() %> hours</td>
+      <td><%= sources[i].count %></td>
+      <td><a href="" class="uk-icon-refresh"></a></td>
+      <td><a href="" class="uk-icon-remove"></a></td>
+    </tr>
+  <% } %>
+</table>
+
