@@ -34,6 +34,20 @@ case class Feed(id: Option[Long],
                 read: Boolean = false,
                 delete: Boolean = false) extends Jsonize
 
+
+case class FrontendSource(url: String, name: String, interval: Int) {
+  def toSource = Source(
+    id = None,
+    url = url,
+    name = name,
+    interval = interval,
+    plugin = false,
+    normalized = name,
+    lastUpdate = new Date(),
+    error = false
+  )
+}
+
 case class CurrentDriver(profile: JdbcProfile) {
 
   import profile.simple._

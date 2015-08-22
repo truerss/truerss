@@ -5,10 +5,9 @@ import akka.pattern._
 import akka.util.Timeout
 import com.github.fntzr.spray.routing.ext.BaseController
 import spray.http.HttpRequest
-import truerss.models.Source
+import truerss.models.{FrontendSource, Source, ApiJsonProtocol}
 import truerss.system.db
 import truerss.system.util
-import truerss.models.ApiJsonProtocol
 
 import scala.concurrent.duration._
 import spray.httpx.SprayJsonSupport._
@@ -40,8 +39,8 @@ trait SourceController extends BaseController
     //TODO check if plugin
     //TODO Skip normalized
     catching(classOf[spray.json.DeserializationException])
-      .opt((JsonParser(sourceString).convertTo[Source])) match {
-      case Some(source) => end(AddSource(source.normalize))
+      .opt((JsonParser(sourceString).convertTo[FrontendSource])) match {
+      case Some(fs) => end(AddSource(fs.toSource.normalize))
       case None => complete(spray.http.StatusCodes.BadRequest, "Not valid json")
     }
   }
@@ -52,8 +51,8 @@ trait SourceController extends BaseController
     //TODO check if plugin
     //TODO Skip normalized
     catching(classOf[spray.json.DeserializationException])
-      .opt((JsonParser(sourceString).convertTo[Source])) match {
-      case Some(source) => end(UpdateSource(num, source.normalize.copy(id = num.some)))
+      .opt((JsonParser(sourceString).convertTo[FrontendSource])) match {
+      case Some(fs) => end(UpdateSource(num, fs.toSource.normalize.copy(id = num.some)))
       case None => complete(spray.http.StatusCodes.BadRequest, "Not valid json")
     }
   }

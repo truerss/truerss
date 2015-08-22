@@ -6,7 +6,7 @@ import spray.json._
  * Created by mike on 2.8.15.
  */
 object ApiJsonProtocol extends DefaultJsonProtocol {
-  import truerss.models.{Source, Feed}
+
   implicit object DateFormat extends JsonFormat[java.util.Date] {
     val format = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
     override def read(json:JsValue): java.util.Date = format.parse(json.convertTo[String])
@@ -15,6 +15,7 @@ object ApiJsonProtocol extends DefaultJsonProtocol {
 
   implicit val sourceFormat = jsonFormat8(Source)
   implicit val feedFormat = jsonFormat12(Feed)
+  implicit val fronendSourceFormat = jsonFormat3(FrontendSource)
 
   implicit def jsonizeWriter: JsonWriter[Jsonize] = new JsonWriter[Jsonize] {
     def write(x: Jsonize) = x match {
