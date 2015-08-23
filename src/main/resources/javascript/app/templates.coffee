@@ -5,5 +5,6 @@ Templates =
   source_list_view: new Sirius.View("#source-list")
   feed_template: new EJS({url: "templates/main"})
   article_view: new Sirius.View("#main")
+  modal_view: new Sirius.View("#add-modal")
 
 

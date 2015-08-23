@@ -1,10 +1,16 @@
 
 class Source extends Sirius.BaseModel
-  @attrs: ["id", "url", "name", "interval", "normalized", "lastUpdate"]
+  @attrs: ["id", "url", "name", {"interval" : 1}, "normalized", "lastUpdate"]
   @skip : true
+  @validate:
+    url: url_validator : true
   count: 0
   href: () ->
     "/show/#{@normalized()}"
+
+  ajaxify: () ->
+    JSON.stringify({url: @url(), interval: parseInt(@interval()), name: @name()})
+
 
 
 Sources = new Sirius.Collection(Source)
