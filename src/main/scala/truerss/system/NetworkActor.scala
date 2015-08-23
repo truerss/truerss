@@ -12,11 +12,12 @@ class NetworkActor extends Actor with ActorLogging {
 
   var pluginMap: Map[Long, BasePlugin] = Map.empty
 
-  def receive = LoggingReceive {
+  def receive = {
     case NetworkInitialize(z) =>
       pluginMap = z.map(x => x.sourceId -> x.plugin).toMap
 
     case Grep(sourceId, url) =>
+      log.info(s"Extract content for ${url} sourceId = ${sourceId}")
       pluginMap.get(sourceId) match {
         case Some(plugin) =>
           plugin.newEntries(url) match {

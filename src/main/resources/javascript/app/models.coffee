@@ -13,7 +13,7 @@ class Source extends Sirius.BaseModel
 
 
 
-Sources = new Sirius.Collection(Source)
+Sources = new Sirius.Collection(Source, {index: ['id', 'name', 'normalized']})
 Sources.subscribe "add", (source) ->
   html = Templates.source_list.render({source: source})
   Templates.source_list_view.render(html).prepend()

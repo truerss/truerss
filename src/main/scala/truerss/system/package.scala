@@ -1,6 +1,6 @@
 package truerss
 
-import truerss.models.Source
+import truerss.models.{Feed, Source}
 import truerss.plugins.Entry
 /**
  * Created by mike on 2.8.15.
@@ -25,6 +25,8 @@ package object system {
     case class MarkAsReadFeed(num: Long) extends BaseMessage
     case class MarkAsUnreadFeed(num: Long) extends BaseMessage
 
+    case class AddFeeds(sourceId: Long, xs: Vector[Feed]) extends BaseMessage
+
     case class MarkAll(num: Long) extends BaseMessage
     case class Latest(count: Long) extends BaseMessage
     case class ExtractFeedsForSource(sourceId: Long) extends BaseMessage
@@ -43,10 +45,12 @@ package object system {
     case class ExtractContent(sourceId: Long, feedId: Long, url: String)
     case class NetworkInitialize(xs: Vector[SourceInfo])
 
-    case class ExtractedEntries(sourceId: Long, entries: Vector[Entry])
-    case class ExtractContentForEntry(sourceId: Long, feedId: Long, content: Option[String])
-    case class ExtractError(message: String)
-    case class SourceNotFound(sourceId: Long)
+    sealed trait NetworkResult
+
+    case class ExtractedEntries(sourceId: Long, entries: Vector[Entry]) extends NetworkResult
+    case class ExtractContentForEntry(sourceId: Long, feedId: Long, content: Option[String]) extends NetworkResult
+    case class ExtractError(message: String) extends NetworkResult
+    case class SourceNotFound(sourceId: Long) extends NetworkResult
   }
 
   object util {

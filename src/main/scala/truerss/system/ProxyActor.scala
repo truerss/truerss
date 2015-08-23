@@ -1,6 +1,6 @@
 package truerss.system
 
-import akka.actor.{ActorRef, Actor, Props}
+import akka.actor.{ActorLogging, ActorRef, Actor, Props}
 import akka.util.Timeout
 import akka.pattern._
 import akka.event.LoggingReceive
@@ -16,13 +16,15 @@ import Scalaz._
 /**
   * Created by mike on 2.8.15.
  */
-class ProxyActor(dbRef: ActorRef, networkRef: ActorRef, sourcesRef: ActorRef) extends Actor {
+class ProxyActor(dbRef: ActorRef, networkRef: ActorRef, sourcesRef: ActorRef)
+  extends Actor with ActorLogging {
   //TODO make a router
 
   import truerss.controllers.{ModelsResponse, ModelResponse, NotFoundResponse}
   import db._
   import network._
   import util._
+  import truerss.util.Util._
   import truerss.models.{Source, Feed}
   import context.dispatcher
 
@@ -143,10 +145,17 @@ class ProxyActor(dbRef: ActorRef, networkRef: ActorRef, sourcesRef: ActorRef) ex
       .map(optionFeedResponse) pipeTo sender
   }
 
-  def networkReceive: Receive = LoggingReceive {
+  def networkReceive: Receive = {
+    case msg: NetworkInitialize => networkRef forward msg
     case msg: Grep =>
       stream.publish(SourceLastUpdate(msg.sourceId))
-      networkRef forward msg
+      (networkRef ? msg).mapTo[NetworkResult].map {
+        case ExtractedEntries(sourceId, xs) =>
+          dbRef ! AddFeeds(sourceId, xs.map(_.toFeed(sourceId)))
+        case ExtractContentForEntry(sourceId, feedId, content) =>
+        case ExtractError(error) => log.info(s"error on extract: $error")
+        case SourceNotFound(sourceId) => log.info(s"source ${sourceId} not found")
+      }
     case msg: ExtractContent => networkRef forward msg
   }
 

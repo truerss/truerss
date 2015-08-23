@@ -19,21 +19,22 @@ object Util {
       description = feed.description,
       content = feed.content
     )
-
-    def fromEntry(entry: Entry, sourceId: Long): Feed = Feed(
-      id = None,
-      sourceId = sourceId,
-      url = entry.url,
-      title = entry.title,
-      publishedDate = entry.publishedDate,
-      author = entry.author,
-      description = entry.description,
-      content = entry.content,
-      normalized = entry.title.normalize,
-      favorite = false,
-      read = false,
-      delete = false
-    )
+  }
+    implicit class EntryExt(entry: Entry) {
+      def toFeed(sourceId: Long): Feed = Feed(
+        id = None,
+        sourceId = sourceId,
+        url = entry.url,
+        title = entry.title,
+        publishedDate = entry.publishedDate,
+        author = entry.author,
+        description = entry.description,
+        content = entry.content,
+        normalized = entry.title.normalize,
+        favorite = false,
+        read = false,
+        delete = false
+      )
   }
 
 

@@ -207,6 +207,7 @@ object Truerssbuild extends Build {
         "org.scalaz" %% "scalaz-core" % "7.1.3",  
         "org.jsoup" % "jsoup" % "1.7.3",
         "commons-validator" % "commons-validator" % "1.4.0",
+        "joda-time" % "joda-time" % "2.8.2",
 
         "org.scalatest" % "scalatest_2.10" % "3.0.0-M7" % "test",
         "com.github.tomakehurst" % "wiremock" % "1.46" % "test",

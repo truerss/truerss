@@ -1,7 +1,7 @@
 package truerss.api
 
 import akka.actor._
-import akka.event.LoggingAdapter
+import akka.event.{LoggingReceive, LoggingAdapter}
 
 import com.github.fntzr.spray.routing.ext.Routable
 
@@ -64,5 +64,5 @@ trait Routing extends Routable {
 
 class RoutingService(proxyRef: ActorRef) extends Actor with Routing with ActorLogging {
   def actorRefFactory = context
-  def receive = runRoute(route(proxyRef, context))
+  def receive = LoggingReceive { runRoute(route(proxyRef, context)) }
 }

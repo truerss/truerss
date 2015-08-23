@@ -25,18 +25,19 @@ object Boot extends App {
 
   import truerss.models.Source
   import java.util.Date
+  import org.joda.time.DateTime
 
   db withSession { implicit session =>
     if (MTable.getTables("sources").list.isEmpty) {
       (driver.query.sources.ddl ++ driver.query.feeds.ddl).create
-
+      val d = new DateTime().minusYears(1)
       val s = Source(id = None,
-        url = "http://localhost:8000",
-        name = "new source",
+        url = "https://news.ycombinator.com/rss",
+        name = "hacker news",
         interval = 12,
         plugin = false,
-        normalized = "new-source",
-        lastUpdate = new Date(2015, 8, 17),
+        normalized = "hacker-news",
+        lastUpdate = d.toDate,
         error = false
       )
       driver.query.sources.insert(s)

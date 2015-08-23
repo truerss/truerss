@@ -2,7 +2,7 @@ package truerss.db
 
 import java.util.Date
 
-import akka.actor.Actor
+import akka.actor.{ActorLogging, Actor}
 import akka.event.LoggingReceive
 import akka.pattern._
 import scala.concurrent.Future
@@ -14,7 +14,7 @@ import truerss.system
 /**
  * Created by mike on 2.8.15.
  */
-class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor {
+class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLogging {
 
   import system.db._
   import system.util.SourceLastUpdate
@@ -22,7 +22,7 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor {
   import driver.profile.simple._
   import context.dispatcher
 
-  def receive = LoggingReceive {
+  def receive = {
     case GetAll => Future.successful{ db withSession { implicit session =>
       sources.buildColl
     }} pipeTo sender
@@ -140,6 +140,19 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor {
       db withSession { implicit session =>
         sources.filter(_.id === sourceId)
           .map(s => s.lastUpdate).update(new Date())
+      }
+
+    case AddFeeds(sourceId, xs) =>
+      db withSession { implicit session =>
+        val alreadyInDbUrl = feeds.filter(_.sourceId === sourceId).map(_.url).run.toVector
+        val fromNetwork = xs.map(_.url)
+        val xsMap = xs.map(x => x.url -> x).toMap
+        val newFeeds = (fromNetwork diff alreadyInDbUrl).flatMap { x =>
+          xsMap.get(x)
+        }
+        log.info(s"for ${sourceId} feeds in db: ${alreadyInDbUrl.size}; " +
+          s"from network ${fromNetwork.size}; new = ${newFeeds.size}")
+        feeds.insertAll(newFeeds : _*)
       }
 
   }

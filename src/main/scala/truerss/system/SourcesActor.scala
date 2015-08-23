@@ -2,9 +2,12 @@ package truerss.system
 
 import akka.actor._
 import akka.actor.SupervisorStrategy.Restart
+import akka.event.LoggingReceive
 import akka.pattern.ask
 import akka.util.Timeout
 import truerss.controllers._
+import truerss.plugins.DefaultSiteReader
+import truerss.system.network.NetworkInitialize
 
 import scala.concurrent.duration._
 
@@ -32,18 +35,23 @@ class SourcesActor(proxyRef: ActorRef) extends Actor with ActorLogging {
       Restart
   }
 
-  context.system.scheduler.scheduleOnce(30 seconds, self, Start)
+  context.system.scheduler.scheduleOnce(3 seconds, self, Start)
 
 
-  def receive = {
+  def receive = LoggingReceive {
     case Start => (proxyRef ? GetAll).mapTo[ModelsResponse[Source]].map { sources =>
+      log.info(s"Given ${sources.xs.size} sources")
       sourcesCount = sources.xs.size
+      val info = sources.xs.map(x => SourceInfo(x.id.get, new DefaultSiteReader(Map.empty)))
+      context.parent ! NetworkInitialize(info)
       sources.xs.foreach { source =>
-        context.actorOf(Props(new SourceActor(source)), s"source-${source.normalize}")
+        log.info(s"Start source actor for ${source.normalized}")
+        context.actorOf(Props(new SourceActor(source)), s"source-${source.normalized}")
       }
     }
 
     case Update =>
+      log.info(s"Update for ${context.children.size} actors")
       context.children.foreach{ _ ! Update }
       sender ! OkResponse("updated")
 
