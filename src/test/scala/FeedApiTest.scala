@@ -9,6 +9,7 @@ import spray.httpx.unmarshalling.Unmarshaller
 import truerss.system.ProxyActor
 import truerss.db._
 import truerss.models.{Source, Feed, CurrentDriver}
+import truerss.system.network.{ExtractError, ExtractContent, ExtractContentForEntry}
 
 import scala.slick.driver.H2Driver.simple._
 import scala.language.postfixOps
@@ -38,9 +39,9 @@ with ScalatestRouteTest with Routing with Common {
   def actorRefFactory = system
 
   val dbRef = system.actorOf(Props(new DbActor(db, driver)), "test-db")
-  val networkRef = TestProbe().ref
+  val networkRef = TestProbe()
   val sourcesRef = TestProbe()
-  val proxyRef = system.actorOf(Props(new ProxyActor(dbRef, networkRef, sourcesRef.ref)), "test-proxy")
+  val proxyRef = system.actorOf(Props(new ProxyActor(dbRef, networkRef.ref, sourcesRef.ref)), "test-proxy")
   val context = system
 
   val computeRoute = route(proxyRef, context)
@@ -58,16 +59,40 @@ with ScalatestRouteTest with Routing with Common {
   describe("Show") {
     it("return feed by id") {
       val id = feedIds(0)
-      Get(s"${feedUrl}/${id}") ~> computeRoute ~> check {
-        val original = feeds.filter(_.id == Some(id)).head
-        val resp = JsonParser(responseAs[String]).convertTo[Feed]
+      val original = feeds.filter(_.id == Some(id)).head
 
+      val req = Get(s"${feedUrl}/${id}") ~> computeRoute
+      val content = Some("content")
+
+      networkRef.expectMsg(1 seconds, ExtractContent(original.sourceId,
+        id, original.url))
+      networkRef.reply(ExtractContentForEntry(
+        original.sourceId, id, content))
+
+      req ~> check {
+        val resp = JsonParser(responseAs[String]).convertTo[Feed]
         original.id should be(resp.id)
         original.title should be(resp.title)
         original.url should be(resp.url)
-        original.description should be(resp.description)
 
+        original.description should be(resp.description)
+        resp.content should be(content)
         status should be(StatusCodes.OK)
+      }
+    }
+
+    it("500 error when extract error") {
+      val id = feedIds(1)
+      val original = feeds.filter(_.id == Some(id)).head
+
+      val req = Get(s"${feedUrl}/${id}") ~> computeRoute
+
+      networkRef.expectMsg(1 seconds, ExtractContent(original.sourceId,
+        id, original.url))
+      networkRef.reply(ExtractError("error"))
+      
+      req ~> check {
+        status should be(StatusCodes.InternalServerError)
       }
     }
 

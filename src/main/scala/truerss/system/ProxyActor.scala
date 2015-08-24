@@ -4,7 +4,7 @@ import akka.actor.{ActorLogging, ActorRef, Actor, Props}
 import akka.util.Timeout
 import akka.pattern._
 import akka.event.LoggingReceive
-import truerss.controllers.BadRequestResponse
+import truerss.controllers.{InternalServerErrorResponse, BadRequestResponse}
 import truerss.system.network.ExtractContent
 
 import scala.language.postfixOps
@@ -21,7 +21,8 @@ class ProxyActor(dbRef: ActorRef, networkRef: ActorRef, sourcesRef: ActorRef)
   extends Actor with ActorLogging {
   //TODO make a router
 
-  import truerss.controllers.{ModelsResponse, ModelResponse, NotFoundResponse}
+  import truerss.controllers.{
+    ModelsResponse, ModelResponse, NotFoundResponse, InternalServerErrorResponse}
   import db._
   import network._
   import util._
@@ -140,29 +141,33 @@ class ProxyActor(dbRef: ActorRef, networkRef: ActorRef, sourcesRef: ActorRef)
       .map(ModelsResponse(_)) pipeTo sender
 
     // also necessary extract content if need
-    case msg: GetFeed => (dbRef ? msg).mapTo[Option[Feed]].map{
-      case Some(x) => x.content match {
-        case Some(content) => ModelResponse(x)
-        case None => //TODO move to SourceActor
-          (networkRef ? ExtractContent(msg.num, x.id.get, x.url))
-            .mapTo[NetworkResult].map {
-            case ExtractedEntries(sourceId, xs) =>
-              dbRef ! AddFeeds(sourceId, xs.map(_.toFeed(sourceId)))
-            case ExtractContentForEntry(sourceId, feedId, content) =>
-              content match {
-                case Some(content) =>
-                  stream.publish(FeedContentUpdate(feedId, content))
-                  ModelResponse(x.copy(content = content.some))
-                case None => ModelResponse(x)
-              }
-            case ExtractError(error) => log.error(s"error on extract: $error")
-            case SourceNotFound(sourceId) => log.error(s"source ${sourceId} not found")
+    case msg: GetFeed =>
+      (dbRef ? msg).mapTo[Option[Feed]].flatMap {
+        case Some(x) => x.content match {
+          case Some(content) => Future.successful(ModelResponse(x))
+          case None => //TODO move to SourceActor ?
+            (networkRef ? ExtractContent(x.sourceId, x.id.get, x.url))
+              .mapTo[NetworkResult].map {
+              case ExtractedEntries(sourceId, xs) =>
+                InternalServerErrorResponse("Unexpected message")
+              case ExtractContentForEntry(sourceId, feedId, content) =>
+                content match {
+                  case Some(content) =>
+                    stream.publish(FeedContentUpdate(feedId, content))
+                    ModelResponse(x.copy(content = content.some))
+                  case None => ModelResponse(x)
+                }
+              case ExtractError(error) =>
+                log.error(s"error on extract: $error")
+                InternalServerErrorResponse(error)
 
-          }
-      }
+              case SourceNotFound(sourceId) =>
+                log.error(s"source ${sourceId} not found")
+                InternalServerErrorResponse(s"source ${sourceId} not found")
+            }
+        }
 
-
-      case None => feedNotFound(msg.num)
+        case None => Future.successful(feedNotFound(msg.num))
     } pipeTo sender
 
     case msg: MarkFeed => (dbRef ? msg).mapTo[Option[Feed]]
