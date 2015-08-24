@@ -14,12 +14,16 @@ MainController =
           type: "GET"
           success: (arr) ->
             feeds = arr.map (x) ->
+              pd = moment(x['publishedDate'])
+              x['publishedDate'] = pd
               f = new Feed(x)
               source = Sources.find("id", f.source_id())
               source.add_feed(f)
               f
+            feeds = _.sortBy(feeds, '_published_date')
             result = Templates.feeds_template.render({feeds: feeds})
             Templates.feeds_view.render(result).html()
+            # TODO redirect to first if possible
 
     source = new Source()
     Templates.modal_view.bind source,

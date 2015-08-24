@@ -35,6 +35,15 @@ class Feed extends Sirius.BaseModel
   source_name: () -> @source().name()
   source_url : () -> @source().url()
 
+  anything: () ->
+    if @content()
+      @content()
+    else if @description()
+      @description()
+    else
+      "<div>impossible extract content <a href='#{@url()}'>#{@title()}</a></div>"
+
+
 Sources = new Sirius.Collection(Source, {index: ['id', 'name', 'normalized']})
 Sources.subscribe "add", (source) ->
   html = Templates.source_list.render({source: source})

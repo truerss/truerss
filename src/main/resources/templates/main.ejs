@@ -3,9 +3,14 @@
 
         <h1 class="uk-article-title"><%= feed.title() %></h1>
 
+        <div class="uk-panel">
+          <%= moment(feed.published_date()).fromNow() %>
+        </div>
+
         <hr class="uk-article-divider">
 
-        <p><%= feed.description() %></p>
+
+        <p class="uk-article-lead"><%= feed.anything() %></p>
 
     </article>
 

@@ -147,7 +147,9 @@ class ProxyActor(dbRef: ActorRef, networkRef: ActorRef, sourcesRef: ActorRef)
     case msg: GetFeed =>
       (dbRef ? msg).mapTo[Option[Feed]].flatMap {
         case Some(x) => x.content match {
-          case Some(content) => Future.successful(ModelResponse(x))
+          case Some(content) =>
+            log.info("feed have content")
+            Future.successful(ModelResponse(x))
           case None => //TODO move to SourceActor ?
             (networkRef ? ExtractContent(x.sourceId, x.id.get, x.url))
               .mapTo[NetworkResult].map {

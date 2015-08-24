@@ -30,6 +30,7 @@ class NetworkActor extends Actor with ActorLogging {
       }
 
     case ExtractContent(sourceId, feedId, url) =>
+      log.info(s"Extract content for ${feedId} -> ${url}")
       pluginMap.get(sourceId) match {
         case Some(plugin) => plugin.content(url) match {
           case Right(content) =>
