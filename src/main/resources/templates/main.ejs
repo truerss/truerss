@@ -4,6 +4,11 @@
         <h1 class="uk-article-title"><%= feed.title() %></h1>
 
         <div class="uk-panel">
+          <% if (feed.favorite()) { %>
+            <i class="uk-icon-star uk-icon-medium unfavorite" data-favorite="<%= feed.id() %>"></i>
+          <% } else { %>
+            <i class="uk-icon-star-o uk-icon-medium favorite" data-favorite="<%= feed.id() %>"></i>
+          <% } %>
           <%= moment(feed.published_date()).fromNow() %>
         </div>
 

@@ -8,6 +8,8 @@ $ ->
     "/show/:source-name/:feed-name": controller: FeedsController, action: "show"
     "/show/:source-name" : controller: SourcesController, action: "show"
     "click a[href='#refresh']" : controller: SourcesController, action: "refresh_all"
+    "click i.favorite": controller: FeedsController, action: "favorite", data: "data-favorite"
+    "click i.unfavorite": controller: FeedsController, action: "unfavorite", data: "data-favorite"
 
   app = Sirius.Application.run
     route: routes
