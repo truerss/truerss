@@ -35,7 +35,7 @@ class SourcesActor(proxyRef: ActorRef) extends Actor with ActorLogging {
       Restart
   }
 
-  context.system.scheduler.scheduleOnce(3 seconds, self, Start)
+  context.system.scheduler.scheduleOnce(0 seconds, self, Start)
 
 
   def receive = LoggingReceive {
@@ -45,8 +45,8 @@ class SourcesActor(proxyRef: ActorRef) extends Actor with ActorLogging {
       val info = sources.xs.map(x => SourceInfo(x.id.get, new DefaultSiteReader(Map.empty)))
       context.parent ! NetworkInitialize(info)
       sources.xs.foreach { source =>
-        log.info(s"Start source actor for ${source.normalized}")
-        context.actorOf(Props(new SourceActor(source)), s"source-${source.normalized}")
+        log.info(s"Start source actor for ${source.normalized} -> ${source.id.get}")
+        context.actorOf(Props(new SourceActor(source)), s"source-${source.id.get}")
       }
     }
 
@@ -55,19 +55,8 @@ class SourcesActor(proxyRef: ActorRef) extends Actor with ActorLogging {
       context.children.foreach{ _ ! Update }
       sender ! OkResponse("updated")
 
-    case UpdateOne(num) => //TODO use actorSelection and id insead of normalize
-      val original = sender
-      (proxyRef ? GetSource).mapTo[Response].map {
-        case ModelResponse(x: Source) =>
-          context.actorSelection(s"**/source-${x.normalize}") ! Update
-          original ! ModelResponse(x)
-        case NotFoundResponse(msg) =>
-          log.debug(s"Not found source with id = ${num}")
-          original ! NotFoundResponse(msg)
-        case x =>
-          log.warning(s"Unexpected message ${x}")
-          original ! InternalServerErrorResponse("Unexpected error")
-      }
+    case UpdateOne(num) =>
+      context.actorSelection(s"*/source-${num}") ! Update
 
     case x => context.parent forward x
   }

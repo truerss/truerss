@@ -59,6 +59,7 @@ package object system {
     case class UpdateOne(num: Long) extends BaseMessage
 
     case class SourceLastUpdate(sourceId: Long)
+    case class FeedContentUpdate(feedId: Long, content: String)
   }
 
 

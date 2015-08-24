@@ -17,7 +17,7 @@ import truerss.system
 class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLogging {
 
   import system.db._
-  import system.util.SourceLastUpdate
+  import system.util.{SourceLastUpdate, FeedContentUpdate}
   import driver.query._
   import driver.profile.simple._
   import context.dispatcher
@@ -153,6 +153,11 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
         log.info(s"for ${sourceId} feeds in db: ${alreadyInDbUrl.size}; " +
           s"from network ${fromNetwork.size}; new = ${newFeeds.size}")
         feeds.insertAll(newFeeds : _*)
+      }
+
+    case FeedContentUpdate(feedId, content) =>
+      db withSession { implicit session =>
+        feeds.filter(_.id === feedId).map(_.content).update(content)
       }
 
   }

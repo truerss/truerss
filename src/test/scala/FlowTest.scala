@@ -31,11 +31,12 @@ class FlowTest extends FunSpec with Matchers
 
   import Gen._
   val source = genSource().copy(url = okRss)
+  var sourceId: Long = _
 
   override def beforeAll = {
     db withSession { implicit session =>
       (driver.query.sources.ddl ++ driver.query.feeds.ddl).create
-      (driver.query.sources returning driver.query.sources.map(_.id)) += source
+      sourceId = (driver.query.sources returning driver.query.sources.map(_.id)) += source
     }
   }
   override def afterAll = {
@@ -52,7 +53,8 @@ class FlowTest extends FunSpec with Matchers
 
   describe("Source") {
     it("should extract all feeds for it") {
-       1 should be(1)
+
+      1 should be(1)
     }
   }
 

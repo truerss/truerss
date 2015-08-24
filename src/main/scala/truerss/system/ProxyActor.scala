@@ -5,6 +5,7 @@ import akka.util.Timeout
 import akka.pattern._
 import akka.event.LoggingReceive
 import truerss.controllers.BadRequestResponse
+import truerss.system.network.ExtractContent
 
 import scala.language.postfixOps
 import scala.concurrent.duration._
@@ -33,6 +34,7 @@ class ProxyActor(dbRef: ActorRef, networkRef: ActorRef, sourcesRef: ActorRef)
   val stream = context.system.eventStream
 
   stream.subscribe(dbRef, classOf[SourceLastUpdate])
+  stream.subscribe(dbRef, classOf[FeedContentUpdate])
 
   def sourceNotFound(num: Long) = NotFoundResponse(s"Source with id = ${num} not found")
   def sourceNotFound = NotFoundResponse(s"Source not found")
@@ -127,8 +129,29 @@ class ProxyActor(dbRef: ActorRef, networkRef: ActorRef, sourcesRef: ActorRef)
     case Favorites => (dbRef ? Favorites).mapTo[Vector[Feed]]
       .map(ModelsResponse(_)) pipeTo sender
 
+    // also necessary extract content if need
     case msg: GetFeed => (dbRef ? msg).mapTo[Option[Feed]].map{
-      case Some(x) => ModelResponse(x)
+      case Some(x) => x.content match {
+        case Some(content) => ModelResponse(x)
+        case None => //TODO move to SourceActor
+          (networkRef ? ExtractContent(msg.num, x.id.get, x.url))
+            .mapTo[NetworkResult].map {
+            case ExtractedEntries(sourceId, xs) =>
+              dbRef ! AddFeeds(sourceId, xs.map(_.toFeed(sourceId)))
+            case ExtractContentForEntry(sourceId, feedId, content) =>
+              content match {
+                case Some(content) =>
+                  stream.publish(FeedContentUpdate(feedId, content))
+                  ModelResponse(x.copy(content = content.some))
+                case None => ModelResponse(x)
+              }
+            case ExtractError(error) => log.error(s"error on extract: $error")
+            case SourceNotFound(sourceId) => log.error(s"source ${sourceId} not found")
+
+          }
+      }
+
+        ModelResponse(x)
       case None => feedNotFound(msg.num)
     } pipeTo sender
 
@@ -156,7 +179,7 @@ class ProxyActor(dbRef: ActorRef, networkRef: ActorRef, sourcesRef: ActorRef)
         case ExtractError(error) => log.info(s"error on extract: $error")
         case SourceNotFound(sourceId) => log.info(s"source ${sourceId} not found")
       }
-    case msg: ExtractContent => networkRef forward msg
+
   }
 
   def utilReceive: Receive = LoggingReceive {

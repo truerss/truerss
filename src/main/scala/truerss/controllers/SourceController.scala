@@ -37,7 +37,6 @@ trait SourceController extends BaseController
 
   def create = entity(as[String]) { sourceString =>
     //TODO check if plugin
-    //TODO Skip normalized
     catching(classOf[spray.json.DeserializationException])
       .opt((JsonParser(sourceString).convertTo[FrontendSource])) match {
       case Some(fs) => end(AddSource(fs.toSource.normalize))
@@ -49,7 +48,6 @@ trait SourceController extends BaseController
 
   def update(num: Long) = entity(as[String]) { sourceString =>
     //TODO check if plugin
-    //TODO Skip normalized
     catching(classOf[spray.json.DeserializationException])
       .opt((JsonParser(sourceString).convertTo[FrontendSource])) match {
       case Some(fs) => end(UpdateSource(num, fs.toSource.normalize.copy(id = num.some)))
