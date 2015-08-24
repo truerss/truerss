@@ -11,7 +11,6 @@ package object system {
   // for communication with db
   object db {
 
-
     case object GetAll extends BaseMessage
     case class GetSource(num: Long) extends BaseMessage
     case class AddSource(source: Source) extends BaseMessage

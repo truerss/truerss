@@ -15,7 +15,7 @@ import truerss.models.Source
 /**
  * Created by mike on 9.8.15.
  */
-class SourcesActor(proxyRef: ActorRef) extends Actor with ActorLogging {
+class SourcesActor(proxyRef: ActorRef, networkRef: ActorRef) extends Actor with ActorLogging {
 
   import db.{GetAll, GetSource}
   import network._
@@ -35,19 +35,21 @@ class SourcesActor(proxyRef: ActorRef) extends Actor with ActorLogging {
       Restart
   }
 
-  context.system.scheduler.scheduleOnce(0 seconds, self, Start)
+  context.system.scheduler.scheduleOnce(3 seconds, self, Start)
 
 
-  def receive = LoggingReceive {
-    case Start => (proxyRef ? GetAll).mapTo[ModelsResponse[Source]].map { sources =>
-      log.info(s"Given ${sources.xs.size} sources")
-      sourcesCount = sources.xs.size
-      val info = sources.xs.map(x => SourceInfo(x.id.get, new DefaultSiteReader(Map.empty)))
-      context.parent ! NetworkInitialize(info)
-      sources.xs.foreach { source =>
-        log.info(s"Start source actor for ${source.normalized} -> ${source.id.get}")
-        context.actorOf(Props(new SourceActor(source)), s"source-${source.id.get}")
-      }
+  def receive = {
+    case Start =>
+      val defaultPlugin = new DefaultSiteReader(Map.empty)
+      (proxyRef ? GetAll).mapTo[ModelsResponse[Source]].map { sources =>
+        log.info(s"Given ${sources.xs.size} sources")
+        sourcesCount = sources.xs.size
+        val info = sources.xs.map(x => SourceInfo(x.id.get, defaultPlugin))
+        networkRef ! NetworkInitialize(info)
+        sources.xs.foreach { source =>
+          log.info(s"Start source actor for ${source.normalized} -> ${source.id.get}")
+          context.actorOf(Props(new SourceActor(source, networkRef)), s"source-${source.id.get}")
+        }
     }
 
     case Update =>
@@ -56,9 +58,10 @@ class SourcesActor(proxyRef: ActorRef) extends Actor with ActorLogging {
       sender ! OkResponse("updated")
 
     case UpdateOne(num) =>
-      context.actorSelection(s"*/source-${num}") ! Update
+      log.info(s"Update source ${num}")
+      context.actorSelection(s"source-${num}") ! Update
 
-    case x => context.parent forward x
+    case x => log.warning(s"Unhandled message ${x}")
   }
 
 

@@ -22,7 +22,7 @@ class SystemActor(dbDef: DatabaseDef, driver: CurrentDriver) extends Actor
 
   val networkRef = context.actorOf(Props(new NetworkActor), "network")
 
-  val sourcesRef = context.actorOf(Props(new SourcesActor(self)), "sources")
+  val sourcesRef = context.actorOf(Props(new SourcesActor(self, networkRef)), "sources")
 
   val proxyRef = context.actorOf(Props(new ProxyActor(dbRef, networkRef, sourcesRef)), "proxy")
 

@@ -35,6 +35,7 @@ class ProxyActor(dbRef: ActorRef, networkRef: ActorRef, sourcesRef: ActorRef)
 
   stream.subscribe(dbRef, classOf[SourceLastUpdate])
   stream.subscribe(dbRef, classOf[FeedContentUpdate])
+  stream.subscribe(dbRef, classOf[AddFeeds])
 
   def sourceNotFound(num: Long) = NotFoundResponse(s"Source with id = ${num} not found")
   def sourceNotFound = NotFoundResponse(s"Source not found")
@@ -151,7 +152,7 @@ class ProxyActor(dbRef: ActorRef, networkRef: ActorRef, sourcesRef: ActorRef)
           }
       }
 
-        ModelResponse(x)
+
       case None => feedNotFound(msg.num)
     } pipeTo sender
 
@@ -169,7 +170,6 @@ class ProxyActor(dbRef: ActorRef, networkRef: ActorRef, sourcesRef: ActorRef)
   }
 
   def networkReceive: Receive = {
-    case msg: NetworkInitialize => networkRef forward msg
     case msg: Grep =>
       stream.publish(SourceLastUpdate(msg.sourceId))
       (networkRef ? msg).mapTo[NetworkResult].map {
@@ -189,5 +189,6 @@ class ProxyActor(dbRef: ActorRef, networkRef: ActorRef, sourcesRef: ActorRef)
 
   def receive = dbReceive orElse networkReceive orElse utilReceive
 
+  override def unhandled(m: Any) = log.warning(s"Undhandled $m")
 
 }
