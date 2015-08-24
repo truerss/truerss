@@ -27,6 +27,14 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
       sources.buildColl
     }} pipeTo sender
 
+    case FeedCount(read) => Future.successful {
+      db withSession { implicit session =>
+        feeds.filter(_.read === read).groupBy(_.sourceId).map {
+          case (sourceId, xs) => sourceId -> xs.size
+        }.buildColl
+      }
+    } pipeTo sender
+
     case GetSource(sourceId) => Future.successful {
       db withSession { implicit session =>
         sources.filter(_.id === sourceId).firstOption

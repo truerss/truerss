@@ -1,33 +1,20 @@
 
 
 import akka.actor.Props
-import akka.testkit.{TestProbe, TestActorRef}
-import akka.util.Timeout
-import akka.pattern.ask
-
+import akka.testkit.TestProbe
 import org.scalatest._
-import spray.http.{StatusCodes, MediaTypes, HttpEntity}
-import spray.httpx.unmarshalling.Unmarshaller
-import truerss.controllers.{NotFoundResponse, OkResponse}
-import truerss.system.ProxyActor
-import truerss.db._
-import truerss.models.{Source, Feed, CurrentDriver}
-
-import scala.slick.driver.H2Driver.simple._
-import scala.language.postfixOps
-import scala.concurrent.duration._
-
-import spray.routing._
-import spray.testkit.RouteTest
-import spray.json._
+import spray.http.StatusCodes
+import spray.json.{JsonParser, _}
 import spray.testkit.ScalatestRouteTest
-import spray.json.JsonParser
-
-import truerss.models._
-import truerss.db.DbActor
 import truerss.api._
+import truerss.controllers.OkResponse
+import truerss.db.DbActor
+import truerss.models.{SourceForFrontend, Feed, Source}
+import truerss.system.ProxyActor
 
-import scala.slick.jdbc.JdbcBackend
+import scala.concurrent.duration._
+import scala.language.postfixOps
+import scala.slick.driver.H2Driver.simple._
 
 /**
  * Created by mike on 2.8.15.
@@ -37,8 +24,8 @@ class SourceApiTest extends FunSpec with Matchers
 
   import Gen._
   import truerss.models.ApiJsonProtocol._
+  import truerss.system.util.Update
   import truerss.util.Util._
-  import truerss.system.util.{UpdateOne, Update}
 
   def actorRefFactory = system
 
@@ -53,7 +40,8 @@ class SourceApiTest extends FunSpec with Matchers
   describe("GetAll") {
     it("should return all sources from db") {
       Get(s"${sourceUrl}/all") ~> computeRoute ~> check {
-        JsonParser(responseAs[String]).convertTo[Vector[Source]].size should be(3)
+        JsonParser(responseAs[String])
+          .convertTo[Vector[SourceForFrontend]].size should be(3)
         status should be(StatusCodes.OK)
       }
     }

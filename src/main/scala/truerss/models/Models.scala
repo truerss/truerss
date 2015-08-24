@@ -48,6 +48,19 @@ case class FrontendSource(url: String, name: String, interval: Int) {
   )
 }
 
+case class SourceForFrontend(
+  id: Long,
+  url: String,
+  name: String,
+  interval: Int,
+  plugin: Boolean,
+  normalized: String,
+  lastUpdate: Date,
+  count: Int = 0
+) extends Jsonize
+
+
+
 case class CurrentDriver(profile: JdbcProfile) {
 
   import profile.simple._

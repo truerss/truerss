@@ -15,11 +15,13 @@ object ApiJsonProtocol extends DefaultJsonProtocol {
 
   implicit val sourceFormat = jsonFormat8(Source)
   implicit val feedFormat = jsonFormat12(Feed)
-  implicit val fronendSourceFormat = jsonFormat3(FrontendSource)
+  implicit val frontendSourceFormat = jsonFormat3(FrontendSource)
+  implicit val sourceForFrontend = jsonFormat8(SourceForFrontend)
 
   implicit def jsonizeWriter: JsonWriter[Jsonize] = new JsonWriter[Jsonize] {
     def write(x: Jsonize) = x match {
       case x: Source => sourceFormat.write(x)
+      case x: SourceForFrontend => sourceForFrontend.write(x)
       case x: Feed => feedFormat.write(x)
     }
   }

@@ -50,8 +50,17 @@ class ProxyActor(dbRef: ActorRef, networkRef: ActorRef, sourcesRef: ActorRef)
     case None => sourceNotFound
   }
   
-  def dbReceive: Receive = LoggingReceive {
-    case GetAll => (dbRef ? GetAll).mapTo[Vector[Source]].map(ModelsResponse(_)) pipeTo sender
+  def dbReceive: Receive = {
+    case GetAll =>
+      (for {
+        counts <- (dbRef ? FeedCount(false)).mapTo[Vector[(Long, Int)]]
+        sources <- (dbRef ? GetAll).mapTo[Vector[Source]]
+      } yield {
+        val map = counts.toMap
+        ModelsResponse(
+          sources.map(s => s.convert(map.get(s.id.get).getOrElse(0)))
+        )
+      }) pipeTo sender
 
     case msg: GetSource => (dbRef ? msg).mapTo[Option[Source]].map{
       case Some(x) => ModelResponse(x)

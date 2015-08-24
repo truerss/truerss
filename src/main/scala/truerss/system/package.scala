@@ -33,7 +33,7 @@ package object system {
     // util:
     case class UrlIsUniq(url: String, id: Option[Long] = None) extends BaseMessage
     case class NameIsUniq(name: String, id: Option[Long] = None) extends BaseMessage
-
+    case class FeedCount(read: Boolean = false) extends BaseMessage
 
   }
 
