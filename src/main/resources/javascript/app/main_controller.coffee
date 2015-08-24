@@ -9,6 +9,18 @@ MainController =
         # TODO sorting by count
         arr.forEach((x) => Sources.add(new Source(x)))
 
+        $.ajax
+          url: '/api/v1/sources/latest/100'
+          type: "GET"
+          success: (arr) ->
+            feeds = arr.map (x) ->
+              f = new Feed(x)
+              source = Sources.find("id", f.source_id())
+              source.add_feed(f)
+              f
+            result = Templates.feeds_template.render({feeds: feeds})
+            Templates.feeds_view.render(result).html()
+
     source = new Source()
     Templates.modal_view.bind source,
       "fieldset input[name='title']" : to: "name"

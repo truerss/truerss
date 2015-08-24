@@ -23,7 +23,7 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
   import context.dispatcher
 
   def receive = {
-    case GetAll => Future.successful{ db withSession { implicit session =>
+    case GetAll | OnlySources => Future.successful{ db withSession { implicit session =>
       sources.buildColl
     }} pipeTo sender
 

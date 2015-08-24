@@ -90,7 +90,7 @@ with ScalatestRouteTest with Routing with Common {
       networkRef.expectMsg(1 seconds, ExtractContent(original.sourceId,
         id, original.url))
       networkRef.reply(ExtractError("error"))
-      
+
       req ~> check {
         status should be(StatusCodes.InternalServerError)
       }

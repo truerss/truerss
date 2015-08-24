@@ -5,6 +5,7 @@ import akka.util.Timeout
 import akka.pattern._
 import akka.event.LoggingReceive
 import truerss.controllers.{InternalServerErrorResponse, BadRequestResponse}
+import truerss.system.db.OnlySources
 import truerss.system.network.ExtractContent
 
 import scala.language.postfixOps
@@ -52,6 +53,8 @@ class ProxyActor(dbRef: ActorRef, networkRef: ActorRef, sourcesRef: ActorRef)
   }
   
   def dbReceive: Receive = {
+    case OnlySources => dbRef forward OnlySources
+    //TODO Move all logic into controllers fgj
     case GetAll =>
       (for {
         counts <- (dbRef ? FeedCount(false)).mapTo[Vector[(Long, Int)]]

@@ -6,5 +6,7 @@ Templates =
   feed_template: new EJS({url: "templates/main"})
   article_view: new Sirius.View("#main")
   modal_view: new Sirius.View("#add-modal")
+  feeds_view: new Sirius.View("#feeds")
+  feeds_template: new EJS({url: "templates/feeds.ejs"})
 
 

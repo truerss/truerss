@@ -7,7 +7,7 @@ import akka.pattern.ask
 import akka.util.Timeout
 import truerss.controllers._
 import truerss.plugins.DefaultSiteReader
-import truerss.system.network.NetworkInitialize
+
 
 import scala.concurrent.duration._
 
@@ -17,8 +17,8 @@ import truerss.models.Source
  */
 class SourcesActor(proxyRef: ActorRef, networkRef: ActorRef) extends Actor with ActorLogging {
 
-  import db.{GetAll, GetSource}
-  import network._
+  import db.OnlySources
+  import network.{NetworkInitialize, SourceInfo}
   import util._
   import context.dispatcher
   implicit val timeout = Timeout(30 seconds)
@@ -41,12 +41,12 @@ class SourcesActor(proxyRef: ActorRef, networkRef: ActorRef) extends Actor with 
   def receive = {
     case Start =>
       val defaultPlugin = new DefaultSiteReader(Map.empty)
-      (proxyRef ? GetAll).mapTo[ModelsResponse[Source]].map { sources =>
-        log.info(s"Given ${sources.xs.size} sources")
-        sourcesCount = sources.xs.size
-        val info = sources.xs.map(x => SourceInfo(x.id.get, defaultPlugin))
+      (proxyRef ? OnlySources).mapTo[Vector[Source]].map { sources =>
+        sourcesCount = sources.size
+        log.info(s"Given ${sourcesCount} sources")
+        val info = sources.map(x => SourceInfo(x.id.get, defaultPlugin))
         networkRef ! NetworkInitialize(info)
-        sources.xs.foreach { source =>
+        sources.foreach { source =>
           log.info(s"Start source actor for ${source.normalized} -> ${source.id.get}")
           context.actorOf(Props(new SourceActor(source, networkRef)), s"source-${source.id.get}")
         }
