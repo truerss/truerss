@@ -17,8 +17,9 @@
       <td><a href="<%= sources[i].url() %>"><%= sources[i].url() %></a></td>
       <td>every <%= sources[i].interval() %> hours</td>
       <td><%= sources[i].last_update() %></td>
-      <td><%= sources[i].count %></td>
-      <td><a href="" class="uk-icon-refresh"></a></td>
+      <td><%= sources[i].count() %></td>
+      <td><a href="#update-source" class="uk-icon-refresh"
+      data-source-id="<%= sources[i].id() %>"></a></td>
       <td><a href="" class="uk-icon-remove"></a></td>
     </tr>
   <% } %>

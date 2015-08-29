@@ -12,6 +12,7 @@ $ ->
     "click a[href='#refresh']" : controller: SourcesController, action: "refresh_all"
     "click i.favorite": controller: FeedsController, action: "favorite", data: "data-favorite"
     "click i.unfavorite": controller: FeedsController, action: "unfavorite", data: "data-favorite"
+    "click a[href='#update-source']" : controller: SourcesController, action: "refresh_one", data: "data-source-id"
 
   app = Sirius.Application.run
     route: routes

@@ -22,6 +22,14 @@ SourcesController =
         success: (feeds) ->
           c(feeds)
 
+  refresh_one: (e, id) ->
+    $.ajax
+      url: "/api/v1/sources/refresh/#{id}"
+      method: "PUT"
+      success: () ->
+
+
+
 
 
 
