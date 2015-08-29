@@ -25,6 +25,21 @@ MainController =
         url: '/api/v1/sources/all'
         type: "GET"
         success: (arr) ->
+          adapter = Sirius.Application.get_adapter().and_then (adapter) ->
+            # open socket TODO change port with cookie ?
+            # TODO c -> logger.info
+            sock = new WebSocket("ws://#{location.hostname}:8080/")
+            sock.onopen = () ->
+              c("ws open")
+
+            sock.onmessage = (e) ->
+              message = JSON.parse(e.data)
+              c("ws given message: #{message.type}")
+              adapter.fire(document, "application:#{message.type}", message.body)
+
+            sock.onclose = () ->
+              c("ws close")
+
           # TODO sorting by count
           arr.forEach((x) => Sources.add(new Source(x)))
 
