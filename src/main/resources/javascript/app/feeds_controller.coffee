@@ -1,6 +1,17 @@
 
 
 FeedsController =
+  favorites: () ->
+    $.ajax
+      url: "/api/v1/feeds/favorites"
+      type: "GET"
+      success: (response) ->
+        feeds = response.map (f) -> new Feed(f)
+        html = Templates.favorites_template.render({feeds: feeds})
+        Templates.article_view.render(html).html()
+        state.to(States.Favorites)
+
+
   favorite: (e, f) ->
     $.ajax
       url: "/api/v1/feeds/mark/#{f}"

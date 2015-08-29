@@ -5,6 +5,7 @@ $ ->
     "application:run" : controller: MainController, action: "start"
     "/sources" : controller: SourcesController, action: "all"
     "/" : controller: MainController, action: "view"
+    "/favorites" : controller: FeedsController, action: "favorites"
     "/show/:source-name/:feed-name": controller: FeedsController, action: "show"
     "/show/:source-name" : controller: SourcesController, action: "show"
     "click a[href='#refresh']" : controller: SourcesController, action: "refresh_all"

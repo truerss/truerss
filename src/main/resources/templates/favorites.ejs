@@ -1,0 +1,8 @@
+<dl class="uk-description-list-line">
+    <% for(var i = 0; i < feeds.length; i++) { %>
+        <dt><a href="<%= feeds[i].href() %>" ><%= feeds[i].title() %></a>
+        [<a href="<%= feeds[i].url() %>">original</a>]</dt>
+        <dd><%= feeds[i].description() %></dd>
+    <% } %>
+</dl>
+

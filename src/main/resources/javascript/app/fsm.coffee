@@ -4,6 +4,7 @@ States =
   Sources: 1
   Plugins: 2
   Favorites: 3
+  About: 4
 
 # TODO rename
 class FSM
