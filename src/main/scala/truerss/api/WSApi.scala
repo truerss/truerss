@@ -15,10 +15,15 @@ import truerss.controllers.WSController
  */
 class WSApi(val port: Int) extends Actor with ActorLogging {
 
+  log.info("WS Api start...")
+
   implicit val system = context.system
   val stream = system.eventStream
 
-  def receive = { case _ => }
+  val socketServer = new SocketServer(port, context, stream, log)
+  socketServer.start()
+
+  def receive = { case x => log.warning(s"Unexpected message ${x}") }
 
 }
 
