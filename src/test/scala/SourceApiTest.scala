@@ -10,7 +10,7 @@ import truerss.api._
 import truerss.controllers.OkResponse
 import truerss.db.DbActor
 import truerss.models.{SourceForFrontend, Feed, Source}
-import truerss.system.ProxyActor
+import truerss.system.ProxyServiceActor
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
@@ -32,7 +32,7 @@ class SourceApiTest extends FunSpec with Matchers
   val dbRef = system.actorOf(Props(new DbActor(db, driver)), "test-db")
   val networkRef = TestProbe()
   val sourcesRef = TestProbe()
-  val proxyRef = system.actorOf(Props(new ProxyActor(dbRef, networkRef.ref, sourcesRef.ref)), "test-proxy")
+  val proxyRef = system.actorOf(Props(new ProxyServiceActor(dbRef, networkRef.ref, sourcesRef.ref)), "test-proxy")
   val context = system
 
   val computeRoute = route(proxyRef, context)

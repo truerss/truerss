@@ -18,7 +18,7 @@ import Scalaz._
 /**
   * Created by mike on 2.8.15.
  */
-class ProxyActor(dbRef: ActorRef, networkRef: ActorRef, sourcesRef: ActorRef)
+class ProxyServiceActor(dbRef: ActorRef, networkRef: ActorRef, sourcesRef: ActorRef)
   extends Actor with ActorLogging {
   //TODO make a router
 
@@ -54,7 +54,6 @@ class ProxyActor(dbRef: ActorRef, networkRef: ActorRef, sourcesRef: ActorRef)
   
   def dbReceive: Receive = {
     case OnlySources => dbRef forward OnlySources
-    //TODO Move all logic into controllers fgj
     case GetAll =>
       (for {
         counts <- (dbRef ? FeedCount(false)).mapTo[Vector[(Long, Int)]]

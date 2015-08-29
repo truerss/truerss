@@ -3,6 +3,7 @@ package truerss.controllers
 import akka.actor.{ActorRef, ActorRefFactory}
 import akka.pattern.ask
 import akka.util.Timeout
+import spray.httpx.marshalling.ToResponseMarshallable
 import spray.routing.HttpService._
 import spray.routing.RequestContext
 import truerss.models.ApiJsonProtocol
@@ -38,6 +39,9 @@ trait ActorRefExt { self : ProxyRefProvider =>
 
   implicit class ActorRefExt(ref: ActorRef) {
     import spray.http.StatusCodes._
+
+    def <<|(x: Any) = ref ? x
+
     def <|(x: BaseMessage)(implicit ctx: RequestContext) =
       (ref ? x).mapTo[Response].map {
         case ModelsResponse(xs) => ctx.complete(OK, xs.toJson.toString)

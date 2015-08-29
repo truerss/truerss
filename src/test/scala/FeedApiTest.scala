@@ -6,7 +6,7 @@ import akka.pattern.ask
 import org.scalatest._
 import spray.http.{StatusCodes, MediaTypes, HttpEntity}
 import spray.httpx.unmarshalling.Unmarshaller
-import truerss.system.ProxyActor
+import truerss.system.ProxyServiceActor
 import truerss.db._
 import truerss.models.{Source, Feed, CurrentDriver}
 import truerss.system.network.{ExtractError, ExtractContent, ExtractContentForEntry}
@@ -41,7 +41,7 @@ with ScalatestRouteTest with Routing with Common {
   val dbRef = system.actorOf(Props(new DbActor(db, driver)), "test-db")
   val networkRef = TestProbe()
   val sourcesRef = TestProbe()
-  val proxyRef = system.actorOf(Props(new ProxyActor(dbRef, networkRef.ref, sourcesRef.ref)), "test-proxy")
+  val proxyRef = system.actorOf(Props(new ProxyServiceActor(dbRef, networkRef.ref, sourcesRef.ref)), "test-proxy")
   val context = system
 
   val computeRoute = route(proxyRef, context)

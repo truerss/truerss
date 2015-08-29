@@ -35,7 +35,7 @@ class SourcesActorTest(_system: ActorSystem) extends TestKit(_system)
   val sourcesRef = system.actorOf(Props(new SourcesActor(sysActor.ref,
     networkRef.ref)), "sources")
 
-  import truerss.system.db.{GetAll, AddFeeds}
+  import truerss.system.db.{OnlySources, AddFeeds}
   import truerss.system.util.{SourceLastUpdate, UpdateOne}
   import truerss.system.network._
 
@@ -43,10 +43,10 @@ class SourcesActorTest(_system: ActorSystem) extends TestKit(_system)
   stream.subscribe(dbRef.ref, classOf[SourceLastUpdate])
   stream.subscribe(dbRef.ref, classOf[AddFeeds])
 
-  sysActor.expectMsg(4 seconds, GetAll)
+  sysActor.expectMsg(4 seconds, OnlySources)
   val source1 = genSource(1L.some)
-  sysActor.reply(ModelsResponse(Vector(source1, genSource(2L.some),
-    genSource(3L.some))))
+  sysActor.reply(Vector(source1, genSource(2L.some),
+    genSource(3L.some)))
   networkRef.expectMsgAllClassOf(1 seconds, classOf[NetworkInitialize])
 
 
