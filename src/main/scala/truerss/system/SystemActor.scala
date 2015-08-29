@@ -6,7 +6,7 @@ import akka.io.IO
 import scala.slick.jdbc.JdbcBackend.DatabaseDef
 import spray.can.Http
 
-import truerss.api.RoutingService
+import truerss.api.{WSApi, RoutingService}
 import truerss.db.DbActor
 import truerss.models.CurrentDriver
 
@@ -27,6 +27,8 @@ class SystemActor(dbDef: DatabaseDef, driver: CurrentDriver) extends Actor
   val proxyRef = context.actorOf(Props(new ProxyServiceActor(dbRef, networkRef, sourcesRef)), "proxy")
 
   val api = context.actorOf(Props(new RoutingService(proxyRef)), "api")
+
+  val socketApi = context.actorOf(Props(new WSApi(8080)), "ws-api")
 
   IO(Http) ! Http.Bind(api, interface = "localhost", port = 8000)
 
