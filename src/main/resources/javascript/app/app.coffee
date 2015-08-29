@@ -6,6 +6,7 @@ $ ->
     "/sources" : controller: SourcesController, action: "all"
     "/" : controller: MainController, action: "view"
     "/favorites" : controller: FeedsController, action: "favorites"
+    "/about" : controller: MainController, action: "about"
     "/show/:source-name/:feed-name": controller: FeedsController, action: "show"
     "/show/:source-name" : controller: SourcesController, action: "show"
     "click a[href='#refresh']" : controller: SourcesController, action: "refresh_all"

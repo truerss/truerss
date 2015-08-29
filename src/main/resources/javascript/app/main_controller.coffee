@@ -67,5 +67,9 @@ MainController =
 
 
   about: () ->
+    Templates.article_view.render("<h1>about truerss</h1>").html()
+    state.to(States.About)
+
+
 
 
