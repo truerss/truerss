@@ -10,6 +10,7 @@ import org.java_websocket.handshake.ClientHandshake
 import org.java_websocket.server.WebSocketServer
 
 import truerss.controllers.WSController
+import truerss.system.ws.SourceAdded
 /**
  * Created by mike on 29.8.15.
  */
@@ -36,9 +37,9 @@ WebSocketServer(new InetSocketAddress(port)) {
   val connectionMap = scala.collection.mutable.HashMap[WebSocket, ActorRef]()
 
   override def onOpen(ws: WebSocket, clientHandshake: ClientHandshake): Unit = {
-    log.info(s"WS connection open")
+    log.info(s"ws connection open")
     val socketActor = ctx.actorOf(Props(new WSController(ws)))
-    //stream.subscribe()
+    stream.subscribe(socketActor, classOf[SourceAdded])
     connectionMap(ws) = socketActor
   }
 

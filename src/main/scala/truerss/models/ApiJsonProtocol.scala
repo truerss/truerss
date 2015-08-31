@@ -17,6 +17,7 @@ object ApiJsonProtocol extends DefaultJsonProtocol {
   implicit val feedFormat = jsonFormat12(Feed)
   implicit val frontendSourceFormat = jsonFormat3(FrontendSource)
   implicit val sourceForFrontend = jsonFormat8(SourceForFrontend)
+  implicit val wsMessageFormat = jsonFormat2(WSMessage)
 
   implicit def jsonizeWriter: JsonWriter[Jsonize] = new JsonWriter[Jsonize] {
     def write(x: Jsonize) = x match {

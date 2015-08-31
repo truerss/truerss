@@ -1,6 +1,6 @@
 package truerss
 
-import truerss.models.{Feed, Source}
+import truerss.models.{SourceForFrontend, FrontendSource, Feed, Source}
 import truerss.plugins.Entry
 /**
  * Created by mike on 2.8.15.
@@ -60,6 +60,10 @@ package object system {
 
     case class SourceLastUpdate(sourceId: Long)
     case class FeedContentUpdate(feedId: Long, content: String)
+  }
+
+  object ws {
+    case class SourceAdded(s: SourceForFrontend)
   }
 
 

@@ -34,8 +34,8 @@ MainController =
 
             sock.onmessage = (e) ->
               message = JSON.parse(e.data)
-              c("ws given message: #{message.type}")
-              adapter.fire(document, "application:#{message.type}", message.body)
+              c("ws given message: #{message.messageType}")
+              adapter.fire(document, "ws:#{message.messageType}", message.body)
 
             sock.onclose = () ->
               c("ws close")

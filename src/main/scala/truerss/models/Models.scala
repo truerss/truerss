@@ -59,7 +59,7 @@ case class SourceForFrontend(
   count: Int = 0
 ) extends Jsonize
 
-
+case class WSMessage(messageType: String, body: String)
 
 case class CurrentDriver(profile: JdbcProfile) {
 

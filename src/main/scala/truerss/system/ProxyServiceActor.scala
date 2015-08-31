@@ -27,6 +27,7 @@ class ProxyServiceActor(dbRef: ActorRef, networkRef: ActorRef, sourcesRef: Actor
   import db._
   import network._
   import util._
+  import ws._
   import truerss.util.Util._
   import truerss.models.{Source, Feed}
   import context.dispatcher
@@ -84,7 +85,11 @@ class ProxyServiceActor(dbRef: ActorRef, networkRef: ActorRef, sourcesRef: Actor
           } yield {
               if (urlIsUniq == 0 && nameIsUniq == 0) {
                 (dbRef ? msg).mapTo[Long]
-                  .map{x => ModelResponse(msg.source.copy(id = Some(x)))}
+                  .map{x =>
+                    val source = msg.source.copy(id = Some(x)).convert(0)
+                    stream.publish(SourceAdded(source))
+                    ModelResponse(source)
+                }
               } else {
                 val urlError = if (urlIsUniq > 0) {
                   "Url already present in db"
