@@ -1,7 +1,7 @@
 package truerss.util
 
 import truerss.models.{SourceForFrontend, Source, Feed}
-import truerss.plugins.Entry
+import com.github.truerss.base.Entry
 /**
  * Created by mike on 2.8.15.
  */

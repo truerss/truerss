@@ -14,6 +14,7 @@ import scala.util.control.Exception._
 import com.rometools.rome.io.{ParsingFeedException => PE}
 
 import com.github.truerss.ContentExtractor
+import com.github.truerss.base.{Errors, BaseSitePlugin, Entry}
 
 class DefaultSiteReader(config: Map[String, String])
   extends BaseSitePlugin(config) {
@@ -42,7 +43,7 @@ class DefaultSiteReader(config: Map[String, String])
     catching(classOf[Exception]) either extract(url) fold(
       err => err,
       ok => Right(ok)
-    )
+      )
   }
 
   private def extract(url: String) = {
@@ -92,14 +93,14 @@ class DefaultSiteReader(config: Map[String, String])
     catching(classOf[Exception]) either extractContent(url) fold(
       err => err,
       ok => Right(ok)
-    )
+      )
   }
 
   private def extractContent(url: String) = {
     val response = getResponse(url)
 
     if (response.isError) {
-      throw new RuntimeException(s"Connection error for ${url}") 
+      throw new RuntimeException(s"Connection error for ${url}")
     }
 
     val url0 = new URL(url)

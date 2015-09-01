@@ -1,8 +1,7 @@
 package truerss.system
 
 import akka.actor.{ActorLogging, Actor}
-import akka.event.LoggingReceive
-import truerss.plugins.{BaseFeedReader, BaseContentReader, BasePlugin}
+import com.github.truerss.base.{BaseFeedReader, BaseContentReader}
 
 import scala.util._
 

@@ -1,7 +1,7 @@
 package truerss
 
 import truerss.models.{SourceForFrontend, FrontendSource, Feed, Source}
-import truerss.plugins.{BaseFeedReader, BaseContentReader, Entry}
+import com.github.truerss.base.{BaseFeedReader, BaseContentReader, Entry}
 /**
  * Created by mike on 2.8.15.
  */
