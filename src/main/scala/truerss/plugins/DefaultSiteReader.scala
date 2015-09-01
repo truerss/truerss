@@ -32,6 +32,8 @@ class DefaultSiteReader(config: Map[String, String])
   override val pluginName = "Default"
   override val version = "0.0.3"
 
+  override val priority = 0
+
   val sfi = new SyndFeedInput()
 
   override def matchUrl(url: String) = true
@@ -107,7 +109,8 @@ class DefaultSiteReader(config: Map[String, String])
     val result = ContentExtractor.extract(doc.body())
 
     val need = doc.select(result.selector)
-    need.select("img").foreach{ img =>
+
+    need.select("img").foreach { img =>
       val src = img.attr("src")
       val newSrc = if (src.startsWith("http")) {
         src

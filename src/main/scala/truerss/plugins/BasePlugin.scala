@@ -30,3 +30,10 @@ abstract class BaseSitePlugin(config: Map[String, String] = Map.empty)
   with PluginInfo
   with Priority
   with UrlMatcher
+
+abstract class BasePublishPlugin(config: Map[String, String] = Map.empty)
+  extends BasePlugin(config)
+  with PublishPlugin
+  with ConfigProvider
+  with PluginInfo
+
