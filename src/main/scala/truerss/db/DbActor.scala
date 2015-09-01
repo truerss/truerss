@@ -11,16 +11,22 @@ import scala.slick.jdbc.JdbcBackend.DatabaseDef
 
 import truerss.models.{CurrentDriver, Source, Feed}
 import truerss.system
+
+import scalaz._
+import Scalaz._
 /**
  * Created by mike on 2.8.15.
  */
 class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLogging {
 
   import system.db._
+  import system.ws.NewFeeds
   import system.util.{SourceLastUpdate, FeedContentUpdate}
   import driver.query._
   import driver.profile.simple._
   import context.dispatcher
+
+  val stream = context.system.eventStream
 
   def receive = {
     case GetAll | OnlySources => Future.successful{ db withSession { implicit session =>
@@ -151,7 +157,7 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
       }
 
     case AddFeeds(sourceId, xs) =>
-      db withSession { implicit session =>
+      val newFeeds = db withSession { implicit session =>
         val alreadyInDbUrl = feeds.filter(_.sourceId === sourceId).map(_.url).run.toVector
         val fromNetwork = xs.map(_.url)
         val xsMap = xs.map(x => x.url -> x).toMap
@@ -160,8 +166,14 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
         }
         log.info(s"for ${sourceId} feeds in db: ${alreadyInDbUrl.size}; " +
           s"from network ${fromNetwork.size}; new = ${newFeeds.size}")
-        feeds.insertAll(newFeeds : _*)
+        feeds.insertAll(newFeeds: _*)
+        val result = (feeds returning feeds.map(_.id)) ++= newFeeds
+        result.zip(newFeeds).map { case p @ (id, feed) =>
+          feed.copy(id = id.some)
+        }.toVector
       }
+      stream.publish(NewFeeds(newFeeds))
+
 
     case FeedContentUpdate(feedId, content) =>
       db withSession { implicit session =>

@@ -63,7 +63,8 @@ package object system {
   }
 
   object ws {
-    case class SourceAdded(s: SourceForFrontend)
+    case class SourceAdded(source: SourceForFrontend)
+    case class NewFeeds(xs: Vector[Feed])
   }
 
 

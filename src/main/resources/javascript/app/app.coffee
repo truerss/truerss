@@ -3,6 +3,7 @@
 $ ->
   routes =
     "application:run" : controller: MainController, action: "start"
+    "ws:new": controller: WSController, action: "fresh"
     "ws:create": controller: WSController, action: "create"
     "/sources" : controller: SourcesController, action: "all"
     "/" : controller: MainController, action: "view"

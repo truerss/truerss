@@ -57,7 +57,9 @@ MainController =
               feeds = _.sortBy(feeds, '_published_date')
               result = Templates.feeds_template.render({feeds: feeds})
               Templates.feeds_view.render(result).html()
-              # TODO redirect to first if possible
+
+              if feeds.length > 0
+                redirect(feeds[0].href())
 
       source = new Source()
       Templates.modal_view.bind source,
@@ -78,7 +80,8 @@ MainController =
             dataType: "json"
             data: source.ajaxify()
             success: (json) ->
-              Sources.add(new Source(json))
+              # see WSController
+              #Sources.add(new Source(json))
               modal.hide()
 
       Templates.modal_view.on 'button.close-modal', 'click', (e) ->

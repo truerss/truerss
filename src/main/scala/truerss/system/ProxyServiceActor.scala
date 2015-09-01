@@ -203,6 +203,7 @@ class ProxyServiceActor(dbRef: ActorRef, networkRef: ActorRef, sourcesRef: Actor
         case SourceNotFound(sourceId) => log.info(s"source ${sourceId} not found")
       }
 
+    case msg: NewFeeds => stream.publish(msg)
   }
 
   def utilReceive: Receive = LoggingReceive {

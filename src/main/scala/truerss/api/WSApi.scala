@@ -10,7 +10,7 @@ import org.java_websocket.handshake.ClientHandshake
 import org.java_websocket.server.WebSocketServer
 
 import truerss.controllers.WSController
-import truerss.system.ws.SourceAdded
+import truerss.system.ws._
 /**
  * Created by mike on 29.8.15.
  */
@@ -39,6 +39,7 @@ WebSocketServer(new InetSocketAddress(port)) {
   override def onOpen(ws: WebSocket, clientHandshake: ClientHandshake): Unit = {
     log.info(s"ws connection open")
     val socketActor = ctx.actorOf(Props(new WSController(ws)))
+    stream.subscribe(socketActor, classOf[NewFeeds])
     stream.subscribe(socketActor, classOf[SourceAdded])
     connectionMap(ws) = socketActor
   }

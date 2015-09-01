@@ -1,6 +1,8 @@
 
 class Source extends Sirius.BaseModel
-  @attrs: ["id", "url", "name", {"interval" : 1}, "normalized", "lastUpdate", "count"]
+  @attrs: ["id", "url", "name", {"interval" : 1}, "normalized",
+    "lastUpdate", "count"]
+
   @has_many: ["feed"]
   @skip : true
   @validate:

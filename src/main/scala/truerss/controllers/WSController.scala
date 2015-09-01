@@ -2,9 +2,8 @@ package truerss.controllers
 
 import akka.actor.{ActorLogging, Actor}
 import org.java_websocket.WebSocket
-import org.java_websocket.framing.Framedata
 
-import truerss.system.ws.SourceAdded
+import truerss.system.ws.{SourceAdded, NewFeeds}
 import truerss.models.{ApiJsonProtocol, WSMessage}
 import spray.json._
 /**
@@ -16,12 +15,10 @@ class WSController(ws: WebSocket) extends Actor with ActorLogging {
 
   def receive = {
     case SourceAdded(source) =>
-      ws.send(s"${WSMessage("create", source.toJson.toString()).toJson}")
+      ws.send(s"${WSMessage("create", source.toJson.toString).toJson}")
+    case NewFeeds(xs) =>
+      ws.send(s"${WSMessage("new", xs.toJson.toString()).toJson}")
     case _ => //ws.send()
-  }
-
-  override def postStop: Unit = {
-    log.info(s"${ws} stopped")
   }
 
 }
