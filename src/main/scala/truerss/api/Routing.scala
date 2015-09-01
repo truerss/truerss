@@ -5,7 +5,7 @@ import akka.event.{LoggingReceive, LoggingAdapter}
 
 import com.github.fntzr.spray.routing.ext.Routable
 
-import spray.http.StatusCodes
+import spray.http.{HttpCookie, StatusCodes}
 import spray.routing.ExceptionHandler
 import spray.json.DeserializationException
 
@@ -56,6 +56,10 @@ trait Routing extends Routable {
       } ~
       pathPrefix("templates") {
         getFromResourceDirectory("templates")
+      } ~ pathPrefix("show" / Segments) { segments =>
+         setCookie(HttpCookie("redirect", content = s"/show/${segments.mkString("/")}")) {
+           redirect("/", StatusCodes.Found)
+         }
       }
 
 
