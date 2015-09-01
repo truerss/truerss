@@ -194,7 +194,7 @@ object Truerssbuild extends Build {
 
         "com.typesafe.akka" %% "akka-actor" % akkaVersion,
 
-        "com.typesafe" % "config" % "1.2.1",
+        "com.typesafe" % "config" % "1.3.0",
         "com.github.scopt" %% "scopt" % "3.3.0",
         "com.typesafe.slick" %% "slick" %  slickVersion,
         "com.zaxxer" % "HikariCP-java6" % "2.3.1",

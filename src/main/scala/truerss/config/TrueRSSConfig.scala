@@ -1,11 +1,13 @@
 package truerss.config
 
+import truerss.util.ApplicationPlugins
+
 case class TrueRSSConfig(
-  appDir: String = System.getProperty("user.home"),
+  appDir: String = s"${System.getProperty("user.home")}/.truerss",
   host: String = "localhost",
   port: Int = 8000,
   wsPort: Int = 8080,
-  pluginSetting: Map[String, Map[String, String]] = Map.empty
+  appPlugins: ApplicationPlugins = ApplicationPlugins()
 ) {
   require(port != wsPort)
 }

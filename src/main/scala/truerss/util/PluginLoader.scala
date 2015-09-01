@@ -25,7 +25,8 @@ object PluginLoader {
   val publishPluginName = "com.github.truerss.base.BasePublishPlugin"
   val sitePluginName = "com.github.truerss.base.BaseSitePlugin"
 
-  def load(dirName: String): ApplicationPlugins = {
+  def load(dirName: String,
+           pluginSetting: Map[String, Map[String, String]]): ApplicationPlugins = {
     val appPlugins = ApplicationPlugins()
     val folder = new File(dirName)
 
