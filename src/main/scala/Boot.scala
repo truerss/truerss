@@ -4,6 +4,7 @@ import akka.actor.{ActorSystem, Props}
 import truerss.db.{DBProfile, H2}
 import truerss.models.CurrentDriver
 import truerss.system.SystemActor
+import truerss.util.PluginLoader
 
 import scala.language.postfixOps
 import scala.slick.jdbc.JdbcBackend
