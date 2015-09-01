@@ -2,7 +2,7 @@ package truerss.system
 
 import akka.actor.{ActorLogging, Actor}
 import akka.event.LoggingReceive
-import truerss.plugins.BasePlugin
+import truerss.plugins.{BaseFeedReader, BaseContentReader, BasePlugin}
 
 import scala.util._
 
@@ -10,7 +10,7 @@ class NetworkActor extends Actor with ActorLogging {
 
   import network._
 
-  var pluginMap: Map[Long, BasePlugin] = Map.empty
+  var pluginMap: Map[Long, BaseContentReader with BaseFeedReader] = Map.empty
 
   def receive = {
     case NetworkInitialize(z) =>

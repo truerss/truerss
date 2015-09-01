@@ -18,7 +18,7 @@ object Truerssbuild extends Build {
     resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
     resolvers += "JCenter" at "http://jcenter.bintray.com/",
     resolvers += "karussell_releases" at "https://github.com/karussell/mvnrepo",
-    //resolvers += Resolver.bintrayRepo("truerss", "maven"),
+    resolvers += Resolver.bintrayRepo("truerss", "maven"),
     scalaVersion := "2.10.5",
     scalacOptions ++= Seq("-Xlog-free-terms", "-deprecation", "-feature",
       "-encoding", "UTF-8",
@@ -181,7 +181,7 @@ object Truerssbuild extends Build {
         "commons-io" % "commons-io" % "2.4",
 
         "org.scala-lang" % "scala-library" % "2.11.7",
-        //"com.github.truerss" % "content-extractor" % "0.0.1",
+        "com.github.truerss" % "content-extractor" % "0.0.1",
         "io.spray" %% "spray-routing" % sprayVersion,
         "io.spray" %% "spray-util" % sprayVersion,
         "io.spray" %% "spray-can"  % sprayVersion,
@@ -206,7 +206,7 @@ object Truerssbuild extends Build {
         //"net.truerss" %% "share" % "0.0.1",
 
         "org.scalaz" %% "scalaz-core" % "7.1.3",  
-        "org.jsoup" % "jsoup" % "1.7.3",
+        "org.jsoup" % "jsoup" % "1.8.3",
         "commons-validator" % "commons-validator" % "1.4.0",
         "joda-time" % "joda-time" % "2.8.2",
 

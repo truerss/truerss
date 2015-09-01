@@ -2,6 +2,7 @@ package truerss.plugins
 
 import java.io.ByteArrayInputStream
 import java.util.Date
+import java.net.URL
 
 import com.rometools.rome.feed.synd.SyndEntry
 import com.rometools.rome.io.{SyndFeedInput, XmlReader}
@@ -12,7 +13,10 @@ import scala.collection.JavaConversions._
 import scala.util.control.Exception._
 import com.rometools.rome.io.{ParsingFeedException => PE}
 
-class DefaultSiteReader(config: Map[String, String]) extends BasePlugin(config) {
+import com.github.truerss.ContentExtractor
+
+class DefaultSiteReader(config: Map[String, String])
+  extends BaseSitePlugin(config) {
 
   import truerss.util.Request._
   import Errors._
@@ -96,14 +100,27 @@ class DefaultSiteReader(config: Map[String, String]) extends BasePlugin(config) 
       throw new RuntimeException(s"Connection error for ${url}") 
     }
 
-    val doc = Jsoup.parse(response.body.toString).select("article")
+    val url0 = new URL(url)
+    val base = s"${url0.getProtocol()}://${url0.getHost()}"
 
-    if (doc.size == 0) {
-      None
-    } else {
-      doc.select("input, textarea, script").remove()
-      Some(doc.toString)
+    val doc = Jsoup.parse(response.toString)
+    val result = ContentExtractor.extract(doc.body())
+
+    val need = doc.select(result.selector)
+    need.select("img").foreach{ img =>
+      val src = img.attr("src")
+      val newSrc = if (src.startsWith("http")) {
+        src
+      } else if ((src.startsWith("/"))) {
+        s"${base}${src}"
+      } else {
+        s"${base}/${src}"
+      }
+
+      img.attr("src", newSrc)
     }
+
+    Some(doc.select(result.selector).html())
   }
 
 
