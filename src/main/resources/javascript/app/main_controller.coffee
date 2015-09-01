@@ -25,7 +25,7 @@ MainController =
         url: '/api/v1/sources/all'
         type: "GET"
         success: (arr) ->
-          adapter = Sirius.Application.get_adapter().and_then (adapter) ->
+          Sirius.Application.get_adapter().and_then (adapter) ->
             # open socket TODO change port with cookie ?
             # TODO c -> logger.info
             sock = new WebSocket("ws://#{location.hostname}:8080/")

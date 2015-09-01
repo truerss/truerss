@@ -55,6 +55,7 @@ class ProxyServiceActor(dbRef: ActorRef, networkRef: ActorRef, sourcesRef: Actor
   
   def dbReceive: Receive = {
     case OnlySources => dbRef forward OnlySources
+
     case GetAll =>
       (for {
         counts <- (dbRef ? FeedCount(false)).mapTo[Vector[(Long, Int)]]

@@ -166,7 +166,6 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
         }
         log.info(s"for ${sourceId} feeds in db: ${alreadyInDbUrl.size}; " +
           s"from network ${fromNetwork.size}; new = ${newFeeds.size}")
-        feeds.insertAll(newFeeds: _*)
         val result = (feeds returning feeds.map(_.id)) ++= newFeeds
         result.zip(newFeeds).map { case p @ (id, feed) =>
           feed.copy(id = id.some)

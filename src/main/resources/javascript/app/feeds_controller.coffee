@@ -39,3 +39,12 @@ FeedsController =
             result = Templates.feed_template.render({feed: feed})
             Templates.article_view.render(result).html()
 
+            unless feed.read()
+              $.ajax
+                url: "/api/v1/feeds/read/#{feed.id()}"
+                type: "PUT"
+                success: (x) ->
+                  feed.read(true)
+                  source.count(source.count() - 1)
+
+

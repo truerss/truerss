@@ -51,9 +51,8 @@ Sources.subscribe "add", (source) ->
   html = Templates.source_list.render({source: source})
   Templates.source_list_view.render(html).prepend()
   source_view = new Sirius.View("#source-#{source.id()}")
-  source_li_view = new Sirius.View("#source-#{source.id()}")
   # TODO custom strategy : hide
-  source_li_view.bind(source,
+  source.bind(source_view,
     "span.source-count":
       from: "count"
       transform: (x) ->
@@ -62,6 +61,7 @@ Sources.subscribe "add", (source) ->
         else
           "#{x}"
   )
+  return
 
 
 
