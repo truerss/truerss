@@ -40,7 +40,8 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
   stream.subscribe(dbRef, classOf[FeedContentUpdate])
   stream.subscribe(dbRef, classOf[AddFeeds])
 
-  def sourceNotFound(num: Long) = NotFoundResponse(s"Source with id = ${num} not found")
+  def sourceNotFound(x: Numerable) =
+    NotFoundResponse(s"Source with id = ${x.num} not found")
   def sourceNotFound = NotFoundResponse(s"Source not found")
   def feedNotFound = NotFoundResponse(s"Feed not found")
   def feedNotFound(num: Long) = NotFoundResponse(s"Feed with id = ${num} not found")
@@ -48,11 +49,38 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
     case Some(m) => ModelResponse(m)
     case None => feedNotFound
   }
-  def optionSourceResponse[T <: Jsonize](x: Option[T]) = x match {
-    case Some(m) => ModelResponse(m)
-    case None => sourceNotFound
+
+  def addOrUpdate[T <: Jsonize](msg: Sourcing,
+                                checkUrl: UrlIsUniq,
+                                checkName: NameIsUniq,
+                                f: Long => ModelResponse[T]) = {
+    SourceValidator.validate(msg.source) match {
+      case Right(source) =>
+        (for {
+          urlIsUniq <- (dbRef ? checkUrl).mapTo[Int]
+          nameIsUniq <- (dbRef ? checkName).mapTo[Int]
+        } yield {
+            if (urlIsUniq == 0 && nameIsUniq == 0) {
+              (dbRef ? msg).mapTo[Long].map(f)
+            } else {
+              val urlError = if (urlIsUniq > 0) {
+                "Url already present in db"
+              } else { "" }
+              val nameError = if(nameIsUniq > 0) {
+                "Name not unique"
+              } else {
+                ""
+              }
+              val errs = Vector(urlError, nameError).filterNot(_.isEmpty)
+              Future.successful(BadRequestResponse(errs.mkString(", ")))
+            }
+          }).flatMap(identity)
+
+      case Left(errs) => Future.successful(
+        BadRequestResponse(errs.toList.mkString(", ")))
+    }
   }
-  
+
   def dbReceive: Receive = {
     case OnlySources => dbRef forward OnlySources
 
@@ -67,90 +95,39 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
         )
       }) pipeTo sender
 
-    case msg: GetSource => (dbRef ? msg).mapTo[Option[Source]].map{
+    case msg : Numerable => (dbRef ? msg).mapTo[Option[Source]].map{
       case Some(x) => ModelResponse(x)
-      case None => sourceNotFound(msg.num)
-    } pipeTo sender
-
-    case msg: DeleteSource => (dbRef ? msg).mapTo[Option[Source]].map {
-      case Some(source) => ModelResponse(source)
-      case None => sourceNotFound(msg.num)
+      case None => sourceNotFound(msg)
     } pipeTo sender
 
     case msg: AddSource =>
-      (SourceValidator.validate(msg.source) match {
-        case Right(source) =>
-          (for {
-            urlIsUniq <- (dbRef ? UrlIsUniq(msg.source.url)).mapTo[Int]
-            nameIsUniq <- (dbRef ? NameIsUniq(msg.source.name)).mapTo[Int]
-          } yield {
-              if (urlIsUniq == 0 && nameIsUniq == 0) {
-                val newSource = msg.source.copy(plugin = appPlugins.matchUrl(msg.source.url))
-                val newMsg = msg.copy(source = newSource)
-                (dbRef ? newMsg).mapTo[Long]
-                  .map{ x =>
-                    val source = newMsg.source.copy(id = Some(x)).convert(0)
-                    stream.publish(SourceAdded(source))
-                    ModelResponse(source)
-                }
-              } else {
-                val urlError = if (urlIsUniq > 0) {
-                  "Url already present in db"
-                } else { "" }
-                val nameError = if(nameIsUniq > 0) {
-                  "Name not unique"
-                } else {
-                  ""
-                }
-                val errs = Vector(urlError, nameError).filterNot(_.isEmpty)
-                Future.successful(BadRequestResponse(errs.mkString(", ")))
-              }
-            }).flatMap(identity(_))
-
-        case Left(errs) => Future.successful(
-          BadRequestResponse(errs.toList.mkString(", ")))
-      }) pipeTo sender
+      val newSource = msg.source.copy(plugin = appPlugins.matchUrl(msg.source.url))
+      val newMsg = msg.copy(source = newSource)
+      addOrUpdate(
+        newMsg,
+        UrlIsUniq(msg.source.url),
+        NameIsUniq(msg.source.name),
+        (x: Long) => {
+          val source = newMsg.source.copy(id = Some(x)).convert(0)
+          stream.publish(SourceAdded(source))
+          ModelResponse(source)
+        }
+      ) pipeTo sender
 
     case msg: UpdateSource =>
-      (SourceValidator.validate(msg.source) match {
-        case Right(source) =>
-          (for {
-            urlIsUniq <- (dbRef ? UrlIsUniq(msg.source.url, msg.num.some)).mapTo[Int]
-            nameIsUniq <- (dbRef ? NameIsUniq(msg.source.name, msg.num.some)).mapTo[Int]
-          } yield {
-              if (urlIsUniq == 0 && nameIsUniq == 0) {
-                val newSource = msg.source.copy(plugin = appPlugins.matchUrl(msg.source.url))
-                val newMsg = msg.copy(source = newSource)
-                (dbRef ? newMsg).mapTo[Int]
-                  .map{x => ModelResponse(msg.source)}
-              } else {
-                val urlError = if (urlIsUniq > 0) {
-                  "Url already present in db"
-                } else { "" }
-                val nameError = if(nameIsUniq > 0) {
-                  "Name not unique"
-                } else {
-                  ""
-                }
-                val errs = Vector(urlError, nameError).filterNot(_.isEmpty)
-                Future.successful(BadRequestResponse(errs.mkString(", ")))
-              }
-            }).flatMap(identity(_))
-        case Left(errs) => Future.successful(
-          BadRequestResponse(errs.toList.mkString(", ")))
-      }) pipeTo sender
+      val newSource = msg.source.copy(plugin = appPlugins.matchUrl(msg.source.url))
+      val newMsg = msg.copy(source = newSource)
+      addOrUpdate(
+        newMsg,
+        UrlIsUniq(msg.source.url, msg.num.some),
+        NameIsUniq(msg.source.name, msg.num.some),
+        (x: Long) => {
+          ModelResponse(newMsg.source) }
+      ) pipeTo sender
 
-    case msg: MarkAll => (dbRef ? msg).mapTo[Option[Source]]
-      .map(optionSourceResponse) pipeTo sender
-
-    case msg: Latest => (dbRef ? msg).mapTo[Vector[Feed]]
-      .map(ModelsResponse(_)) pipeTo sender
-
-    case msg: ExtractFeedsForSource => (dbRef ? msg).mapTo[Vector[Feed]]
-      .map(ModelsResponse(_)) pipeTo sender
-
-    case Favorites => (dbRef ? Favorites).mapTo[Vector[Feed]]
-      .map(ModelsResponse(_)) pipeTo sender
+    case msg @ (_: Latest | _: ExtractFeedsForSource | _ : Favorites.type) =>
+      (dbRef ? msg).mapTo[Vector[Feed]]
+        .map(ModelsResponse(_)) pipeTo sender
 
     // also necessary extract content if need
     case msg: GetFeed =>
@@ -184,17 +161,11 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
         case None => Future.successful(feedNotFound(msg.num))
     } pipeTo sender
 
-    case msg: MarkFeed => (dbRef ? msg).mapTo[Option[Feed]]
-      .map(optionFeedResponse) pipeTo sender
+    case msg @ (_ : MarkFeed | _ : UnmarkFeed |
+                _ : MarkAsReadFeed | _ : MarkAsUnreadFeed)  =>
+      (dbRef ? msg).mapTo[Option[Feed]]
+        .map(optionFeedResponse) pipeTo sender
 
-    case msg: UnmarkFeed => (dbRef ? msg).mapTo[Option[Feed]]
-      .map(optionFeedResponse) pipeTo sender
-
-    case msg: MarkAsReadFeed => (dbRef ? msg).mapTo[Option[Feed]]
-      .map(optionFeedResponse) pipeTo sender
-
-    case msg: MarkAsUnreadFeed => (dbRef ? msg).mapTo[Option[Feed]]
-      .map(optionFeedResponse) pipeTo sender
   }
 
   def networkReceive: Receive = {
@@ -212,8 +183,7 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
   }
 
   def utilReceive: Receive = LoggingReceive {
-    case Update => sourcesRef forward Update
-    case msg: UpdateOne => sourcesRef forward msg
+    case msg @ ( _ : Update.type | _ : UpdateOne) => sourcesRef forward msg
   }
 
   def receive = dbReceive orElse networkReceive orElse utilReceive

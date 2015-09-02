@@ -2,29 +2,27 @@ package truerss.db
 
 import java.util.Date
 
-import akka.actor.{ActorLogging, Actor}
-import akka.event.LoggingReceive
+import akka.actor.{Actor, ActorLogging}
 import akka.pattern._
-import scala.concurrent.Future
-import scala.slick.jdbc.JdbcBackend
-import scala.slick.jdbc.JdbcBackend.{SessionDef, DatabaseDef}
 
-import truerss.models.{CurrentDriver, Source, Feed}
+import truerss.models.CurrentDriver
 import truerss.system
 
+import scala.concurrent.Future
+import scala.slick.jdbc.JdbcBackend.{DatabaseDef, SessionDef}
+import scalaz.Scalaz._
 import scalaz._
-import Scalaz._
 /**
  * Created by mike on 2.8.15.
  */
 class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLogging {
 
-  import system.db._
-  import system.ws.NewFeeds
-  import system.util.{SourceLastUpdate, FeedContentUpdate}
-  import driver.query._
-  import driver.profile.simple._
   import context.dispatcher
+  import driver.profile.simple._
+  import driver.query._
+  import system.db._
+  import system.util.{FeedContentUpdate, SourceLastUpdate}
+  import system.ws.NewFeeds
 
   val stream = context.system.eventStream
 
@@ -65,7 +63,7 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
         sources.filter(_.id === source.id)
           .map(s => (s.url, s.name, s.interval, s.plugin, s.normalized))
           .update(source.url, source.name, source.interval,
-            source.plugin, source.normalized)
+            source.plugin, source.normalized).toLong
       }
 
     case MarkAll(sourceId) =>

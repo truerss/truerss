@@ -198,7 +198,7 @@ class SourceApiTest extends FunSpec with Matchers
   describe("Mark all") {
     it("404 when source not found") {
       Put(s"$sourceUrl/mark/1000") ~> computeRoute ~> check {
-        responseAs[String] should be("Source not found")
+        responseAs[String] should be("Source with id = 1000 not found")
         status should be(StatusCodes.NotFound)
       }
     }

@@ -8,12 +8,17 @@ package object system {
   sealed trait BaseMessage
   // for communication with db
   object db {
+    // TODO remove this traits, make generic
+    trait Numerable { val num: Long }
+    trait Sourcing { val source: Source }
+
     case object OnlySources extends BaseMessage
     case object GetAll extends BaseMessage
-    case class GetSource(num: Long) extends BaseMessage
-    case class AddSource(source: Source) extends BaseMessage
-    case class DeleteSource(num: Long) extends BaseMessage
-    case class UpdateSource(num: Long, source: Source) extends BaseMessage
+    case class GetSource(num: Long) extends BaseMessage with Numerable
+    case class MarkAll(num: Long) extends BaseMessage with Numerable
+    case class DeleteSource(num: Long) extends BaseMessage with Numerable
+    case class AddSource(source: Source) extends BaseMessage with Sourcing
+    case class UpdateSource(num: Long, source: Source) extends BaseMessage with Sourcing
 
     case object Favorites extends BaseMessage
     case class GetFeed(num: Long) extends BaseMessage
@@ -24,7 +29,7 @@ package object system {
 
     case class AddFeeds(sourceId: Long, xs: Vector[Feed]) extends BaseMessage
 
-    case class MarkAll(num: Long) extends BaseMessage
+
     case class Latest(count: Long) extends BaseMessage
     case class ExtractFeedsForSource(sourceId: Long) extends BaseMessage
 
@@ -60,6 +65,7 @@ package object system {
 
   object ws {
     case class SourceAdded(source: SourceForFrontend)
+    case class SourceUpdated(source: SourceForFrontend)
     case class NewFeeds(xs: Vector[Feed])
   }
 

@@ -26,6 +26,7 @@ object Truerssbuild extends Build {
       "-language:higherKinds",
       "-language:implicitConversions",
       "-language:postfixOps",
+      "-language:reflectiveCalls",
       "-deprecation",
       "-unchecked",
       "-Xcheckinit",
