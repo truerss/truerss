@@ -7,7 +7,7 @@ import akka.event.LoggingReceive
 import akka.pattern._
 import scala.concurrent.Future
 import scala.slick.jdbc.JdbcBackend
-import scala.slick.jdbc.JdbcBackend.DatabaseDef
+import scala.slick.jdbc.JdbcBackend.{SessionDef, DatabaseDef}
 
 import truerss.models.{CurrentDriver, Source, Feed}
 import truerss.system
@@ -28,127 +28,111 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
 
   val stream = context.system.eventStream
 
-  def receive = {
-    case GetAll | OnlySources => Future.successful{ db withSession { implicit session =>
-      sources.buildColl
-    }} pipeTo sender
+  def complete[T] = (f: SessionDef => T) => Future.successful(db withSession(f)) pipeTo sender
 
-    case FeedCount(read) => Future.successful {
-      db withSession { implicit session =>
+  def receive = {
+    case GetAll | OnlySources =>
+      complete { implicit session =>
+        sources.buildColl
+      }
+
+    case FeedCount(read) =>
+      complete { implicit session =>
         feeds.filter(_.read === read).groupBy(_.sourceId).map {
           case (sourceId, xs) => sourceId -> xs.size
         }.buildColl
       }
-    } pipeTo sender
 
-    case GetSource(sourceId) => Future.successful {
-      db withSession { implicit session =>
+    case GetSource(sourceId) =>
+      complete { implicit session =>
         sources.filter(_.id === sourceId).firstOption
       }
-    } pipeTo sender
 
-    case DeleteSource(sourceId) => Future.successful {
-      db withSession { implicit session =>
+    case DeleteSource(sourceId) =>
+      complete { implicit session =>
         val res = sources.filter(_.id === sourceId).firstOption
         sources.filter(_.id === sourceId).delete
         res
       }
-    } pipeTo sender
 
-    case AddSource(source) => Future.successful {
-      db withSession { implicit session =>
+    case AddSource(source) =>
+      complete { implicit session =>
         (sources returning sources.map(_.id)) += source
       }
-    } pipeTo sender
 
-    case UpdateSource(num, source) => Future.successful {
-      db withSession { implicit session =>
+    case UpdateSource(num, source) =>
+      complete { implicit session =>
         sources.filter(_.id === source.id)
           .map(s => (s.url, s.name, s.interval, s.plugin, s.normalized))
           .update(source.url, source.name, source.interval,
             source.plugin, source.normalized)
       }
-    } pipeTo sender
 
-    case MarkAll(sourceId) => Future.successful {
-      db withSession { implicit session =>
+    case MarkAll(sourceId) =>
+      complete { implicit session =>
         val source = sources.filter(_.id === sourceId).firstOption
         feeds.filter(_.sourceId === sourceId).map(f => f.read).update(true)
         source
       }
-    } pipeTo sender
 
-    case Latest(count) => Future.successful {
-      db withSession { implicit session =>
+    case Latest(count) =>
+      complete { implicit session =>
         feeds.filter(_.read === false).take(count).sortBy(_.publishedDate).buildColl
       }
-    }  pipeTo sender
 
-    case ExtractFeedsForSource(sourceId) => Future.successful {
-      db withSession { implicit session =>
+    case ExtractFeedsForSource(sourceId) =>
+      complete { implicit session =>
         feeds.filter(_.sourceId === sourceId).buildColl
       }
-    } pipeTo sender
 
-    case Favorites => Future.successful {
-      db withSession { implicit session =>
+    case Favorites =>
+      complete { implicit session =>
         feeds.filter(_.favorite === true).buildColl
       }
-    } pipeTo sender
 
-    case GetFeed(num) => Future.successful {
-      db withSession { implicit session =>
+    case GetFeed(num) =>
+      complete { implicit session =>
         feeds.filter(_.id === num).firstOption
       }
-    } pipeTo sender
 
-    case MarkFeed(feedId) => Future.successful {
-      db withSession { implicit session =>
+    case MarkFeed(feedId) =>
+      complete { implicit session =>
         val res = feeds.filter(_.id === feedId).firstOption
         feeds.filter(_.id === feedId).map(e => e.favorite).update(true)
         res
       }
-    } pipeTo sender
 
-    case UnmarkFeed(feedId) => Future.successful {
-      db withSession { implicit session =>
+    case UnmarkFeed(feedId) =>
+      complete { implicit session =>
         val res = feeds.filter(_.id === feedId).firstOption
         feeds.filter(_.id === feedId).map(e => e.favorite).update(false)
         res
       }
-    } pipeTo sender
 
-    case MarkAsReadFeed(feedId) => Future.successful {
-      db withSession { implicit session =>
+    case MarkAsReadFeed(feedId) =>
+      complete { implicit session =>
         val res = feeds.filter(_.id === feedId).firstOption
         feeds.filter(_.id === feedId).map(e => e.read).update(true)
         res
       }
-    } pipeTo sender
 
-
-    case MarkAsUnreadFeed(feedId) => Future.successful {
-      db withSession { implicit session =>
+    case MarkAsUnreadFeed(feedId) =>
+      complete { implicit session =>
         val res = feeds.filter(_.id === feedId).firstOption
         feeds.filter(_.id === feedId).map(e => e.read).update(false)
         res
       }
-    } pipeTo sender
 
     case UrlIsUniq(url, id) =>
-      Future.successful {
-      db withSession { implicit session =>
+      complete { implicit session =>
         id.map(id => sources.filter(s => s.url === url && !(s.id === id)))
           .getOrElse(sources.filter(s => s.url === url)).length.run
       }
-    } pipeTo sender
 
-    case NameIsUniq(name, id) => Future.successful {
-      db withSession { implicit session =>
+    case NameIsUniq(name, id) => complete { implicit session =>
         id.map(id => sources.filter(s => s.name === name && !(s.id === id)))
         .getOrElse(sources.filter(s => s.name === name)).length.run
       }
-    } pipeTo sender
 
     case SourceLastUpdate(sourceId) =>
       db withSession { implicit session =>
