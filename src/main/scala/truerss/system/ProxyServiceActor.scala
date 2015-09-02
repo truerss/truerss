@@ -11,16 +11,16 @@ import truerss.system.network.ExtractContent
 import scala.language.postfixOps
 import scala.concurrent.duration._
 
-import truerss.util.{Jsonize, SourceValidator}
+import truerss.util.{Jsonize, SourceValidator, ApplicationPlugins}
 import scala.concurrent.Future
 import scalaz._
 import Scalaz._
-/**
-  * Created by mike on 2.8.15.
- */
-class ProxyServiceActor(dbRef: ActorRef, networkRef: ActorRef, sourcesRef: ActorRef)
+
+class ProxyServiceActor(appPlugins: ApplicationPlugins,
+                        dbRef: ActorRef,
+                        networkRef: ActorRef,
+                        sourcesRef: ActorRef)
   extends Actor with ActorLogging {
-  //TODO make a router
 
   import truerss.controllers.{
     ModelsResponse, ModelResponse, NotFoundResponse, InternalServerErrorResponse}
@@ -85,9 +85,11 @@ class ProxyServiceActor(dbRef: ActorRef, networkRef: ActorRef, sourcesRef: Actor
             nameIsUniq <- (dbRef ? NameIsUniq(msg.source.name)).mapTo[Int]
           } yield {
               if (urlIsUniq == 0 && nameIsUniq == 0) {
-                (dbRef ? msg).mapTo[Long]
-                  .map{x =>
-                    val source = msg.source.copy(id = Some(x)).convert(0)
+                val newSource = msg.source.copy(plugin = appPlugins.matchUrl(msg.source.url))
+                val newMsg = msg.copy(source = newSource)
+                (dbRef ? newMsg).mapTo[Long]
+                  .map{ x =>
+                    val source = newMsg.source.copy(id = Some(x)).convert(0)
                     stream.publish(SourceAdded(source))
                     ModelResponse(source)
                 }
@@ -117,7 +119,9 @@ class ProxyServiceActor(dbRef: ActorRef, networkRef: ActorRef, sourcesRef: Actor
             nameIsUniq <- (dbRef ? NameIsUniq(msg.source.name, msg.num.some)).mapTo[Int]
           } yield {
               if (urlIsUniq == 0 && nameIsUniq == 0) {
-                (dbRef ? msg).mapTo[Int]
+                val newSource = msg.source.copy(plugin = appPlugins.matchUrl(msg.source.url))
+                val newMsg = msg.copy(source = newSource)
+                (dbRef ? newMsg).mapTo[Int]
                   .map{x => ModelResponse(msg.source)}
               } else {
                 val urlError = if (urlIsUniq > 0) {

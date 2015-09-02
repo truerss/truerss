@@ -2,9 +2,10 @@ package truerss.system
 
 import akka.actor._
 import akka.actor.SupervisorStrategy.Restart
-import akka.event.LoggingReceive
 import akka.pattern.ask
 import akka.util.Timeout
+
+import truerss.util.ApplicationPlugins
 import truerss.controllers._
 import truerss.plugins.DefaultSiteReader
 
@@ -12,10 +13,10 @@ import truerss.plugins.DefaultSiteReader
 import scala.concurrent.duration._
 
 import truerss.models.Source
-/**
- * Created by mike on 9.8.15.
- */
-class SourcesActor(proxyRef: ActorRef, networkRef: ActorRef) extends Actor with ActorLogging {
+
+class SourcesActor(plugins: ApplicationPlugins,
+                   proxyRef: ActorRef,
+                   networkRef: ActorRef) extends Actor with ActorLogging {
 
   import db.OnlySources
   import network.{NetworkInitialize, SourceInfo}

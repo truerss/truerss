@@ -10,11 +10,14 @@ import scala.slick.jdbc.JdbcBackend.DatabaseDef
 import truerss.api.{RoutingService, WSApi}
 import truerss.db.DbActor
 import truerss.models.CurrentDriver
+import truerss.config.TrueRSSConfig
 
 /**
  * Created by mike on 2.8.15.
  */
-class SystemActor(dbDef: DatabaseDef, driver: CurrentDriver) extends Actor {
+class SystemActor(config: TrueRSSConfig,
+                  dbDef: DatabaseDef,
+                  driver: CurrentDriver) extends Actor {
 
   implicit val system = context.system
 
@@ -23,18 +26,20 @@ class SystemActor(dbDef: DatabaseDef, driver: CurrentDriver) extends Actor {
   val networkRef = context.actorOf(
     Props(new NetworkActor).withRouter(SmallestMailboxPool(10)), "network-router")
 
-  val sourcesRef = context.actorOf(Props(new SourcesActor(self, networkRef)), "sources")
+  val sourcesRef = context.actorOf(Props(new SourcesActor(
+    config.appPlugins,
+    self,
+    networkRef)), "sources")
 
   val proxyRef = context.actorOf(Props(
-    new ProxyServiceActor(dbRef, networkRef, sourcesRef))
+    new ProxyServiceActor(config.appPlugins, dbRef, networkRef, sourcesRef))
       .withRouter(SmallestMailboxPool(10)), "service-router")
 
   val api = context.actorOf(Props(new RoutingService(proxyRef)), "api")
+  //TODO pass wsPort on UI with cookie
+  val socketApi = context.actorOf(Props(new WSApi(config.wsPort)), "ws-api")
 
-  val socketApi = context.actorOf(Props(new WSApi(8080)), "ws-api")
-
-  IO(Http) ! Http.Bind(api, interface = "localhost", port = 8000)
-
+  IO(Http) ! Http.Bind(api, interface = config.host, port = config.port)
 
   def receive = {
     case x => proxyRef forward x

@@ -20,7 +20,7 @@ class DefaultReaderTest extends FunSpec with Matchers
 with ScalatestRouteTest with BeforeAndAfterAll {
 
   implicit val timeout = Timeout(10 seconds)
-  import truerss.plugins.Errors.ParsingError
+  import com.github.truerss.base.Errors.ParsingError
   override def beforeAll() = {}
 
   val rssServer = system.actorOf(Props[Server])
@@ -84,12 +84,6 @@ with ScalatestRouteTest with BeforeAndAfterAll {
       val result = defaultReader.content(content1Url)
       result.isRight should be(true)
       result.right.get.get should include("The US digital service")
-    }
-
-    it("when no content") {
-      val result = defaultReader.content(content2Url)
-      result.isRight should be(true)
-      result.right.get should be(None)
     }
   }
 

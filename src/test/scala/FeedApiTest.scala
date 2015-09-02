@@ -24,12 +24,10 @@ import spray.json.JsonParser
 import truerss.models._
 import truerss.db.DbActor
 import truerss.api._
+import truerss.util.ApplicationPlugins
 
 import scala.slick.jdbc.JdbcBackend
 
-/**
- * Created by mike on 8.8.15.
- */
 class FeedApiTest extends FunSpec with Matchers
 with ScalatestRouteTest with Routing with Common {
 
@@ -41,7 +39,9 @@ with ScalatestRouteTest with Routing with Common {
   val dbRef = system.actorOf(Props(new DbActor(db, driver)), "test-db")
   val networkRef = TestProbe()
   val sourcesRef = TestProbe()
-  val proxyRef = system.actorOf(Props(new ProxyServiceActor(dbRef, networkRef.ref, sourcesRef.ref)), "test-proxy")
+  val proxyRef = system.actorOf(Props(new ProxyServiceActor(
+    ApplicationPlugins(),
+    dbRef, networkRef.ref, sourcesRef.ref)), "test-proxy")
   val context = system
 
   val computeRoute = route(proxyRef, context)

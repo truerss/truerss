@@ -1,16 +1,13 @@
 package truerss
 
-import truerss.models.{SourceForFrontend, FrontendSource, Feed, Source}
+import truerss.models.{SourceForFrontend, Feed, Source}
 import com.github.truerss.base.{BaseFeedReader, BaseContentReader, Entry}
-/**
- * Created by mike on 2.8.15.
- */
+
 package object system {
 
   sealed trait BaseMessage
   // for communication with db
   object db {
-
     case object OnlySources extends BaseMessage
     case object GetAll extends BaseMessage
     case class GetSource(num: Long) extends BaseMessage

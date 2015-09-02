@@ -14,7 +14,13 @@ case class ApplicationPlugins(
   contentPlugins: ArrayBuffer[BaseContentPlugin] = ArrayBuffer.empty,
   publishPlugin: ArrayBuffer[BasePublishPlugin] = ArrayBuffer.empty,
   sitePlugin: ArrayBuffer[BaseSitePlugin] = ArrayBuffer.empty
-)
+) {
+  def matchUrl(url: String): Boolean = {
+    feedPlugins.exists(_.matchUrl(url)) ||
+    contentPlugins.exists(_.matchUrl(url)) ||
+    sitePlugin.exists(_.matchUrl(url))
+  }
+}
 
 object PluginLoader {
 

@@ -32,7 +32,9 @@ class SourcesActorTest(_system: ActorSystem) extends TestKit(_system)
   val dbRef = TestProbe()
   val networkRef = TestProbe()
   val sysActor = TestProbe()
-  val sourcesRef = system.actorOf(Props(new SourcesActor(sysActor.ref,
+  val sourcesRef = system.actorOf(Props(new SourcesActor(
+    truerss.util.ApplicationPlugins(),
+    sysActor.ref,
     networkRef.ref)), "sources")
 
   import truerss.system.db.{OnlySources, AddFeeds}

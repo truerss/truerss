@@ -11,14 +11,13 @@ import truerss.controllers.OkResponse
 import truerss.db.DbActor
 import truerss.models.{SourceForFrontend, Feed, Source}
 import truerss.system.ProxyServiceActor
+import truerss.util.ApplicationPlugins
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
 import scala.slick.driver.H2Driver.simple._
 
-/**
- * Created by mike on 2.8.15.
- */
+
 class SourceApiTest extends FunSpec with Matchers
   with ScalatestRouteTest with Routing with Common {
 
@@ -32,7 +31,9 @@ class SourceApiTest extends FunSpec with Matchers
   val dbRef = system.actorOf(Props(new DbActor(db, driver)), "test-db")
   val networkRef = TestProbe()
   val sourcesRef = TestProbe()
-  val proxyRef = system.actorOf(Props(new ProxyServiceActor(dbRef, networkRef.ref, sourcesRef.ref)), "test-proxy")
+  val proxyRef = system.actorOf(Props(new ProxyServiceActor(
+    ApplicationPlugins(),
+    dbRef, networkRef.ref, sourcesRef.ref)), "test-proxy")
   val context = system
 
   val computeRoute = route(proxyRef, context)
@@ -71,8 +72,9 @@ class SourceApiTest extends FunSpec with Matchers
       val source = genSource(None).copy(url = url, name = name,
         normalized = normalized)
       val json = source.toJson
+
       Post(s"${sourceUrl}/create", json.toString) ~> computeRoute ~> check {
-        val givenSource = JsonParser(responseAs[String]).convertTo[Source]
+        val givenSource = JsonParser(responseAs[String]).convertTo[SourceForFrontend]
 
         givenSource.name should be(source.name)
         givenSource.url should be(source.url)

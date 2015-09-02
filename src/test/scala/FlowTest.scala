@@ -19,7 +19,7 @@ class FlowTest extends FunSpec with Matchers
   implicit val timeout = Timeout(10 seconds)
 
   import driver.profile.simple._
-
+  val config = truerss.config.TrueRSSConfig()
   val rssServer = system.actorOf(Props[Server])
   val host = "localhost"
   val port = Await.result((IO(Http) ?
@@ -47,7 +47,7 @@ class FlowTest extends FunSpec with Matchers
   }
 
 
-  val systemRef = system.actorOf(Props(new SystemActor(db, driver)),
+  val systemRef = system.actorOf(Props(new SystemActor(config, db, driver)),
     "test-system-actor")
 
 

@@ -123,7 +123,7 @@ object Boot extends App {
         appPlugins = appPlugins
       )
 
-      system.actorOf(Props(new SystemActor(db, driver)), "system-actor")
+      system.actorOf(Props(new SystemActor(actualConfig, db, driver)), "system-actor")
 
     case None =>
       Console.err.println("Unknown argument")
