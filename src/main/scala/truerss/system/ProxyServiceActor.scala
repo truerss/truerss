@@ -113,12 +113,15 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
         UrlIsUniq(msg.source.url),
         NameIsUniq(msg.source.name),
         (x: Long) => {
-          val source = newMsg.source.copy(id = Some(x)).convert(0)
-          stream.publish(SourceAdded(source))
-          ModelResponse(source)
+          val source = newMsg.source.copy(id = Some(x))
+          val frontendSource = source.convert(0)
+          stream.publish(SourceAdded(frontendSource))
+          sourcesRef ! NewSource(source) // TODO use publish ?
+          ModelResponse(frontendSource)
         }
       ) pipeTo sender
 
+    //TODO publish sourceupdated
     case msg: UpdateSource =>
       val state = if (appPlugins.matchUrl(msg.source.url)) {
         Enable

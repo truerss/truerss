@@ -164,6 +164,7 @@ object Truerssbuild extends Build {
           MergeStrategy.first
       },
       test in assembly := {},
+      fork in compile := true,
       publishArtifact in Test := false,
       licenses += ("MIT", url("http://opensource.org/licenses/MIT")),
       packageOptions := Seq(ManifestAttributes(

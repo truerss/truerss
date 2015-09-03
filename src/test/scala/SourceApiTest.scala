@@ -11,6 +11,7 @@ import truerss.controllers.OkResponse
 import truerss.db.DbActor
 import truerss.models.{SourceForFrontend, Feed, Source}
 import truerss.system.ProxyServiceActor
+import truerss.system.util.NewSource
 import truerss.util.ApplicationPlugins
 
 import scala.concurrent.duration._
@@ -73,8 +74,12 @@ class SourceApiTest extends FunSpec with Matchers
         normalized = normalized)
       val json = source.toJson
 
-      Post(s"${sourceUrl}/create", json.toString) ~> computeRoute ~> check {
-        val givenSource = JsonParser(responseAs[String]).convertTo[SourceForFrontend]
+      val request = Post(s"${sourceUrl}/create", json.toString) ~> computeRoute
+      sourcesRef.expectMsgAnyClassOf(classOf[NewSource])
+
+      request ~> check {
+        val givenSource = JsonParser(responseAs[String])
+          .convertTo[SourceForFrontend]
 
         givenSource.name should be(source.name)
         givenSource.url should be(source.url)

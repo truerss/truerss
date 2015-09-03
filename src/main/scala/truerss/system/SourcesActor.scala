@@ -18,7 +18,7 @@ class SourcesActor(plugins: ApplicationPlugins,
                    networkRef: ActorRef) extends Actor with ActorLogging {
 
   import db.OnlySources
-  import network.{NetworkInitialize, SourceInfo}
+  import network.{NetworkInitialize, SourceInfo, NewSourceInfo}
   import util._
   import context.dispatcher
   implicit val timeout = Timeout(30 seconds)
@@ -37,36 +37,46 @@ class SourcesActor(plugins: ApplicationPlugins,
 
   context.system.scheduler.scheduleOnce(3 seconds, self, Start)
 
+  val defaultPlugin = new DefaultSiteReader(Map.empty)
+
+  def getSourceInfo(source: Source) = {
+    source.state match {
+      case Neutral =>
+        SourceInfo(source.id.get, defaultPlugin, defaultPlugin)
+      case _ =>
+        val feedReader = plugins.getFeedReader(source.url)
+          .getOrElse(defaultPlugin)
+        val contentReader = plugins.getContentReader(source.url)
+          .getOrElse(defaultPlugin)
+
+        log.info(s"${source.name} need plugin." +
+          s" Detect feed plugin: ${feedReader.pluginName}, " +
+          s" content plugin: ${contentReader.pluginName}")
+        SourceInfo(source.id.get, feedReader, contentReader)
+    }
+  }
+
   def receive = {
     case Start =>
-      val defaultPlugin = new DefaultSiteReader(Map.empty)
+      //TODO onlysource return only actual sources (neutral, enable state)
       (proxyRef ? OnlySources).mapTo[Vector[Source]].map { sources =>
         sourcesCount = sources.size
         log.info(s"Given ${sourcesCount} sources")
 
-        val sourceInfo = sources.map { source =>
-          source.state match {
-            case Neutral =>
-              SourceInfo(source.id.get, defaultPlugin, defaultPlugin)
-            case _ => //TODO skip source in Disable state
-              val feedReader = plugins.getFeedReader(source.url)
-                .getOrElse(defaultPlugin)
-              val contentReader = plugins.getContentReader(source.url)
-                .getOrElse(defaultPlugin)
+        val sourceInfo = sources.map(getSourceInfo)
 
-              log.info(s"${source.name} need plugin." +
-                s" Detect feed plugin: ${feedReader.pluginName}, " +
-                s"content plugin: ${contentReader.pluginName}")
-
-              SourceInfo(source.id.get, feedReader, contentReader)
-          }
-        }
         networkRef ! NetworkInitialize(sourceInfo)
         sources.foreach { source =>
           log.info(s"Start source actor for ${source.normalized} -> ${source.id.get}")
-          context.actorOf(Props(new SourceActor(source, networkRef)), s"source-${source.id.get}")
+          context.actorOf(Props(new SourceActor(source, networkRef)),
+            s"source-${source.id.get}")
         }
     }
+
+    case NewSource(source) =>
+      networkRef ! NewSourceInfo(getSourceInfo(source))
+      context.actorOf(Props(new SourceActor(source, networkRef)),
+        s"source-${source.id.get}")
 
     case Update =>
       log.info(s"Update for ${context.children.size} actors")

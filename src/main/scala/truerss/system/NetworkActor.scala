@@ -14,10 +14,14 @@ class NetworkActor extends Actor with ActorLogging {
   var contentMap: Map[Long, BaseContentReader] = Map.empty
 
   def receive = {
-    case NetworkInitialize(z) =>
+    case NetworkInitialize(xs) =>
       log.info("Network initialize")
-      feedMap = z.map(x => x.sourceId -> x.feedReader).toMap
-      contentMap = z.map(x => x.sourceId -> x.contentReader).toMap
+      feedMap = xs.map(x => x.sourceId -> x.feedReader).toMap
+      contentMap = xs.map(x => x.sourceId -> x.contentReader).toMap
+
+    case NewSourceInfo(info) =>
+      feedMap += info.sourceId -> info.feedReader
+      contentMap += info.sourceId -> info.contentReader
 
     case Grep(sourceId, url) =>
       log.info(s"Extract feeds for ${url} sourceId = ${sourceId}")

@@ -46,6 +46,7 @@ package object system {
     case class Grep(sourceId: Long, url: String)
     case class ExtractContent(sourceId: Long, feedId: Long, url: String)
     case class NetworkInitialize(xs: Vector[SourceInfo])
+    case class NewSourceInfo(info: SourceInfo)
 
     sealed trait NetworkResult
 
@@ -62,6 +63,8 @@ package object system {
 
     case class SourceLastUpdate(sourceId: Long)
     case class FeedContentUpdate(feedId: Long, content: String)
+
+    case class NewSource(source: Source)
   }
 
   object ws {

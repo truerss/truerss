@@ -34,7 +34,7 @@ case class SocketServer(port: Int,
                         log: LoggingAdapter) extends
 WebSocketServer(new InetSocketAddress(port)) {
 
-  val connectionMap = scala.collection.mutable.HashMap[WebSocket, ActorRef]()
+  val connectionMap = scala.collection.mutable.Map[WebSocket, ActorRef]()
 
   override def onOpen(ws: WebSocket, clientHandshake: ClientHandshake): Unit = {
     log.info(s"ws connection open")
@@ -62,7 +62,7 @@ WebSocketServer(new InetSocketAddress(port)) {
     val actor = connectionMap(webSocket)
     connectionMap -= webSocket
     stream.unsubscribe(actor)
-    actor ! PoisonPill
+    actor ! Kill
   }
 
 }
