@@ -20,6 +20,18 @@ case class ApplicationPlugins(
     contentPlugins.exists(_.matchUrl(url)) ||
     sitePlugin.exists(_.matchUrl(url))
   }
+
+  def getFeedReader(url: String) = {
+    (feedPlugins.filter(_.matchUrl(url)) ++
+      sitePlugin.filter(_.matchUrl(url)))
+      .sortBy(_.priority).reverse.headOption
+  }
+
+  def getContentReader(url: String) = {
+    (contentPlugins.filter(_.matchUrl(url)) ++
+      sitePlugin.filter(_.matchUrl(url)))
+      .sortBy(_.priority).reverse.headOption
+  }
 }
 
 object PluginLoader {

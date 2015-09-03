@@ -97,7 +97,7 @@ object Boot extends App {
 
       import driver.profile.simple._
 
-      import truerss.models.{Source, Neutral}
+      import truerss.models.{Source, Neutral, Enable}
       import org.joda.time.DateTime
 
       db withSession { implicit session =>
@@ -113,7 +113,16 @@ object Boot extends App {
             lastUpdate = d.toDate,
             error = false
           )
-          driver.query.sources.insert(s)
+          val y = Source(id = None,
+            url = "https://www.youtube.com/feeds/videos.xml?channel_id=UC1kJkmSWt_snLDfuXgJnLnQ",
+            name = "youtube rethinkdb",
+            interval = 12,
+            state = Enable,
+            normalized = "youtube-rethinkdb",
+            lastUpdate = d.toDate,
+            error = false
+          )
+          driver.query.sources.insertAll(s, y)
         }
       }
 

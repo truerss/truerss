@@ -1,7 +1,7 @@
 package truerss
 
 import truerss.models.{SourceForFrontend, Feed, Source}
-import com.github.truerss.base.{BaseFeedReader, BaseContentReader, Entry}
+import com.github.truerss.base.{Entry, BaseFeedReader, BaseContentReader}
 
 package object system {
 
@@ -41,7 +41,8 @@ package object system {
   }
 
   object network {
-    case class SourceInfo(sourceId: Long, plugin: BaseContentReader with BaseFeedReader)
+    case class SourceInfo(sourceId: Long, feedReader: BaseFeedReader,
+                           contentReader: BaseContentReader)
     case class Grep(sourceId: Long, url: String)
     case class ExtractContent(sourceId: Long, feedId: Long, url: String)
     case class NetworkInitialize(xs: Vector[SourceInfo])

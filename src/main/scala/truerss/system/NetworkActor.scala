@@ -2,6 +2,7 @@ package truerss.system
 
 import akka.actor.{ActorLogging, Actor}
 import com.github.truerss.base.{BaseFeedReader, BaseContentReader}
+import truerss.util.ApplicationPlugins
 
 import scala.util._
 
@@ -9,16 +10,18 @@ class NetworkActor extends Actor with ActorLogging {
 
   import network._
 
-  var pluginMap: Map[Long, BaseContentReader with BaseFeedReader] = Map.empty
+  var feedMap: Map[Long, BaseFeedReader] = Map.empty
+  var contentMap: Map[Long, BaseContentReader] = Map.empty
 
   def receive = {
     case NetworkInitialize(z) =>
       log.info("Network initialize")
-      pluginMap = z.map(x => x.sourceId -> x.plugin).toMap
+      feedMap = z.map(x => x.sourceId -> x.feedReader).toMap
+      contentMap = z.map(x => x.sourceId -> x.contentReader).toMap
 
     case Grep(sourceId, url) =>
       log.info(s"Extract feeds for ${url} sourceId = ${sourceId}")
-      pluginMap.get(sourceId) match {
+      feedMap.get(sourceId) match {
         case Some(plugin) =>
           plugin.newEntries(url) match {
             case Right(xs) => sender ! ExtractedEntries(sourceId, xs)
@@ -30,7 +33,7 @@ class NetworkActor extends Actor with ActorLogging {
 
     case ExtractContent(sourceId, feedId, url) =>
       log.info(s"Extract content for ${feedId} -> ${url}")
-      pluginMap.get(sourceId) match {
+      contentMap.get(sourceId) match {
         case Some(plugin) => plugin.content(url) match {
           case Right(content) =>
             sender ! ExtractContentForEntry(sourceId, feedId, content)

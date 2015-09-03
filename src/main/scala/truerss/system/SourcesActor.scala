@@ -8,11 +8,10 @@ import akka.util.Timeout
 import truerss.util.ApplicationPlugins
 import truerss.controllers._
 import truerss.plugins.DefaultSiteReader
-
+import truerss.models.{Source, Neutral, Disable, Enable}
 
 import scala.concurrent.duration._
 
-import truerss.models.Source
 
 class SourcesActor(plugins: ApplicationPlugins,
                    proxyRef: ActorRef,
@@ -38,15 +37,31 @@ class SourcesActor(plugins: ApplicationPlugins,
 
   context.system.scheduler.scheduleOnce(3 seconds, self, Start)
 
-
   def receive = {
     case Start =>
       val defaultPlugin = new DefaultSiteReader(Map.empty)
       (proxyRef ? OnlySources).mapTo[Vector[Source]].map { sources =>
         sourcesCount = sources.size
         log.info(s"Given ${sourcesCount} sources")
-        val info = sources.map(x => SourceInfo(x.id.get, defaultPlugin))
-        networkRef ! NetworkInitialize(info)
+
+        val sourceInfo = sources.map { source =>
+          source.state match {
+            case Neutral =>
+              SourceInfo(source.id.get, defaultPlugin, defaultPlugin)
+            case _ => //TODO skip source in Disable state
+              val feedReader = plugins.getFeedReader(source.url)
+                .getOrElse(defaultPlugin)
+              val contentReader = plugins.getContentReader(source.url)
+                .getOrElse(defaultPlugin)
+
+              log.info(s"${source.name} need plugin." +
+                s" Detect feed plugin: ${feedReader.pluginName}, " +
+                s"content plugin: ${contentReader.pluginName}")
+
+              SourceInfo(source.id.get, feedReader, contentReader)
+          }
+        }
+        networkRef ! NetworkInitialize(sourceInfo)
         sources.foreach { source =>
           log.info(s"Start source actor for ${source.normalized} -> ${source.id.get}")
           context.actorOf(Props(new SourceActor(source, networkRef)), s"source-${source.id.get}")
