@@ -27,12 +27,12 @@ class SourceActor(source: Source, networkRef: ActorRef)
   val diff = (currentTime - lastUpdate) / (60 * 1000)
 
   val tickTime = if ((diff > interval) || diff == 0) {
-    0 minutes
+    0 seconds
   } else {
     (interval - diff) minutes
   }
 
-  log.info(s"Next time update for ${source.name} -> ${tickTime} minutes")
+  log.info(s"Next time update for ${source.name} -> ${tickTime}")
 
   context.system.scheduler.schedule(
     tickTime,

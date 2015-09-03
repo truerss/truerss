@@ -20,7 +20,16 @@ SourcesController =
         method: "GET"
         dataType: "json"
         success: (feeds) ->
-          c(feeds)
+          source.reset('feed')
+          feeds = feeds.map (f) ->
+            feed = new Feed(f)
+            source.add_feed(feed)
+            feed
+
+          result = Templates.feeds_template.render({feeds: feeds})
+          Templates.feeds_view.render(result).html()
+          if feeds.length > 0
+            redirect(feeds[0].href())
 
   refresh_one: (e, id) ->
     $.ajax

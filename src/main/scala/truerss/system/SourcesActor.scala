@@ -1,14 +1,15 @@
 package truerss.system
 
-import akka.actor._
 import akka.actor.SupervisorStrategy.Restart
+import akka.actor._
 import akka.pattern.ask
 import akka.util.Timeout
+import akka.actor.ActorDSL._
 
-import truerss.util.ApplicationPlugins
 import truerss.controllers._
+import truerss.models.{Neutral, Source}
 import truerss.plugins.DefaultSiteReader
-import truerss.models.{Source, Neutral, Disable, Enable}
+import truerss.util.ApplicationPlugins
 
 import scala.concurrent.duration._
 
@@ -17,10 +18,10 @@ class SourcesActor(plugins: ApplicationPlugins,
                    proxyRef: ActorRef,
                    networkRef: ActorRef) extends Actor with ActorLogging {
 
-  import db.OnlySources
-  import network.{NetworkInitialize, SourceInfo, NewSourceInfo}
-  import util._
   import context.dispatcher
+  import db.OnlySources
+  import network.{NetworkInitialize, NewSourceInfo, SourceInfo, NetworkInitialized}
+  import util._
   implicit val timeout = Timeout(30 seconds)
 
   var sourcesCount: Long = 0
@@ -56,22 +57,24 @@ class SourcesActor(plugins: ApplicationPlugins,
     }
   }
 
+  var sources: Vector[Source] = _
+
   def receive = {
     case Start =>
       //TODO onlysource return only actual sources (neutral, enable state)
-      (proxyRef ? OnlySources).mapTo[Vector[Source]].map { sources =>
-        sourcesCount = sources.size
+      (proxyRef ? OnlySources).mapTo[Vector[Source]].map { xs =>
+        sourcesCount = xs.size
         log.info(s"Given ${sourcesCount} sources")
+        sources = xs
+        networkRef ! NetworkInitialize(xs.map(getSourceInfo))
+      }
 
-        val sourceInfo = sources.map(getSourceInfo)
-
-        networkRef ! NetworkInitialize(sourceInfo)
-        sources.foreach { source =>
-          log.info(s"Start source actor for ${source.normalized} -> ${source.id.get}")
-          context.actorOf(Props(new SourceActor(source, networkRef)),
-            s"source-${source.id.get}")
-        }
-    }
+    case NetworkInitialized =>
+      sources.foreach { source =>
+        log.info(s"Start source actor for ${source.normalized} -> ${source.id.get}")
+        context.actorOf(Props(new SourceActor(source, networkRef)),
+          s"source-${source.id.get}")
+      }
 
     case NewSource(source) =>
       networkRef ! NewSourceInfo(getSourceInfo(source))
