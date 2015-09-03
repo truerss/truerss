@@ -29,7 +29,7 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
   import util._
   import ws._
   import truerss.util.Util._
-  import truerss.models.{Source, Feed}
+  import truerss.models.{Source, Feed, Neutral, Enable}
   import context.dispatcher
 
   implicit val timeout = Timeout(7 seconds)
@@ -101,7 +101,12 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
     } pipeTo sender
 
     case msg: AddSource =>
-      val newSource = msg.source.copy(plugin = appPlugins.matchUrl(msg.source.url))
+      val state = if (appPlugins.matchUrl(msg.source.url)) {
+        Enable
+      } else {
+        Neutral
+      }
+      val newSource = msg.source.copy(state = state)
       val newMsg = msg.copy(source = newSource)
       addOrUpdate(
         newMsg,
@@ -115,7 +120,12 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
       ) pipeTo sender
 
     case msg: UpdateSource =>
-      val newSource = msg.source.copy(plugin = appPlugins.matchUrl(msg.source.url))
+      val state = if (appPlugins.matchUrl(msg.source.url)) {
+        Enable
+      } else {
+        Neutral
+      }
+      val newSource = msg.source.copy(state = state)
       val newMsg = msg.copy(source = newSource)
       addOrUpdate(
         newMsg,

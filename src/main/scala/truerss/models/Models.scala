@@ -7,14 +7,17 @@ import scala.slick.driver.JdbcProfile
 
 import truerss.util.Util._
 
-/**
- * Created by mike on 1.8.15.
- */
+
+sealed trait SourceState
+case object Neutral extends SourceState
+case object Enable extends SourceState
+case object Disable extends SourceState
+
 case class Source(id: Option[Long],
                   url: String,
                   name: String,
                   interval: Int,
-                  plugin: Boolean,
+                  state: SourceState,
                   normalized: String,
                   lastUpdate: Date,
                   error: Boolean = false) extends Jsonize {
@@ -36,12 +39,13 @@ case class Feed(id: Option[Long],
 
 
 case class FrontendSource(url: String, name: String, interval: Int) {
+
   def toSource = Source(
     id = None,
     url = url,
     name = name,
     interval = interval,
-    plugin = false,
+    state = Neutral,
     normalized = name,
     lastUpdate = new Date(),
     error = false
@@ -53,7 +57,7 @@ case class SourceForFrontend(
   url: String,
   name: String,
   interval: Int,
-  plugin: Boolean,
+  state: SourceState,
   normalized: String,
   lastUpdate: Date,
   count: Int = 0
@@ -66,14 +70,31 @@ case class CurrentDriver(profile: JdbcProfile) {
   import profile.simple._
 
   object DateSupport {
-    implicit val JavaUtilDateMapper =
-      MappedColumnType .base[Date, java.sql.Timestamp] (
+    implicit val javaUtilDateMapper =
+      MappedColumnType.base[Date, java.sql.Timestamp] (
         d => new java.sql.Timestamp(d.getTime),
         d => new java.util.Date(d.getTime))
   }
 
+  object StateSupport {
+    implicit val sourceStateMapper = MappedColumnType.base[SourceState, Byte](
+      state => state match {
+        case Neutral => 0
+        case Enable => 1
+        case Disable => 2
+      },
+      b => b match {
+        case 0 => Neutral
+        case 1 => Enable
+        case 2 => Disable
+      }
+    )
+  }
+
   class Sources(tag: Tag) extends Table[Source](tag, "sources") {
     import DateSupport._
+    import StateSupport._
+
 
     def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
 
@@ -83,7 +104,8 @@ case class CurrentDriver(profile: JdbcProfile) {
 
     def interval = column[Int]("interval", O.Default[Int](86400))
 
-    def plugin = column[Boolean]("plugin", O.Default[Boolean](false))
+    def state = column[SourceState]("state")
+    //def plugin = column[Boolean]("plugin", O.Default[Boolean](false))
 
     def normalized = column[String]("normalized")
 
@@ -91,7 +113,7 @@ case class CurrentDriver(profile: JdbcProfile) {
 
     def error = column[Boolean]("error")
 
-    def * = (id.?, url, name, interval, plugin, normalized, lastUpdate, error) <> (Source.tupled, Source.unapply)
+    def * = (id.?, url, name, interval, state, normalized, lastUpdate, error) <> (Source.tupled, Source.unapply)
 
   }
 

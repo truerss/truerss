@@ -61,9 +61,9 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
     case UpdateSource(num, source) =>
       complete { implicit session =>
         sources.filter(_.id === source.id)
-          .map(s => (s.url, s.name, s.interval, s.plugin, s.normalized))
+          .map(s => (s.url, s.name, s.interval, s.state, s.normalized))
           .update(source.url, source.name, source.interval,
-            source.plugin, source.normalized).toLong
+            source.state, source.normalized).toLong
       }
 
     case MarkAll(sourceId) =>

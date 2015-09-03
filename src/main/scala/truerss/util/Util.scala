@@ -45,7 +45,7 @@ object Util {
         url = s.url,
         name = s.name,
         interval = s.interval,
-        plugin = s.plugin,
+        state = s.state,
         normalized = s.normalized,
         lastUpdate = s.lastUpdate,
         count = count

@@ -97,7 +97,7 @@ object Boot extends App {
 
       import driver.profile.simple._
 
-      import truerss.models.Source
+      import truerss.models.{Source, Neutral}
       import org.joda.time.DateTime
 
       db withSession { implicit session =>
@@ -108,7 +108,7 @@ object Boot extends App {
             url = "https://news.ycombinator.com/rss",
             name = "hacker news",
             interval = 12,
-            plugin = false,
+            state = Neutral,
             normalized = "hacker-news",
             lastUpdate = d.toDate,
             error = false

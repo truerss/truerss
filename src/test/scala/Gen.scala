@@ -4,6 +4,8 @@ import java.util.{Date, UUID}
 import io.codearte.jfairy.Fairy
 import org.joda.time._
 import truerss.models
+import truerss.models.Neutral
+
 /**
  * Created by mike on 2.8.15.
  */
@@ -47,7 +49,7 @@ object Gen {
       url = genUrl,
       name = name,
       interval = fairy.baseProducer().randomBetween(1, 12),
-      plugin = false,
+      state = Neutral,
       normalized = name.normalize,
       lastUpdate = z.plusDays(1).toDate,
       error = false

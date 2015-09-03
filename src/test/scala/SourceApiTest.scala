@@ -78,7 +78,7 @@ class SourceApiTest extends FunSpec with Matchers
 
         givenSource.name should be(source.name)
         givenSource.url should be(source.url)
-        givenSource.plugin should be(source.plugin)
+        givenSource.state should be(source.state)
 
         status should be(StatusCodes.OK)
       }

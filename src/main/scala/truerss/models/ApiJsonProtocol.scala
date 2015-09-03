@@ -2,15 +2,30 @@ package truerss.models
 
 import truerss.util.Jsonize
 import spray.json._
-/**
- * Created by mike on 2.8.15.
- */
+
 object ApiJsonProtocol extends DefaultJsonProtocol {
 
   implicit object DateFormat extends JsonFormat[java.util.Date] {
     val format = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-    override def read(json:JsValue): java.util.Date = format.parse(json.convertTo[String])
-    override def write(date:java.util.Date) = format.format(date).toJson
+    override def read(json: JsValue): java.util.Date =
+      format.parse(json.convertTo[String])
+    override def write(date: java.util.Date) =
+      format.format(date).toJson
+  }
+
+  implicit object StateFormat extends JsonFormat[SourceState] {
+    override def read(json: JsValue): SourceState = {
+      json.convertTo[Byte] match {
+        case 0 => Neutral
+        case 1 => Enable
+        case 2 => Disable
+      }
+    }
+    override def write(s: SourceState) = s match {
+      case Neutral => JsNumber(0)
+      case Enable => JsNumber(1)
+      case Disable => JsNumber(2)
+    }
   }
 
   implicit val sourceFormat = jsonFormat8(Source)
