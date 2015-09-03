@@ -1,6 +1,6 @@
 package truerss
 
-import truerss.models.{SourceForFrontend, Feed, Source}
+import truerss.models.{SourceState, SourceForFrontend, Feed, Source}
 import com.github.truerss.base.{Entry, BaseFeedReader, BaseContentReader}
 
 package object system {
@@ -38,17 +38,19 @@ package object system {
     case class NameIsUniq(name: String, id: Option[Long] = None) extends BaseMessage
     case class FeedCount(read: Boolean = false) extends BaseMessage
 
+    case class SetState(sourceId: Long, state: SourceState) extends BaseMessage
   }
 
   object network {
-    case class SourceInfo(sourceId: Long, feedReader: BaseFeedReader,
-                           contentReader: BaseContentReader)
+    import scala.collection.mutable.{Map => M}
     case class Grep(sourceId: Long, url: String)
     case class ExtractContent(sourceId: Long, feedId: Long, url: String)
-    case class NetworkInitialize(xs: Vector[SourceInfo])
+    case class NetworkInitialize(feedReaderMap: M[Long, BaseFeedReader],
+                                 contentReader: M[Long, BaseContentReader])
     case object NetworkInitialized
 
-    case class NewSourceInfo(info: SourceInfo)
+    case class NewSourceInfo(sourceId: Long, feedReader: BaseFeedReader,
+                             contentReader: BaseContentReader)
 
     sealed trait NetworkResult
 

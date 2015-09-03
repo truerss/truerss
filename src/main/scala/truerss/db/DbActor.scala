@@ -138,6 +138,11 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
           .map(s => s.lastUpdate).update(new Date())
       }
 
+    case SetState(sourceId, state) =>
+      db withSession { implicit session =>
+        sources.filter(_.id === sourceId).map(s => s.state).update(state)
+      }
+
     case AddFeeds(sourceId, xs) =>
       val newFeeds = db withSession { implicit session =>
         val alreadyInDbUrl = feeds.filter(_.sourceId === sourceId).map(_.url).run.toVector

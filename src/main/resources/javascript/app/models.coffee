@@ -1,12 +1,19 @@
 
 class Source extends Sirius.BaseModel
-  @attrs: ["id", "url", "name", {"interval" : 1}, "normalized",
+  @attrs: ["id", "url", "name", {"interval" : 1}, "state", "normalized",
     "lastUpdate", "count"]
 
   @has_many: ["feed"]
   @skip : true
   @validate:
     url: url_validator : true
+
+  is_disable: () ->
+    parseInt(@state()) is 2
+
+  withPlugin: () ->
+    (parseInt(@state()) is 1) || (parseInt(@state()) is 2)
+
 
   href: () ->
     "/show/#{@normalized()}"
@@ -36,6 +43,7 @@ class Feed extends Sirius.BaseModel
 
   source_name: () -> @source().name()
   source_url : () -> @source().url()
+
 
   anything: () ->
     if @content()

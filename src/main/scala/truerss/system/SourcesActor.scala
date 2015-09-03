@@ -4,24 +4,26 @@ import akka.actor.SupervisorStrategy.Restart
 import akka.actor._
 import akka.pattern.ask
 import akka.util.Timeout
-import akka.actor.ActorDSL._
+import com.github.truerss.base.{BaseContentReader, BaseFeedReader}
 
 import truerss.controllers._
-import truerss.models.{Neutral, Source}
+import truerss.models.{Disable, Neutral, Source}
 import truerss.plugins.DefaultSiteReader
 import truerss.util.ApplicationPlugins
 
 import scala.concurrent.duration._
-
+import scala.collection.mutable.{ArrayBuffer, Map => MMap}
+import scalaz.Scalaz._
 
 class SourcesActor(plugins: ApplicationPlugins,
                    proxyRef: ActorRef,
                    networkRef: ActorRef) extends Actor with ActorLogging {
 
   import context.dispatcher
-  import db.OnlySources
-  import network.{NetworkInitialize, NewSourceInfo, SourceInfo, NetworkInitialized}
+  import db.{OnlySources, SetState}
+  import network.{NetworkInitialize, NewSourceInfo, NetworkInitialized}
   import util._
+
   implicit val timeout = Timeout(30 seconds)
 
   var sourcesCount: Long = 0
@@ -39,34 +41,59 @@ class SourcesActor(plugins: ApplicationPlugins,
   context.system.scheduler.scheduleOnce(3 seconds, self, Start)
 
   val defaultPlugin = new DefaultSiteReader(Map.empty)
+  var sources: ArrayBuffer[Source] = _
+
+  case class AboutSource(sourceId: Long, feedReader: BaseFeedReader,
+                          contentReader: BaseContentReader)
 
   def getSourceInfo(source: Source) = {
     source.state match {
       case Neutral =>
-        SourceInfo(source.id.get, defaultPlugin, defaultPlugin)
+        AboutSource(source.id.get, defaultPlugin, defaultPlugin).some
       case _ =>
         val feedReader = plugins.getFeedReader(source.url)
-          .getOrElse(defaultPlugin)
-        val contentReader = plugins.getContentReader(source.url)
-          .getOrElse(defaultPlugin)
 
-        log.info(s"${source.name} need plugin." +
-          s" Detect feed plugin: ${feedReader.pluginName}, " +
-          s" content plugin: ${contentReader.pluginName}")
-        SourceInfo(source.id.get, feedReader, contentReader)
+        val contentReader = plugins.getContentReader(source.url)
+
+        (feedReader, contentReader) match {
+          case (None, None) =>
+            log.warning(s"Disable ${source.id.get} -> ${source.name} Source. " +
+              s"Plugin not found")
+            sources -= source
+            proxyRef ! SetState(source.id.get, Disable)
+            none
+          case (f, c) =>
+            val f0 = f.getOrElse(defaultPlugin)
+            val c0 = c.getOrElse(defaultPlugin)
+            log.info(s"${source.name} need plugin." +
+              s" Detect feed plugin: ${f0.pluginName}, " +
+              s" content plugin: ${c0.pluginName}")
+            AboutSource(source.id.get, f0, c0).some
+        }
+
     }
   }
 
-  var sources: Vector[Source] = _
 
   def receive = {
     case Start =>
-      //TODO onlysource return only actual sources (neutral, enable state)
       (proxyRef ? OnlySources).mapTo[Vector[Source]].map { xs =>
-        sourcesCount = xs.size
+        sources = xs.filter(_.state match {
+          case Disable => false
+          case _ => true
+        }).to[ArrayBuffer]
+
+        sourcesCount = sources.size
         log.info(s"Given ${sourcesCount} sources")
-        sources = xs
-        networkRef ! NetworkInitialize(xs.map(getSourceInfo))
+
+        val xs0 = xs.flatMap(getSourceInfo)
+        val feedReaders = MMap.empty ++ xs0.map { about =>
+          about.sourceId -> about.feedReader
+        }.toMap
+        val contentReaders = MMap.empty ++ xs0.map { about =>
+          about.sourceId -> about.contentReader
+        }.toMap
+        networkRef ! NetworkInitialize(feedReaders, contentReaders)
       }
 
     case NetworkInitialized =>
@@ -77,9 +104,12 @@ class SourcesActor(plugins: ApplicationPlugins,
       }
 
     case NewSource(source) =>
-      networkRef ! NewSourceInfo(getSourceInfo(source))
-      context.actorOf(Props(new SourceActor(source, networkRef)),
-        s"source-${source.id.get}")
+      getSourceInfo(source).map { about =>
+        networkRef ! NewSourceInfo(about.sourceId, about.feedReader,
+          about.contentReader)
+        context.actorOf(Props(new SourceActor(source, networkRef)),
+          s"source-${source.id.get}")
+      }
 
     case Update =>
       log.info(s"Update for ${context.children.size} actors")

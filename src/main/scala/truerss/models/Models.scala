@@ -105,7 +105,6 @@ case class CurrentDriver(profile: JdbcProfile) {
     def interval = column[Int]("interval", O.Default[Int](86400))
 
     def state = column[SourceState]("state")
-    //def plugin = column[Boolean]("plugin", O.Default[Boolean](false))
 
     def normalized = column[String]("normalized")
 

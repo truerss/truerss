@@ -112,19 +112,12 @@ class DefaultSiteReader(config: Map[String, String])
     val need = doc.select(result.selector)
 
     need.select("img").foreach { img =>
-      val src = img.attr("src")
-      val newSrc = if (src.startsWith("http")) {
-        src
-      } else if ((src.startsWith("/"))) {
-        s"${base}${src}"
-      } else {
-        s"${base}/${src}"
-      }
-
-      img.attr("src", newSrc)
+      Option(img.absUrl("src")).map(img.attr("src", _)).getOrElse(img)
     }
 
-    Some(doc.select(result.selector).html())
+    need.select("form, input, meta, style, script").foreach(_.remove)
+
+    Some(need.html())
   }
 
 

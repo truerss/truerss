@@ -39,6 +39,7 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
   stream.subscribe(dbRef, classOf[SourceLastUpdate])
   stream.subscribe(dbRef, classOf[FeedContentUpdate])
   stream.subscribe(dbRef, classOf[AddFeeds])
+  stream.subscribe(dbRef, classOf[SetState])
 
   def sourceNotFound(x: Numerable) =
     NotFoundResponse(s"Source with id = ${x.num} not found")
@@ -149,7 +150,7 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
           case Some(content) =>
             log.info("feed have content")
             Future.successful(ModelResponse(x))
-          case None => //TODO move to SourceActor ?
+          case None =>
             (networkRef ? ExtractContent(x.sourceId, x.id.get, x.url))
               .mapTo[NetworkResult].map {
               case ExtractedEntries(sourceId, xs) =>
@@ -178,6 +179,9 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
                 _ : MarkAsReadFeed | _ : MarkAsUnreadFeed)  =>
       (dbRef ? msg).mapTo[Option[Feed]]
         .map(optionFeedResponse) pipeTo sender
+
+    case msg: SetState =>
+      stream.publish(msg)
 
   }
 

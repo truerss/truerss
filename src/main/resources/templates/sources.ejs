@@ -1,10 +1,31 @@
 <li id="source-<%= source.id() %>">
     <span class="uk-text-left">
-      <a href="<%= source.href() %>">
-        <%= source.name() %>
-      </a>
+      <% if (source.is_disable()) { %>
+        <span><%= source.name() %></span>
+      <% } else { %>
+        <a href="<%= source.href() %>">
+          <%= source.name() %>
+        </a>
+      <% } %>
     </span>
+
     <span class="uk-badge uk-float-right uk-margin-small-right
         uk-badge-notification uk-text-right source-count">
         <%= source.count() %></span>
+    <% if (source.withPlugin()) { %>
+          <% if (source.is_disable()) { %>
+            <i class="uk-badge uk-float-right uk-margin-small-right
+                           uk-badge-notification
+                           uk-badge-danger
+                           uk-icon-justify
+                           uk-icon-plug"></i>
+          <% } else { %>
+            <i class="uk-badge uk-float-right uk-margin-small-right
+                           uk-badge-notification
+                           uk-badge-success
+                           uk-icon-justify
+                           uk-icon-plug"></i>
+        <% } %>
+
+    <% } %>
 </li>

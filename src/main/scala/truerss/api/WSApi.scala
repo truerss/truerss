@@ -41,6 +41,8 @@ WebSocketServer(new InetSocketAddress(port)) {
     val socketActor = ctx.actorOf(Props(new WSController(ws)))
     stream.subscribe(socketActor, classOf[NewFeeds])
     stream.subscribe(socketActor, classOf[SourceAdded])
+
+    //TODO stream.subscribe(socketActor, classOf[SetState])
     connectionMap(ws) = socketActor
   }
 

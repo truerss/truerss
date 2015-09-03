@@ -1,33 +1,29 @@
 package truerss.system
 
-import akka.actor.{ActorLogging, Actor}
-import com.github.truerss.base.{PluginInfo, BaseFeedReader, BaseContentReader}
-import scala.collection.mutable.{Map => M}
+import akka.actor.{Actor, ActorLogging}
 
+import com.github.truerss.base.{BaseContentReader, BaseFeedReader}
+
+import scala.collection.mutable.{Map => M}
 import scala.util._
 
 class NetworkActor extends Actor with ActorLogging {
 
   import network._
-  import context._
 
-  val feedMap: M[Long, BaseFeedReader] = M.empty
-  val contentMap: M[Long, BaseContentReader] = M.empty
-
+  var feedMap: M[Long, BaseFeedReader] = M.empty
+  var contentMap: M[Long, BaseContentReader] = M.empty
 
   def receive = {
-    case NetworkInitialize(xs) =>
+    case NetworkInitialize(f, c) =>
       log.info("Network initialize")
-      xs.foreach { x =>
-        log.info(s"====> ${x.sourceId} | ${x.feedReader} | ${x.contentReader}")
-        feedMap += x.sourceId -> x.feedReader
-        contentMap += x.sourceId -> x.contentReader
-      }
+      feedMap = f
+      contentMap = c
       sender ! NetworkInitialized
 
-    case NewSourceInfo(info) =>
-      feedMap += info.sourceId -> info.feedReader
-      contentMap += info.sourceId -> info.contentReader
+    case NewSourceInfo(id, f, c) =>
+      feedMap += id -> f
+      contentMap += id -> c
 
     case Grep(sourceId, url) =>
       log.info(s"Extract feeds for ${url} sourceId = ${sourceId}")
