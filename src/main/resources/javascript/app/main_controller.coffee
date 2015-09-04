@@ -30,7 +30,7 @@ MainController =
             # TODO c -> logger.info
             sock = new WebSocket("ws://#{location.hostname}:8080/")
             sock.onopen = () ->
-              c("ws open")
+              logger.info("ws open")
 
             sock.onmessage = (e) ->
               message = JSON.parse(e.data)

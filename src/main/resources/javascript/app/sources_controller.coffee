@@ -42,6 +42,9 @@ SourcesController =
       url: "/api/v1/sources/#{id}"
       method: "DELETE"
 
+  edit: (e, id) ->
+    source = Sources.find('id', id)
+    # TODO implement
 
 
 

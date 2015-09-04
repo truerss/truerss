@@ -9,6 +9,7 @@
             <th>Feed count</th>
             <th>Refresh</th>
             <th>Delete</th>
+            <th>Edit</th>
         </tr>
     </thead>
   <% for (var i = 0; i < sources.length; i++) { %>
@@ -21,6 +22,8 @@
       <td><a href="#update-source" class="uk-icon-refresh"
       data-source-id="<%= sources[i].id() %>"></a></td>
       <td><a href="#delete-source" class="uk-icon-remove"
+      data-source-id="<%= sources[i].id() %>"></a></td>
+      <td><a href="#edit-source" class="uk-icon-edit"
       data-source-id="<%= sources[i].id() %>"></a></td>
     </tr>
   <% } %>

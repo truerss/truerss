@@ -41,6 +41,7 @@ WebSocketServer(new InetSocketAddress(port)) {
     stream.subscribe(socketActor, classOf[NewFeeds])
     stream.subscribe(socketActor, classOf[SourceAdded])
     stream.subscribe(socketActor, classOf[SourceDeleted])
+    stream.subscribe(socketActor, classOf[SourceUpdated])
     connectionMap(ws) = socketActor
   }
 
