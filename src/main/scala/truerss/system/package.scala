@@ -64,6 +64,7 @@ package object system {
     case class UpdateMe(who: ActorRef)
     case class UpdateOne(num: Long) extends BaseMessage
 
+    case class SourceDeleted(source: Source)
     case class SourceLastUpdate(sourceId: Long)
     case class FeedContentUpdate(feedId: Long, content: String)
 

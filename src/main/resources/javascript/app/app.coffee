@@ -5,6 +5,7 @@ $ ->
     "application:run" : controller: MainController, action: "start"
     "ws:new": controller: WSController, action: "fresh"
     "ws:create": controller: WSController, action: "create"
+    "ws:deleted": controller: WSController, action: "deleted"
     "/sources" : controller: SourcesController, action: "all"
     "/" : controller: MainController, action: "view"
     "/favorites" : controller: FeedsController, action: "favorites"
@@ -16,6 +17,7 @@ $ ->
     "click i.favorite": controller: FeedsController, action: "favorite", data: "data-favorite"
     "click i.unfavorite": controller: FeedsController, action: "unfavorite", data: "data-favorite"
     "click a[href='#update-source']" : controller: SourcesController, action: "refresh_one", data: "data-source-id"
+    "click a[href='#delete-source']": controller: SourcesController, action: "remove", data: "data-source-id"
 
   app = Sirius.Application.run
     route: routes

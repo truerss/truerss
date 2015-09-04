@@ -21,6 +21,8 @@ class Source extends Sirius.BaseModel
   ajaxify: () ->
     JSON.stringify({url: @url(), interval: parseInt(@interval()), name: @name()})
 
+  compare: (other) -> @id() == other.id()
+
 
 class Feed extends Sirius.BaseModel
   @attrs: ["id", "sourceId", "url",
@@ -70,6 +72,10 @@ Sources.subscribe "add", (source) ->
           "#{x}"
   )
   return
+
+Sources.subscribe "remove", (source) ->
+  # TODO unbind
+  jQuery("#source-#{source.id()}").remove()
 
 
 

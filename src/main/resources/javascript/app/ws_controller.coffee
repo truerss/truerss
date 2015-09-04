@@ -16,3 +16,8 @@ WSController =
           status  : 'success',
           timeout : 3000,
           pos     : 'top-right'
+
+  deleted: (e, source) ->
+    source = new Source(JSON.parse(source))
+    Sources.remove(source)
+    jQuery("#all-sources tr.source-#{source.id()}").remove()

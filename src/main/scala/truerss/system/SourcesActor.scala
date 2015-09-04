@@ -132,6 +132,14 @@ class SourcesActor(plugins: ApplicationPlugins,
     case UpdateOne(num) =>
       sourceNetwork.get(num).map(_ ! Update)
 
+    case SourceDeleted(source) =>
+      log.info(s"Stop ${source.name} actor")
+      sourceNetwork.get(source.id.get).foreach{ ref =>
+        queue.filter(_ == ref).foreach(queue -= _)
+        context.stop(ref)
+      }
+      sourceNetwork -= source.id.get
+
     case msg: ExtractContent =>
       sourceNetwork.get(msg.sourceId).map(_ forward msg)
 

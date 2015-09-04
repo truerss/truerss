@@ -22,7 +22,7 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
   extends Actor with ActorLogging {
 
   import truerss.controllers.{
-    ModelsResponse, ModelResponse, NotFoundResponse, InternalServerErrorResponse}
+    OkResponse, ModelsResponse, ModelResponse, NotFoundResponse, InternalServerErrorResponse}
   import db._
   import network._
   import util._
@@ -41,6 +41,7 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
   stream.subscribe(dbRef, classOf[AddFeeds])
   stream.subscribe(dbRef, classOf[SetState])
 
+  val ok = OkResponse("ok")
   def sourceNotFound(x: Numerable) =
     NotFoundResponse(s"Source with id = ${x.num} not found")
   def sourceNotFound = NotFoundResponse(s"Source not found")
@@ -96,6 +97,16 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
         )
       }) pipeTo sender
 
+    case msg: DeleteSource =>
+      val original = sender
+      (dbRef ? msg).mapTo[Option[Source]].map {
+        case Some(source) =>
+          sourcesRef ! SourceDeleted(source)
+          stream.publish(SourceDeleted(source)) // => ws
+          original ! ok
+        case None => original ! sourceNotFound(msg)
+      }
+
     case msg : Numerable => (dbRef ? msg).mapTo[Option[Source]].map{
       case Some(x) => ModelResponse(x)
       case None => sourceNotFound(msg)
@@ -117,7 +128,7 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
           val source = newMsg.source.copy(id = Some(x))
           val frontendSource = source.convert(0)
           stream.publish(SourceAdded(frontendSource))
-          sourcesRef ! NewSource(source) // TODO use publish ?
+          sourcesRef ! NewSource(source)
           ModelResponse(frontendSource)
         }
       ) pipeTo sender

@@ -37,6 +37,11 @@ SourcesController =
       method: "PUT"
       success: () ->
 
+  remove: (e, id) ->
+    $.ajax
+      url: "/api/v1/sources/#{id}"
+      method: "DELETE"
+
 
 
 

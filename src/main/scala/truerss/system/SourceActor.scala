@@ -60,7 +60,7 @@ class SourceActor(source: Source, feedReader: BaseFeedReader,
 
     case ExtractContent(sourceId, feedId, url) =>
       val c = contentReaders.filter(_.matchUrl(url)).sortBy(_.priority).head
-      log.info(s"Read content ${url} with ${c.pluginName}")
+      log.info(s"Read content from ${url} with ${c.pluginName}")
       c.content(url) match {
         case Right(content) =>
           sender ! ExtractContentForEntry(sourceId, feedId, content)

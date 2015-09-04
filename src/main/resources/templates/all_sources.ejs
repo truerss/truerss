@@ -1,4 +1,4 @@
-<table class="uk-table uk-table-striped uk-table-condensed">
+<table id="all-sources" class="uk-table uk-table-striped uk-table-condensed">
   <caption>All sources</caption>
     <thead>
         <tr>
@@ -12,7 +12,7 @@
         </tr>
     </thead>
   <% for (var i = 0; i < sources.length; i++) { %>
-    <tr>
+    <tr class="source-<%= sources[i].id() %>">
       <td><%= sources[i].name() %></td>
       <td><a href="<%= sources[i].url() %>"><%= sources[i].url() %></a></td>
       <td>every <%= sources[i].interval() %> hours</td>
@@ -20,7 +20,8 @@
       <td><%= sources[i].count() %></td>
       <td><a href="#update-source" class="uk-icon-refresh"
       data-source-id="<%= sources[i].id() %>"></a></td>
-      <td><a href="" class="uk-icon-remove"></a></td>
+      <td><a href="#delete-source" class="uk-icon-remove"
+      data-source-id="<%= sources[i].id() %>"></a></td>
     </tr>
   <% } %>
 </table>

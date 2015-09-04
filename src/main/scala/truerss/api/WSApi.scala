@@ -11,9 +11,8 @@ import org.java_websocket.server.WebSocketServer
 
 import truerss.controllers.WSController
 import truerss.system.ws._
-/**
- * Created by mike on 29.8.15.
- */
+import truerss.system.util.SourceDeleted
+
 class WSApi(val port: Int) extends Actor with ActorLogging {
 
   log.info("WS Api start...")
@@ -41,8 +40,7 @@ WebSocketServer(new InetSocketAddress(port)) {
     val socketActor = ctx.actorOf(Props(new WSController(ws)))
     stream.subscribe(socketActor, classOf[NewFeeds])
     stream.subscribe(socketActor, classOf[SourceAdded])
-
-    //TODO stream.subscribe(socketActor, classOf[SetState])
+    stream.subscribe(socketActor, classOf[SourceDeleted])
     connectionMap(ws) = socketActor
   }
 
