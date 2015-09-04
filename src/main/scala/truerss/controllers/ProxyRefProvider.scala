@@ -19,6 +19,10 @@ trait ProxyRefProvider {
   val context: ActorRefFactory
 }
 
+trait WsPortProvider {
+  val wsPort: Int
+}
+
 trait ResponseHelper { self : ProxyRefProvider with ActorRefExt =>
 
   import spray.http.MediaTypes.`application/json`

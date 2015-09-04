@@ -1,16 +1,19 @@
 package truerss.controllers
 
 import com.github.fntzr.spray.routing.ext.BaseController
+import spray.http.HttpCookie
 
 import spray.routing.HttpService
-/**
- * Created by mike on 1.8.15.
- */
-trait MainController extends BaseController {
+
+trait MainController extends BaseController with WsPortProvider {
 
   import HttpService._
   import spray.httpx.TwirlSupport._
 
-  def root = complete(truerss.html.index.render)
+  def root =
+    setCookie(HttpCookie("port", content = s"$wsPort")) {
+      complete(truerss.html.index.render)
+    }
+
 
 }

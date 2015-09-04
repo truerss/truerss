@@ -12,6 +12,8 @@ MainController =
   """
 
   start: () ->
+    port = read_cookie("port")
+
     if !(!!window.WebSocket && !!window.FormData && !!history.pushState)
       UIkit.notify
           message : @error_message,
@@ -28,9 +30,9 @@ MainController =
           Sirius.Application.get_adapter().and_then (adapter) ->
             # open socket TODO change port with cookie ?
             # TODO c -> logger.info
-            sock = new WebSocket("ws://#{location.hostname}:8080/")
+            sock = new WebSocket("ws://#{location.hostname}:#{port}/")
             sock.onopen = () ->
-              logger.info("ws open")
+              c("ws open on port: #{port}")
 
             sock.onmessage = (e) ->
               message = JSON.parse(e.data)

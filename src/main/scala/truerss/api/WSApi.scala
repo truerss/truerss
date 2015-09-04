@@ -63,7 +63,7 @@ WebSocketServer(new InetSocketAddress(port)) {
     val actor = connectionMap(webSocket)
     connectionMap -= webSocket
     stream.unsubscribe(actor)
-    actor ! Kill
+    ctx.stop(actor)
   }
 
 }

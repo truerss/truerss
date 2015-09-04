@@ -18,7 +18,7 @@ import spray.routing.PathMatchers._
 trait Routing extends Routable {
 
 
-  def route(proxyRef: ActorRef, context: ActorRefFactory) =
+  def route(proxyRef: ActorRef, context: ActorRefFactory, wsPort: Int) =
     root[MainController]("root") ~
       scope("api") {
         scope("v1") {
@@ -68,7 +68,7 @@ trait Routing extends Routable {
 }
 
 
-class RoutingService(proxyRef: ActorRef) extends Actor with Routing with ActorLogging {
+class RoutingService(proxyRef: ActorRef, wsPort: Int) extends Actor with Routing with ActorLogging {
   def actorRefFactory = context
-  def receive = LoggingReceive { runRoute(route(proxyRef, context)) }
+  def receive = LoggingReceive { runRoute(route(proxyRef, context, wsPort)) }
 }

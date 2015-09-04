@@ -31,9 +31,9 @@ class SystemActor(config: TrueRSSConfig,
     new ProxyServiceActor(config.appPlugins, dbRef, sourcesRef))
       .withRouter(SmallestMailboxPool(10)), "service-router")
 
-  val api = context.actorOf(Props(new RoutingService(proxyRef)), "api")
-  //TODO pass wsPort on UI with cookie
-  val socketApi = context.actorOf(Props(new WSApi(8080)), "ws-api")
+  val api = context.actorOf(Props(new RoutingService(proxyRef, config.wsPort)), "api")
+
+  val socketApi = context.actorOf(Props(new WSApi(config.wsPort)), "ws-api")
 
   IO(Http) ! Http.Bind(api, interface = config.host, port = config.port)
 
