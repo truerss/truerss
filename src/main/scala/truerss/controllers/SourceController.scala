@@ -1,35 +1,35 @@
 package truerss.controllers
 
-import akka.actor.ActorRef
-import akka.pattern._
 import akka.util.Timeout
-import com.github.fntzr.spray.routing.ext.BaseController
-import spray.http.HttpRequest
-import truerss.models.{FrontendSource, Source, ApiJsonProtocol}
-import truerss.system.db
-import truerss.system.util
+import akka.pattern.ask
+import java.io.StringReader
 
-import scala.concurrent.duration._
-import spray.httpx.SprayJsonSupport._
-import spray.json.DefaultJsonProtocol
-import spray.routing.{RequestContext, HttpService}
-import scala.concurrent.Future
+import com.github.fntzr.spray.routing.ext.BaseController
+import spray.http.MultipartFormData
+import spray.routing.HttpService
+import truerss.models.{ApiJsonProtocol, FrontendSource}
+import truerss.system.{db, util}
 
 import scala.util.control.Exception._
 import scalaz._
 import Scalaz._
 
-/**
- * Created by mike on 1.8.15.
- */
+import com.rometools.opml.feed.opml.Opml
+import com.rometools.rome.io.WireFeedInput
+import org.xml.sax.InputSource
+
+import scala.concurrent.Future
+
 trait SourceController extends BaseController
   with ProxyRefProvider with ActorRefExt with ResponseHelper {
 
-  import HttpService._
-  import spray.json._
   import ApiJsonProtocol._
+  import HttpService._
   import db._
+  import spray.json._
   import util._
+  import scala.collection.JavaConversions._
+  import context.dispatcher
 
   def all = end(GetAll)
 
@@ -62,6 +62,28 @@ trait SourceController extends BaseController
   def refresh = end(Update)
 
   def refreshOne(num: Long) = end(UpdateOne(num))
+
+  def fromFile = {
+    entity(as[MultipartFormData]) { formData => c =>
+      val interval = 8
+      val file = formData.fields.map(_.entity.asString).reduce(_ + _)
+      val input = new WireFeedInput()
+      val opml = input.build(new InputSource(
+        new StringReader(file.replaceAll("[^\\x20-\\x7e]", ""))))
+      .asInstanceOf[Opml]
+      val result = opml.getOutlines.flatMap(_.getChildren).map { x =>
+        (x.getXmlUrl, x.getTitle)
+      }.filterNot(x => x._1.isEmpty && x._2.isEmpty).map { case t @ (url, title) =>
+        val s = FrontendSource(url, title, interval)
+        (proxyRef ? AddSource(s.toSource.normalize)).mapTo[Response]
+      }
+
+      Future.sequence(result).onComplete {
+        case _ => //TODO push in stream about errors
+          c.complete("ok")
+      }
+    }
+  }
 
 
 }

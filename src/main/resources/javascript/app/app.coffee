@@ -1,6 +1,45 @@
 `var c = function(m){console.log(m);};`
 
 $ ->
+  # from http://getuikit.com/docs/upload.html
+  `
+  var progressbar = $("#progressbar"),
+    bar         = progressbar.find('.uk-progress-bar'),
+    settings    = {
+
+    action: '/api/v1/sources/import',
+
+    allow : '*.opml',
+
+    filelimit: 700,
+
+    loadstart: function() {
+        bar.css("width", "0%").text("0%");
+        progressbar.removeClass("uk-hidden");
+    },
+
+    progress: function(percent) {
+        percent = Math.ceil(percent);
+        bar.css("width", percent+"%").text(percent+"%");
+    },
+
+    allcomplete: function(response) {
+
+        bar.css("width", "100%").text("100%");
+
+        setTimeout(function(){
+            progressbar.addClass("uk-hidden");
+        }, 250);
+
+        alert("Upload Completed")
+    }
+  };
+
+  var select = UIkit.uploadSelect($("#upload-select"), settings),
+    drop   = UIkit.uploadDrop($("#upload-drop"), settings);
+  `
+
+
   routes =
     "application:run" : controller: MainController, action: "start"
     "ws:new": controller: WSController, action: "fresh"
