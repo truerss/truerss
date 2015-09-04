@@ -83,6 +83,8 @@ MainController =
               # see WSController
               #Sources.add(new Source(json))
               modal.hide()
+            error: (err) ->
+              source.set_error("url.url_validator", err.responseText)
 
       Templates.modal_view.on 'button.close-modal', 'click', (e) ->
         modal.hide()
