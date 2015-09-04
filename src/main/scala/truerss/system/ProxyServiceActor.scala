@@ -27,6 +27,7 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
   import network._
   import util._
   import ws._
+  import plugins.GetPluginList
   import truerss.util.Util._
   import truerss.models.{Source, Feed, Neutral, Enable}
   import context.dispatcher
@@ -188,11 +189,15 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
     case msg: NewFeeds => stream.publish(msg)
   }
 
-  def utilReceive: Receive = LoggingReceive {
+  def utilReceive: Receive = {
     case msg @ ( _ : Update.type | _ : UpdateOne) => sourcesRef forward msg
   }
 
-  def receive = dbReceive orElse networkReceive orElse utilReceive
+  def pluginReceive: Receive = {
+    case GetPluginList => sender ! ModelResponse(appPlugins)
+  }
+
+  def receive = dbReceive orElse networkReceive orElse utilReceive orElse pluginReceive
 
   override def unhandled(m: Any) = log.warning(s"Undhandled $m")
 

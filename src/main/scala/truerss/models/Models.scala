@@ -39,7 +39,6 @@ case class Feed(id: Option[Long],
 
 
 case class FrontendSource(url: String, name: String, interval: Int) {
-
   def toSource = Source(
     id = None,
     url = url,

@@ -4,7 +4,8 @@ import java.io.File
 import java.net.URLClassLoader
 import java.util.jar._
 
-import com.github.truerss.base.{BaseContentPlugin, BaseFeedPlugin, BasePublishPlugin, BaseSitePlugin}
+import com.github.truerss.base._
+
 
 import scala.collection.mutable.ArrayBuffer
 import scala.language.existentials
@@ -14,7 +15,7 @@ case class ApplicationPlugins(
   contentPlugins: ArrayBuffer[BaseContentPlugin] = ArrayBuffer.empty,
   publishPlugin: ArrayBuffer[BasePublishPlugin] = ArrayBuffer.empty,
   sitePlugin: ArrayBuffer[BaseSitePlugin] = ArrayBuffer.empty
-) {
+) extends Jsonize {
   def matchUrl(url: String): Boolean = {
     feedPlugins.exists(_.matchUrl(url)) ||
     contentPlugins.exists(_.matchUrl(url)) ||
@@ -32,6 +33,8 @@ case class ApplicationPlugins(
       sitePlugin.filter(_.matchUrl(url)))
       .sortBy(_.priority).reverse.headOption
   }
+
+
 }
 
 object PluginLoader {

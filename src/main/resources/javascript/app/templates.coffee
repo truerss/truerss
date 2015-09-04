@@ -9,5 +9,6 @@ Templates =
   feeds_view: new Sirius.View("#feeds")
   feeds_template: new EJS({url: "templates/feeds.ejs"})
   favorites_template: new EJS({url: "templates/favorites.ejs"})
+  plugins_template: new EJS({url: "templates/plugins.ejs"})
 
 

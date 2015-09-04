@@ -1,6 +1,7 @@
 package truerss.models
 
-import truerss.util.Jsonize
+import com.github.truerss.base.PluginInfo
+import truerss.util.{ApplicationPlugins, Jsonize}
 import spray.json._
 
 object ApiJsonProtocol extends DefaultJsonProtocol {
@@ -31,14 +32,32 @@ object ApiJsonProtocol extends DefaultJsonProtocol {
   implicit val sourceFormat = jsonFormat8(Source)
   implicit val feedFormat = jsonFormat12(Feed)
   implicit val frontendSourceFormat = jsonFormat3(FrontendSource)
-  implicit val sourceForFrontend = jsonFormat8(SourceForFrontend)
+  implicit val sourceForFrontendFormat = jsonFormat8(SourceForFrontend)
   implicit val wsMessageFormat = jsonFormat2(WSMessage)
+
+  implicit def appPluginWriter: JsonWriter[ApplicationPlugins] = new JsonWriter[ApplicationPlugins] {
+    override def write(a: ApplicationPlugins) = {
+      def info2js(x: PluginInfo) = JsObject(
+        "author" -> JsString(x.author),
+        "about" -> JsString(x.about),
+        "version" -> JsString(x.version),
+        "pluginName" -> JsString(x.pluginName)
+      )
+      JsObject("feed" -> JsArray(a.feedPlugins.map(info2js).toVector),
+        "content" -> JsArray(a.contentPlugins.map(info2js).toVector),
+        "publish" -> JsArray(a.publishPlugin.map(info2js).toVector),
+        "site" -> JsArray(a.sitePlugin.map(info2js).toVector)
+      )
+    }
+  }
+
 
   implicit def jsonizeWriter: JsonWriter[Jsonize] = new JsonWriter[Jsonize] {
     def write(x: Jsonize) = x match {
       case x: Source => sourceFormat.write(x)
-      case x: SourceForFrontend => sourceForFrontend.write(x)
+      case x: SourceForFrontend => sourceForFrontendFormat.write(x)
       case x: Feed => feedFormat.write(x)
+      case x: ApplicationPlugins => appPluginWriter.write(x)
     }
   }
 

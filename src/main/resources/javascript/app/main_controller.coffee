@@ -107,6 +107,14 @@ MainController =
     Templates.article_view.render("<h1>about truerss</h1>").html()
     state.to(States.About)
 
+  plugin_list: () ->
+    $.ajax
+      url: "/api/v1/plugins/all"
+      method: "GET"
+      success: (list) ->
+        result = Templates.plugins_template.render({plugins: list})
+        Templates.article_view.render(result).html()
+        state.to(States.Plugins)
 
 
 

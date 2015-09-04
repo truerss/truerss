@@ -53,6 +53,10 @@ package object system {
     case class SourceNotFound(sourceId: Long) extends NetworkResult
   }
 
+  object plugins {
+    case object GetPluginList extends BaseMessage
+  }
+
   object util {
     case object Start
     case object Update extends BaseMessage
