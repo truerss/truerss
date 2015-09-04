@@ -1,16 +1,19 @@
 package truerss.system
 
-import akka.actor.{ActorRef, ActorLogging, Actor}
+import akka.actor.{ActorLogging, Actor}
+
+import com.github.truerss.base._
 
 import java.util.Date
 
 import truerss.models.Source
 
 import scala.concurrent.duration._
-/**
- * Created by mike on 9.8.15.
- */
-class SourceActor(source: Source, networkRef: ActorRef)
+import scala.util.{Right, Left}
+
+class SourceActor(source: Source, feedReader: BaseFeedReader,
+                   contentReaders: Vector[BaseContentReader
+                     with UrlMatcher with Priority with PluginInfo])
   extends Actor with ActorLogging {
 
   import network._
@@ -21,7 +24,7 @@ class SourceActor(source: Source, networkRef: ActorRef)
 
   val stream = context.system.eventStream
 
-  val currentTime = (new Date()).getTime
+  val currentTime = new Date().getTime
   val lastUpdate = source.lastUpdate.getTime
   val interval = source.interval * 60 // interval in hours
   val diff = (currentTime - lastUpdate) / (60 * 1000)
@@ -37,23 +40,33 @@ class SourceActor(source: Source, networkRef: ActorRef)
   context.system.scheduler.schedule(
     tickTime,
     source.interval minutes,
-    self,
-    Update
+    context.parent,
+    UpdateMe(self)
   )
 
   def receive = {
     case Update =>
       log.info(s"Update ${source.normalized}")
       stream.publish(SourceLastUpdate(source.id.get))
-      networkRef ! Grep(source.id.get, source.url)
+      feedReader.newEntries(source.url) match {
+        case Right(xs) =>
+          stream.publish(AddFeeds(source.id.get, xs.map(_.toFeed(source.id.get))))
+        case Left(error) =>
+          //TODO handle
+          log.warning(s"Error when update source ${error}")
+      }
+      context.parent ! Updated
 
-    case ExtractedEntries(sourceId, xs) =>
-      stream.publish(AddFeeds(sourceId, xs.map(_.toFeed(sourceId))))
-    case ExtractError(error) =>
-      log.error(s"Error when update ${source.normalized} : ${error}")
-    case SourceNotFound(sourceId) =>
-      // todo restart system
-      log.error(s"Source ${sourceId} not found")
+
+    case ExtractContent(sourceId, feedId, url) =>
+      val c = contentReaders.filter(_.matchUrl(url)).sortBy(_.priority).head
+      log.info(s"Read content ${url} with ${c.pluginName}")
+      c.content(url) match {
+        case Right(content) =>
+          sender ! ExtractContentForEntry(sourceId, feedId, content)
+        case Left(error) =>
+          sender ! ExtractError(error.error)
+      }
 
   }
 

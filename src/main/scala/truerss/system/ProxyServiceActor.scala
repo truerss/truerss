@@ -18,7 +18,6 @@ import Scalaz._
 
 class ProxyServiceActor(appPlugins: ApplicationPlugins,
                         dbRef: ActorRef,
-                        networkRef: ActorRef,
                         sourcesRef: ActorRef)
   extends Actor with ActorLogging {
 
@@ -151,7 +150,7 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
             log.info("feed have content")
             Future.successful(ModelResponse(x))
           case None =>
-            (networkRef ? ExtractContent(x.sourceId, x.id.get, x.url))
+            (sourcesRef ? ExtractContent(x.sourceId, x.id.get, x.url))
               .mapTo[NetworkResult].map {
               case ExtractedEntries(sourceId, xs) =>
                 InternalServerErrorResponse("Unexpected message")
@@ -186,16 +185,6 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
   }
 
   def networkReceive: Receive = {
-    case msg: Grep =>
-      stream.publish(SourceLastUpdate(msg.sourceId))
-      (networkRef ? msg).mapTo[NetworkResult].map {
-        case ExtractedEntries(sourceId, xs) =>
-          dbRef ! AddFeeds(sourceId, xs.map(_.toFeed(sourceId)))
-        case ExtractContentForEntry(sourceId, feedId, content) =>
-        case ExtractError(error) => log.info(s"error on extract: $error")
-        case SourceNotFound(sourceId) => log.info(s"source ${sourceId} not found")
-      }
-
     case msg: NewFeeds => stream.publish(msg)
   }
 

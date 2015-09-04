@@ -23,16 +23,12 @@ class SystemActor(config: TrueRSSConfig,
 
   val dbRef = context.actorOf(Props(new DbActor(dbDef, driver)), "db")
 
-  val networkRef = context.actorOf(
-    Props(new NetworkActor).withRouter(SmallestMailboxPool(10)), "network-router")
-
   val sourcesRef = context.actorOf(Props(new SourcesActor(
     config.appPlugins,
-    self,
-    networkRef)), "sources")
+    self)), "sources")
 
   val proxyRef = context.actorOf(Props(
-    new ProxyServiceActor(config.appPlugins, dbRef, networkRef, sourcesRef))
+    new ProxyServiceActor(config.appPlugins, dbRef, sourcesRef))
       .withRouter(SmallestMailboxPool(10)), "service-router")
 
   val api = context.actorOf(Props(new RoutingService(proxyRef)), "api")

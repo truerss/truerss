@@ -10,6 +10,7 @@
             <i class="uk-icon-star-o uk-icon-medium favorite" data-favorite="<%= feed.id() %>"></i>
           <% } %>
           <%= moment(feed.published_date()).fromNow() %>
+          <span class="uk-text-right"><a href="<%= feed.url() %>">Original<a/></span>
         </div>
 
         <hr class="uk-article-divider">

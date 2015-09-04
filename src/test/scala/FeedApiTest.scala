@@ -37,11 +37,11 @@ with ScalatestRouteTest with Routing with Common {
   def actorRefFactory = system
 
   val dbRef = system.actorOf(Props(new DbActor(db, driver)), "test-db")
-  val networkRef = TestProbe()
+
   val sourcesRef = TestProbe()
   val proxyRef = system.actorOf(Props(new ProxyServiceActor(
     ApplicationPlugins(),
-    dbRef, networkRef.ref, sourcesRef.ref)), "test-proxy")
+    dbRef, sourcesRef.ref)), "test-proxy")
   val context = system
 
   val computeRoute = route(proxyRef, context)
@@ -64,9 +64,9 @@ with ScalatestRouteTest with Routing with Common {
       val req = Get(s"${feedUrl}/${id}") ~> computeRoute
       val content = Some("content")
 
-      networkRef.expectMsg(1 seconds, ExtractContent(original.sourceId,
+      sourcesRef.expectMsg(1 seconds, ExtractContent(original.sourceId,
         id, original.url))
-      networkRef.reply(ExtractContentForEntry(
+      sourcesRef.reply(ExtractContentForEntry(
         original.sourceId, id, content))
 
       req ~> check {
@@ -87,9 +87,9 @@ with ScalatestRouteTest with Routing with Common {
 
       val req = Get(s"${feedUrl}/${id}") ~> computeRoute
 
-      networkRef.expectMsg(1 seconds, ExtractContent(original.sourceId,
+      sourcesRef.expectMsg(1 seconds, ExtractContent(original.sourceId,
         id, original.url))
-      networkRef.reply(ExtractError("error"))
+      sourcesRef.reply(ExtractError("error"))
 
       req ~> check {
         status should be(StatusCodes.InternalServerError)

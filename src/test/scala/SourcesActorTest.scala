@@ -34,8 +34,7 @@ class SourcesActorTest(_system: ActorSystem) extends TestKit(_system)
   val sysActor = TestProbe()
   val sourcesRef = system.actorOf(Props(new SourcesActor(
     truerss.util.ApplicationPlugins(),
-    sysActor.ref,
-    networkRef.ref)), "sources")
+    sysActor.ref)), "sources")
 
   import truerss.system.db.{OnlySources, AddFeeds}
   import truerss.system.util.{SourceLastUpdate, UpdateOne}
@@ -49,14 +48,13 @@ class SourcesActorTest(_system: ActorSystem) extends TestKit(_system)
   val source1 = genSource(1L.some)
   sysActor.reply(Vector(source1, genSource(2L.some),
     genSource(3L.some)))
-  networkRef.expectMsgAllClassOf(1 seconds, classOf[NetworkInitialize])
+
 
 
   describe("update source") {
     it ("update source should update lastUpdate field in db") {
       sourcesRef ! UpdateOne(1L)
       dbRef.expectMsg(1 seconds, SourceLastUpdate(1L))
-      networkRef.expectMsg(2 seconds, Grep(1L, source1.url))
       networkRef.reply(ExtractedEntries(1L, Vector.empty))
       dbRef.expectMsg(1 seconds, AddFeeds(1L, Vector.empty))
     }

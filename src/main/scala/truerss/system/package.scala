@@ -1,5 +1,6 @@
 package truerss
 
+import akka.actor.ActorRef
 import truerss.models.{SourceState, SourceForFrontend, Feed, Source}
 import com.github.truerss.base.{Entry, BaseFeedReader, BaseContentReader}
 
@@ -42,15 +43,7 @@ package object system {
   }
 
   object network {
-    import scala.collection.mutable.{Map => M}
-    case class Grep(sourceId: Long, url: String)
     case class ExtractContent(sourceId: Long, feedId: Long, url: String)
-    case class NetworkInitialize(feedReaderMap: M[Long, BaseFeedReader],
-                                 contentReader: M[Long, BaseContentReader])
-    case object NetworkInitialized
-
-    case class NewSourceInfo(sourceId: Long, feedReader: BaseFeedReader,
-                             contentReader: BaseContentReader)
 
     sealed trait NetworkResult
 
@@ -61,8 +54,10 @@ package object system {
   }
 
   object util {
-    case object Start extends BaseMessage
+    case object Start
     case object Update extends BaseMessage
+    case object Updated
+    case class UpdateMe(who: ActorRef)
     case class UpdateOne(num: Long) extends BaseMessage
 
     case class SourceLastUpdate(sourceId: Long)
