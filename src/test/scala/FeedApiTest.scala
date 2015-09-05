@@ -33,11 +33,13 @@ with ScalatestRouteTest with Routing with Common {
 
   import truerss.models.ApiJsonProtocol._
   import truerss.util.Util._
+  import truerss.system.util.PublishEvent
 
   def actorRefFactory = system
 
   val dbRef = system.actorOf(Props(new DbActor(db, driver)), "test-db")
-
+  val publishActor = TestProbe()
+  system.eventStream.subscribe(publishActor.ref, classOf[PublishEvent])
   val sourcesRef = TestProbe()
   val proxyRef = system.actorOf(Props(new ProxyServiceActor(
     ApplicationPlugins(),
@@ -115,7 +117,11 @@ with ScalatestRouteTest with Routing with Common {
     it("mark feed as favorite") {
       val feed = unfavAndUnRead
       val firstNonFavorite = unfavAndUnReadId
-      Put(s"${feedUrl}/mark/${firstNonFavorite}") ~> computeRoute ~> check {
+
+      val req = Put(s"${feedUrl}/mark/${firstNonFavorite}") ~> computeRoute
+      publishActor.expectMsgAllClassOf(classOf[PublishEvent])
+
+      req ~> check {
         val resp = JsonParser(responseAs[String]).convertTo[Feed]
         feed.title should be(resp.title)
         feed.url should be(resp.url)

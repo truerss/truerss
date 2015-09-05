@@ -35,11 +35,16 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
   implicit val timeout = Timeout(7 seconds)
 
   val stream = context.system.eventStream
+  val publishActor = context.actorOf(Props(
+    new PublishPluginActor(appPlugins.publishPlugin)),
+    "publish-plugin-actor")
 
+  stream.subscribe(publishActor, classOf[PublishEvent])
   stream.subscribe(dbRef, classOf[SourceLastUpdate])
   stream.subscribe(dbRef, classOf[FeedContentUpdate])
   stream.subscribe(dbRef, classOf[AddFeeds])
   stream.subscribe(dbRef, classOf[SetState])
+
 
   val ok = OkResponse("ok")
   def sourceNotFound(x: Numerable) =
@@ -186,7 +191,14 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
         case None => Future.successful(feedNotFound(msg.num))
     } pipeTo sender
 
-    case msg @ (_ : MarkFeed | _ : UnmarkFeed |
+    case msg : MarkFeed =>
+      (dbRef ? msg).mapTo[Option[Feed]]
+        .map{ x =>
+        x.foreach(f => stream.publish(PublishEvent(f)))
+        optionFeedResponse(x)
+      } pipeTo sender
+
+    case msg @ (_ : UnmarkFeed |
                 _ : MarkAsReadFeed | _ : MarkAsUnreadFeed)  =>
       (dbRef ? msg).mapTo[Option[Feed]]
         .map(optionFeedResponse) pipeTo sender

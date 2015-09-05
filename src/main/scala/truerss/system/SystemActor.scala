@@ -12,9 +12,6 @@ import truerss.db.DbActor
 import truerss.models.CurrentDriver
 import truerss.config.TrueRSSConfig
 
-/**
- * Created by mike on 2.8.15.
- */
 class SystemActor(config: TrueRSSConfig,
                   dbDef: DatabaseDef,
                   driver: CurrentDriver) extends Actor {

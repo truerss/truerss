@@ -71,6 +71,8 @@ package object system {
     case class NewSource(source: Source)
     case class StopSource(source: Source) //TODO use
 
+    case class PublishEvent(feed: Feed)
+
     object NotifyLevels {
       sealed trait Level { val name: String }
       case object Info extends Level { val name = "info" }

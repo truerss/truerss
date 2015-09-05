@@ -35,11 +35,12 @@ class SourceActor(source: Source, feedReader: BaseFeedReader,
     (interval - diff) minutes
   }
 
-  log.info(s"Next time update for ${source.name} -> ${tickTime}")
+  log.info(s"Next time update for ${source.name} -> ${tickTime}; " +
+    s"Interval: ${interval} minutes")
 
   context.system.scheduler.schedule(
     tickTime,
-    source.interval minutes,
+    interval minutes,
     context.parent,
     UpdateMe(self)
   )
