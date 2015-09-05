@@ -30,7 +30,6 @@ class SourcesActorTest(_system: ActorSystem) extends TestKit(_system)
   }
 
   val dbRef = TestProbe()
-  val networkRef = TestProbe()
   val sysActor = TestProbe()
   val sourcesRef = system.actorOf(Props(new SourcesActor(
     truerss.util.ApplicationPlugins(),
@@ -55,7 +54,6 @@ class SourcesActorTest(_system: ActorSystem) extends TestKit(_system)
     it ("update source should update lastUpdate field in db") {
       sourcesRef ! UpdateOne(1L)
       dbRef.expectMsg(1 seconds, SourceLastUpdate(1L))
-      networkRef.reply(ExtractedEntries(1L, Vector.empty))
       dbRef.expectMsg(1 seconds, AddFeeds(1L, Vector.empty))
     }
   }

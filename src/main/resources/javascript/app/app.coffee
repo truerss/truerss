@@ -46,6 +46,7 @@ $ ->
     "ws:create": controller: WSController, action: "create"
     "ws:deleted": controller: WSController, action: "deleted"
     "ws:updated": controller: WSController, action: "updated"
+    "ws:notify": controller: WSController, action: "notify"
     "/sources" : controller: SourcesController, action: "all"
     "/" : controller: MainController, action: "view"
     "/favorites" : controller: FeedsController, action: "favorites"

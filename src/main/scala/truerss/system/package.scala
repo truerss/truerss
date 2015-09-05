@@ -70,6 +70,15 @@ package object system {
 
     case class NewSource(source: Source)
     case class StopSource(source: Source) //TODO use
+
+    object NotifyLevels {
+      sealed trait Level { val name: String }
+      case object Info extends Level { val name = "info" }
+      case object Warning extends Level { val name = "warning" }
+      case object Danger extends Level { val name = "danger" }
+    }
+
+    case class Notify(level: NotifyLevels.Level, message: String)
   }
 
   object ws {

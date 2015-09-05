@@ -2,6 +2,7 @@ package truerss.models
 
 import com.github.truerss.base.PluginInfo
 import truerss.util.{ApplicationPlugins, Jsonize}
+import truerss.system.util.Notify
 import spray.json._
 
 object ApiJsonProtocol extends DefaultJsonProtocol {
@@ -51,6 +52,12 @@ object ApiJsonProtocol extends DefaultJsonProtocol {
     }
   }
 
+  implicit def notifyLevelsWriter: JsonWriter[Notify] = new JsonWriter[Notify] {
+    override def write(obj: Notify): JsValue = {
+      JsObject("level" -> JsString(obj.level.name),
+        "message" -> JsString(obj.message))
+    }
+  }
 
   implicit def jsonizeWriter: JsonWriter[Jsonize] = new JsonWriter[Jsonize] {
     def write(x: Jsonize) = x match {

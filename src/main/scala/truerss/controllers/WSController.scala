@@ -4,7 +4,7 @@ import akka.actor.{ActorLogging, Actor}
 import org.java_websocket.WebSocket
 
 import truerss.system.ws.{SourceUpdated, SourceAdded, NewFeeds}
-import truerss.system.util.SourceDeleted
+import truerss.system.util.{SourceDeleted, Notify}
 import truerss.models.{ApiJsonProtocol, WSMessage}
 import spray.json._
 
@@ -21,6 +21,8 @@ class WSController(ws: WebSocket) extends Actor with ActorLogging {
       ws.send(s"${WSMessage("deleted", source.toJson.toString()).toJson}")
     case SourceUpdated(source) =>
       ws.send(s"${WSMessage("updated", source.toJson.toString()).toJson}")
+    case msg: Notify =>
+      ws.send(s"${WSMessage("notify", msg.toJson.toString).toJson}")
     case _ => //ws.send()
   }
 

@@ -205,7 +205,7 @@ object Truerssbuild extends Build {
         "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
         "ch.qos.logback" % "logback-classic" % "1.1.2",
 
-        "com.github.truerss" %% "base" % "0.0.1",
+        "com.github.truerss" %% "base" % "0.0.2",
 
         "org.scalaz" %% "scalaz-core" % "7.1.3",  
         "org.jsoup" % "jsoup" % "1.8.3",

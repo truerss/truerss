@@ -36,7 +36,7 @@ class SourceApiTest extends FunSpec with Matchers
     dbRef, sourcesRef.ref)), "test-proxy")
   val context = system
 
-  val computeRoute = route(proxyRef, context)
+  val computeRoute = route(proxyRef, context, 8081)
 
   describe("GetAll") {
     it("should return all sources from db") {
@@ -104,9 +104,12 @@ class SourceApiTest extends FunSpec with Matchers
     }
 
     it("bad request when url and name not uniq") {
-      val json = sources.head.toJson.toString
+      val source = sources.head
+      val json = source.toJson.toString
+      val url = source.url
+      val name = source.name
       Post(s"${sourceUrl}/create", json) ~> computeRoute ~> check {
-        responseAs[String] should be("Url already present in db, Name not unique")
+        responseAs[String] should be(s"Url '${url}' already present in db, Name '${name}' not unique")
         status should be(StatusCodes.BadRequest)
       }
     }
@@ -117,8 +120,7 @@ class SourceApiTest extends FunSpec with Matchers
     it("delete source from db") {
       val last = ids.last
       Delete(s"${sourceUrl}/${last}") ~> computeRoute ~> check {
-        val source = JsonParser(responseAs[String]).convertTo[Source]
-        source.id should be(Some(last))
+        responseAs[String] should be("ok")
         status should be(StatusCodes.OK)
         val extract = db withSession { implicit session =>
           driver.query.sources.buildColl
@@ -150,7 +152,7 @@ class SourceApiTest extends FunSpec with Matchers
       val url = source1.url
       val json = sources(last.toInt).copy(url = url).toJson.toString
       Put(s"${sourceUrl}/${last}", json) ~> computeRoute ~> check {
-        responseAs[String] should be("Url already present in db")
+        responseAs[String] should be(s"Url '${url}' already present in db")
         status should be(StatusCodes.BadRequest)
       }
     }
@@ -160,7 +162,7 @@ class SourceApiTest extends FunSpec with Matchers
       val name = source1.name
       val json = sources(last.toInt).copy(name = name).toJson.toString
       Put(s"${sourceUrl}/${last}", json) ~> computeRoute ~> check {
-        responseAs[String] should be("Name not unique")
+        responseAs[String] should be(s"Name '${name}' not unique")
         status should be(StatusCodes.BadRequest)
       }
     }

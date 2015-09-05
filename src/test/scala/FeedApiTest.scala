@@ -44,7 +44,7 @@ with ScalatestRouteTest with Routing with Common {
     dbRef, sourcesRef.ref)), "test-proxy")
   val context = system
 
-  val computeRoute = route(proxyRef, context)
+  val computeRoute = route(proxyRef, context, 8080)
 
   describe("Favorites") {
     it("return all favorites feeds") {

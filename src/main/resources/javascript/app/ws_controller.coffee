@@ -31,3 +31,11 @@ WSController =
       need.interval(obj.interval)
       need.normalized(obj.normalized)
       need.last_update(need.lastUpdate)
+
+  notify: (e, msg) ->
+    obj = JSON.parse(msg) # level: lvl, message: msg
+    UIkit.notify
+      message : obj.message
+      status  : obj.level,
+      timeout : 3000,
+      pos     : 'top-right'

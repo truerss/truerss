@@ -1,35 +1,34 @@
 package truerss.controllers
 
-import akka.util.Timeout
-import akka.pattern.ask
 import java.io.StringReader
 
+import akka.pattern.ask
 import com.github.fntzr.spray.routing.ext.BaseController
-import spray.http.MultipartFormData
+import com.rometools.opml.feed.opml.Opml
+import com.rometools.rome.io.WireFeedInput
+import org.xml.sax.InputSource
+import spray.http.{MultipartFormData, StatusCodes}
 import spray.routing.HttpService
 import truerss.models.{ApiJsonProtocol, FrontendSource}
 import truerss.system.{db, util}
 
+import scala.concurrent.Future
 import scala.util.control.Exception._
+import scala.util.{Failure => F, Success => S}
 import scalaz._
 import Scalaz._
-
-import com.rometools.opml.feed.opml.Opml
-import com.rometools.rome.io.WireFeedInput
-import org.xml.sax.InputSource
-
-import scala.concurrent.Future
 
 trait SourceController extends BaseController
   with ProxyRefProvider with ActorRefExt with ResponseHelper {
 
   import ApiJsonProtocol._
   import HttpService._
+  import context.dispatcher
   import db._
   import spray.json._
   import util._
+
   import scala.collection.JavaConversions._
-  import context.dispatcher
 
   def all = end(GetAll)
 
@@ -79,8 +78,16 @@ trait SourceController extends BaseController
       }
 
       Future.sequence(result).onComplete {
-        case _ => //TODO push in stream about errors
-          c.complete("ok")
+        case S(xs) =>
+          xs.foreach {
+            case BadRequestResponse(msg) =>
+              proxyRef ! Notify(NotifyLevels.Danger, msg)
+            case _ =>
+          }
+          c.complete(StatusCodes.OK, "ok")
+        case F(error) =>
+          proxyRef ! Notify(NotifyLevels.Danger, s"Error when import file ${error.getMessage}")
+          c.complete(StatusCodes.BadRequest, "oops")
       }
     }
   }

@@ -66,10 +66,10 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
               (dbRef ? msg).mapTo[Long].map(f)
             } else {
               val urlError = if (urlIsUniq > 0) {
-                "Url already present in db"
+                s"Url '${msg.source.url}' already present in db"
               } else { "" }
               val nameError = if(nameIsUniq > 0) {
-                "Name not unique"
+                s"Name '${msg.source.name}' not unique"
               } else {
                 ""
               }
@@ -201,6 +201,7 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
   }
 
   def utilReceive: Receive = {
+    case msg: Notify => stream.publish(msg)
     case msg @ ( _ : Update.type | _ : UpdateOne) => sourcesRef forward msg
   }
 

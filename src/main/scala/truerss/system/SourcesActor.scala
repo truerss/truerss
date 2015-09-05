@@ -130,7 +130,7 @@ class SourcesActor(plugins: ApplicationPlugins,
       }
 
     case UpdateOne(num) =>
-      sourceNetwork.get(num).map(_ ! Update)
+      sourceNetwork.get(num).foreach(_ ! Update)
 
     case SourceDeleted(source) =>
       log.info(s"Stop ${source.name} actor")
@@ -141,7 +141,7 @@ class SourcesActor(plugins: ApplicationPlugins,
       sourceNetwork -= source.id.get
 
     case msg: ExtractContent =>
-      sourceNetwork.get(msg.sourceId).map(_ forward msg)
+      sourceNetwork.get(msg.sourceId).foreach(_ forward msg)
 
     case x => log.warning(s"Unhandled message ${x}")
   }

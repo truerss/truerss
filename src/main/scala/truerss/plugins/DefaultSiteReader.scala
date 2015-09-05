@@ -115,7 +115,7 @@ class DefaultSiteReader(config: Map[String, String])
       Option(img.absUrl("src")).map(img.attr("src", _)).getOrElse(img)
     }
 
-    need.select("form, input, meta, style, script, h1:first").foreach(_.remove)
+    need.select("form, input, meta, style, script").foreach(_.remove)
 
     Some(need.html())
   }

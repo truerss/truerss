@@ -12,6 +12,7 @@ import org.java_websocket.server.WebSocketServer
 import truerss.controllers.WSController
 import truerss.system.ws._
 import truerss.system.util.SourceDeleted
+import truerss.system.util.Notify
 
 class WSApi(val port: Int) extends Actor with ActorLogging {
 
@@ -42,6 +43,7 @@ WebSocketServer(new InetSocketAddress(port)) {
     stream.subscribe(socketActor, classOf[SourceAdded])
     stream.subscribe(socketActor, classOf[SourceDeleted])
     stream.subscribe(socketActor, classOf[SourceUpdated])
+    stream.subscribe(socketActor, classOf[Notify])
     connectionMap(ws) = socketActor
   }
 
