@@ -19,7 +19,7 @@ object Truerssbuild extends Build {
     resolvers += "JCenter" at "http://jcenter.bintray.com/",
     resolvers += "karussell_releases" at "https://github.com/karussell/mvnrepo",
     resolvers += Resolver.bintrayRepo("truerss", "maven"),
-    scalaVersion := "2.10.5",
+    scalaVersion := "2.11.6",
     scalacOptions ++= Seq("-Xlog-free-terms", "-deprecation", "-feature",
       "-encoding", "UTF-8",
       "-feature",
@@ -171,7 +171,7 @@ object Truerssbuild extends Build {
         ("Built-By", s"${new Date()}"))),
       libraryDependencies ++= Seq(
         "org.scalaj" %% "scalaj-http" % "1.1.5",
-        "com.github.fntzr"  %% "spray-routing-ext" % "0.2.2",
+        "com.github.fntzr" %% "spray-routing-ext" % "0.3.3",
 
         "com.h2database" % "h2" % "1.3.173",
         "postgresql" % "postgresql" % "9.1-901-1.jdbc4",
@@ -182,9 +182,10 @@ object Truerssbuild extends Build {
         "commons-validator" % "commons-validator" % "1.4.0",
         "commons-io" % "commons-io" % "2.4",
 
-        "org.scala-lang" % "scala-library" % "2.11.7",
+        "org.scala-lang" % "scala-library" % "2.11.6",
         "com.github.truerss" % "content-extractor" % "0.0.1",
-        "io.spray" %% "spray-routing" % sprayVersion,
+        "com.chuusai" %% "shapeless" % "2.1.0",
+        "io.spray" %% "spray-routing-shapeless2" % sprayVersion,
         "io.spray" %% "spray-util" % sprayVersion,
         "io.spray" %% "spray-can"  % sprayVersion,
         "io.spray" %% "spray-http" % sprayVersion,
@@ -212,10 +213,10 @@ object Truerssbuild extends Build {
         "commons-validator" % "commons-validator" % "1.4.0",
         "joda-time" % "joda-time" % "2.8.2",
 
-        "org.scalatest" % "scalatest_2.10" % "3.0.0-M7" % "test",
+        "org.scalatest" % "scalatest_2.11" % "3.0.0-M7" % "test",
         "com.github.tomakehurst" % "wiremock" % "1.46" % "test",
         "com.github.javafaker" % "javafaker" % "0.5" % "test",
-        "org.scalactic" % "scalactic_2.10" % "3.0.0-M7" % "test",
+        "org.scalactic" % "scalactic_2.11" % "3.0.0-M7" % "test",
         "io.codearte.jfairy" % "jfairy" % "0.4.3" % "test"
       )
     )

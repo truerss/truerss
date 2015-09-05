@@ -1,24 +1,19 @@
 package truerss.api
 
 import akka.actor._
-import akka.event.{LoggingReceive, LoggingAdapter}
+import akka.event.LoggingReceive
 
 import com.github.fntzr.spray.routing.ext.Routable
 
 import spray.http.{HttpCookie, StatusCodes}
-import spray.routing.ExceptionHandler
-import spray.json.DeserializationException
+import spray.routing.PathMatcher
 
 import truerss.controllers._
 
-import spray.routing.PathMatchers._
-/**
- * Created by mike on 1.8.15.
- */
+
 trait Routing extends Routable {
 
-
-  def route(proxyRef: ActorRef, context: ActorRefFactory, wsPort: Int) =
+  def route(proxyRef: ActorRef, context: ActorRefFactory, wsPort: Int): spray.routing.Route =
     root[MainController]("root") ~
       scope("api") {
         scope("v1") {
