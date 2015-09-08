@@ -1,0 +1,8 @@
+table div.truerss-middle {
+    display: table-cell;
+    vertical-align: middle;
+    height: 100%;
+}
+table div.truerss-middle input {
+  margin: 6% 0 6% 0;
+}
