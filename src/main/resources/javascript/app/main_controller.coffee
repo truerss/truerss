@@ -16,10 +16,10 @@ MainController =
 
     if !(!!window.WebSocket && !!window.FormData && !!history.pushState)
       UIkit.notify
-          message : @error_message,
-          status  : 'danger',
-          timeout : 30000,
-          pos     : 'top-center'
+        message : @error_message,
+        status  : 'danger',
+        timeout : 30000,
+        pos     : 'top-center'
 
     else
 

@@ -60,6 +60,10 @@ $ ->
     "click a[href='#update-source']" : controller: SourcesController, action: "refresh_one", data: "data-source-id"
     "click a[href='#delete-source']": controller: SourcesController, action: "remove", data: "data-source-id"
     "click a[href='#edit-source']": controller: SourcesController, action: "edit", data: "data-source-id"
+    "click a[href='#restart-system']": controller: SystemController, action: "restart"
+    "click a[href='#stop-system']": controller: SystemController, action: "stop"
+    "click a[href='#exit-app']": controller: SystemController, action: "exit"
+
 
   app = Sirius.Application.run
     route: routes

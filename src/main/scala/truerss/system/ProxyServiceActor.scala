@@ -18,7 +18,7 @@ import Scalaz._
 
 class ProxyServiceActor(appPlugins: ApplicationPlugins,
                         dbRef: ActorRef,
-                        sourcesRef: ActorRef)
+                        sourcesRef: ActorRef, parent: ActorRef)
   extends Actor with ActorLogging {
 
   import truerss.controllers.{
@@ -222,17 +222,25 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
     case GetPluginList => sender ! ModelResponse(appPlugins)
   }
 
-  def globalReceive: Receive = {
-    case msg @ (StopApp | StopSystem) =>
-      context.parent ! msg
-      sender ! ok
-
+  def systemReceive: Receive = {
     case RestartSystem =>
       sourcesRef ! RestartSystem
       sender ! ok
+
+    case StopSystem =>
+      parent ! StopSystem
+      sender ! ok
+
+    case StopApp =>
+      parent ! StopApp
+      sender ! ok
   }
 
-  def receive = dbReceive orElse networkReceive orElse utilReceive orElse pluginReceive
+  def receive = dbReceive orElse
+    networkReceive orElse
+    utilReceive orElse
+    pluginReceive orElse
+    systemReceive
 
   override def unhandled(m: Any) = log.warning(s"Unhandled $m")
 

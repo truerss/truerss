@@ -50,9 +50,9 @@ SourcesController =
       $("#{el} td > span").addClass("uk-hidden")
       $("#{el} td input").removeClass("uk-hidden")
       $("#{el} td input[type='button']").on "click", (e) ->
-        name = $(#{el} td input[name="name"]).val()
-        url = $(#{el} td input[name="url"]).val()
-        interval = $(#{el} td input[name="interval"]).val()
+        name = $("#{el} td input[name='name']").val()
+        url = $("#{el} td input[name='url']").val()
+        interval = $("#{el} td input[name='interval']").val()
 
 
 

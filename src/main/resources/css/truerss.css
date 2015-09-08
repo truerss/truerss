@@ -6,3 +6,8 @@ table div.truerss-middle {
 table div.truerss-middle input {
   margin: 6% 0 6% 0;
 }
+
+/*nav div ul li a,*/
+nav div ul li i {
+  cursor: pointer !important;
+}

@@ -2,8 +2,9 @@ package truerss.system
 
 import akka.actor.SupervisorStrategy.Restart
 import akka.actor._
-import akka.pattern.ask
+import akka.pattern.{ask, gracefulStop}
 import akka.util.Timeout
+
 import com.github.truerss.base.{PluginInfo, Priority, UrlMatcher, BaseContentReader}
 
 import truerss.controllers._
@@ -12,8 +13,10 @@ import truerss.plugins.DefaultSiteReader
 import truerss.util.ApplicationPlugins
 
 import scala.concurrent.duration._
+import scala.concurrent.Future
 import scala.collection.mutable.ArrayBuffer
 import scalaz.Scalaz._
+
 
 class SourcesActor(plugins: ApplicationPlugins,
                    proxyRef: ActorRef) extends Actor with ActorLogging {
@@ -93,7 +96,11 @@ class SourcesActor(plugins: ApplicationPlugins,
 
   def receive = {
     case Start =>
+      log.info("Start source actors")
       (proxyRef ? OnlySources).mapTo[Vector[Source]].map { xs =>
+        currentUpdateTask = 0
+        sourceNetwork.clear()
+        queue.clear()
         xs.filter(_.state match {
           case Disable => false
           case _ => true
@@ -102,8 +109,6 @@ class SourcesActor(plugins: ApplicationPlugins,
 
     case NewSource(source) =>
       startSourceActor(source)
-
-    case RestartSystem =>
 
     case Update =>
       log.info(s"Update for ${context.children.size} actors")
@@ -117,6 +122,12 @@ class SourcesActor(plugins: ApplicationPlugins,
       } else {
         currentUpdateTask += 1
         ref ! Update
+      }
+
+    case RestartSystem =>
+      Future.sequence(sourceNetwork.values.map(gracefulStop(_, 10 seconds)))
+        .map { x =>
+          self ! Start
       }
 
     case Updated =>
