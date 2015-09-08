@@ -53,8 +53,8 @@ class SourceActor(source: Source, feedReader: BaseFeedReader,
         case Right(xs) =>
           stream.publish(AddFeeds(source.id.get, xs.map(_.toFeed(source.id.get))))
         case Left(error) =>
-          //TODO handle
           log.warning(s"Error when update source ${error}")
+          stream.publish(Notify(NotifyLevels.Danger, error.error))
       }
       context.parent ! Updated
 
