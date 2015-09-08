@@ -21,6 +21,7 @@ class SourcesActor(plugins: ApplicationPlugins,
   import context.dispatcher
   import db.{OnlySources, SetState}
   import network.ExtractContent
+  import global.RestartSystem
   import util._
 
   case object Tick
@@ -101,6 +102,8 @@ class SourcesActor(plugins: ApplicationPlugins,
 
     case NewSource(source) =>
       startSourceActor(source)
+
+    case RestartSystem =>
 
     case Update =>
       log.info(s"Update for ${context.children.size} actors")

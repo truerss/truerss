@@ -34,7 +34,14 @@ class SystemActor(config: TrueRSSConfig,
 
   IO(Http) ! Http.Bind(api, interface = config.host, port = config.port)
 
+  import global._
+
   def receive = {
+
+    case StopApp => system.shutdown()
+
+    case StopSystem => system.shutdown()
+
     case x => proxyRef forward x
   }
 

@@ -38,6 +38,10 @@ trait Routing extends Routable {
             put0[FeedController](("unread" / LongNumber) ~> "unread")
           } ~ scope("plugins") {
             get0[PluginController]("all")
+          } ~ scope("system") {
+            get0[SystemController]("stop") ~
+            get0[SystemController]("restart") ~
+            get0[SystemController]("exit")
           }
         }
       } ~

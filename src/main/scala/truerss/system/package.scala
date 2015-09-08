@@ -6,40 +6,40 @@ import com.github.truerss.base.{Entry, BaseFeedReader, BaseContentReader}
 
 package object system {
 
-  sealed trait BaseMessage
+  sealed trait ApiMessage
   // for communication with db
   object db {
     // TODO remove this traits, make generic
     trait Numerable { val num: Long }
     trait Sourcing { val source: Source }
 
-    case object OnlySources extends BaseMessage
-    case object GetAll extends BaseMessage
-    case class GetSource(num: Long) extends BaseMessage with Numerable
-    case class MarkAll(num: Long) extends BaseMessage with Numerable
-    case class DeleteSource(num: Long) extends BaseMessage with Numerable
-    case class AddSource(source: Source) extends BaseMessage with Sourcing
-    case class UpdateSource(num: Long, source: Source) extends BaseMessage with Sourcing
+    case object OnlySources extends ApiMessage
+    case object GetAll extends ApiMessage
+    case class GetSource(num: Long) extends ApiMessage with Numerable
+    case class MarkAll(num: Long) extends ApiMessage with Numerable
+    case class DeleteSource(num: Long) extends ApiMessage with Numerable
+    case class AddSource(source: Source) extends ApiMessage with Sourcing
+    case class UpdateSource(num: Long, source: Source) extends ApiMessage with Sourcing
 
-    case object Favorites extends BaseMessage
-    case class GetFeed(num: Long) extends BaseMessage
-    case class MarkFeed(num: Long) extends BaseMessage
-    case class UnmarkFeed(num: Long) extends BaseMessage
-    case class MarkAsReadFeed(num: Long) extends BaseMessage
-    case class MarkAsUnreadFeed(num: Long) extends BaseMessage
+    case object Favorites extends ApiMessage
+    case class GetFeed(num: Long) extends ApiMessage
+    case class MarkFeed(num: Long) extends ApiMessage
+    case class UnmarkFeed(num: Long) extends ApiMessage
+    case class MarkAsReadFeed(num: Long) extends ApiMessage
+    case class MarkAsUnreadFeed(num: Long) extends ApiMessage
 
-    case class AddFeeds(sourceId: Long, xs: Vector[Feed]) extends BaseMessage
+    case class AddFeeds(sourceId: Long, xs: Vector[Feed]) extends ApiMessage
 
 
-    case class Latest(count: Long) extends BaseMessage
-    case class ExtractFeedsForSource(sourceId: Long) extends BaseMessage
+    case class Latest(count: Long) extends ApiMessage
+    case class ExtractFeedsForSource(sourceId: Long) extends ApiMessage
 
     // util:
-    case class UrlIsUniq(url: String, id: Option[Long] = None) extends BaseMessage
-    case class NameIsUniq(name: String, id: Option[Long] = None) extends BaseMessage
-    case class FeedCount(read: Boolean = false) extends BaseMessage
+    case class UrlIsUniq(url: String, id: Option[Long] = None) extends ApiMessage
+    case class NameIsUniq(name: String, id: Option[Long] = None) extends ApiMessage
+    case class FeedCount(read: Boolean = false) extends ApiMessage
 
-    case class SetState(sourceId: Long, state: SourceState) extends BaseMessage
+    case class SetState(sourceId: Long, state: SourceState) extends ApiMessage
   }
 
   object network {
@@ -54,15 +54,21 @@ package object system {
   }
 
   object plugins {
-    case object GetPluginList extends BaseMessage
+    case object GetPluginList extends ApiMessage
+  }
+
+  object global {
+    case object RestartSystem extends ApiMessage
+    case object StopSystem extends ApiMessage
+    case object StopApp extends ApiMessage
   }
 
   object util {
     case object Start
-    case object Update extends BaseMessage
+    case object Update extends ApiMessage
     case object Updated
     case class UpdateMe(who: ActorRef)
-    case class UpdateOne(num: Long) extends BaseMessage
+    case class UpdateOne(num: Long) extends ApiMessage
 
     case class SourceDeleted(source: Source)
     case class SourceLastUpdate(sourceId: Long)

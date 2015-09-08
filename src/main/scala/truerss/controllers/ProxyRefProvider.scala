@@ -7,7 +7,7 @@ import spray.httpx.marshalling.ToResponseMarshallable
 import spray.routing.HttpService._
 import spray.routing.RequestContext
 import truerss.models.ApiJsonProtocol
-import truerss.system.BaseMessage
+import truerss.system.ApiMessage
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
@@ -27,7 +27,7 @@ trait ResponseHelper { self : ProxyRefProvider with ActorRefExt =>
 
   import spray.http.MediaTypes.`application/json`
 
-  def end[T <: BaseMessage](msg: BaseMessage) =
+  def end[T <: ApiMessage](msg: ApiMessage) =
     respondWithMediaType(`application/json`) { implicit ctx =>
       proxyRef <| msg
     }
@@ -46,7 +46,7 @@ trait ActorRefExt { self : ProxyRefProvider =>
 
     def <<|(x: Any) = ref ? x
 
-    def <|(x: BaseMessage)(implicit ctx: RequestContext) =
+    def <|(x: ApiMessage)(implicit ctx: RequestContext) =
       (ref ? x).mapTo[Response].map {
         case ModelsResponse(xs) => ctx.complete(OK, xs.toJson.toString)
         case ModelResponse(x) => ctx.complete(OK, x.toJson.toString)

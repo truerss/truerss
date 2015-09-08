@@ -22,11 +22,13 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
   extends Actor with ActorLogging {
 
   import truerss.controllers.{
-    OkResponse, ModelsResponse, ModelResponse, NotFoundResponse, InternalServerErrorResponse}
+    OkResponse, ModelsResponse, ModelResponse,
+  NotFoundResponse, InternalServerErrorResponse}
   import db._
   import network._
   import util._
   import ws._
+  import global._
   import plugins.GetPluginList
   import truerss.util.Util._
   import truerss.models.{Source, Feed, Neutral, Enable}
@@ -44,7 +46,6 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
   stream.subscribe(dbRef, classOf[FeedContentUpdate])
   stream.subscribe(dbRef, classOf[AddFeeds])
   stream.subscribe(dbRef, classOf[SetState])
-
 
   val ok = OkResponse("ok")
   def sourceNotFound(x: Numerable) =
@@ -221,8 +222,18 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
     case GetPluginList => sender ! ModelResponse(appPlugins)
   }
 
+  def globalReceive: Receive = {
+    case msg @ (StopApp | StopSystem) =>
+      context.parent ! msg
+      sender ! ok
+
+    case RestartSystem =>
+      sourcesRef ! RestartSystem
+      sender ! ok
+  }
+
   def receive = dbReceive orElse networkReceive orElse utilReceive orElse pluginReceive
 
-  override def unhandled(m: Any) = log.warning(s"Undhandled $m")
+  override def unhandled(m: Any) = log.warning(s"Unhandled $m")
 
 }
