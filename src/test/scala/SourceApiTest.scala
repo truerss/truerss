@@ -31,9 +31,10 @@ class SourceApiTest extends FunSpec with Matchers
 
   val dbRef = system.actorOf(Props(new DbActor(db, driver)), "test-db")
   val sourcesRef = TestProbe()
+  val sysActor = TestProbe()
   val proxyRef = system.actorOf(Props(new ProxyServiceActor(
     ApplicationPlugins(),
-    dbRef, sourcesRef.ref)), "test-proxy")
+    dbRef, sourcesRef.ref, sysActor.ref)), "test-proxy")
   val context = system
 
   val computeRoute = route(proxyRef, context, 8081)

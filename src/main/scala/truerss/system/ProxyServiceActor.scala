@@ -37,6 +37,7 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
   implicit val timeout = Timeout(7 seconds)
 
   val stream = context.system.eventStream
+
   val publishActor = context.actorOf(Props(
     new PublishPluginActor(appPlugins.publishPlugin)),
     "publish-plugin-actor")
@@ -215,7 +216,9 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
 
   def utilReceive: Receive = {
     case msg: Notify => stream.publish(msg)
-    case msg @ ( _ : Update.type | _ : UpdateOne) => sourcesRef forward msg
+    case msg @ ( _ : Update.type | _ : UpdateOne) =>
+      sourcesRef forward msg
+      sender ! ok
   }
 
   def pluginReceive: Receive = {

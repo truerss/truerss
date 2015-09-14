@@ -1,6 +1,7 @@
 package truerss.system
 
-import akka.actor.{Actor, ActorLogging, Props}
+import akka.actor.{Actor, ActorLogging, Props, OneForOneStrategy}
+import akka.actor.SupervisorStrategy._
 import akka.io.IO
 import akka.routing.SmallestMailboxPool
 import akka.pattern.gracefulStop
@@ -11,6 +12,7 @@ import truerss.api.{RoutingService, WSApi}
 import truerss.config.TrueRSSConfig
 import truerss.db.DbActor
 import truerss.models.CurrentDriver
+import truerss.system.util.{NotifyLevels, Notify}
 
 import scala.slick.jdbc.JdbcBackend.DatabaseDef
 import scala.concurrent.duration._
@@ -22,7 +24,23 @@ class SystemActor(config: TrueRSSConfig,
 
   import global._
   import context.dispatcher
+
   implicit val system = context.system
+
+  override val supervisorStrategy =
+    OneForOneStrategy(maxNrOfRetries = 10, withinTimeRange = 1 minute) {
+      case x: java.sql.SQLException =>
+        log.error(x, x.getMessage)
+        system.eventStream.publish(Notify(NotifyLevels.Danger,
+          "Db Error. System stop"))
+        self ! StopSystem
+        Stop
+      case x: Throwable =>
+        log.error(x, x.getMessage)
+        Resume
+  }
+
+
 
   val dbRef = context.actorOf(Props(new DbActor(dbDef, driver)), "db")
 

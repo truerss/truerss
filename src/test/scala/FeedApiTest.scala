@@ -39,11 +39,12 @@ with ScalatestRouteTest with Routing with Common {
 
   val dbRef = system.actorOf(Props(new DbActor(db, driver)), "test-db")
   val publishActor = TestProbe()
+  val sysActor = TestProbe()
   system.eventStream.subscribe(publishActor.ref, classOf[PublishEvent])
   val sourcesRef = TestProbe()
   val proxyRef = system.actorOf(Props(new ProxyServiceActor(
     ApplicationPlugins(),
-    dbRef, sourcesRef.ref)), "test-proxy")
+    dbRef, sourcesRef.ref, sysActor.ref)), "test-proxy")
   val context = system
 
   val computeRoute = route(proxyRef, context, 8080)

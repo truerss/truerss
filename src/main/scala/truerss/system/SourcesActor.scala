@@ -113,7 +113,6 @@ class SourcesActor(plugins: ApplicationPlugins,
     case Update =>
       log.info(s"Update for ${context.children.size} actors")
       context.children.foreach{ _ ! Update }
-      sender ! OkResponse("updated")
 
     case UpdateMe(ref) =>
       if (currentUpdateTask >= maxUpdateCount) {
