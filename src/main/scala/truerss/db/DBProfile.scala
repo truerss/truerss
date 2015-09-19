@@ -11,9 +11,6 @@ case object H2 extends SupportedDb
 case object Posgresql extends SupportedDb
 case object Sqlite extends SupportedDb
 
-/**
- * Created by mike on 2.8.15.
- */
 trait DBProfile {
   val isSqlite: Boolean = false
   val profile: JdbcDriver

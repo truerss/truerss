@@ -3,7 +3,7 @@
       <% if (source.is_disable()) { %>
         <span><%= source.name() %></span>
       <% } else { %>
-        <a href="<%= source.href() %>">
+        <a class="source-url" href="<%= source.href() %>">
           <%= source.name() %>
         </a>
       <% } %>

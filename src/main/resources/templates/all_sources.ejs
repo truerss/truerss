@@ -15,19 +15,20 @@
   <% for (var i = 0; i < sources.length; i++) { %>
     <tr class="source-<%= sources[i].id() %>">
       <td>
-        <span><%= sources[i].name() %></span>
+        <span class='source-name'><%= sources[i].name() %></span>
+        <span class='errors uk-hidden'></span>
         <div class="uk-text-middle truerss-middle">
             <input class="uk-hidden uk-form-width-small" type="text" name="name" value="<%= sources[i].name() %>" />
         </div>
       </td>
       <td>
-        <span><a href="<%= sources[i].url() %>"><%= sources[i].url() %></a></span>
+        <span class='source-url'><a href="<%= sources[i].url() %>"><%= sources[i].url() %></a></span>
         <div class="uk-text-middle truerss-middle">
             <input class="uk-hidden uk-form-width-small" type="text" name="url" value="<%= sources[i].url() %>" />
         </div>
       </td>
       <td>
-        <span>every <%= sources[i].interval() %> hours</span>
+        <span class='source-interval'>every <%= sources[i].interval() %> hours</span>
         <div class="uk-text-middle truerss-middle">
             <input class="uk-hidden uk-form-width-small" type="text" name="interval" value="<%= sources[i].interval() %>" />
         </div>

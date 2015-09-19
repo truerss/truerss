@@ -140,8 +140,8 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
         }
       ) pipeTo sender
 
-    //TODO publish sourceupdated
     case msg: UpdateSource =>
+      //TODO validate url
       val state = if (appPlugins.matchUrl(msg.source.url)) {
         Enable
       } else {
@@ -154,7 +154,11 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
         UrlIsUniq(msg.source.url, msg.num.some),
         NameIsUniq(msg.source.name, msg.num.some),
         (x: Long) => {
-          ModelResponse(newMsg.source) }
+          val source = newMsg.source.copy(id = Some(x))
+          val frontendSource = source.convert(0)
+          stream.publish(SourceUpdated(frontendSource))
+          //TODO update source actor
+          ModelResponse(frontendSource) }
       ) pipeTo sender
 
     case msg @ (_: Latest | _: ExtractFeedsForSource | _ : Favorites.type) =>

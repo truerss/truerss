@@ -14,7 +14,6 @@ class Source extends Sirius.BaseModel
   withPlugin: () ->
     (parseInt(@state()) is 1) || (parseInt(@state()) is 2)
 
-
   href: () ->
     "/show/#{@normalized()}"
 
@@ -63,6 +62,14 @@ Sources.subscribe "add", (source) ->
   source_view = new Sirius.View("#source-#{source.id()}")
   # TODO custom strategy : hide
   source.bind(source_view,
+    #"span.source-name" :
+    #  from: "name"
+    "a.source-url":
+      from: "normalized"
+      to: "href"
+      transform: (x) ->
+        "/show/#{x}"
+
     "span.source-count":
       from: "count"
       transform: (x) ->

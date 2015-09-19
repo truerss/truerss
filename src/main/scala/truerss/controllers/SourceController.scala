@@ -35,20 +35,20 @@ trait SourceController extends BaseController
   def show(num: Long) = end(GetSource(num))
 
   def create = entity(as[String]) { sourceString =>
-    catching(classOf[spray.json.DeserializationException])
+    catching(classOf[Exception])
       .opt((JsonParser(sourceString).convertTo[FrontendSource])) match {
       case Some(fs) => end(AddSource(fs.toSource.normalize))
-      case None => complete(spray.http.StatusCodes.BadRequest, "Not valid json")
+      case None => complete(spray.http.StatusCodes.BadRequest, "Not valid data")
     }
   }
 
   def delete(num: Long) = end(DeleteSource(num))
 
   def update(num: Long) = entity(as[String]) { sourceString =>
-    catching(classOf[spray.json.DeserializationException])
+    catching(classOf[Exception])
       .opt((JsonParser(sourceString).convertTo[FrontendSource])) match {
       case Some(fs) => end(UpdateSource(num, fs.toSource.normalize.copy(id = num.some)))
-      case None => complete(spray.http.StatusCodes.BadRequest, "Not valid json")
+      case None => complete(spray.http.StatusCodes.BadRequest, "Not valid data")
     }
   }
 

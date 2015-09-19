@@ -47,12 +47,34 @@ SourcesController =
     source = Sources.find('id', id)
     if source
       el = "table tr.source-#{source.id()}"
+      err = $("#{el} td span.errors")
       $("#{el} td > span").addClass("uk-hidden")
       $("#{el} td input").removeClass("uk-hidden")
       $("#{el} td input[type='button']").on "click", (e) ->
         name = $("#{el} td input[name='name']").val()
         url = $("#{el} td input[name='url']").val()
         interval = $("#{el} td input[name='interval']").val()
+        json = {name: name, id: source.id(), url: url, interval: parseInt(interval)}
+        $.ajax
+          url: "/api/v1/sources/#{source.id()}"
+          method: "PUT"
+          dataType: "json"
+          data: JSON.stringify(json)
+          success: (s) ->
+            $("#{el} td > span").toggleClass("uk-hidden")
+            $("#{el} td input").toggleClass("uk-hidden")
+            unless err.hasClass("uk-hidden")
+              err.addClass("uk-hidden")
+            $("#{el} span.source-name").text(s.name)
+            $("#{el} span.source-url").html("<a href='#{s.url}'>#{s.url}</a>")
+            $("#{el} span.source-interval").text(s.interval)
+          error: (e) ->
+            err
+            .removeClass("uk-hidden")
+            .text(e.responseText)
+            .css({'color': 'red'})
+
+
 
 
 

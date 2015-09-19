@@ -3,6 +3,7 @@ package truerss
 import akka.actor.{ActorSystem, Props}
 
 import com.typesafe.config.{ConfigException, ConfigFactory}
+import com.zaxxer.hikari.{HikariDataSource, HikariConfig}
 
 import java.io.File
 
@@ -57,7 +58,6 @@ object Boot extends App {
       val host = catching(classOf[ConfigException]) either
         appConfig.getString("host") fold(_ => trueRSSConfig.host, identity(_))
 
-
       val keys = pluginConf.root().unwrapped().keySet().toVector
       val pluginSetting = keys.map { key =>
         key -> pluginConf.root().unwrapped().get(key)
@@ -87,11 +87,11 @@ object Boot extends App {
       val dbUsername = dbConf.getString("username")
       val dbPassword = dbConf.getString("password")
 
-      //TODO check backend
 
       implicit val system = ActorSystem("truerss")
 
       val dbProfile = DBProfile.create(H2)
+
       val db = JdbcBackend.Database.forURL("jdbc:h2:mem:test1;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1", driver = dbProfile.driver)
       val driver = new CurrentDriver(dbProfile.profile)
 
@@ -105,14 +105,14 @@ object Boot extends App {
           (driver.query.sources.ddl ++ driver.query.feeds.ddl).create
           val d = new DateTime().minusYears(1)
           val s = Source(id = None,
-            url = "http://localhost:4567/rss", //"https://news.ycombinator.com/rss",
+            url = "https://news.ycombinator.com/rss",//"http://localhost:4567/rss",
             name = "hacker news",
             interval = 12,
             state = Neutral,
             normalized = "hacker-news",
             lastUpdate = d.toDate,
             error = false
-          ) /*
+          )
           val y = Source(id = None,
             url = "https://www.youtube.com/feeds/videos.xml?channel_id=UC1kJkmSWt_snLDfuXgJnLnQ",
             name = "youtube rethinkdb",
@@ -121,8 +121,8 @@ object Boot extends App {
             normalized = "youtube-rethinkdb",
             lastUpdate = d.toDate,
             error = false
-          ) */
-          driver.query.sources.insertAll(s)
+          )
+          driver.query.sources.insertAll(s, y)
         }
       }
 
