@@ -19,6 +19,16 @@ trait DBProfile {
 }
 
 object DBProfile {
+
+  def get(x: String): Option[SupportedDb] = {
+    x.toLowerCase match {
+      case "h2" => Some(H2)
+      case "posgresql" => Some(Posgresql)
+      case "sqlite" => Some(Sqlite)
+      case _ => None
+    }
+  }
+
   def create(db: SupportedDb) = {
     db match {
       case H2 => new DBProfile {

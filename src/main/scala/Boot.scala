@@ -1,4 +1,4 @@
-package truerss
+import java.util.Properties
 
 import akka.actor.{ActorSystem, Props}
 
@@ -7,7 +7,7 @@ import com.zaxxer.hikari.{HikariDataSource, HikariConfig}
 
 import java.io.File
 
-import truerss.db.{DBProfile, H2}
+import truerss.db.{Posgresql, Sqlite, DBProfile, H2}
 import truerss.models.CurrentDriver
 import truerss.system.SystemActor
 import truerss.config.TrueRSSConfig
@@ -87,12 +87,43 @@ object Boot extends App {
       val dbUsername = dbConf.getString("username")
       val dbPassword = dbConf.getString("password")
 
+      val backend = DBProfile.get(dbBackend)
 
-      implicit val system = ActorSystem("truerss")
+      if (backend.isEmpty) {
+        Console.err.println(s"Unsupported database backend: ${dbBackend}")
+        sys.exit(1)
+      }
 
-      val dbProfile = DBProfile.create(H2)
+      val dbProfile = DBProfile.create(backend.get)
 
-      val db = JdbcBackend.Database.forURL("jdbc:h2:mem:test1;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1", driver = dbProfile.driver)
+      val db = backend.get match {
+        case Sqlite =>
+          val url =   s"jdbc:$dbBackend:/$dbName"
+          JdbcBackend.Database.forURL(url, driver=dbProfile.driver)
+        case H2 =>
+          val url = "jdbc:h2:mem:truerss;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1"
+          JdbcBackend.Database.forURL(url, driver = dbProfile.driver)
+        case Posgresql =>
+          val url = s"jdbc:$backend://$dbHost:$dbPort/$dbName"
+          val props = new Properties()
+          props.setProperty("dataSourceClassName", dbProfile.sourceClassName)
+          props.setProperty("dataSource.user", dbUsername)
+          props.setProperty("dataSource.password", dbPassword)
+          props.setProperty("dataSource.databaseName", dbName)
+          val hc = new HikariConfig(props)
+          hc.setConnectionTestQuery("SELECT 1;")
+          hc.setMaximumPoolSize(10)
+          hc.setInitializationFailFast(true)
+          try {
+            val ds = new HikariDataSource(hc)
+            JdbcBackend.Database.forDataSource(ds)
+          } catch {
+            case x: Exception =>
+              Console.err.println("Database Initialization error. Check parameters for db.")
+              sys.exit(1)
+          }
+      }
+
       val driver = new CurrentDriver(dbProfile.profile)
 
       import driver.profile.simple._
@@ -131,6 +162,8 @@ object Boot extends App {
         host = host,
         appPlugins = appPlugins
       )
+
+      implicit val system = ActorSystem("truerss")
 
       system.actorOf(Props(new SystemActor(actualConfig, db, driver)), "system-actor")
 
