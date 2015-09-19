@@ -8,7 +8,7 @@ import scala.slick.driver.H2Driver
 
 sealed trait SupportedDb
 case object H2 extends SupportedDb
-case object Posgresql extends SupportedDb
+case object Postgresql extends SupportedDb
 case object Sqlite extends SupportedDb
 
 trait DBProfile {
@@ -23,7 +23,7 @@ object DBProfile {
   def get(x: String): Option[SupportedDb] = {
     x.toLowerCase match {
       case "h2" => Some(H2)
-      case "posgresql" => Some(Posgresql)
+      case "postgresql" => Some(Postgresql)
       case "sqlite" => Some(Sqlite)
       case _ => None
     }
@@ -37,7 +37,7 @@ object DBProfile {
         override val sourceClassName = "org.h2.jdbcx.JdbcDataSource"
       }
 
-      case Posgresql => new DBProfile {
+      case Postgresql => new DBProfile {
         override val driver: String = "org.postgresql.Driver"
         override val profile: JdbcDriver = PostgresDriver
         override val sourceClassName: String = "org.postgresql.ds.PGSimpleDataSource"
