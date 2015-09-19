@@ -89,7 +89,8 @@ class SourcesActor(plugins: ApplicationPlugins,
   def startSourceActor(source: Source) = {
     getSourceReader(source).map { feedReader =>
       log.info(s"Start source actor for ${source.normalized} -> ${source.id.get}")
-      val ref = context.actorOf(Props(new SourceActor(source, feedReader, contentReaders)))
+      val ref = context.actorOf(Props(classOf[SourceActor],
+        source, feedReader, contentReaders))
       sourceNetwork += source.id.get -> ref
     }
   }

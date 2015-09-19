@@ -40,21 +40,20 @@ class SystemActor(config: TrueRSSConfig,
         Resume
   }
 
+  val dbRef = context.actorOf(Props(classOf[DbActor], dbDef, driver), "db")
 
-
-  val dbRef = context.actorOf(Props(new DbActor(dbDef, driver)), "db")
-
-  val sourcesRef = context.actorOf(Props(new SourcesActor(
+  val sourcesRef = context.actorOf(Props(classOf[SourcesActor],
     config.appPlugins,
-    self)), "sources")
+    self), "sources")
 
   val proxyRef = context.actorOf(Props(
-    new ProxyServiceActor(config.appPlugins, dbRef, sourcesRef, self))
+    classOf[ProxyServiceActor], config.appPlugins, dbRef, sourcesRef, self)
       .withRouter(SmallestMailboxPool(10)), "service-router")
 
-  val api = context.actorOf(Props(new RoutingService(proxyRef, config.wsPort)), "api")
+  val api = context.actorOf(Props(classOf[RoutingService],
+    proxyRef, config.wsPort), "api")
 
-  val socketApi = context.actorOf(Props(new WSApi(config.wsPort)), "ws-api")
+  val socketApi = context.actorOf(Props(classOf[WSApi], config.wsPort), "ws-api")
 
   IO(Http) ! Http.Bind(api, interface = config.host, port = config.port)
 

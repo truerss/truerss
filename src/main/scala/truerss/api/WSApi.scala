@@ -38,7 +38,7 @@ WebSocketServer(new InetSocketAddress(port)) {
 
   override def onOpen(ws: WebSocket, clientHandshake: ClientHandshake): Unit = {
     log.info(s"ws connection open")
-    val socketActor = ctx.actorOf(Props(new WSController(ws)))
+    val socketActor = ctx.actorOf(Props(classOf[WSController], ws))
     stream.subscribe(socketActor, classOf[NewFeeds])
     stream.subscribe(socketActor, classOf[SourceAdded])
     stream.subscribe(socketActor, classOf[SourceDeleted])

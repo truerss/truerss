@@ -8,7 +8,7 @@ import com.zaxxer.hikari.{HikariDataSource, HikariConfig}
 
 import java.io.File
 
-import truerss.db.{Postgresql, Sqlite, DBProfile, H2}
+import truerss.db._
 import truerss.models.CurrentDriver
 import truerss.system.SystemActor
 import truerss.config.TrueRSSConfig
@@ -104,7 +104,7 @@ object Boot extends App {
         case H2 =>
           val url = "jdbc:h2:mem:truerss;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1"
           JdbcBackend.Database.forURL(url, driver = dbProfile.driver)
-        case Postgresql =>
+        case Postgresql | Mysql =>
           val props = new Properties()
           props.setProperty("dataSourceClassName", dbProfile.sourceClassName)
           props.setProperty("dataSource.user", dbUsername)

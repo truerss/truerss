@@ -5,11 +5,13 @@ import scala.slick.driver.JdbcDriver._
 import scala.slick.driver.SQLiteDriver
 import scala.slick.driver.PostgresDriver
 import scala.slick.driver.H2Driver
+import scala.slick.driver.MySQLDriver
 
 sealed trait SupportedDb
 case object H2 extends SupportedDb
 case object Postgresql extends SupportedDb
 case object Sqlite extends SupportedDb
+case object Mysql extends SupportedDb
 
 trait DBProfile {
   val isSqlite: Boolean = false
@@ -25,6 +27,7 @@ object DBProfile {
       case "h2" => Some(H2)
       case "postgresql" => Some(Postgresql)
       case "sqlite" => Some(Sqlite)
+      case "mysql" => Some(Mysql)
       case _ => None
     }
   }
@@ -48,6 +51,12 @@ object DBProfile {
         override val driver = "org.sqlite.JDBC"
         override val isSqlite: Boolean = true
         override val sourceClassName = ""
+      }
+
+      case Mysql => new DBProfile {
+        override val driver: String = "com.mysql.jdbc.Driver"
+        override val profile: JdbcDriver = MySQLDriver
+        override val sourceClassName: String = "com.mysql.jdbc.jdbc2.optional.MysqlDataSource"
       }
     }
   }

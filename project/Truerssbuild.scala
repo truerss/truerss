@@ -176,6 +176,7 @@ object Truerssbuild extends Build {
 
         "com.h2database" % "h2" % "1.3.173",
         "postgresql" % "postgresql" % "9.1-901-1.jdbc4",
+        "mysql" % "mysql-connector-java" % "5.1.36",
         "org.xerial" % "sqlite-jdbc" % "3.8.7",
 
         "com.rometools" % "rome" % "1.5.0",

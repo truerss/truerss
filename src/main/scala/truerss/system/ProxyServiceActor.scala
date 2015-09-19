@@ -39,7 +39,7 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
   val stream = context.system.eventStream
 
   val publishActor = context.actorOf(Props(
-    new PublishPluginActor(appPlugins.publishPlugin)),
+    classOf[PublishPluginActor], appPlugins.publishPlugin),
     "publish-plugin-actor")
 
   stream.subscribe(publishActor, classOf[PublishEvent])
