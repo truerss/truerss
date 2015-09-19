@@ -165,6 +165,7 @@ object Truerssbuild extends Build {
       },
       test in assembly := {},
       fork in compile := true,
+      ivyScala := ivyScala.value map { _.copy(overrideScalaVersion = true) },
       publishArtifact in Test := false,
       licenses += ("MIT", url("http://opensource.org/licenses/MIT")),
       packageOptions := Seq(ManifestAttributes(
@@ -205,7 +206,7 @@ object Truerssbuild extends Build {
 
         "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
         "ch.qos.logback" % "logback-classic" % "1.1.2",
-
+        "cn.q-game" % "akka-log4j2-logger_2.11" % "1.0.0",
         "com.github.truerss" %% "base" % "0.0.2",
 
         "org.scalaz" %% "scalaz-core" % "7.1.3",  

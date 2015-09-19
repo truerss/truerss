@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <Appenders>
+        <!--
+        <FILE name="tmp" fileName="output.log">
+            <PatternLayout pattern="%highlight %d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </FILE>
+        -->
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%highlight{ %d{HH:mm:ss} [%t] %-5level %logger{36} - %msg{1}%n }"/>
+        </Console>
+
+    </Appenders>
+    <Loggers>
+        <Logger name="truerss" level="trace" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+        <Root level="error">
+            <AppenderRef ref="Console"/>
+        </Root>
+    </Loggers>
+</Configuration>

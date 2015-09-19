@@ -68,11 +68,11 @@ class SystemActor(config: TrueRSSConfig,
       system.registerOnTermination({
         sys.exit(1)
       })
-      stopChildren.map(_ => system.shutdown())
+      stopChildren.map(_ => system.terminate())
 
     case StopSystem =>
       log.info("Stop actor system")
-      stopChildren.map(_ => system.shutdown())
+      stopChildren.map(_ => system.terminate())
 
     case x => proxyRef forward x
   }

@@ -1,3 +1,4 @@
+package truerss
 import java.util.Properties
 
 import akka.actor.{ActorSystem, Props}
