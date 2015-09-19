@@ -6,6 +6,7 @@ import scala.language.postfixOps
 import scala.slick.driver.JdbcProfile
 
 import truerss.util.Util._
+import truerss.util.{Lens => L}
 
 
 sealed trait SourceState
@@ -20,8 +21,27 @@ case class Source(id: Option[Long],
                   state: SourceState,
                   normalized: String,
                   lastUpdate: Date,
-                  error: Boolean = false) extends Jsonize {
-  def normalize = copy(normalized = name.normalize)
+                  error: Boolean = false,
+                  count: Int = 0) extends Jsonize {
+
+  def normalize: Source = L.normalized.set(this)(name.normalize)
+  def recount(x: Int): Source = L.count.set(this)(x)
+
+}
+
+object SourceHelper {
+  def from(url: String, name: String, interval: Int): Source = {
+    Source(
+      id = None,
+      url = url,
+      name = name,
+      interval = interval,
+      state = Neutral,
+      normalized = name,
+      lastUpdate = new Date(),
+      error = false
+    )
+  }
 }
 
 case class Feed(id: Option[Long],
@@ -36,31 +56,6 @@ case class Feed(id: Option[Long],
                 favorite: Boolean = false,
                 read: Boolean = false,
                 delete: Boolean = false) extends Jsonize
-
-
-case class FrontendSource(url: String, name: String, interval: Int) {
-  def toSource = Source(
-    id = None,
-    url = url,
-    name = name,
-    interval = interval,
-    state = Neutral,
-    normalized = name,
-    lastUpdate = new Date(),
-    error = false
-  )
-}
-
-case class SourceForFrontend(
-  id: Long,
-  url: String,
-  name: String,
-  interval: Int,
-  state: SourceState,
-  normalized: String,
-  lastUpdate: Date,
-  count: Int = 0
-) extends Jsonize
 
 case class WSMessage(messageType: String, body: String)
 
@@ -111,7 +106,10 @@ case class CurrentDriver(profile: JdbcProfile) {
 
     def error = column[Boolean]("error")
 
-    def * = (id.?, url, name, interval, state, normalized, lastUpdate, error) <> (Source.tupled, Source.unapply)
+    def count = column[Int]("count", O.Default(0)) // ignored
+
+    def * = (id.?, url, name, interval, state,
+      normalized, lastUpdate, error, count) <> (Source.tupled, Source.unapply)
 
   }
 

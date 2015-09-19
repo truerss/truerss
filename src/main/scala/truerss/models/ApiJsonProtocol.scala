@@ -6,6 +6,7 @@ import truerss.system.util.Notify
 import spray.json._
 
 object ApiJsonProtocol extends DefaultJsonProtocol {
+  import java.util.Date
 
   implicit object DateFormat extends JsonFormat[java.util.Date] {
     val format = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
@@ -30,10 +31,40 @@ object ApiJsonProtocol extends DefaultJsonProtocol {
     }
   }
 
-  implicit val sourceFormat = jsonFormat8(Source)
+  implicit object SourceFormat extends JsonFormat[Source] {
+    //TODO possible validate url and name ?
+    override def read(json: JsValue) = json.asJsObject
+      .getFields("url", "name", "interval") match {
+      case Seq(JsString(url), JsString(name), JsNumber(interval)) =>
+        Source(
+          id = None,
+          url = url,
+          name = name,
+          interval = interval.toInt,
+          state = Neutral,
+          normalized = name,
+          lastUpdate = new Date(),
+          error = false
+        )
+      case _ => deserializationError("Not valid data")
+    }
+
+    override def write(s: Source) = {
+      JsObject(
+        "id" -> s.id.map(JsNumber(_)).getOrElse(JsNull),
+        "url" -> JsString(s.url),
+        "name" -> JsString(s.name),
+        "interval" -> JsNumber(s.interval),
+        "state" -> StateFormat.write(s.state),
+        "normalized" -> JsString(s.normalized),
+        "lastUpdate" -> DateFormat.write(s.lastUpdate),
+        "count" -> JsNumber(0) //TODO
+      )
+    }
+
+  }
+
   implicit val feedFormat = jsonFormat12(Feed)
-  implicit val frontendSourceFormat = jsonFormat3(FrontendSource)
-  implicit val sourceForFrontendFormat = jsonFormat8(SourceForFrontend)
   implicit val wsMessageFormat = jsonFormat2(WSMessage)
 
   implicit def appPluginWriter: JsonWriter[ApplicationPlugins] = new JsonWriter[ApplicationPlugins] {
@@ -61,8 +92,8 @@ object ApiJsonProtocol extends DefaultJsonProtocol {
 
   implicit def jsonizeWriter: JsonWriter[Jsonize] = new JsonWriter[Jsonize] {
     def write(x: Jsonize) = x match {
-      case x: Source => sourceFormat.write(x)
-      case x: SourceForFrontend => sourceForFrontendFormat.write(x)
+      case x: Source => SourceFormat.write(x)
+      //case x: SourceForFrontend => sourceForFrontendFormat.write(x)
       case x: Feed => feedFormat.write(x)
       case x: ApplicationPlugins => appPluginWriter.write(x)
     }

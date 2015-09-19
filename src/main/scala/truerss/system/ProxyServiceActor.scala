@@ -100,7 +100,7 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
       } yield {
         val map = counts.toMap
         ModelsResponse(
-          sources.map(s => s.convert(map.get(s.id.get).getOrElse(0)))
+          sources.map(s => s.recount(map.get(s.id.get).getOrElse(0)))
         )
       }) pipeTo sender
 
@@ -133,7 +133,7 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
         NameIsUniq(msg.source.name),
         (x: Long) => {
           val source = newMsg.source.copy(id = Some(x))
-          val frontendSource = source.convert(0)
+          val frontendSource = source.recount(0)
           stream.publish(SourceAdded(frontendSource))
           sourcesRef ! NewSource(source)
           ModelResponse(frontendSource)
@@ -155,7 +155,7 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
         NameIsUniq(msg.source.name, msg.num.some),
         (x: Long) => {
           val source = newMsg.source.copy(id = Some(x))
-          val frontendSource = source.convert(0)
+          val frontendSource = source.recount(0)
           stream.publish(SourceUpdated(frontendSource))
           //TODO update source actor
           ModelResponse(frontendSource) }

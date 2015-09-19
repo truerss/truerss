@@ -7,14 +7,12 @@ import spray.http.StatusCodes
 import spray.json.{JsonParser, _}
 import spray.testkit.ScalatestRouteTest
 import truerss.api._
-import truerss.controllers.OkResponse
 import truerss.db.DbActor
-import truerss.models.{SourceForFrontend, Feed, Source}
+import truerss.models.{Feed, Source}
 import truerss.system.ProxyServiceActor
 import truerss.system.util.NewSource
 import truerss.util.ApplicationPlugins
 
-import scala.concurrent.duration._
 import scala.language.postfixOps
 import scala.slick.driver.H2Driver.simple._
 
@@ -24,7 +22,6 @@ class SourceApiTest extends FunSpec with Matchers
 
   import Gen._
   import truerss.models.ApiJsonProtocol._
-  import truerss.system.util.Update
   import truerss.util.Util._
 
   def actorRefFactory = system
@@ -43,7 +40,7 @@ class SourceApiTest extends FunSpec with Matchers
     it("should return all sources from db") {
       Get(s"${sourceUrl}/all") ~> computeRoute ~> check {
         JsonParser(responseAs[String])
-          .convertTo[Vector[SourceForFrontend]].size should be(3)
+          .convertTo[Vector[Source]].size should be(3)
         status should be(StatusCodes.OK)
       }
     }
@@ -79,7 +76,7 @@ class SourceApiTest extends FunSpec with Matchers
 
       request ~> check {
         val givenSource = JsonParser(responseAs[String])
-          .convertTo[SourceForFrontend]
+          .convertTo[Source]
 
         givenSource.name should be(source.name)
         givenSource.url should be(source.url)
@@ -91,7 +88,7 @@ class SourceApiTest extends FunSpec with Matchers
 
     it("bad request on not valid json") {
       Post(s"${sourceUrl}/create", "{}") ~> computeRoute ~> check {
-        responseAs[String] should be("Not valid json")
+        responseAs[String] should be("Not valid data")
         status should be(StatusCodes.BadRequest)
       }
     }
@@ -143,7 +140,17 @@ class SourceApiTest extends FunSpec with Matchers
   describe("Update source") {
     it ("update - 400 bad request when json not valid") {
       Put(s"${sourceUrl}/2", "{}") ~> computeRoute ~> check {
-        responseAs[String] should be("Not valid json")
+        responseAs[String] should be("Not valid data")
+        status should be(StatusCodes.BadRequest)
+      }
+    }
+
+    it ("update - 400 bad request when pass json with not valid url") {
+      val last = ids.last
+      val url = source1.url
+      val json = sources(last.toInt).copy(url = "123").toJson.toString
+      Put(s"${sourceUrl}/${last}", json) ~> computeRoute ~> check {
+        responseAs[String] should be(s"Not valid url")
         status should be(StatusCodes.BadRequest)
       }
     }
@@ -188,7 +195,6 @@ class SourceApiTest extends FunSpec with Matchers
 
       Put(s"${sourceUrl}/${last}", json) ~> computeRoute ~> check {
         val resp = JsonParser(responseAs[String]).convertTo[Source]
-        resp.id should be(source.id)
         resp.name should be(source.name)
         resp.url should be(source.url)
         resp.interval should be(source.interval)
@@ -245,8 +251,8 @@ class SourceApiTest extends FunSpec with Matchers
     it("refresh all source actors") {
       val resp = Put(s"${sourceUrl}/refresh") ~> computeRoute
 
-      sourcesRef.expectMsg(1 seconds, Update)
-      sourcesRef.reply(OkResponse("ok"))
+//      sourcesRef.expectMsg(1 seconds, Update)
+//      sourcesRef.reply(OkResponse("ok"))
 
       resp ~> check {
         responseAs[String] should be("ok")

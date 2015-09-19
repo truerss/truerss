@@ -1,10 +1,8 @@
 package truerss.util
 
-import truerss.models.{SourceForFrontend, Source, Feed}
 import com.github.truerss.base.Entry
-/**
- * Created by mike on 2.8.15.
- */
+import truerss.models.Feed
+
 object Util {
   implicit class StringExt(s: String) {
     def normalize = s.replaceAll("[^\\p{L}\\p{Nd}]+", "-")
@@ -36,21 +34,6 @@ object Util {
       read = false,
       delete = false
     )
-  }
-
-  implicit class SourceExt(s: Source) {
-    def convert(count: Int = 0): SourceForFrontend = {
-      SourceForFrontend(
-        id = s.id.get,
-        url = s.url,
-        name = s.name,
-        interval = s.interval,
-        state = s.state,
-        normalized = s.normalized,
-        lastUpdate = s.lastUpdate,
-        count = count
-      )
-    }
   }
 
 

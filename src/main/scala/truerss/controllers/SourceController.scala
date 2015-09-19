@@ -9,8 +9,9 @@ import com.rometools.rome.io.WireFeedInput
 import org.xml.sax.InputSource
 import spray.http.{MultipartFormData, StatusCodes}
 import spray.routing.HttpService
-import truerss.models.{ApiJsonProtocol, FrontendSource}
+import truerss.models.{ApiJsonProtocol, Source, SourceHelper}
 import truerss.system.{db, util}
+import truerss.util.Lens
 
 import scala.concurrent.Future
 import scala.util.control.Exception._
@@ -27,6 +28,7 @@ trait SourceController extends BaseController
   import db._
   import spray.json._
   import util._
+  import Lens._
 
   import scala.collection.JavaConversions._
 
@@ -36,8 +38,8 @@ trait SourceController extends BaseController
 
   def create = entity(as[String]) { sourceString =>
     catching(classOf[Exception])
-      .opt((JsonParser(sourceString).convertTo[FrontendSource])) match {
-      case Some(fs) => end(AddSource(fs.toSource.normalize))
+      .opt((JsonParser(sourceString).convertTo[Source])) match {
+      case Some(fs) => end(AddSource(fs.normalize))
       case None => complete(spray.http.StatusCodes.BadRequest, "Not valid data")
     }
   }
@@ -46,8 +48,8 @@ trait SourceController extends BaseController
 
   def update(num: Long) = entity(as[String]) { sourceString =>
     catching(classOf[Exception])
-      .opt((JsonParser(sourceString).convertTo[FrontendSource])) match {
-      case Some(fs) => end(UpdateSource(num, fs.toSource.normalize.copy(id = num.some)))
+      .opt((JsonParser(sourceString).convertTo[Source])) match {
+      case Some(fs) => end(UpdateSource(num, fs.normalize.copy(id = num.some)))
       case None => complete(spray.http.StatusCodes.BadRequest, "Not valid data")
     }
   }
@@ -73,8 +75,8 @@ trait SourceController extends BaseController
       val result = opml.getOutlines.flatMap(_.getChildren).map { x =>
         (x.getXmlUrl, x.getTitle)
       }.filterNot(x => x._1.isEmpty && x._2.isEmpty).map { case t @ (url, title) =>
-        val s = FrontendSource(url, title, interval)
-        (proxyRef ? AddSource(s.toSource.normalize)).mapTo[Response]
+        val s = SourceHelper.from(url, title, interval)
+        (proxyRef ? AddSource(s.normalize)).mapTo[Response]
       }
 
       Future.sequence(result).onComplete {

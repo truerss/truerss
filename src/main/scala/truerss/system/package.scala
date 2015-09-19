@@ -1,7 +1,7 @@
 package truerss
 
 import akka.actor.ActorRef
-import truerss.models.{SourceState, SourceForFrontend, Feed, Source}
+import truerss.models.{SourceState, Source, Feed}
 import com.github.truerss.base.{Entry, BaseFeedReader, BaseContentReader}
 
 package object system {
@@ -90,8 +90,8 @@ package object system {
   }
 
   object ws {
-    case class SourceAdded(source: SourceForFrontend)
-    case class SourceUpdated(source: SourceForFrontend)
+    case class SourceAdded(source: Source)
+    case class SourceUpdated(source: Source)
     case class NewFeeds(xs: Vector[Feed])
   }
 
