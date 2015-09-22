@@ -136,7 +136,7 @@ object Boot extends App {
           (driver.query.sources.ddl ++ driver.query.feeds.ddl).create
           val d = new DateTime().minusYears(1)
           val s = Source(id = None,
-            url = "https://news.ycombinator.com/rss",//"http://localhost:4567/rss",
+            url = "http://localhost:4567/rss", //"https://news.ycombinator.com/rss",//
             name = "hacker news",
             interval = 12,
             state = Neutral,
@@ -153,7 +153,7 @@ object Boot extends App {
             lastUpdate = d.toDate,
             error = false
           )
-          driver.query.sources.insertAll(s, y)
+          driver.query.sources.insertAll(s)
         }
       }
 
