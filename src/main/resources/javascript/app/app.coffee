@@ -70,4 +70,4 @@ $ ->
     adapter: new JQueryAdapter()
     mix_logger_into_controller: true
     controller_wrapper: ControllerStatesExt
-    log: false
+    log: true

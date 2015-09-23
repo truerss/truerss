@@ -6,7 +6,20 @@ Sirius.View.register_strategy('html',
       $(element).html(result)
     else
       throw new Error("Html strategy work only for text, not for #{attribute}")
- )
+)
+
+Sirius.View.register_strategy('add_class',
+  transform: (oldvalue, newvalue) -> newvalue
+  render: (adapter, element, result, attribute) ->
+    $(element).addClass(result)
+)
+
+Sirius.View.register_strategy('remove_class',
+  transform: (oldvalue, newvalue) -> newvalue
+  render: (adapter, element, result, attribute) ->
+    $(element).removeClass(result)
+)
+
 
 class UrlValidator extends Sirius.Validator
 

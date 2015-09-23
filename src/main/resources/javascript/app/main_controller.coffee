@@ -11,8 +11,46 @@ MainController =
     </p>
   """
 
+  _init_ws: (logger, adapter, port) ->
+    sock = new WebSocket("ws://#{location.hostname}:#{port}/")
+    sock.onopen = () ->
+      logger.info("ws open on port: #{port}")
+
+    sock.onmessage = (e) ->
+      message = JSON.parse(e.data)
+      logger.info("ws given message: #{message.messageType}")
+      adapter.fire(document, "ws:#{message.messageType}", message.body)
+
+    sock.onclose = () ->
+      logger.info("ws close")
+
+  _bind_modal: () ->
+    source = new Source()
+    Templates.modal_view.bind source,
+      "fieldset input[name='title']" : to: "name"
+      "fieldset input[name='url']" : to: "url"
+      "fieldset input[name='interval']" : to : "interval"
+
+    source.bind Templates.modal_view,
+      "fieldset span.source-url-error" : from: "errors.url.url_validator"
+
+    modal = UIkit.modal("#add-modal")
+
+    Templates.modal_view.on 'button.uk-button-primary', 'click', (e) ->
+      if source.is_valid()
+        ajax.source_create source.ajaxify(),
+          (json) ->
+            # see WSController
+            modal.hide()
+          (err) ->
+            source.set_error("url.url_validator", err.responseText)
+
+    Templates.modal_view.on 'button.close-modal', 'click', (e) ->
+      modal.hide()
+
   start: () ->
     port = read_cookie("port")
+    default_count = 100
 
     if !(!!window.WebSocket && !!window.FormData && !!history.pushState)
       UIkit.notify
@@ -22,74 +60,30 @@ MainController =
         pos     : 'top-center'
 
     else
+      self = @
+      ajax.sources_all (arr) ->
+        Sirius.Application.get_adapter().and_then (adapter) ->
+          self._init_ws(logger, adapter, port)
 
-      $.ajax
-        url: '/api/v1/sources/all'
-        type: "GET"
-        success: (arr) ->
-          Sirius.Application.get_adapter().and_then (adapter) ->
-            # open socket TODO change port with cookie ?
-            # TODO c -> logger.info
-            sock = new WebSocket("ws://#{location.hostname}:#{port}/")
-            sock.onopen = () ->
-              c("ws open on port: #{port}")
+        # TODO sorting by count
+        arr.forEach((x) => Sources.add(new Source(x)))
 
-            sock.onmessage = (e) ->
-              message = JSON.parse(e.data)
-              c("ws given message: #{message.messageType}")
-              adapter.fire(document, "ws:#{message.messageType}", message.body)
+        ajax.latest default_count, (arr) ->
+          feeds = arr.map (x) ->
+            pd = moment(x['publishedDate'])
+            x['publishedDate'] = pd
+            f = new Feed(x)
+            source = Sources.find("id", f.source_id())
+            source.add_feed(f)
+            f
+          feeds = _.sortBy(feeds, '_published_date')
+          result = Templates.feeds_template.render({feeds: feeds})
+          Templates.feeds_view.render(result).html()
 
-            sock.onclose = () ->
-              c("ws close")
+          if feeds.length > 0
+            redirect(feeds[0].href())
 
-          # TODO sorting by count
-          arr.forEach((x) => Sources.add(new Source(x)))
-
-          $.ajax
-            url: '/api/v1/sources/latest/100'
-            type: "GET"
-            success: (arr) ->
-              feeds = arr.map (x) ->
-                pd = moment(x['publishedDate'])
-                x['publishedDate'] = pd
-                f = new Feed(x)
-                source = Sources.find("id", f.source_id())
-                source.add_feed(f)
-                f
-              feeds = _.sortBy(feeds, '_published_date')
-              result = Templates.feeds_template.render({feeds: feeds})
-              Templates.feeds_view.render(result).html()
-
-              if feeds.length > 0
-                redirect(feeds[0].href())
-
-      source = new Source()
-      Templates.modal_view.bind source,
-        "fieldset input[name='title']" : to: "name"
-        "fieldset input[name='url']" : to: "url"
-        "fieldset input[name='interval']" : to : "interval"
-
-      source.bind Templates.modal_view,
-        "fieldset span.source-url-error" : from: "errors.url.url_validator"
-
-      modal = UIkit.modal("#add-modal")
-
-      Templates.modal_view.on 'button.uk-button-primary', 'click', (e) ->
-        if source.is_valid()
-          $.ajax
-            url: '/api/v1/sources/create'
-            type: "POST"
-            dataType: "json"
-            data: source.ajaxify()
-            success: (json) ->
-              # see WSController
-              #Sources.add(new Source(json))
-              modal.hide()
-            error: (err) ->
-              source.set_error("url.url_validator", err.responseText)
-
-      Templates.modal_view.on 'button.close-modal', 'click', (e) ->
-        modal.hide()
+      @_bind_modal()
 
 
 
@@ -112,13 +106,10 @@ MainController =
     state.to(States.About)
 
   plugin_list: () ->
-    $.ajax
-      url: "/api/v1/plugins/all"
-      method: "GET"
-      success: (list) ->
-        result = Templates.plugins_template.render({plugins: list})
-        Templates.article_view.render(result).html()
-        state.to(States.Plugins)
+    ajax.plugins_all (list) ->
+      result = Templates.plugins_template.render({plugins: list})
+      Templates.article_view.render(result).html()
+      state.to(States.Plugins)
 
 
 

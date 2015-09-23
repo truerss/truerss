@@ -88,7 +88,7 @@ object Boot extends App {
       val dbUsername = dbConf.getString("username")
       val dbPassword = dbConf.getString("password")
 
-      val backend = DBProfile.get(dbBackend)
+      val backend: Option[SupportedDb] = Some(H2)//DBProfile.get(dbBackend)
 
       if (backend.isEmpty) {
         Console.err.println(s"Unsupported database backend: ${dbBackend}")
@@ -102,7 +102,7 @@ object Boot extends App {
           val url =   s"jdbc:$dbBackend:/$dbName"
           JdbcBackend.Database.forURL(url, driver=dbProfile.driver)
         case H2 =>
-          val url = "jdbc:h2:mem:truerss;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1"
+          val url = "jdbc:h2:mem:test;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1"
           JdbcBackend.Database.forURL(url, driver = dbProfile.driver)
         case Postgresql | Mysql =>
           val props = new Properties()
@@ -144,15 +144,15 @@ object Boot extends App {
             lastUpdate = d.toDate,
             error = false
           )
-          val y = Source(id = None,
-            url = "https://www.youtube.com/feeds/videos.xml?channel_id=UC1kJkmSWt_snLDfuXgJnLnQ",
-            name = "youtube rethinkdb",
-            interval = 12,
-            state = Enable,
-            normalized = "youtube-rethinkdb",
-            lastUpdate = d.toDate,
-            error = false
-          )
+//          val y = Source(id = None,
+//            url = "https://www.youtube.com/feeds/videos.xml?channel_id=UC1kJkmSWt_snLDfuXgJnLnQ",
+//            name = "youtube rethinkdb",
+//            interval = 12,
+//            state = Enable,
+//            normalized = "youtube-rethinkdb",
+//            lastUpdate = d.toDate,
+//            error = false
+//          )
           driver.query.sources.insertAll(s)
         }
       }

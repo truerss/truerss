@@ -62,13 +62,17 @@ Sources.subscribe "add", (source) ->
   source_view = new Sirius.View("#source-#{source.id()}")
   # TODO custom strategy : hide
   source.bind(source_view,
-    #"span.source-name" :
-    #  from: "name"
     "a.source-url":
-      from: "normalized"
-      to: "href"
-      transform: (x) ->
-        "/show/#{x}"
+      [{
+        from: "normalized"
+        to: "href"
+        transform: (x) ->
+          "/show/#{x}"
+       },
+       {
+         from: "name"
+         to: "text"
+       }]
 
     "span.source-count":
       from: "count"
