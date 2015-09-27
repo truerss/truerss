@@ -32,3 +32,7 @@ class UrlValidator extends Sirius.Validator
       true
 
 Sirius.BaseModel.register_validator("url_validator", UrlValidator)
+
+String::htmlize = () ->
+  @replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/&/g,'&amp;')
+  .replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&')

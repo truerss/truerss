@@ -1,13 +1,20 @@
-<article class="uk-article">
-    <h1 class="uk-article-title">Favorites List</h1>
-    <p class="uk-article-lead">
-        <dl class="uk-description-list-line favorites">
-            <% for(var i = 0; i < feeds.length; i++) { %>
-                <dt><a href="<%= feeds[i].href() %>" ><%= feeds[i].title() %></a>
-                [<a href="<%= feeds[i].url() %>">
-                    <i class="uk-icon-external-link"></i>original</a>]</dt>
-                <dd><%= feeds[i].description() %></dd>
-            <% } %>
-        </dl>
-    </p>
-</article>
+<% if (feeds.length > 0) { %>
+    <article class="uk-article">
+        <h1 class="uk-article-title">Favorites List</h1>
+        <p class="uk-article-lead">
+            <dl class="uk-description-list-line favorites">
+                <% for(var i = 0; i < feeds.length; i++) { %>
+                    <dt><a href="<%= feeds[i].href() %>" ><%= feeds[i].title() %></a>
+                    [<a href="<%= feeds[i].url() %>">
+                        <i class="uk-icon-external-link"></i>original</a>]</dt>
+                    <dd><%= feeds[i].description() %></dd>
+                <% } %>
+            </dl>
+        </p>
+    </article>
+<% } else { %>
+    <article class="uk-article">
+        <h1 class="uk-article-title">Favorites List is Empty</h1>
+     </article>
+<% } %>
+

@@ -1,50 +1,62 @@
-<table id="all-sources" class="uk-table uk-table-striped uk-table-condensed">
-  <caption>All sources</caption>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Url</th>
-            <th>Update interval</th>
-            <th>Last Update</th>
-            <th>Feed count</th>
-            <th>Refresh</th>
-            <th>Delete</th>
-            <th>Edit</th>
-        </tr>
-    </thead>
-  <% for (var i = 0; i < sources.length; i++) { %>
-    <tr class="source-<%= sources[i].id() %>">
-      <td>
-        <span class='source-name'><%= sources[i].name() %></span>
-        <span class='errors'></span>
-        <div class="uk-text-middle truerss-middle">
-            <input class="uk-hidden uk-form-width-small" type="text" name="name" value="<%= sources[i].name() %>" />
-        </div>
-      </td>
-      <td>
-        <span class='source-url'><a href="<%= sources[i].url() %>"><%= sources[i].url() %></a></span>
-        <div class="uk-text-middle truerss-middle">
-            <input class="uk-hidden uk-form-width-small" type="text" name="url" value="<%= sources[i].url() %>" />
-        </div>
-      </td>
-      <td>
-        <span class='source-interval'>every <%= sources[i].interval() %> hours</span>
-        <div class="uk-text-middle truerss-middle">
-            <input class="uk-hidden uk-form-width-small" type="text" name="interval" value="<%= sources[i].interval() %>" />
-        </div>
-      </td>
-      <td><%= sources[i].last_update() %></td>
-      <td><%= sources[i].count() %></td>
-      <td><a href="#update-source" class="uk-icon-refresh"
-      data-source-id="<%= sources[i].id() %>"></a></td>
-      <td><a href="#delete-source" class="uk-icon-remove"
-      data-source-id="<%= sources[i].id() %>"></a></td>
-      <td>
-        <span><a href="#edit-source" class="uk-icon-edit"
-      data-source-id="<%= sources[i].id() %>"></a></span>
-        <input class="uk-button uk-hidden" type="button" value="Save" />
-      </td>
-    </tr>
-  <% } %>
-</table>
+<article class="uk-article">
+    <h1 class="uk-article-title">Sources List</h1>
+    <p class="uk-article-lead">
+        <table id="all-sources" class="uk-table uk-table-striped uk-table-condensed">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Url</th>
+                    <th>Update interval</th>
+                    <th>Last Update</th>
+                    <th>Feed count</th>
+                    <th>Refresh</th>
+                    <th>Delete</th>
+                    <th>Edit</th>
+                </tr>
+            </thead>
+          <% for (var i = 0; i < sources.length; i++) { %>
+            <tr class="source-<%= sources[i].id() %>">
+              <td>
+                <span class='source-name'><%= sources[i].name() %></span>
+                <span class='errors'></span>
+                <div class="uk-text-middle truerss-middle">
+                    <input class="uk-hidden uk-form-width-small"
+                        type="text" name="name"
+                        value="<%= sources[i].name() %>" />
+                </div>
+              </td>
+              <td>
+                <span class='source-url'><a href="<%= sources[i].url() %>"><%= sources[i].url() %></a></span>
+                <div class="uk-text-middle truerss-middle">
+                    <input class="uk-hidden uk-form-width-small"
+                        type="text" name="url"
+                        value="<%= sources[i].url() %>" />
+                </div>
+              </td>
+              <td>
+                <span class='source-interval'>every
+                    <%= sources[i].interval() %> hours</span>
+                <div class="uk-text-middle truerss-middle">
+                    <input class="uk-hidden uk-form-width-small"
+                        type="text" name="interval"
+                        value="<%= sources[i].interval() %>" />
+                </div>
+              </td>
+              <td><%= moment(sources[i].last_update()).fromNow() %></td>
+              <td><%= sources[i].count() %></td>
+              <td><a href="#update-source" class="uk-icon-refresh"
+              data-source-id="<%= sources[i].id() %>"></a></td>
+              <td><a href="#delete-source" class="uk-icon-remove"
+              data-source-id="<%= sources[i].id() %>"></a></td>
+              <td>
+                <span><a href="#edit-source" class="uk-icon-edit"
+              data-source-id="<%= sources[i].id() %>"></a></span>
+                <input class="uk-button uk-hidden" type="button" value="Save" />
+              </td>
+            </tr>
+          <% } %>
+        </table>
+    </p>
+</article>
+
 
