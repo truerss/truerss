@@ -62,22 +62,7 @@ SourcesController =
             logger.error("error on update source")
             source.set_error("url.url_validator", e.responseText)
 
-      #err = $("#{el} td span.errors")
 
-      #view. input[type='button']").on "click", (e) ->
-      #  (s) ->
-          #$("#{el} td > span").toggleClass("uk-hidden")
-          #$("#{el} td input").toggleClass("uk-hidden")
-          #unless err.hasClass("uk-hidden")
-          #  err.addClass("uk-hidden")
-          #$("#{el} span.source-name").text(s.name)
-          #$("#{el} span.source-url").html("<a href='#{s.url}'>#{s.url}</a>")
-          #$("#{el} span.source-interval").text(s.interval)
-      #  (e) ->
-          #err
-          #.removeClass("uk-hidden")
-          #.text(e.responseText)
-          #.css({'color': 'red'})
 
 
 

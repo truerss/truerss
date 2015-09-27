@@ -58,7 +58,7 @@ object ApiJsonProtocol extends DefaultJsonProtocol {
         "state" -> StateFormat.write(s.state),
         "normalized" -> JsString(s.normalized),
         "lastUpdate" -> DateFormat.write(s.lastUpdate),
-        "count" -> JsNumber(0) //TODO
+        "count" -> JsNumber(s.count)
       )
     }
 

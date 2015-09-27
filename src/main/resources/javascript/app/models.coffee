@@ -67,12 +67,12 @@ Sources.subscribe "add", (source) ->
         from: "normalized"
         to: "href"
         transform: (x) ->
-          "/show/#{x}"
-       },
-       {
-         from: "name"
-         to: "text"
-       }]
+          "/show/#{x}"},
+      {
+        from: "name"
+        to: "text"
+      }]
+
 
     "span.source-count":
       from: "count"
@@ -82,6 +82,7 @@ Sources.subscribe "add", (source) ->
         else
           "#{x}"
   )
+
   return
 
 Sources.subscribe "remove", (source) ->

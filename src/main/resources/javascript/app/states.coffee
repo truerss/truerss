@@ -56,7 +56,7 @@ class AjaxService
     @_get("#{@feeds_api}/#{num}", success, error)
 
   set_read: (num, success) ->
-    @_put("@{feeds_api}/read/#{num}", {}, success, @k)
+    @_put("#{@feeds_api}/read/#{num}", {}, success, @k)
 
   _delete: (url, success, error = () -> ) ->
     $.ajax

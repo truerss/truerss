@@ -71,3 +71,4 @@ $ ->
     mix_logger_into_controller: true
     controller_wrapper: ControllerStatesExt
     log: true
+    log_filters: []

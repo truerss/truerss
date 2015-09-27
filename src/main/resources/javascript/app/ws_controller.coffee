@@ -23,6 +23,7 @@ WSController =
     jQuery("#all-sources tr.source-#{source.id()}").remove()
 
   updated: (e, source) ->
+    logger.info("ws update #{source}")
     obj = JSON.parse(source)
     need = Sources.find('id', obj.id)
     if need
