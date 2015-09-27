@@ -7,13 +7,27 @@ FeedsController =
       Templates.article_view.render(html).html()
       state.to(States.Favorites)
 
+  _favorite_helper: (id, favorite) =>
+    # TODO binding
+    v = new Sirius.View("i[data-favorite='#{id}']")
+    klasses = [["uk-icon-star-o", "favorite"], ["uk-icon-star", "unfavorite"]]
+    [remove, add] = if favorite
+      klasses
+    else
+      klasses.reverse()
+
+    remove.forEach (klass) -> v.render(klass).remove_class()
+    add.forEach (klass) -> v.render(klass).add_class()
+
   favorite: (e, f) ->
-    ajax.set_favorite f, (response) ->
+    ajax.set_favorite f, (response) =>
       logger.info("#{f} mark as favorite feed")
+      @_favorite_helper(f, true)
 
   unfavorite: (e, f) ->
-    ajax.unset_favorite f, (response) ->
+    ajax.unset_favorite f, (response) =>
       logger.info("#{f} remove from favorite list")
+      @_favorite_helper(f, false)
 
   show: (source_name, feed_name) ->
     source = Sources.takeFirst (s) -> s.normalized() == source_name

@@ -1,14 +1,19 @@
 <div class="tm-main uk-width-medium-3-4">
     <article class="uk-article">
 
-        <h1 class="uk-article-title"><%= feed.title() %></h1>
+        <h1 class="uk-article-title">
+        <% if (feed.favorite()) { %>
+            <i class="uk-icon-star uk-icon unfavorite"
+            data-favorite="<%= feed.id() %>"
+            data-uk-tooltip title="remove from favorites"></i>
+          <% } else { %>
+            <i class="uk-icon-star-o uk-icon favorite"
+            data-favorite="<%= feed.id() %>"
+            data-uk-tooltip title="mark as favorite"></i>
+          <% } %>
+        <%= feed.title() %></h1>
 
         <div class="uk-panel">
-          <% if (feed.favorite()) { %>
-            <i class="uk-icon-star uk-icon-medium unfavorite" data-favorite="<%= feed.id() %>"></i>
-          <% } else { %>
-            <i class="uk-icon-star-o uk-icon-medium favorite" data-favorite="<%= feed.id() %>"></i>
-          <% } %>
           <%= moment(feed.published_date()).fromNow() %>
           <span class="uk-text-right"><a href="<%= feed.url() %>">Original<a/></span>
         </div>

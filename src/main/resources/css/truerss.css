@@ -17,3 +17,12 @@ nav div ul li i {
   margin-top: 3%;
   width: 100%;
 }
+
+i.favorite {
+   cursor: pointer !important;
+}
+
+i.unfavorite {
+   cursor: pointer !important;
+   color: #f8b200;
+}
