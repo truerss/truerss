@@ -26,3 +26,7 @@ i.unfavorite {
    cursor: pointer !important;
    color: #f8b200;
 }
+
+dl.favorites {
+  margin-top: 1%;
+}

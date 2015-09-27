@@ -13,9 +13,16 @@
           <% } %>
         <%= feed.title() %></h1>
 
-        <div class="uk-panel">
-          <%= moment(feed.published_date()).fromNow() %>
-          <span class="uk-text-right"><a href="<%= feed.url() %>">Original<a/></span>
+        <div class="uk-grid">
+          <div class="uk-width-1-2 uk-text-left">
+            <%= moment(feed.published_date()).fromNow() %>
+          </div>
+          <div class="uk-width-1-2 uk-text-right">
+            <a href="<%= feed.url() %>">
+                <i class="uk-icon-external-link"></i>
+                Original
+            <a/>
+          </div>
         </div>
 
         <hr class="uk-article-divider">
