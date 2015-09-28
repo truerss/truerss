@@ -158,7 +158,8 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
           val frontendSource = source.recount(0)
           stream.publish(SourceUpdated(frontendSource))
           //TODO update source actor
-          ModelResponse(frontendSource) }
+          ModelResponse(frontendSource)
+        }
       ) pipeTo sender
 
     case msg @ (_: Latest | _: ExtractFeedsForSource | _ : Favorites.type) =>

@@ -34,14 +34,22 @@ FeedsController =
     if source
       feeds = source.feed().filter (feed) -> feed.normalized() == feed_name
       if feeds.length > 0
-        ajax.show_feed feeds[0].id(), (feed) ->
-          feed = new Feed(feed)
-          result = Templates.feed_template.render({feed: feed})
-          Templates.article_view.render(result).html()
+        ajax.show_feed feeds[0].id(),
+          (feed) ->
+            feed = new Feed(feed)
+            result = Templates.feed_template.render({feed: feed})
+            Templates.article_view.render(result).html()
 
-          unless feed.read()
-            ajax.set_read feed.id(), (x) ->
-              feed.read(true)
-              source.count(source.count() - 1)
+            unless feed.read()
+              ajax.set_read feed.id(), (x) ->
+                feed.read(true)
+                source.count(source.count() - 1)
+          (error) ->
+            UIkit.notify
+              message : error.responseText,
+              status  : 'danger',
+              timeout : 4000,
+              pos     : 'top-center'
+
 
 
