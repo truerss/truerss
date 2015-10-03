@@ -6,9 +6,7 @@ import org.joda.time._
 import truerss.models
 import truerss.models.Neutral
 
-/**
- * Created by mike on 2.8.15.
- */
+
 object Gen {
   import models.{Feed, Source}
   import truerss.util.Util._
