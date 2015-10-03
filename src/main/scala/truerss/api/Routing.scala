@@ -58,8 +58,8 @@ trait Routing extends Routable {
       pathPrefix("templates") {
         getFromResourceDirectory("templates")
       } ~ pathPrefix("show" / Segments) { segments =>
-        respondWithHeader(RawHeader("Set-Cookie", s"redirect=/show/${segments.mkString("/")}")) {
-        //setCookie(HttpCookie("redirect", content = s"/show/${segments.mkString("/")}")) {
+        //respondWithHeader(RawHeader("Set-Cookie", s"redirect=/show/${segments.mkString("/")}")) {
+        setCookie(HttpCookie("redirect", content = s"/show/${segments.mkString("/")}")) {
           redirect("/", StatusCodes.Found)
         }
       } ~ pathPrefix(Segment) { segment =>

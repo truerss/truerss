@@ -85,11 +85,11 @@ MainController =
             result = Templates.feeds_template.render({feeds: feeds})
             Templates.feeds_view.render(result).html()
 
-            if mb_redirect
-              redirect(mb_redirect)
-            else
-              if feeds.length > 0
-                redirect(feeds[0].href())
+            #if mb_redirect
+            #  redirect(mb_redirect)
+            #else
+            if feeds.length > 0
+              redirect(feeds[0].href())
 
       delete_cookie("redirect")
       @_bind_modal()

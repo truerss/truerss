@@ -117,6 +117,15 @@ class DefaultSiteReader(config: Map[String, String])
       Option(img.absUrl("src")).map(img.attr("src", _)).getOrElse(img)
     }
 
+    need.select("a").foreach { a =>
+      val absUrl = a.attr("abs:href")
+      if (absUrl.isEmpty) {
+        a.attr("href", s"$base${a.attr("href")}")
+      } else {
+        a.attr("href", absUrl)
+      }
+    }
+
     need.select("form, input, meta, style, script").foreach(_.remove)
 
     Some(need.html())
