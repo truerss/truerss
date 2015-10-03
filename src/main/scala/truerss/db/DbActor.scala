@@ -10,11 +10,7 @@ import truerss.system
 
 import scala.concurrent.Future
 import scala.slick.jdbc.JdbcBackend.{DatabaseDef, SessionDef}
-import scalaz.Scalaz._
-import scalaz._
-/**
- * Created by mike on 2.8.15.
- */
+
 class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLogging {
 
   import context.dispatcher
@@ -155,7 +151,7 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
           s"from network ${fromNetwork.size}; new = ${newFeeds.size}")
         val result = (feeds returning feeds.map(_.id)) ++= newFeeds
         result.zip(newFeeds).map { case p @ (id, feed) =>
-          feed.copy(id = id.some)
+          feed.copy(id = Some(id))
         }.toVector
       }
       stream.publish(NewFeeds(newFeeds))

@@ -68,8 +68,6 @@ class SourceActor(source: Source, feedReader: BaseFeedReader,
         case Left(error) =>
           sender ! ExtractError(error.error)
       }
-
   }
-
 
 }

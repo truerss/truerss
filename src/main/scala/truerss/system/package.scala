@@ -9,7 +9,6 @@ package object system {
   sealed trait ApiMessage
   // for communication with db
   object db {
-    // TODO remove this traits, make generic
     trait Numerable { val num: Long }
     trait Sourcing { val source: Source }
 

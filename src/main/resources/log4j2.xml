@@ -7,7 +7,7 @@
         </FILE>
         -->
         <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%highlight{ %d{HH:mm:ss} [%t] %-5level %logger{36} - %msg{1}%n }"/>
+            <PatternLayout pattern="%highlight{ %d{HH:mm:ss} %X{akkaSource} %-5level %logger{36} - %msg{1}%n }"/>
         </Console>
 
     </Appenders>

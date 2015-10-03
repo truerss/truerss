@@ -43,8 +43,7 @@ object ApiJsonProtocol extends DefaultJsonProtocol {
           interval = interval.toInt,
           state = Neutral,
           normalized = name,
-          lastUpdate = new Date(),
-          error = false
+          lastUpdate = new Date()
         )
       case _ => deserializationError("Not valid data")
     }

@@ -16,8 +16,6 @@ import truerss.util.Lens
 import scala.concurrent.Future
 import scala.util.control.Exception._
 import scala.util.{Failure => F, Success => S}
-import scalaz._
-import Scalaz._
 
 trait SourceController extends BaseController
   with ProxyRefProvider with ActorRefExt with ResponseHelper {
@@ -49,7 +47,7 @@ trait SourceController extends BaseController
   def update(num: Long) = entity(as[String]) { sourceString =>
     catching(classOf[Exception])
       .opt((JsonParser(sourceString).convertTo[Source])) match {
-      case Some(fs) => end(UpdateSource(num, fs.normalize.copy(id = num.some)))
+      case Some(fs) => end(UpdateSource(num, fs.normalize.copy(id = Some(num))))
       case None => complete(spray.http.StatusCodes.BadRequest, "Not valid data")
     }
   }

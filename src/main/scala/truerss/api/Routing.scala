@@ -4,8 +4,9 @@ import akka.actor._
 import akka.event.LoggingReceive
 
 import com.github.fntzr.spray.routing.ext.Routable
+import spray.http.HttpHeaders.RawHeader
 
-import spray.http.{HttpCookie, StatusCodes}
+import spray.http.{HttpHeaders, HttpCookie, StatusCodes}
 import spray.routing.PathMatcher
 
 import truerss.controllers._
@@ -57,9 +58,14 @@ trait Routing extends Routable {
       pathPrefix("templates") {
         getFromResourceDirectory("templates")
       } ~ pathPrefix("show" / Segments) { segments =>
-         setCookie(HttpCookie("redirect", content = s"/show/${segments.mkString("/")}")) {
-           redirect("/", StatusCodes.Found)
-         }
+        respondWithHeader(RawHeader("Set-Cookie", s"redirect=/show/${segments.mkString("/")}")) {
+        //setCookie(HttpCookie("redirect", content = s"/show/${segments.mkString("/")}")) {
+          redirect("/", StatusCodes.Found)
+        }
+      } ~ pathPrefix(Segment) { segment =>
+        setCookie(HttpCookie("redirect", content = s"$segment")) {
+          redirect("/", StatusCodes.Found)
+        }
       }
 
 

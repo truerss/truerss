@@ -7,7 +7,6 @@ import akka.util.Timeout
 
 import com.github.truerss.base.{PluginInfo, Priority, UrlMatcher, BaseContentReader}
 
-import truerss.controllers._
 import truerss.models.{Enable, Disable, Neutral, Source}
 import truerss.plugins.DefaultSiteReader
 import truerss.util.ApplicationPlugins
@@ -15,7 +14,6 @@ import truerss.util.ApplicationPlugins
 import scala.concurrent.duration._
 import scala.concurrent.Future
 import scala.collection.mutable.ArrayBuffer
-import scalaz.Scalaz._
 
 
 class SourcesActor(plugins: ApplicationPlugins,
@@ -60,7 +58,7 @@ class SourcesActor(plugins: ApplicationPlugins,
   def getSourceReader(source: Source) = {
     source.state match {
       case Neutral =>
-        defaultPlugin.some
+        Some(defaultPlugin)
       case Enable =>
         val feedReader = plugins.getFeedReader(source.url)
 
@@ -71,17 +69,17 @@ class SourcesActor(plugins: ApplicationPlugins,
             log.warning(s"Disable ${source.id.get} -> ${source.name} Source. " +
               s"Plugin not found")
             proxyRef ! SetState(source.id.get, Disable)
-            none
+            None
           case (f, c) =>
             val f0 = f.getOrElse(defaultPlugin)
             val c0 = c.getOrElse(defaultPlugin)
             log.info(s"${source.name} need plugin." +
               s" Detect feed plugin: ${f0.pluginName}, " +
               s" content plugin: ${c0.pluginName}")
-            f0.some
+            Some(f0)
         }
 
-      case Disable => none
+      case Disable => None
 
     }
   }

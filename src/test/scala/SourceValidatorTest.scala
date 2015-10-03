@@ -2,11 +2,7 @@
 import truerss.models.Source
 import truerss.util.SourceValidator
 import org.scalatest.{Matchers, FunSpec}
-import scalaz._
-import Scalaz._
-/**
- * Created by mike on 6.8.15.
- */
+
 class SourceValidatorTest extends FunSpec with Matchers {
 
   import Gen._

@@ -51,8 +51,7 @@ object Gen {
       interval = fairy.baseProducer().randomBetween(1, 12),
       state = Neutral,
       normalized = name.normalize,
-      lastUpdate = z.plusDays(1).toDate,
-      error = false
+      lastUpdate = z.plusDays(1).toDate
     )
   }
 

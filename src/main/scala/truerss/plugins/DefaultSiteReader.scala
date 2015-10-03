@@ -14,13 +14,14 @@ import scala.util.control.Exception._
 import com.rometools.rome.io.{ParsingFeedException => PE}
 
 import com.github.truerss.ContentExtractor
-import com.github.truerss.base.{Errors, BaseSitePlugin, Entry}
+import com.github.truerss.base.{Errors, BaseSitePlugin, Entry, Text}
 
 class DefaultSiteReader(config: Map[String, String])
   extends BaseSitePlugin(config) {
 
   import truerss.util.Request._
   import Errors._
+
 
   implicit def exception2error(x: Throwable) = x match {
     case x: PE => Left(ParsingError(x.getMessage))
@@ -32,6 +33,7 @@ class DefaultSiteReader(config: Map[String, String])
   override val about = "default rss|atom reader"
   override val pluginName = "Default"
   override val version = "0.0.3"
+  override val contentType = Text
 
   override val priority = 0
 
@@ -93,7 +95,7 @@ class DefaultSiteReader(config: Map[String, String])
     catching(classOf[Exception]) either extractContent(url) fold(
       err => err,
       ok => Right(ok)
-      )
+    )
   }
 
   private def extractContent(url: String) = {
@@ -104,7 +106,7 @@ class DefaultSiteReader(config: Map[String, String])
     }
 
     val url0 = new URL(url)
-    val base = s"${url0.getProtocol()}://${url0.getHost()}"
+    val base = s"${url0.getProtocol}://${url0.getHost}"
 
     val doc = Jsoup.parse(response.toString)
     val result = ContentExtractor.extract(doc.body())

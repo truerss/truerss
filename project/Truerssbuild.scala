@@ -37,7 +37,6 @@ object Truerssbuild extends Build {
   val sprayVersion = "1.3.3"
   val akkaVersion  = "2.3.9"
   val slickVersion = "2.1.0"
-  val scalazVersion = "7.1.3"
 
   val install = TaskKey[Unit]("install", "install all dependencies for web ui")
   val installTask = install := {
@@ -208,9 +207,8 @@ object Truerssbuild extends Build {
         "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
         "ch.qos.logback" % "logback-classic" % "1.1.2",
         "cn.q-game" % "akka-log4j2-logger_2.11" % "1.0.0",
-        "com.github.truerss" %% "base" % "0.0.2",
+        "com.github.truerss" %% "base" % "0.0.3",
 
-        "org.scalaz" %% "scalaz-core" % "7.1.3",  
         "org.jsoup" % "jsoup" % "1.8.3",
         "commons-validator" % "commons-validator" % "1.4.0",
         "joda-time" % "joda-time" % "2.8.2",

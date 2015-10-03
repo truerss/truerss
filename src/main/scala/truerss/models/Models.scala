@@ -21,7 +21,6 @@ case class Source(id: Option[Long],
                   state: SourceState,
                   normalized: String,
                   lastUpdate: Date,
-                  error: Boolean = false,
                   count: Int = 0) extends Jsonize {
 
   def normalize: Source = L.normalized.set(this)(name.normalize)
@@ -38,8 +37,7 @@ object SourceHelper {
       interval = interval,
       state = Neutral,
       normalized = name,
-      lastUpdate = new Date(),
-      error = false
+      lastUpdate = new Date()
     )
   }
 }
@@ -104,12 +102,10 @@ case class CurrentDriver(profile: JdbcProfile) {
 
     def lastUpdate = column[Date]("lastupdate")
 
-    def error = column[Boolean]("error")
-
     def count = column[Int]("count", O.Default(0)) // ignored
 
     def * = (id.?, url, name, interval, state,
-      normalized, lastUpdate, error, count) <> (Source.tupled, Source.unapply)
+      normalized, lastUpdate, count) <> (Source.tupled, Source.unapply)
 
   }
 

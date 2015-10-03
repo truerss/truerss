@@ -50,6 +50,8 @@ MainController =
 
   start: () ->
     port = read_cookie("port")
+    mb_redirect = read_cookie("redirect")
+    logger.info("need redirect to '#{mb_redirect}'")
     default_count = 100
 
     if !(!!window.WebSocket && !!window.FormData && !!history.pushState)
@@ -65,24 +67,31 @@ MainController =
         Sirius.Application.get_adapter().and_then (adapter) ->
           self._init_ws(logger, adapter, port)
 
-        # TODO sorting by count
+        arr = arr.sort (a, b) -> parseInt(a.count) - parseInt(b.count)
+
         arr.forEach((x) => Sources.add(new Source(x)))
 
-        ajax.latest default_count, (arr) ->
-          feeds = arr.map (x) ->
-            pd = moment(x['publishedDate'])
-            x['publishedDate'] = pd
-            f = new Feed(x)
-            source = Sources.find("id", f.source_id())
-            source.add_feed(f)
-            f
-          feeds = _.sortBy(feeds, '_published_date')
-          result = Templates.feeds_template.render({feeds: feeds})
-          Templates.feeds_view.render(result).html()
+        if arr.length > 0
 
-          if feeds.length > 0
-            redirect(feeds[0].href())
+          ajax.get_feeds Sources.first().id(), (arr) ->
+            feeds = arr.map (x) ->
+              pd = moment(x['publishedDate'])
+              x['publishedDate'] = pd
+              f = new Feed(x)
+              source = Sources.find("id", f.source_id())
+              source.add_feed(f)
+              f
+            feeds = _.sortBy(feeds, '_published_date')
+            result = Templates.feeds_template.render({feeds: feeds})
+            Templates.feeds_view.render(result).html()
 
+            if mb_redirect
+              redirect(mb_redirect)
+            else
+              if feeds.length > 0
+                redirect(feeds[0].href())
+
+      delete_cookie("redirect")
       @_bind_modal()
 
 

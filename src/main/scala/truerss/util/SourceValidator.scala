@@ -3,33 +3,41 @@ package truerss.util
 import org.apache.commons.validator.routines.UrlValidator
 import truerss.models.Source
 
-import scalaz.Scalaz.{ToValidationOps, _}
-import scalaz._
+import shapeless._
+import shapeless.syntax._
+import shapeless.tupled._
+import poly._
 
-/**
- * Created by mike on 8.8.15.
- */
 object SourceValidator {
 
   private val urlValidator = new UrlValidator()
-  type V =  ValidationNel[String, Source]
-  def validate(source: Source) = {
-    (validateInterval(source) |@| validateUrl(source)) {(a, b) => a}.toEither
+
+  type R = Either[String, Source]
+
+  def validate(source: Source): Either[List[String], Source] = {
+    validateInterval(source) :: validateUrl(source) :: HNil match {
+      case Right(_) :: Right(_) :: HNil => Right(source)
+      case Left(err) :: Right(_) :: HNil => Left(List(err))
+      case Right(_) :: Left(err) :: HNil => Left(List(err))
+      case Left(e1) :: Left(e2) :: HNil => Left(List(e1, e2))
+    }
+
+
   }
 
-  private def validateInterval(source: Source) = {
+  private def validateInterval(source: Source): R = {
     if (source.interval > 0) {
-      source.successNel
+      Right(source)
     } else {
-      "Interval must be great than 0".failureNel
+      Left("Interval must be great than 0")
     }
   }
 
-  private def validateUrl(source: Source) = {
+  private def validateUrl(source: Source): R = {
     if (urlValidator.isValid(source.url)) {
-      source.successNel
+      Right(source)
     } else {
-      "Not valid url".failureNel
+      Left("Not valid url")
     }
   }
 

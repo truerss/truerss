@@ -13,8 +13,6 @@ import scala.concurrent.duration._
 
 import truerss.util.{Jsonize, SourceValidator, ApplicationPlugins}
 import scala.concurrent.Future
-import scalaz._
-import Scalaz._
 
 class ProxyServiceActor(appPlugins: ApplicationPlugins,
                         dbRef: ActorRef,
@@ -60,28 +58,35 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
   }
 
   def addOrUpdate[T <: Jsonize](msg: Sourcing,
-                                checkUrl: UrlIsUniq,
-                                checkName: NameIsUniq,
                                 f: Long => ModelResponse[T]) = {
     SourceValidator.validate(msg.source) match {
       case Right(source) =>
+        val state = if (appPlugins.matchUrl(msg.source.url)) {
+          Enable
+        } else {
+          Neutral
+        }
+        val newSource = msg.source.copy(state = state)
+        val (checkUrl, checkName) = msg match {
+          case AddSource(_) => (UrlIsUniq(msg.source.url),
+                NameIsUniq(msg.source.name))
+          case UpdateSource(_, _) =>
+            (UrlIsUniq(msg.source.url, msg.source.id),
+              NameIsUniq(msg.source.name, msg.source.id))
+        }
+
         (for {
           urlIsUniq <- (dbRef ? checkUrl).mapTo[Int]
           nameIsUniq <- (dbRef ? checkName).mapTo[Int]
         } yield {
-            if (urlIsUniq == 0 && nameIsUniq == 0) {
-              (dbRef ? msg).mapTo[Long].map(f)
-            } else {
-              val urlError = if (urlIsUniq > 0) {
-                s"Url '${msg.source.url}' already present in db"
-              } else { "" }
-              val nameError = if(nameIsUniq > 0) {
-                s"Name '${msg.source.name}' not unique"
-              } else {
-                ""
-              }
-              val errs = Vector(urlError, nameError).filterNot(_.isEmpty)
-              Future.successful(BadRequestResponse(errs.mkString(", ")))
+            val tofb = (x: String) => Future.successful(BadRequestResponse(x))
+            val u = s"Url '${newSource.url}' already present in db"
+            val n = s"Name '${newSource.name}' not unique"
+            (urlIsUniq, nameIsUniq) match {
+              case (0, 0) => (dbRef ? msg).mapTo[Long].map(f)
+              case (0, _) => tofb(n)
+              case (_, 0) => tofb(u)
+              case (_, _) => tofb(s"$u, $n")
             }
           }).flatMap(identity)
 
@@ -100,19 +105,18 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
       } yield {
         val map = counts.toMap
         ModelsResponse(
-          sources.map(s => s.recount(map.get(s.id.get).getOrElse(0)))
+          sources.map(s => s.recount(map.getOrElse(s.id.get, 0)))
         )
       }) pipeTo sender
 
     case msg: DeleteSource =>
-      val original = sender
       (dbRef ? msg).mapTo[Option[Source]].map {
         case Some(source) =>
           sourcesRef ! SourceDeleted(source)
           stream.publish(SourceDeleted(source)) // => ws
-          original ! ok
-        case None => original ! sourceNotFound(msg)
-      }
+          ok
+        case None => sourceNotFound(msg)
+      } pipeTo sender
 
     case msg : Numerable => (dbRef ? msg).mapTo[Option[Source]].map{
       case Some(x) => ModelResponse(x)
@@ -120,19 +124,10 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
     } pipeTo sender
 
     case msg: AddSource =>
-      val state = if (appPlugins.matchUrl(msg.source.url)) {
-        Enable
-      } else {
-        Neutral
-      }
-      val newSource = msg.source.copy(state = state)
-      val newMsg = msg.copy(source = newSource)
       addOrUpdate(
-        newMsg,
-        UrlIsUniq(msg.source.url),
-        NameIsUniq(msg.source.name),
+        msg,
         (x: Long) => {
-          val source = newMsg.source.copy(id = Some(x))
+          val source = msg.source.copy(id = Some(x))
           val frontendSource = source.recount(0)
           stream.publish(SourceAdded(frontendSource))
           sourcesRef ! NewSource(source)
@@ -141,20 +136,10 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
       ) pipeTo sender
 
     case msg: UpdateSource =>
-      //TODO validate url
-      val state = if (appPlugins.matchUrl(msg.source.url)) {
-        Enable
-      } else {
-        Neutral
-      }
-      val newSource = msg.source.copy(state = state)
-      val newMsg = msg.copy(source = newSource)
       addOrUpdate(
-        newMsg,
-        UrlIsUniq(msg.source.url, msg.num.some),
-        NameIsUniq(msg.source.name, msg.num.some),
+        msg,
         (x: Long) => {
-          val source = newMsg.source.copy(id = Some(x))
+          val source = msg.source.copy(id = Some(x))
           val frontendSource = source.recount(0)
           stream.publish(SourceUpdated(frontendSource))
           //TODO update source actor
@@ -182,7 +167,7 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
                 content match {
                   case Some(content) =>
                     stream.publish(FeedContentUpdate(feedId, content))
-                    ModelResponse(x.copy(content = content.some))
+                    ModelResponse(x.copy(content = Some(content)))
                   case None => ModelResponse(x)
                 }
               case ExtractError(error) =>
