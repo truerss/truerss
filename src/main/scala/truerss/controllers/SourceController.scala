@@ -8,7 +8,7 @@ import com.rometools.opml.feed.opml.Opml
 import com.rometools.rome.io.WireFeedInput
 import org.xml.sax.InputSource
 import spray.http.{MultipartFormData, StatusCodes}
-import spray.routing.HttpService
+import spray.routing.{Route, HttpService}
 import truerss.models.{ApiJsonProtocol, Source, SourceHelper}
 import truerss.system.{db, util}
 import truerss.util.Lens
@@ -34,23 +34,25 @@ trait SourceController extends BaseController
 
   def show(num: Long) = end(GetSource(num))
 
-  def create = entity(as[String]) { sourceString =>
+  private def addOrUpdate(s: String)(f: Source => Route) = {
     catching(classOf[Exception])
-      .opt((JsonParser(sourceString).convertTo[Source])) match {
-      case Some(fs) => end(AddSource(fs.normalize))
+      .opt(JsonParser(s).convertTo[Source]) match {
+      case Some(fs) => f(fs)
       case None => complete(spray.http.StatusCodes.BadRequest, "Not valid data")
+    }
+  }
+
+  def create = entity(as[String]) { sourceString =>
+    addOrUpdate(sourceString) { source => end(AddSource(source.normalize)) }
+  }
+
+  def update(num: Long) = entity(as[String]) { sourceString =>
+    addOrUpdate(sourceString) { source =>
+      end(UpdateSource(num, source.normalize.newId(num)))
     }
   }
 
   def delete(num: Long) = end(DeleteSource(num))
-
-  def update(num: Long) = entity(as[String]) { sourceString =>
-    catching(classOf[Exception])
-      .opt((JsonParser(sourceString).convertTo[Source])) match {
-      case Some(fs) => end(UpdateSource(num, fs.normalize.copy(id = Some(num))))
-      case None => complete(spray.http.StatusCodes.BadRequest, "Not valid data")
-    }
-  }
 
   def markAll(num: Long) = end(MarkAll(num))
 

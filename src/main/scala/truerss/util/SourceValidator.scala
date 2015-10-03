@@ -1,12 +1,8 @@
 package truerss.util
 
 import org.apache.commons.validator.routines.UrlValidator
-import truerss.models.Source
-
 import shapeless._
-import shapeless.syntax._
-import shapeless.tupled._
-import poly._
+import truerss.models.Source
 
 object SourceValidator {
 
@@ -21,8 +17,6 @@ object SourceValidator {
       case Right(_) :: Left(err) :: HNil => Left(List(err))
       case Left(e1) :: Left(e2) :: HNil => Left(List(e1, e2))
     }
-
-
   }
 
   private def validateInterval(source: Source): R = {

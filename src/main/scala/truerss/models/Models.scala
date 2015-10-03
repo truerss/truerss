@@ -25,6 +25,7 @@ case class Source(id: Option[Long],
 
   def normalize: Source = L.normalized.set(this)(name.normalize)
   def recount(x: Int): Source = L.count.set(this)(x)
+  def newId(x: Long): Source = L.id.set(this)(Some(x))
 
 }
 
