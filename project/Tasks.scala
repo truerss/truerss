@@ -12,8 +12,8 @@ object Tasks {
     "https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.1/lodash.min.js",
     "https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.6/moment.min.js",
     "https://cdnjs.cloudflare.com/ajax/libs/uikit/2.22.0/js/components/notify.min.js",
-    //"https://raw.githubusercontent.com/fntz/sirius/master/sirius.min.js",
-    //"https://raw.githubusercontent.com/fntz/sirius/master/jquery_adapter.min.js"
+    "https://raw.githubusercontent.com/fntz/sirius/master/sirius.min.js",
+    "https://raw.githubusercontent.com/fntz/sirius/master/jquery_adapter.min.js",
     "https://cdnjs.cloudflare.com/ajax/libs/uikit/2.22.0/js/uikit.min.js",
     "https://cdnjs.cloudflare.com/ajax/libs/uikit/2.22.0/js/components/upload.min.js"
   )
@@ -26,7 +26,13 @@ object Tasks {
     "https://cdnjs.cloudflare.com/ajax/libs/uikit/2.22.0/css/uikit.almost-flat.min.css"
   )
 
-
+  val fonts = Seq(
+    "https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/fonts/FontAwesome.otf",
+    "https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/fonts/fontawesome-webfont.eot",
+    "https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/fonts/fontawesome-webfont.ttf",
+    "https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/fonts/fontawesome-webfont.woff",
+    "https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/fonts/fontawesome-webfont.woff2"
+  )
 
   def download(url: String, dir: String): Unit = {
     val fileName = url.split("""/""").last
@@ -47,14 +53,18 @@ object Tasks {
 
     val res = "src/main/resources"
     val currentPath = new File(".").getAbsolutePath
-    val jsPath = s"$currentPath/$res/javascript/".replaceAll("""\/\.\/""", "/")
-    val cssPath = s"$currentPath/$res/css/".replaceAll("""\/\.\/""", "/")
 
-    Seq(jsLibs, cssLibs) zip Seq(jsPath, cssPath) foreach { case p @ (libs, path) =>
+    def p(x: String) = s"$currentPath/$res/$x/".replaceAll("""\/\.\/""", "/")
+
+    val jsPath = p("javascript")
+    val cssPath = p("css")
+    val fontsPath = p("fonts")
+
+    Seq(jsLibs, cssLibs, fonts) zip Seq(jsPath, cssPath, fontsPath) foreach { case p @ (libs, path) =>
       libs.foreach(download(_, path))
     }
 
-    println("done")
+    println("Done")
   }
 
   val buildCoffee = TaskKey[Unit]("jsbuild", "compile coffeescript")
@@ -64,6 +74,6 @@ object Tasks {
 
     "rake"!
 
-    println("done")
+    println("Done")
   }
 }
