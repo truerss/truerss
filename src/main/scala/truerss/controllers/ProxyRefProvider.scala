@@ -11,9 +11,7 @@ import truerss.system.ApiMessage
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
-/**
- * Created by mike on 2.8.15.
- */
+
 trait ProxyRefProvider {
   val proxyRef: akka.actor.ActorRef
   val context: ActorRefFactory
@@ -21,6 +19,11 @@ trait ProxyRefProvider {
 
 trait WsPortProvider {
   val wsPort: Int
+}
+
+trait FilesProvider {
+  val jsFiles: Vector[String]
+  val cssFiles: Vector[String]
 }
 
 trait ResponseHelper { self : ProxyRefProvider with ActorRefExt =>

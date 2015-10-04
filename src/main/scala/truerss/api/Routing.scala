@@ -14,7 +14,13 @@ import truerss.controllers._
 
 trait Routing extends Routable {
 
-  def route(proxyRef: ActorRef, context: ActorRefFactory, wsPort: Int): spray.routing.Route =
+  def route(
+             proxyRef: ActorRef,
+             context: ActorRefFactory,
+             wsPort: Int,
+             jsFiles: Vector[String],
+             cssFiles: Vector[String]
+           ): spray.routing.Route =
     root[MainController]("root") ~
       scope("api") {
         scope("v1") {
@@ -38,7 +44,9 @@ trait Routing extends Routable {
             put0[FeedController](("read" / LongNumber) ~> "read") ~
             put0[FeedController](("unread" / LongNumber) ~> "unread")
           } ~ scope("plugins") {
-            get0[PluginController]("all")
+            get0[PluginController]("all") ~
+            get0[PluginController]("js") ~
+            get0[PluginController]("css")
           } ~ scope("system") {
             get0[SystemController]("stop") ~
             get0[SystemController]("restart") ~
@@ -72,7 +80,10 @@ trait Routing extends Routable {
 }
 
 
-class RoutingService(proxyRef: ActorRef, wsPort: Int) extends Actor with Routing with ActorLogging {
+class RoutingService(proxyRef: ActorRef, wsPort: Int,
+                     jsFiles: Vector[String], cssFiles: Vector[String])
+  extends Actor with Routing with ActorLogging {
   def actorRefFactory = context
-  def receive = LoggingReceive { runRoute(route(proxyRef, context, wsPort)) }
+  def receive = LoggingReceive { runRoute(route(proxyRef,
+    context, wsPort, jsFiles, cssFiles)) }
 }

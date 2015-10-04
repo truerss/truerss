@@ -24,6 +24,11 @@ import scopt.OptionParser
 object Boot extends App {
   import scala.collection.JavaConversions._
 
+//  val appPlugins = PluginLoader.load("/home/mike/.truerss/plugins", Map.empty)
+//  println(appPlugins)
+//  val z = appPlugins.contentPlugins.head.getClass.getResourceAsStream("/1.js")
+//  println(scala.io.Source.fromInputStream(z).mkString)
+
   val parser = new OptionParser[TrueRSSConfig]("truerss") {
     head("truerss", "0.0.1")
     opt[String]('d', "dir") action { (x, c) =>

@@ -51,7 +51,9 @@ class SystemActor(config: TrueRSSConfig,
       .withRouter(SmallestMailboxPool(10)), "service-router")
 
   val api = context.actorOf(Props(classOf[RoutingService],
-    proxyRef, config.wsPort), "api")
+    proxyRef, config.wsPort,
+    config.appPlugins.js.toVector,
+    config.appPlugins.css.toVector), "api")
 
   val socketApi = context.actorOf(Props(classOf[WSApi], config.wsPort), "ws-api")
 

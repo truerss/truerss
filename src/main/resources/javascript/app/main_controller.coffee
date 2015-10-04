@@ -48,7 +48,20 @@ MainController =
     Templates.modal_view.on 'button.close-modal', 'click', (e) ->
       modal.hide()
 
+  _load_js_and_css: (ajax) ->
+    ajax.js_all (resp) ->
+      script = document.createElement('script')
+      $(script).text(resp)
+      $("head").append(script)
+
+    ajax.css_all (resp) ->
+      style = document.createElement('style')
+      style.setAttribute("type", "text/css")
+      $(style).text(resp)
+      $("head").append(style)
+
   start: () ->
+    @_load_js_and_css(ajax)
     port = read_cookie("port")
     mb_redirect = read_cookie("redirect")
     logger.info("need redirect to '#{mb_redirect}'")

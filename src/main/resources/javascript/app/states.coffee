@@ -10,6 +10,12 @@ class AjaxService
   plugins_all: (success, error) ->
     @_get("#{@plugin_api}/all", success, error)
 
+  js_all: (success) ->
+    @_get("#{@plugin_api}/js", success, @k)
+
+  css_all: (success) ->
+    @_get("#{@plugin_api}/css", success, @k)
+
   sources_all: (success, error) ->
     @_get("#{@sources_api}/all", success, error)
 
