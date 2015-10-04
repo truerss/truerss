@@ -1,15 +1,11 @@
-import java.net.URL
-
-import java.io.{FileWriter, File}
-import scala.io.Source
-
-import sbt._
-import sbt.Keys._
-import spray.revolver.RevolverPlugin._
 import java.util.Date
+
 import org.sbtidea.SbtIdeaPlugin._
-import sbtassembly.AssemblyPlugin.autoImport._
+import sbt.Keys._
 import sbt.Package.ManifestAttributes
+import sbt._
+import sbtassembly.AssemblyPlugin.autoImport._
+import spray.revolver.RevolverPlugin._
 
 object Truerssbuild extends Build {
   import Libs._
@@ -64,12 +60,6 @@ object Truerssbuild extends Build {
           MergeStrategy.first
       },
       test in assembly := {},
-      assemblyExcludedJars in assembly := {
-        val cp = (fullClasspath in assembly).value
-        cp filter { n =>
-          n.data.getName.contains("commons-lang") 
-        }
-      },
       fork in compile := true,
       ivyScala := ivyScala.value map { _.copy(overrideScalaVersion = true) },
       publishArtifact in Test := false,

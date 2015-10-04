@@ -136,22 +136,22 @@ object Boot extends App {
           (driver.query.sources.ddl ++ driver.query.feeds.ddl).create
           val d = new DateTime().minusYears(1)
           val s = Source(id = None,
-            url = "https://news.ycombinator.com/rss", //"http://localhost:4567/rss", //
+            url = "http://localhost:4567/rss", //"https://news.ycombinator.com/rss", //
             name = "hacker news",
             interval = 12,
             state = Neutral,
             normalized = "hacker-news",
             lastUpdate = d.toDate
           )
-          val y = Source(id = None,
-            url = "https://www.youtube.com/feeds/videos.xml?channel_id=UC1kJkmSWt_snLDfuXgJnLnQ",
-            name = "youtube rethinkdb",
-            interval = 12,
-            state = Enable,
-            normalized = "youtube-rethinkdb",
-            lastUpdate = d.toDate
-          )
-          driver.query.sources.insertAll(s, y)
+//          val y = Source(id = None,
+//            url = "https://www.youtube.com/feeds/videos.xml?channel_id=UC1kJkmSWt_snLDfuXgJnLnQ",
+//            name = "youtube rethinkdb",
+//            interval = 12,
+//            state = Enable,
+//            normalized = "youtube-rethinkdb",
+//            lastUpdate = d.toDate
+//          )
+          driver.query.sources.insertAll(s)
         }
       }
 
