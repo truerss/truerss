@@ -30,3 +30,7 @@ i.unfavorite {
 dl.favorites {
   margin-top: 1%;
 }
+
+input.custom-input {
+    width: 90%;
+}

@@ -46,8 +46,10 @@ object Libs {
     "io.spray" %% "spray-routing-shapeless2" % sprayVersion,
     "io.spray" %% "spray-util" % sprayVersion,
     "io.spray" %% "spray-can"  % sprayVersion,
-    "io.spray" %% "spray-http" % sprayVersion,
-    "io.spray" %% "spray-httpx" % sprayVersion,
+    ("io.spray" %% "spray-http" % sprayVersion)
+      .exclude("org.scala-lang.modules", "scala-xml"),
+    ("io.spray" %% "spray-httpx" % sprayVersion)
+      .exclude("org.scala-lang.modules", "scala-xml"),
     "io.spray" %% "spray-json" % sprayJsonVersion,
     ("com.github.fntzr" %% "spray-routing-ext" % rountingExtVersion)
       .exclude("org.scala-lang", "scala-reflect")

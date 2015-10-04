@@ -27,12 +27,12 @@ MainController =
   _bind_modal: () ->
     source = new Source()
     Templates.modal_view.bind source,
-      "fieldset input[name='title']" : to: "name"
-      "fieldset input[name='url']" : to: "url"
-      "fieldset input[name='interval']" : to : "interval"
+      "input[name='title']" : to: "name"
+      "input[name='url']" : to: "url"
+      "input[name='interval']" : to : "interval"
 
     source.bind Templates.modal_view,
-      "fieldset span.source-url-error" : from: "errors.url.url_validator"
+      "span.source-url-error" : from: "errors.url.url_validator"
 
     modal = UIkit.modal("#add-modal")
 

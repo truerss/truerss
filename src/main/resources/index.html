@@ -133,21 +133,28 @@
             <h2>Add new source</h2>
         </div>
         <div class="uk-width-1-1">
-            <form class="uk-form">
-                <fieldset data-uk-margin>
-                    <div class="uk-form-row">
-                        <input type="text" name="title" class="title"  placeholder="enter title" />
+            <form class="uk-form uk-form-horizontal">
+                <div class="uk-form-row">
+                    <label class="uk-form-label">Title</label>
+                    <div class="uk-form-controls">
+                        <input type="text" name="title" class="custom-input"  placeholder="enter title" />
                     </div>
-                    <div class="uk-form-row">
-                        <input type="text" name="url"  placeholder="enter url" />
+                </div>
+                <div class="uk-form-row">
+                    <label class="uk-form-label">Url</label>
+                    <div class="uk-form-controls">
+                        <input type="text" class="custom-input" name="url"  placeholder="enter url" />
                     </div>
-                    <div class="uk-form-row">
+                </div>
+                <div class="uk-form-row">
+                    <label class="uk-form-label">Interval</label>
+                    <div class="uk-form-controls">
                         <input name="interval" type="text" value="1">
                     </div>
-                    <div class="uk-form-row">
-                        <span class="source-url-error uk-text-danger uk-text-large"></span>
-                    </div>
-                </fieldset>
+                </div>
+                <div class="uk-form-row">
+                    <span class="source-url-error uk-text-danger uk-text-large"></span>
+                </div>
             </form>
             <hr/>
             <div id="upload-drop" class="uk-placeholder uk-width-1-1">
