@@ -49,7 +49,8 @@ object Libs {
     "io.spray" %% "spray-http" % sprayVersion,
     "io.spray" %% "spray-httpx" % sprayVersion,
     "io.spray" %% "spray-json" % sprayJsonVersion,
-    "com.github.fntzr" %% "spray-routing-ext" % rountingExtVersion
+    ("com.github.fntzr" %% "spray-routing-ext" % rountingExtVersion)
+      .exclude("org.scala-lang", "scala-reflect")
   )
 
   val rome = Seq(
@@ -78,7 +79,11 @@ object Libs {
 
   val utils = Seq(
     "org.scalaj" %% "scalaj-http" % scalajVersion,
-    "commons-validator" % "commons-validator" % commonValidatorVersion,
+   ("commons-validator" % "commons-validator" % commonValidatorVersion)
+      .exclude("commons-beanutils", "commons-beanutils")
+      .exclude("commons-logging", "commons-logging")
+      .exclude("commons-digester", "commons-digester")
+      .exclude("commons-collections", "commons-collections"),
     "com.typesafe" % "config" % configVersion,
     "com.github.scopt" %% "scopt" % scoptVersion,
     "org.java-websocket" % "Java-WebSocket" % jwsVersion,

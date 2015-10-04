@@ -16,31 +16,32 @@ object Truerssbuild extends Build {
   import Tasks._
 
   val setting = Revolver.settings ++ Seq(
-    scalacOptions ++= Seq("-Xlog-free-terms", "-deprecation", "-feature"),
     resolvers += "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases",
     resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
     resolvers += "JCenter" at "http://jcenter.bintray.com/",
     resolvers += "karussell_releases" at "https://github.com/karussell/mvnrepo",
     resolvers += Resolver.bintrayRepo("truerss", "maven"),
     scalaVersion := "2.11.6",
-    scalacOptions ++= Seq("-Xlog-free-terms", "-deprecation", "-feature",
+    scalacOptions ++= Seq(
+      "-deprecation",
+      "-feature",
       "-encoding", "UTF-8",
       "-feature",
       "-language:higherKinds",
       "-language:implicitConversions",
       "-language:postfixOps",
       "-language:reflectiveCalls",
-      "-deprecation",
       "-unchecked",
       "-Xcheckinit",
       "-Xverify",
-      "-Xfuture")
+      "-Xfuture"
+    )
   )
 
   lazy val mainProject = Project(
     id = "truerss",
     base = file("."),
-    settings = setting ++ Seq(installTask, buildCoffeeTask) ++ Seq(
+    settings = net.virtualvoid.sbt.graph.Plugin.graphSettings ++ setting ++ Seq(installTask, buildCoffeeTask) ++ Seq(
      // (compile in Compile) <<= (compile in Compile).dependsOn(buildCoffee),
       organization := "net.truerss",
       name := "truerss",
@@ -63,12 +64,17 @@ object Truerssbuild extends Build {
           MergeStrategy.first
       },
       test in assembly := {},
+      assemblyExcludedJars in assembly := {
+        val cp = (fullClasspath in assembly).value
+        cp filter { n =>
+          n.data.getName.contains("commons-lang") 
+        }
+      },
       fork in compile := true,
       ivyScala := ivyScala.value map { _.copy(overrideScalaVersion = true) },
       publishArtifact in Test := false,
       licenses += ("MIT", url("http://opensource.org/licenses/MIT")),
-      packageOptions := Seq(ManifestAttributes(
-        ("Built-By", s"${new Date()}"))),
+      packageOptions := Seq(ManifestAttributes(("Built-By", s"${new Date()}"))),
       libraryDependencies ++= deps
     )
   )
