@@ -75,6 +75,9 @@ class SystemActor(config: TrueRSSConfig,
       log.info("Stop actor system")
       stopChildren.map(_ => system.terminate())
 
+    case Http.Bound(isa) =>
+      log.info(s"Run API on ${isa.getPort} port")
+
     case x => proxyRef forward x
   }
 

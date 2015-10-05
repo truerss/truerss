@@ -109,6 +109,9 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
         )
       }) pipeTo sender
 
+    case msg: Unread => (dbRef ? msg).mapTo[Vector[Feed]]
+      .map(ModelsResponse(_)) pipeTo sender
+
     case msg: DeleteSource =>
       (dbRef ? msg).mapTo[Option[Source]].map {
         case Some(source) =>

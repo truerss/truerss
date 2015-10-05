@@ -54,6 +54,8 @@ $ ->
     "/about" : controller: MainController, action: "about"
     "/show/:source-name/:feed-name": controller: FeedsController, action: "show"
     "/show/:source-name" : controller: SourcesController, action: "show"
+    "/by-source" : controller: SourcesController, action: "by_source"
+    "/by/:source-name": controller: FeedsController, action: "view"
     "click a[href='#refresh']" : controller: SourcesController, action: "refresh_all"
     "click i.favorite": controller: FeedsController, action: "favorite", data: "data-favorite"
     "click i.unfavorite": controller: FeedsController, action: "unfavorite", data: "data-favorite"

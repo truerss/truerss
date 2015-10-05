@@ -84,9 +84,11 @@ MainController =
 
         arr.forEach((x) => Sources.add(new Source(x)))
 
-        if arr.length > 0
+        max_count_id = Sources.all().filter (s) -> s.count()
 
-          ajax.get_feeds Sources.first().id(), (arr) ->
+        if arr.length > 0
+          ajax.get_feeds max_count_id[0].id(), (arr) ->
+            # TODO sort by data time and read status
             feeds = arr.map (x) ->
               pd = moment(x['publishedDate'])
               x['publishedDate'] = pd

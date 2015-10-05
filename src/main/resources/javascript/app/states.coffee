@@ -19,6 +19,9 @@ class AjaxService
   sources_all: (success, error) ->
     @_get("#{@sources_api}/all", success, error)
 
+  get_unread: (sourceId, success) ->
+    @_get("#{@sources_api}/unread/#{sourceId}", success, @k)
+
   latest: (count, success, error) ->
     @_get("#{@sources_api}/latest/#{count}", success, error)
 
@@ -104,6 +107,7 @@ States =
   Favorites: 3
   About: 4
   Plugins: 5
+  List: 6
 
 class Steps
   constructor: (state = States.Main) ->

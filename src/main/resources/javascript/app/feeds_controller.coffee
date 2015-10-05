@@ -1,5 +1,21 @@
 
 FeedsController =
+  view: (normalized) ->
+    normalized = decodeURIComponent(normalized)
+    source = Sources.takeFirst (s) -> s.normalized() == normalized
+    if source
+      # FIXME is it necessary?
+      ajax.get_feeds source.id(), (feeds) ->
+        source.reset('feed')
+        feeds = feeds.map (f) ->
+          feed = new Feed(f)
+          source.add_feed(feed)
+          feed
+
+        result = Templates.feeds_list.render({feeds: feeds})
+        Templates.article_view.render(result).html()
+
+
   favorites: () ->
     ajax.favorites_feed (response) ->
       feeds = response.map (f) -> new Feed(f)

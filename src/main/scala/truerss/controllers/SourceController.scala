@@ -64,6 +64,8 @@ trait SourceController extends BaseController
 
   def refreshOne(num: Long) = end(UpdateOne(num))
 
+  def unread(sourceId: Long) = end(Unread(sourceId))
+
   def fromFile = {
     entity(as[MultipartFormData]) { formData => c =>
       val interval = 8

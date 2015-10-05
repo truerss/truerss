@@ -1,0 +1,12 @@
+<article class="uk-article">
+    <h1 class="uk-article-title">All Sources (click for move to feed list)</h1>
+    <p class="uk-article-lead">
+        <ul class="uk-list">
+            <% for (i = 0; i < sources.length; i++) { %>
+                <li><a href="<%= sources[i].href0() %>">
+                    <%= sources[i].name() %>
+                <a/></li>
+            <% } %>
+        </ul>
+    </p>
+</article>

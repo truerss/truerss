@@ -7,6 +7,7 @@ import akka.pattern._
 
 import truerss.models.CurrentDriver
 import truerss.system
+import truerss.system.util.Unread
 
 import scala.concurrent.Future
 import scala.slick.jdbc.JdbcBackend.{DatabaseDef, SessionDef}
@@ -28,6 +29,11 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
     case GetAll | OnlySources =>
       complete { implicit session =>
         sources.buildColl
+      }
+
+    case Unread(sourceId) =>
+      complete { implicit session =>
+        feeds.filter(_.read === false).buildColl
       }
 
     case FeedCount(read) =>

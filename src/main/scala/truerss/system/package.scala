@@ -68,6 +68,7 @@ package object system {
     case object Updated
     case class UpdateMe(who: ActorRef)
     case class UpdateOne(num: Long) extends ApiMessage
+    case class Unread(sourceId: Long) extends ApiMessage
 
     case class SourceDeleted(source: Source)
     case class SourceLastUpdate(sourceId: Long)
