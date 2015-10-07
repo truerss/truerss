@@ -5,9 +5,6 @@ import truerss.models.{Feed, CurrentDriver}
 
 import scala.slick.jdbc.JdbcBackend
 
-/**
- * Created by mike on 9.8.15.
- */
 trait Common extends BeforeAndAfterAll with DbHelper { self : org.scalatest.Suite =>
 
   import Gen._

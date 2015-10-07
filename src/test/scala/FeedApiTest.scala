@@ -47,13 +47,13 @@ with ScalatestRouteTest with Routing with Common {
     dbRef, sourcesRef.ref, sysActor.ref)), "test-proxy")
   val context = system
 
-  val computeRoute = route(proxyRef, context, 8080)
+  val computeRoute = route(proxyRef, context, 8080, Vector.empty, Vector.empty)
 
   describe("Favorites") {
     it("return all favorites feeds") {
       Get(s"${feedUrl}/favorites") ~> computeRoute ~> check {
         JsonParser(responseAs[String]).convertTo[Vector[Feed]].size should be(
-          feeds.filter(_.favorite).size + 1)
+          feeds.count(_.favorite) + 1)
         status should be(StatusCodes.OK)
       }
     }

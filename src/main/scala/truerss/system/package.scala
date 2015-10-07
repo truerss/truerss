@@ -27,7 +27,7 @@ package object system {
     case class MarkAsReadFeed(num: Long) extends ApiMessage
     case class MarkAsUnreadFeed(num: Long) extends ApiMessage
 
-    case class AddFeeds(sourceId: Long, xs: Vector[Feed]) extends ApiMessage
+    case class AddFeeds(sourceId: Long, xs: Vector[Entry]) extends ApiMessage
 
 
     case class Latest(count: Long) extends ApiMessage

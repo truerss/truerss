@@ -34,7 +34,7 @@ class SourceApiTest extends FunSpec with Matchers
     dbRef, sourcesRef.ref, sysActor.ref)), "test-proxy")
   val context = system
 
-  val computeRoute = route(proxyRef, context, 8081)
+  val computeRoute = route(proxyRef, context, 8081, Vector.empty, Vector.empty)
 
   describe("GetAll") {
     it("should return all sources from db") {

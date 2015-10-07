@@ -20,6 +20,7 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
   import system.db._
   import system.util.{FeedContentUpdate, SourceLastUpdate}
   import system.ws.NewFeeds
+  import truerss.util.Util._
 
   val stream = context.system.eventStream
 
@@ -147,21 +148,36 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
 
     case AddFeeds(sourceId, xs) =>
       val newFeeds = db withSession { implicit session =>
-        val alreadyInDbUrl = feeds.filter(_.sourceId === sourceId).map(_.url).run.toVector
-        val fromNetwork = xs.map(_.url)
-        val xsMap = xs.map(x => x.url -> x).toMap
-        val newFeeds = (fromNetwork diff alreadyInDbUrl).flatMap { x =>
-          xsMap.get(x)
+        val urls = xs.map(_.url)
+        val inDb = feeds.filter(_.sourceId === sourceId)
+          .filter(_.url inSet(urls))
+        val inDbMap = inDb.map(f => f.url -> f).toMap
+        val (forceUpdateXs, updateXs) = xs.partition(_.forceUpdate)
+        forceUpdateXs.map { entry =>
+          val feed = entry.toFeed(sourceId)
+          inDbMap.get(feed.url) match {
+            case Some(alreadyInDb) =>
+              inDb.filter(_.url === feed.url)
+                .map(f => (f.title, f.author, f.publishedDate,
+                  f.description, f.normalized, f.content, f.read))
+                  .update((feed.title, feed.author, feed.publishedDate,
+                  feed.description.orNull,
+                    feed.normalized, feed.content.orNull, false))
+            case None =>
+              feeds.insert(feed)
+          }
         }
-        log.info(s"for ${sourceId} feeds in db: ${alreadyInDbUrl.size}; " +
-          s"from network ${fromNetwork.size}; new = ${newFeeds.size}")
-        val result = (feeds returning feeds.map(_.id)) ++= newFeeds
-        result.zip(newFeeds).map { case p @ (id, feed) =>
-          feed.copy(id = Some(id))
-        }.toVector
-      }
-      stream.publish(NewFeeds(newFeeds))
+        val updateXsMap = updateXs.map(_.toFeed(sourceId)).map(f => f.url -> f).toMap
+        val inDbUrls = inDbMap.keySet
+        val fromNetwork = updateXsMap.keySet
+        val newFeeds = (fromNetwork diff inDbUrls).flatMap(updateXsMap.get)
+        feeds.insertAll(newFeeds.toSeq : _*)
 
+        val newUrls = forceUpdateXs.map(_.url) ++ newFeeds.map(_.url)
+        feeds.filter(_.sourceId === sourceId)
+          .filter(_.url inSet(newUrls)).buildColl
+      }
+      stream.publish(NewFeeds(newFeeds.toVector))
 
     case FeedContentUpdate(feedId, content) =>
       db withSession { implicit session =>
@@ -169,6 +185,4 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
       }
 
   }
-
-
 }
