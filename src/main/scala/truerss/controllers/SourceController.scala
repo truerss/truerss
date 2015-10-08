@@ -75,8 +75,11 @@ trait SourceController extends BaseController
         new StringReader(file.replaceAll("[^\\x20-\\x7e]", ""))))
       .asInstanceOf[Opml]
       val result = opml.getOutlines.flatMap(_.getChildren).map { x =>
-        (x.getXmlUrl, x.getTitle)
-      }.filterNot(x => x._1.isEmpty && x._2.isEmpty).map { case t @ (url, title) =>
+        (Option(x.getXmlUrl), Option(x.getTitle))
+      }.collect {
+        case p @ (Some(url), Some(title)) => Some((url, title))
+        case _ => None
+      }.flatMap(identity(_)).map { case t @ (url, title) =>
         val s = SourceHelper.from(url, title, interval)
         (proxyRef ? AddSource(s.normalize)).mapTo[Response]
       }
