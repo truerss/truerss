@@ -69,7 +69,7 @@ object Boot extends App {
       val host = catching(classOf[ConfigException]) either
         appConfig.getString("host") fold(_ => trueRSSConfig.host, identity)
       val wsPort = catching(classOf[ConfigException]) either
-        appConfig.getInt("wsPort") fold(_ => trueRSSConfig.port, identity)
+        appConfig.getInt("wsPort") fold(_ => trueRSSConfig.wsPort, identity)
 
 
       val keys = pluginConf.root().unwrapped().keySet().toVector
