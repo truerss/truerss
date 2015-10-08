@@ -33,8 +33,8 @@ object Boot extends App {
     head("truerss", "0.0.1")
     opt[String]('d', "dir") action { (x, c) =>
       c.copy(appDir = x)
-    } text("Base directory for truerss. By default it $HOME/.truerss")
-    help("help") text("print usage text")
+    } text "Base directory for truerss. By default it $HOME/.truerss"
+    help("help") text "print usage text"
   }
 
   parser.parse(args, TrueRSSConfig()) match {
@@ -49,9 +49,14 @@ object Boot extends App {
       }
 
       val pluginDirFile = new File(pluginDir)
-      if (!pluginDirFile.canRead) {
-        Console.err.println(s"""Add read access for ${pluginDir}""")
-        sys.exit(1)
+
+      if (pluginDirFile.exists()) {
+        if (!pluginDirFile.canRead) {
+          Console.err.println(s"""Add read access for ${pluginDir}""")
+          sys.exit(1)
+        }
+      } else {
+        pluginDirFile.mkdir()
       }
 
       val conf = ConfigFactory.parseFile(configFile)
@@ -60,9 +65,12 @@ object Boot extends App {
       val pluginConf = appConfig.getConfig("plugins")
 
       val port = catching(classOf[ConfigException]) either
-        appConfig.getInt("port") fold(_ => trueRSSConfig.port, identity(_))
+        appConfig.getInt("port") fold(_ => trueRSSConfig.port, identity)
       val host = catching(classOf[ConfigException]) either
-        appConfig.getString("host") fold(_ => trueRSSConfig.host, identity(_))
+        appConfig.getString("host") fold(_ => trueRSSConfig.host, identity)
+      val wsPort = catching(classOf[ConfigException]) either
+        appConfig.getInt("wsPort") fold(_ => trueRSSConfig.port, identity)
+
 
       val keys = pluginConf.root().unwrapped().keySet().toVector
       val pluginSetting = keys.map { key =>
@@ -163,6 +171,7 @@ object Boot extends App {
       val actualConfig = trueRSSConfig.copy(
         port = port,
         host = host,
+        wsPort = wsPort,
         appPlugins = appPlugins
       )
 
