@@ -48,7 +48,8 @@ class SystemActor(config: TrueRSSConfig,
 
   val proxyRef = context.actorOf(Props(
     classOf[ProxyServiceActor], config.appPlugins, dbRef, sourcesRef, self)
-      .withRouter(SmallestMailboxPool(10)).withDispatcher("truerss-dispatcher"), "service-router")
+      .withRouter(SmallestMailboxPool(10))
+        .withDispatcher("truerss-dispatcher"), "service-router")
 
   val api = context.actorOf(Props(classOf[RoutingService],
     proxyRef, config.wsPort,

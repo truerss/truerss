@@ -85,10 +85,28 @@ class DefaultSiteReader(config: Map[String, String])
           description
         }
 
-        Entry(link, title.get, author, date, d, cont)
+        Entry(normalizeLink(url, link), title.get, author, date, d, cont)
     }
 
     entries.toVector.reverse
+  }
+
+  private def normalizeLink(url0: String, link: String): String = {
+    val url = new URL(url0)
+    val (protocol, host, port) = (url.getProtocol, url.getHost, url.getPort)
+
+    val before = s"$protocol://$host"
+
+    if (link.startsWith(before)) {
+      link
+    } else {
+      val realPort = if (port == -1) {
+        ""
+      } else {
+        s":$port"
+      }
+      s"$before$realPort$link"
+    }
   }
 
   override def content(url: String) = {
@@ -108,7 +126,7 @@ class DefaultSiteReader(config: Map[String, String])
     val url0 = new URL(url)
     val base = s"${url0.getProtocol}://${url0.getHost}"
 
-    val doc = Jsoup.parse(response.toString)
+    val doc = Jsoup.parse(response.body)
     val result = ContentExtractor.extract(doc.body())
 
     val need = doc.select(result.selector)
