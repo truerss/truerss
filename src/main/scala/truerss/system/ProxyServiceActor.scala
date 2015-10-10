@@ -1,36 +1,29 @@
 package truerss.system
 
-import akka.actor.{ActorLogging, ActorRef, Actor, Props}
-import akka.util.Timeout
+import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.pattern._
-import akka.event.LoggingReceive
-import truerss.controllers.{InternalServerErrorResponse, BadRequestResponse}
-import truerss.system.db.OnlySources
-import truerss.system.network.ExtractContent
+import akka.util.Timeout
+import truerss.controllers.BadRequestResponse
+import truerss.util.{ApplicationPlugins, Jsonize, SourceValidator}
 
-import scala.language.postfixOps
-import scala.concurrent.duration._
-
-import truerss.util.{Jsonize, SourceValidator, ApplicationPlugins}
 import scala.concurrent.Future
+import scala.concurrent.duration._
+import scala.language.postfixOps
 
 class ProxyServiceActor(appPlugins: ApplicationPlugins,
                         dbRef: ActorRef,
                         sourcesRef: ActorRef, parent: ActorRef)
   extends Actor with ActorLogging {
 
-  import truerss.controllers.{
-    OkResponse, ModelsResponse, ModelResponse,
-  NotFoundResponse, InternalServerErrorResponse}
+  import context.dispatcher
   import db._
+  import global._
   import network._
+  import plugins.GetPluginList
+  import truerss.controllers.{InternalServerErrorResponse, ModelResponse, ModelsResponse, NotFoundResponse, OkResponse}
+  import truerss.models.{Enable, Feed, Neutral, Source}
   import util._
   import ws._
-  import global._
-  import plugins.GetPluginList
-  import truerss.util.Util._
-  import truerss.models.{Source, Feed, Neutral, Enable}
-  import context.dispatcher
 
   implicit val timeout = Timeout(7 seconds)
 
@@ -174,7 +167,7 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
                   case None => ModelResponse(x)
                 }
               case ExtractError(error) =>
-                log.error(s"error on extract: $error")
+                log.error(s"error on extract from ${x.sourceId} -> ${x.url}: $error")
                 InternalServerErrorResponse(error)
 
               case SourceNotFound(sourceId) =>

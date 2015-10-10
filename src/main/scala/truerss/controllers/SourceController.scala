@@ -83,7 +83,6 @@ trait SourceController extends BaseController
         val s = SourceHelper.from(url, title, interval)
         (proxyRef ? AddSource(s.normalize)).mapTo[Response]
       }
-
       Future.sequence(result).onComplete {
         case S(xs) =>
           xs.foreach {

@@ -19,6 +19,9 @@ import com.github.truerss.base.{Errors, BaseSitePlugin, Entry, Text}
 class DefaultSiteReader(config: Map[String, String])
   extends BaseSitePlugin(config) {
 
+  import org.apache.logging.log4j.{Logger, LogManager}
+  private final val logger = LogManager.getLogger("DefaultSiteReader")
+
   import truerss.util.Request._
   import Errors._
 
@@ -43,7 +46,10 @@ class DefaultSiteReader(config: Map[String, String])
 
   override def newEntries(url: String) = {
     catching(classOf[Exception]) either extract(url) fold(
-      err => err,
+      err => {
+        logger.error(s"new entries error -> ${url}", err)
+        err
+      },
       ok => Right(ok)
       )
   }
@@ -55,14 +61,11 @@ class DefaultSiteReader(config: Map[String, String])
       throw new RuntimeException(s"Connection error for ${url}")
     }
 
-    val source = Jsoup.connect(url).ignoreContentType(true).parser(Parser.xmlParser()).get()
-    val result = source.html()
-
-    val x = new XmlReader(new ByteArrayInputStream(result.getBytes()))
+    val x = new XmlReader(new ByteArrayInputStream(response.body.getBytes("UTF-8")))
     val feed = sfi.build(x)
 
-    val entries = feed.getEntries.collect {
-      case entry: SyndEntry =>
+    val entries = feed.getEntries.zipWithIndex.collect {
+      case p @ (entry, index) =>
         val author = entry.getAuthor
         val date = Option(entry.getPublishedDate).getOrElse(new Date())
         val title = Option(entry.getTitle).map(_.trim)
@@ -85,7 +88,8 @@ class DefaultSiteReader(config: Map[String, String])
           description
         }
 
-        Entry(normalizeLink(url, link), title.get, author, date, d, cont)
+        Entry(normalizeLink(url, link), title.getOrElse(s"No title-$index"),
+          author, date, d, cont)
     }
 
     entries.toVector.reverse
@@ -95,7 +99,7 @@ class DefaultSiteReader(config: Map[String, String])
     val url = new URL(url0)
     val (protocol, host, port) = (url.getProtocol, url.getHost, url.getPort)
 
-    val before = s"$protocol://$host"
+    val before = s"$protocol"
 
     if (link.startsWith(before)) {
       link
@@ -105,13 +109,16 @@ class DefaultSiteReader(config: Map[String, String])
       } else {
         s":$port"
       }
-      s"$before$realPort$link"
+      s"$before://$host$realPort$link"
     }
   }
 
   override def content(url: String) = {
     catching(classOf[Exception]) either extractContent(url) fold(
-      err => err,
+      err => {
+        logger.error(s"content error -> ${url}", err.getMessage)
+        err
+      },
       ok => Right(ok)
     )
   }

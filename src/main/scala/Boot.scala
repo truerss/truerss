@@ -24,11 +24,6 @@ import scopt.OptionParser
 object Boot extends App {
   import scala.collection.JavaConversions._
 
-//  val appPlugins = PluginLoader.load("/home/mike/.truerss/plugins", Map.empty)
-//  println(appPlugins)
-//  val z = appPlugins.contentPlugins.head.getClass.getResourceAsStream("/1.js")
-//  println(scala.io.Source.fromInputStream(z).mkString)
-
   val parser = new OptionParser[TrueRSSConfig]("truerss") {
     head("truerss", "0.0.1")
     opt[String]('d', "dir") action { (x, c) =>
@@ -101,7 +96,7 @@ object Boot extends App {
       val dbUsername = dbConf.getString("username")
       val dbPassword = dbConf.getString("password")
 
-      val backend: Option[SupportedDb] = Some(H2)//DBProfile.get(dbBackend)
+      val backend: Option[SupportedDb] = DBProfile.get(dbBackend)//Some(H2)
 
       if (backend.isEmpty) {
         Console.err.println(s"Unsupported database backend: ${dbBackend}")
@@ -147,15 +142,15 @@ object Boot extends App {
       db withSession { implicit session =>
         if (MTable.getTables("sources").list.isEmpty) {
           (driver.query.sources.ddl ++ driver.query.feeds.ddl).create
-          val d = new DateTime().minusYears(1)
-          val s = Source(id = None,
-            url = "http://localhost:4567/rss", //"https://news.ycombinator.com/rss", //
-            name = "hacker news",
-            interval = 12,
-            state = Neutral,
-            normalized = "hacker-news",
-            lastUpdate = d.toDate
-          )
+          // val d = new DateTime().minusYears(1)
+          // val s = Source(id = None,
+          //   url = "http://localhost:4567/rss", //"https://news.ycombinator.com/rss", //
+          //   name = "hacker news",
+          //   interval = 12,
+          //   state = Neutral,
+          //   normalized = "hacker-news",
+          //   lastUpdate = d.toDate
+          // )
 //          val y = Source(id = None,
 //            url = "https://www.youtube.com/feeds/videos.xml?channel_id=UC1kJkmSWt_snLDfuXgJnLnQ",
 //            name = "youtube rethinkdb",
@@ -164,7 +159,7 @@ object Boot extends App {
 //            normalized = "youtube-rethinkdb",
 //            lastUpdate = d.toDate
 //          )
-          driver.query.sources.insertAll(s)
+          // driver.query.sources.insertAll(s)
         }
       }
 
