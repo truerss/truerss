@@ -3,6 +3,7 @@ package truerss.plugins
 import java.io.ByteArrayInputStream
 import java.util.Date
 import java.net.URL
+import java.util.zip.GZIPInputStream
 
 import com.rometools.rome.feed.synd.SyndEntry
 import com.rometools.rome.io.{SyndFeedInput, XmlReader}
@@ -58,11 +59,15 @@ class DefaultSiteReader(config: Map[String, String])
     val response = getResponse(url)
 
     if (response.isError) {
-      throw new RuntimeException(s"Connection error for ${url}")
+      throw new RuntimeException(s"Connection error for ${url} with status code: ${response.code}")
     }
+    val asBytes = response.body
+      .trim
+      .replaceAll("[^\\x20-\\x7e\\x0A]", "")
+      .getBytes("UTF-8")
 
-    val x = new XmlReader(new ByteArrayInputStream(response.body.getBytes("UTF-8")))
-    val feed = sfi.build(x)
+    val xml = new XmlReader(new ByteArrayInputStream(asBytes))
+    val feed = sfi.build(xml)
 
     val entries = feed.getEntries.zipWithIndex.collect {
       case p @ (entry, index) =>
@@ -70,11 +75,17 @@ class DefaultSiteReader(config: Map[String, String])
         val date = Option(entry.getPublishedDate).getOrElse(new Date())
         val title = Option(entry.getTitle).map(_.trim)
 
-        val link = if (entry.getLink != "") {
-          entry.getLink.trim
-        } else {
-          entry.getUri.trim
-        }
+
+        val link = (Option(entry.getLink) ++ Option(entry.getUri))
+          .reduceLeftOption { (link, uri) =>
+            if (link != "") {
+              link
+            } else {
+              uri
+            }
+          }.getOrElse {
+            throw new RuntimeException(s"Impossible extract feeds for $url")
+          }
 
         val cont = None
 
@@ -82,7 +93,7 @@ class DefaultSiteReader(config: Map[String, String])
           .map(d => Jsoup.parse(d.getValue).select("img").remove().text()).
           orElse(None)
 
-        val d = if (description.map(_.trim.size).getOrElse(0) == 0) {
+        val d = if (description.map(_.trim.length).getOrElse(0) == 0) {
           None
         } else {
           description
@@ -91,7 +102,6 @@ class DefaultSiteReader(config: Map[String, String])
         Entry(normalizeLink(url, link), title.getOrElse(s"No title-$index"),
           author, date, d, cont)
     }
-
     entries.toVector.reverse
   }
 
@@ -99,7 +109,7 @@ class DefaultSiteReader(config: Map[String, String])
     val url = new URL(url0)
     val (protocol, host, port) = (url.getProtocol, url.getHost, url.getPort)
 
-    val before = s"$protocol"
+    val before = s"http"
 
     if (link.startsWith(before)) {
       link
@@ -109,7 +119,7 @@ class DefaultSiteReader(config: Map[String, String])
       } else {
         s":$port"
       }
-      s"$before://$host$realPort$link"
+      s"$protocol://$host$realPort$link"
     }
   }
 

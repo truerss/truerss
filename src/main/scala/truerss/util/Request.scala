@@ -28,9 +28,10 @@ final object Request {
     val response = scalaj.http.Http(url)
       .option(HttpOptions.connTimeout(connectionTimeout))
       .option(HttpOptions.readTimeout(readTimeout))
+      .option(HttpOptions.allowUnsafeSSL)
       .option(HttpOptions.followRedirects(true))
-      .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9")
-      .compress(false)
+      .header("Accept", "*/*")
+      .compress(true)
       .header("User-Agent", userAgent).asString
 
     if (response.is3xx) {

@@ -50,21 +50,23 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
     case None => feedNotFound
   }
 
+  def getState(url: String) = if (appPlugins.matchUrl(url)) {
+    Enable
+  } else {
+    Neutral
+  }
+
   def addOrUpdate[T <: Jsonize](msg: Sourcing,
                                 f: Long => ModelResponse[T]) = {
     SourceValidator.validate(msg.source) match {
       case Right(source) =>
-        val state = if (appPlugins.matchUrl(msg.source.url)) {
-          Enable
-        } else {
-          Neutral
-        }
+        val state = getState(msg.source.url)
         val newSource = msg.source.copy(state = state)
-        val (checkUrl, checkName) = msg match {
-          case AddSource(_) => (UrlIsUniq(msg.source.url),
+        val (newMsg, checkUrl, checkName) = msg match {
+          case AddSource(_) => (AddSource(newSource), UrlIsUniq(msg.source.url),
                 NameIsUniq(msg.source.name))
-          case UpdateSource(_, _) =>
-            (UrlIsUniq(msg.source.url, msg.source.id),
+          case UpdateSource(sId, _) =>
+            (UpdateSource(sId, newSource), UrlIsUniq(msg.source.url, msg.source.id),
               NameIsUniq(msg.source.name, msg.source.id))
         }
 
@@ -76,7 +78,8 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
             val u = s"Url '${newSource.url}' already present in db"
             val n = s"Name '${newSource.name}' not unique"
             (urlIsUniq, nameIsUniq) match {
-              case (0, 0) => (dbRef ? msg).mapTo[Long].map(f)
+              case (0, 0) =>
+                (dbRef ? newMsg).mapTo[Long].map(f)
               case (0, _) => tofb(n)
               case (_, 0) => tofb(u)
               case (_, _) => tofb(s"$u, $n")
@@ -124,10 +127,10 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
         msg,
         (x: Long) => {
           val source = msg.source.copy(id = Some(x))
-          val frontendSource = source.recount(0)
-          stream.publish(SourceAdded(frontendSource))
-          sourcesRef ! NewSource(source)
-          ModelResponse(frontendSource)
+          val newSource = source.recount(0).withState(getState(source.url))
+          stream.publish(SourceAdded(newSource))
+          sourcesRef ! NewSource(newSource)
+          ModelResponse(newSource)
         }
       ) pipeTo sender
 

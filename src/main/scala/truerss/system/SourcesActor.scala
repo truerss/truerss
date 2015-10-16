@@ -50,7 +50,7 @@ class SourcesActor(plugins: ApplicationPlugins,
   context.system.scheduler.scheduleOnce(3 seconds, self, Start)
 
   def nextTick = {
-    if (queue.size > 0) {
+    if (queue.nonEmpty) {
       context.system.scheduler.scheduleOnce(15 seconds, self, Tick)
     }
   }
@@ -86,7 +86,7 @@ class SourcesActor(plugins: ApplicationPlugins,
 
   def startSourceActor(source: Source) = {
     getSourceReader(source).map { feedReader =>
-      log.info(s"Start source actor for ${source.normalized} -> ${source.id.get}")
+      log.info(s"Start source actor for ${source.normalized} -> ${source.id.get} with state ${source.state}")
       val ref = context.actorOf(Props(classOf[SourceActor],
         source, feedReader, contentReaders))
       sourceNetwork += source.id.get -> ref
@@ -157,6 +157,4 @@ class SourcesActor(plugins: ApplicationPlugins,
 
     case x => log.warning(s"Unhandled message ${x}")
   }
-
-
 }
