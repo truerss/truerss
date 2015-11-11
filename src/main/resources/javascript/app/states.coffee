@@ -67,6 +67,11 @@ class AjaxService
   set_read: (num, success) ->
     @_put("#{@feeds_api}/read/#{num}", {}, success, @k)
 
+  load_ejs: (url) ->
+    jQuery.ajax
+      type: "GET"
+      url: "templates/#{url}.ejs"
+
   _delete: (url, success, error = () -> ) ->
     $.ajax
       type: "DELETE"

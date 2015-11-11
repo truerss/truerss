@@ -1,16 +1,23 @@
+# old ejs
+class EJS
+  constructor: (@_template) ->
+
+  render: (params) ->
+    ejs.render(@_template, params)
+
 
 Templates =
-  source_list: new EJS({url: "templates/sources.ejs"})
-  list: new EJS({url: "templates/list.ejs"})
-  feeds_list: new EJS({url: "templates/feeds_list.ejs"})
-  all_sources_template: new EJS({url: "templates/all_sources.ejs"})
+  source_list: null
+  list: null
+  feeds_list: null
+  all_sources_template: null
   source_list_view: new Sirius.View("#source-list")
-  feed_template: new EJS({url: "templates/main"})
+  feed_template: null
   article_view: new Sirius.View("#main")
   modal_view: new Sirius.View("#add-modal")
   feeds_view: new Sirius.View("#feeds")
-  feeds_template: new EJS({url: "templates/feeds.ejs"})
-  favorites_template: new EJS({url: "templates/favorites.ejs"})
-  plugins_template: new EJS({url: "templates/plugins.ejs"})
+  feeds_template: null
+  favorites_template: null
+  plugins_template: null
 
 

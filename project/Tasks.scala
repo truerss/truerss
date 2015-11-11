@@ -8,7 +8,7 @@ import scala.io.Source
 object Tasks {
   val jsLibs = Seq(
     "https://code.jquery.com/jquery-2.1.4.min.js",
-    "https://raw.githubusercontent.com/tj/ejs/master/ejs.min.js",
+    "https://github.com/mde/ejs/releases/download/v2.3.4/ejs.min.js",
     "https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.1/lodash.min.js",
     "https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.6/moment.min.js",
     "https://cdnjs.cloudflare.com/ajax/libs/uikit/2.22.0/js/components/notify.min.js",

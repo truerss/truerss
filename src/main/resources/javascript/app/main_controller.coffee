@@ -61,53 +61,73 @@ MainController =
       $("head").append(style)
 
   start: () ->
-    @_load_js_and_css(ajax)
-    port = read_cookie("port")
-    mb_redirect = read_cookie("redirect")
-    logger.info("need redirect to '#{mb_redirect}'")
-    default_count = 100
+    jQuery.when(
+      ajax.load_ejs("sources")
+      ajax.load_ejs("list")
+      ajax.load_ejs("feeds_list")
+      ajax.load_ejs("all_sources")
+      ajax.load_ejs("feeds")
+      ajax.load_ejs("favorites")
+      ajax.load_ejs("plugins")
+      ajax.load_ejs("main")
+    ).done (sources, list, feeds_list, all_sources, feeds, favorites, plugins, main) =>
+      # TODO use async loading in controllers
+      Templates.source_list = new EJS(sources[0])
+      Templates.list = new EJS(list[0])
+      Templates.feeds_list = new EJS(feeds_list[0])
+      Templates.all_sources_template = new EJS(all_sources[0])
+      Templates.feeds_template = new EJS(feeds[0])
+      Templates.favorites_template = new EJS(favorites[0])
+      Templates.plugins_template = new EJS(plugins[0])
+      Templates.feed_template = new EJS(main[0])
 
-    if !(!!window.WebSocket && !!window.FormData && !!history.pushState)
-      UIkit.notify
-        message : @error_message,
-        status  : 'danger',
-        timeout : 30000,
-        pos     : 'top-center'
+      @_load_js_and_css(ajax)
+      port = read_cookie("port")
+      mb_redirect = read_cookie("redirect")
+      logger.info("need redirect to '#{mb_redirect}'")
+      default_count = 100
 
-    else
-      self = @
-      ajax.sources_all (arr) ->
-        Sirius.Application.get_adapter().and_then (adapter) ->
-          self._init_ws(logger, adapter, port)
+      if !(!!window.WebSocket && !!window.FormData && !!history.pushState)
+        UIkit.notify
+          message : @error_message,
+          status  : 'danger',
+          timeout : 30000,
+          pos     : 'top-center'
 
-        arr = arr.sort (a, b) -> parseInt(a.count) - parseInt(b.count)
+      else
+        self = @
+        ajax.sources_all (arr) ->
+          Sirius.Application.get_adapter().and_then (adapter) ->
+            self._init_ws(logger, adapter, port)
 
-        arr.forEach((x) => Sources.add(new Source(x)))
+          arr = arr.sort (a, b) -> parseInt(a.count) - parseInt(b.count)
 
-        max_count_id = Sources.all().filter (s) -> s.count()
+          arr.forEach((x) => Sources.add(new Source(x)))
 
-        if arr.length > 0
-          ajax.get_feeds max_count_id[0].id(), (arr) ->
-            # TODO sort by data time and read status
-            feeds = arr.map (x) ->
-              pd = moment(x['publishedDate'])
-              x['publishedDate'] = pd
-              f = new Feed(x)
-              source = Sources.find("id", f.source_id())
-              source.add_feed(f)
-              f
-            feeds = _.sortBy(feeds, '_published_date')
-            result = Templates.feeds_template.render({feeds: feeds})
-            Templates.feeds_view.render(result).html()
+          max_count_id = Sources.all().filter (s) -> s.count()
 
-            #if mb_redirect
-            #  redirect(mb_redirect)
-            #else
-            if feeds.length > 0
-              redirect(feeds[0].href())
+          if arr.length > 0
+            ajax.get_feeds max_count_id[0].id(), (arr) ->
+              # TODO sort by data time and read status
+              feeds = arr.map (x) ->
+                pd = moment(x['publishedDate'])
+                x['publishedDate'] = pd
+                f = new Feed(x)
+                source = Sources.find("id", f.source_id())
+                source.add_feed(f)
+                f
+              feeds = _.sortBy(feeds, '_published_date')
+              result = Templates.feeds_template.render({feeds: feeds})
+              Templates.feeds_view.render(result).html()
 
-      delete_cookie("redirect")
-      @_bind_modal()
+              #if mb_redirect
+              #  redirect(mb_redirect)
+              #else
+              if feeds.length > 0
+                redirect(feeds[0].href())
+
+        delete_cookie("redirect")
+        @_bind_modal()
 
 
 
