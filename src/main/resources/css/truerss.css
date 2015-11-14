@@ -34,3 +34,11 @@ dl.favorites {
 input.custom-input {
     width: 90%;
 }
+
+#feeds li a {
+    color: #000000;
+}
+
+#feeds li a:visited {
+    color: #828282;
+}

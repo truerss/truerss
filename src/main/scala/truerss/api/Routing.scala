@@ -13,6 +13,9 @@ import truerss.controllers._
 
 
 trait Routing extends Routable {
+  import java.net.URLEncoder
+  import java.nio.charset.Charset
+  val utf8 = Charset.forName("UTF-8")
 
   def route(
              proxyRef: ActorRef,
@@ -67,8 +70,9 @@ trait Routing extends Routable {
       pathPrefix("templates") {
         getFromResourceDirectory("templates")
       } ~ pathPrefix("show" / Segments) { segments =>
-        //respondWithHeader(RawHeader("Set-Cookie", s"redirect=/show/${segments.mkString("/")}")) {
-        setCookie(HttpCookie("redirect", content = s"/show/${segments.mkString("/")}")) {
+        setCookie(HttpCookie("redirect",
+          content = s"/show/${URLEncoder.encode(segments.mkString("/"),
+            utf8.name())}")) {
           redirect("/", StatusCodes.Found)
         }
       } ~ pathPrefix(Segment) { segment =>

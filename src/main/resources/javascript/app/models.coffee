@@ -48,6 +48,13 @@ class Feed extends Sirius.BaseModel
   source_name: () -> @source().name()
   source_url : () -> @source().url()
 
+  is_read: () ->
+    @read()
+
+  merge: (another_feed) ->
+    @description(another_feed.description())
+    @content(another_feed.content())
+    @favorite(another_feed.favorite())
 
   anything: () ->
     if @content()

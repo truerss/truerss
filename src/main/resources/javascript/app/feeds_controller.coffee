@@ -48,16 +48,19 @@ FeedsController =
   show: (source_name, feed_name) ->
     source = Sources.takeFirst (s) -> s.normalized() == source_name
     if source
-      feeds = source.feed().filter (feed) -> feed.normalized() == feed_name
+      feeds = source.feed().filter (feed) -> feed.normalized() == decodeURI(feed_name)
       if feeds.length > 0
+        original_feed = feeds[0]
         ajax.show_feed feeds[0].id(),
           (feed) ->
             feed = new Feed(feed)
             result = Templates.feed_template.render({feed: feed})
             Templates.article_view.render(result).html()
 
+            original_feed.merge(feed)
             unless feed.read()
               ajax.set_read feed.id(), (x) ->
+                original_feed.read(true)
                 feed.read(true)
                 source.count(source.count() - 1)
           (error) ->
