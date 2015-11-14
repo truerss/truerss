@@ -3,6 +3,7 @@ package truerss.controllers
 import akka.actor.{ActorRef, ActorRefFactory}
 import akka.pattern.ask
 import akka.util.Timeout
+import spray.http.HttpHeaders.RawHeader
 import spray.httpx.marshalling.ToResponseMarshallable
 import spray.routing.HttpService._
 import spray.routing.RequestContext
@@ -58,5 +59,12 @@ trait ActorRefExt { self : ProxyRefProvider =>
         case BadRequestResponse(msg) => ctx.complete(BadRequest, msg)
         case InternalServerErrorResponse(msg) => ctx.complete(InternalServerError, msg)
       }
+  }
+}
+
+trait Redirectize {
+  val Redirect = "redirect"
+  def makeRedirect(location: String) = {
+    RawHeader(Redirect, location)
   }
 }

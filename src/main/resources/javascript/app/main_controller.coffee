@@ -104,9 +104,8 @@ MainController =
 
           arr.forEach((x) => Sources.add(new Source(x)))
 
-          max_count_id = Sources.all().filter (s) -> s.count()
-
           if arr.length > 0
+            max_count_id = Sources.all().filter (s) -> s.count()
             ajax.get_feeds max_count_id[0].id(), (arr) ->
               # TODO sort by data time and read status
               feeds = arr.map (x) ->
@@ -120,11 +119,13 @@ MainController =
               result = Templates.feeds_template.render({feeds: feeds})
               Templates.feeds_view.render(result).html()
 
-              #if mb_redirect
-              #  redirect(mb_redirect)
-              #else
-              if feeds.length > 0
-                redirect(feeds[0].href())
+              follow = if feeds.length == 0
+                max_count_id[0].href()
+              else
+                feeds[0].href()
+
+              logger.info("redirect to #{follow}")
+              redirect(follow)
 
         delete_cookie("redirect")
         @_bind_modal()

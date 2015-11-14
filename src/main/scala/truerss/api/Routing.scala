@@ -12,7 +12,7 @@ import spray.routing.PathMatcher
 import truerss.controllers._
 
 
-trait Routing extends Routable {
+trait Routing extends Routable with Redirectize {
   import java.net.URLEncoder
   import java.nio.charset.Charset
   val utf8 = Charset.forName("UTF-8")
@@ -70,13 +70,11 @@ trait Routing extends Routable {
       pathPrefix("templates") {
         getFromResourceDirectory("templates")
       } ~ pathPrefix("show" / Segments) { segments =>
-        setCookie(HttpCookie("redirect",
-          content = s"/show/${URLEncoder.encode(segments.mkString("/"),
-            utf8.name())}")) {
+        respondWithHeader(makeRedirect(s"/show/${segments.mkString("/")}")) {
           redirect("/", StatusCodes.Found)
         }
       } ~ pathPrefix(Segment) { segment =>
-        setCookie(HttpCookie("redirect", content = s"$segment")) {
+        respondWithHeader(makeRedirect(segment)) {
           redirect("/", StatusCodes.Found)
         }
       }
