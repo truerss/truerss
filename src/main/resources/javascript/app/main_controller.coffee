@@ -106,26 +106,30 @@ MainController =
 
           if arr.length > 0
             max_count_id = Sources.all().filter (s) -> s.count()
-            ajax.get_feeds max_count_id[0].id(), (arr) ->
-              # TODO sort by data time and read status
-              feeds = arr.map (x) ->
-                pd = moment(x['publishedDate'])
-                x['publishedDate'] = pd
-                f = new Feed(x)
-                source = Sources.find("id", f.source_id())
-                source.add_feed(f)
-                f
-              feeds = _.sortBy(feeds, '_published_date')
-              result = Templates.feeds_template.render({feeds: feeds})
-              Templates.feeds_view.render(result).html()
+            if max_count_id[0]
+              ajax.get_feeds max_count_id[0].id(), (arr) ->
+                # TODO sort by data time and read status
+                feeds = arr.map (x) ->
+                  pd = moment(x['publishedDate'])
+                  x['publishedDate'] = pd
+                  f = new Feed(x)
+                  source = Sources.find("id", f.source_id())
+                  source.add_feed(f)
+                  f
+                feeds = _.sortBy(feeds, '_published_date')
+                result = Templates.feeds_template.render({feeds: feeds})
+                Templates.feeds_view.render(result).html()
 
-              follow = if feeds.length == 0
-                max_count_id[0].href()
-              else
-                feeds[0].href()
+                follow = if feeds.length == 0
+                  max_count_id[0].href()
+                else
+                  feeds[0].href()
 
-              logger.info("redirect to #{follow}")
-              redirect(follow)
+                logger.info("redirect to #{follow}")
+                redirect(follow)
+
+              redirect(Sources.first().href())
+
 
         delete_cookie("redirect")
         @_bind_modal()

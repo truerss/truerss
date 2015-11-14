@@ -20,6 +20,18 @@ Sirius.View.register_strategy('remove_class',
     $(element).removeClass(result)
 )
 
+Sirius.View.register_strategy('hide',
+  transform: (oldvalue, newvalue) -> newvalue
+  render: (adapter, element, result, attribute) ->
+    klass = "count-hidden"
+    if parseInt(result) == 0
+      $(element).addClass(klass)
+    else
+      if $(element).hasClass(klass)
+        $(element).removeClass(klass)
+      adapter.swap(element, result)
+)
+
 
 class UrlValidator extends Sirius.Validator
 

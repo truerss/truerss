@@ -91,6 +91,7 @@ Sources.subscribe "add", (source) ->
           "0"
         else
           "#{x}"
+      strategy: "hide"
   )
 
   return

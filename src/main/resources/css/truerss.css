@@ -42,3 +42,7 @@ input.custom-input {
 #feeds li a:visited {
     color: #828282;
 }
+
+.count-hidden {
+    display: none;
+}
