@@ -13,9 +13,6 @@ import truerss.controllers._
 
 
 trait Routing extends Routable with Redirectize {
-  import java.net.URLEncoder
-  import java.nio.charset.Charset
-  val utf8 = Charset.forName("UTF-8")
 
   def route(
              proxyRef: ActorRef,
