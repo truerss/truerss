@@ -20,15 +20,17 @@ SourcesController =
     if source
       ajax.get_feeds source.id(), (feeds) ->
         source.reset('feed')
-        feeds = feeds.map (f) ->
-          feed = new Feed(f)
-          source.add_feed(feed)
-          feed
+        feeds = feeds.map (x) ->
+          pd = moment(x['publishedDate'])
+          x['publishedDate'] = pd
+          f = new Feed(x)
+          source.add_feed(f)
+          f
 
-        result = Templates.feeds_template.render({feeds: feeds})
+        result = Templates.feeds_template.render({feeds: source.feed_sort()})
         Templates.feeds_view.render(result).html()
         if feeds.length > 0
-          redirect(feeds[0].href())
+          redirect(source.feed()[0].href())
 
   refresh_one: (e, id) ->
     ajax.refresh_one id

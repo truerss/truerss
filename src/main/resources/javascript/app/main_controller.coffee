@@ -107,18 +107,16 @@ MainController =
           if arr.length > 0
             max_count_id = Sources.all().filter (s) -> s.count()
             if max_count_id[0]
+              source = max_count_id[0]
               ajax.get_feeds max_count_id[0].id(), (arr) ->
                 feeds = arr.map (x) ->
                   pd = moment(x['publishedDate'])
                   x['publishedDate'] = pd
                   f = new Feed(x)
-                  source = Sources.find("id", f.source_id())
                   source.add_feed(f)
                   f
-                feeds = feeds.sort (feed0, feed1) ->
-                  feed0.published_date().isAfter(feed1.published_date()) ? 1 : -1
 
-                result = Templates.feeds_template.render({feeds: feeds})
+                result = Templates.feeds_template.render({feeds: source.feed_sort()})
                 Templates.feeds_view.render(result).html()
 
                 follow = if feeds.length == 0
@@ -140,16 +138,9 @@ MainController =
 
   view: () ->
     unless state.hasState(States.Main)
-      result = Templates.feed_template.render({
-        feed: {
-          title: () -> "Easily create nicely looking buttons, which come in different styles.",
-          description: () -> "A button can be used to trigger a dropdown menu from the Dropdown component. Just add the .uk-button-dropdown class and the data-uk-dropdown attribute to a
-            <div> element that contains the button and the dropdown itself."
-        }
-      })
-
-      Templates.article_view.render(result).html()
-      state.to(States.Main)
+      source = Sources.first()
+      if source
+        redirect(source.href())
 
 
   about: () ->

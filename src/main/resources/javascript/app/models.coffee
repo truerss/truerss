@@ -25,6 +25,11 @@ class Source extends Sirius.BaseModel
 
   compare: (other) -> @id() == other.id()
 
+  feed_sort: () ->
+    @_feed = @_feed.sort (feed0, feed1) ->
+      feed0.published_date().isAfter(feed1.published_date()) ? 1 : -1
+    @_feed
+
 
 class Feed extends Sirius.BaseModel
   @attrs: ["id", "sourceId", "url",
@@ -70,7 +75,7 @@ Sources.subscribe "add", (source) ->
   html = Templates.source_list.render({source: source})
   Templates.source_list_view.render(html).prepend()
   source_view = new Sirius.View("#source-#{source.id()}")
-  # TODO custom strategy : hide
+
   source.bind(source_view,
     "a.source-url":
       [{
