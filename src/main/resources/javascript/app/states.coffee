@@ -164,6 +164,6 @@ ControllerStatesExt =
   state: new Steps()
   read_cookie: window.readCookie
   delete_cookie: (cn) ->
-    document.cookie = cn + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;'
+    document.cookie = cn + '=; Path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;'
 
 

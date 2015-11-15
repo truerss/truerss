@@ -108,7 +108,6 @@ MainController =
             max_count_id = Sources.all().filter (s) -> s.count()
             if max_count_id[0]
               ajax.get_feeds max_count_id[0].id(), (arr) ->
-                # TODO sort by data time and read status
                 feeds = arr.map (x) ->
                   pd = moment(x['publishedDate'])
                   x['publishedDate'] = pd
@@ -116,7 +115,9 @@ MainController =
                   source = Sources.find("id", f.source_id())
                   source.add_feed(f)
                   f
-                feeds = _.sortBy(feeds, '_published_date')
+                feeds = feeds.sort (feed0, feed1) ->
+                  feed0.published_date().isAfter(feed1.published_date()) ? 1 : -1
+
                 result = Templates.feeds_template.render({feeds: feeds})
                 Templates.feeds_view.render(result).html()
 
@@ -128,11 +129,12 @@ MainController =
                 logger.info("redirect to #{follow}")
                 redirect(follow)
 
+            else
               redirect(Sources.first().href())
 
 
-        delete_cookie("redirect")
         @_bind_modal()
+      delete_cookie("redirect")
 
 
 
