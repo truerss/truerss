@@ -6,6 +6,7 @@ import akka.pattern.{ask, gracefulStop}
 import akka.util.Timeout
 
 import com.github.truerss.base.{PluginInfo, Priority, UrlMatcher, BaseContentReader}
+import com.typesafe.config.ConfigFactory
 
 import truerss.models.{Enable, Disable, Neutral, Source}
 import truerss.plugins.DefaultSiteReader
@@ -29,7 +30,7 @@ class SourcesActor(plugins: ApplicationPlugins,
 
   implicit val timeout = Timeout(30 seconds)
 
-  val defaultPlugin = new DefaultSiteReader(Map.empty)
+  val defaultPlugin = new DefaultSiteReader(ConfigFactory.empty())
   val contentReaders: Vector[BaseContentReader with UrlMatcher
     with Priority with PluginInfo] =
     plugins.contentPlugins.toVector ++ Vector(defaultPlugin)

@@ -5,6 +5,7 @@ import java.net.URLClassLoader
 import java.util.jar._
 
 import com.github.truerss.base._
+import com.typesafe.config.{ConfigFactory, Config}
 
 
 import scala.collection.mutable.ArrayBuffer
@@ -58,7 +59,7 @@ object PluginLoader {
   def init() = {}
 
   def load(dirName: String,
-           pluginSetting: Map[String, Map[String, String]]): ApplicationPlugins = {
+           pluginConfig: Config): ApplicationPlugins = {
     val appPlugins = ApplicationPlugins()
     val folder = new File(dirName)
 
@@ -86,36 +87,40 @@ object PluginLoader {
           if (superClass != null) {
             superClass.getCanonicalName match {
               case `contentPluginName` =>
-                val param = Map.empty
-                val constructor = clz.getConstructor(classOf[Map[String, String]])
-                val instance = constructor.newInstance(param)
+                val constructor = clz.getConstructor(classOf[Config])
+                try {
+                  constructor.newInstance(pluginConfig)
+                    .asInstanceOf[BaseContentPlugin]
+                } catch  {
+                  case x: Throwable =>
+                    println("@"*100)
+                    println(x)
+                }
+                val instance = constructor.newInstance(pluginConfig)
                   .asInstanceOf[BaseContentPlugin]
                 appPlugins.contentPlugins += instance
                 read(instance, js).map(appPlugins.js += _)
                 read(instance, css).map(appPlugins.css += _)
 
               case `feedPluginName` =>
-                val param = Map.empty
-                val constructor = clz.getConstructor(classOf[Map[String, String]])
-                val instance = constructor.newInstance(param)
+                val constructor = clz.getConstructor(classOf[Config])
+                val instance = constructor.newInstance(pluginConfig)
                   .asInstanceOf[BaseFeedPlugin]
                 appPlugins.feedPlugins += instance
                 read(instance, js).map(appPlugins.js += _)
                 read(instance, css).map(appPlugins.css += _)
 
               case `publishPluginName` =>
-                val param = Map.empty
-                val constructor = clz.getConstructor(classOf[Map[String, String]])
-                val instance = constructor.newInstance(param)
+                val constructor = clz.getConstructor(classOf[Config])
+                val instance = constructor.newInstance(pluginConfig)
                   .asInstanceOf[BasePublishPlugin]
                 appPlugins.publishPlugin += instance
                 read(instance, js).map(appPlugins.js += _)
                 read(instance, css).map(appPlugins.css += _)
 
               case `sitePluginName` =>
-                val param = Map.empty
-                val constructor = clz.getConstructor(classOf[Map[String, String]])
-                val instance = constructor.newInstance(param)
+                val constructor = clz.getConstructor(classOf[Config])
+                val instance = constructor.newInstance(pluginConfig)
                   .asInstanceOf[BaseSitePlugin]
                 appPlugins.sitePlugin += instance
                 read(instance, js).map(appPlugins.js += _)
@@ -126,7 +131,7 @@ object PluginLoader {
 
           }
         } catch {
-          case _: java.lang.reflect.InvocationTargetException =>
+          case x: java.lang.reflect.InvocationTargetException =>
             Console.err.println("====")
             sys.exit(1)
         }

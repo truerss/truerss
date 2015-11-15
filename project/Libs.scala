@@ -23,7 +23,7 @@ object Libs {
     val jwsVersion = "1.3.0"
     val logbackVersion = "1.1.2"
     val log4j2Version = "1.0.0"
-    val baseVersion = "0.0.3"
+    val baseVersion = "0.0.4"
     val jsoupVersion = "1.8.3"
     val jodaVersion = "2.8.2"
     val scalaTestVersion = "3.0.0-M7"

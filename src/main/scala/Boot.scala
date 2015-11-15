@@ -67,13 +67,7 @@ object Boot extends App {
         appConfig.getInt("wsPort") fold(_ => trueRSSConfig.wsPort, identity)
 
 
-      val keys = pluginConf.root().unwrapped().keySet().toVector
-      val pluginSetting = keys.map { key =>
-        key -> pluginConf.root().unwrapped().get(key)
-          .asInstanceOf[java.util.HashMap[String, String]].toMap
-      }.toMap
-
-      val appPlugins = PluginLoader.load(pluginDir, pluginSetting)
+      val appPlugins = PluginLoader.load(pluginDir, pluginConf)
 
       val need = Vector("backend", "port", "host", "dbname", "username", "password")
       val given = dbConf.entrySet().map(_.getKey).toVector

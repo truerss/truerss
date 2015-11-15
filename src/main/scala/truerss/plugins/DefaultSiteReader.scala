@@ -16,8 +16,9 @@ import com.rometools.rome.io.{ParsingFeedException => PE}
 
 import com.github.truerss.ContentExtractor
 import com.github.truerss.base.{Errors, BaseSitePlugin, Entry, Text}
+import com.typesafe.config.Config
 
-class DefaultSiteReader(config: Map[String, String])
+class DefaultSiteReader(config: Config)
   extends BaseSitePlugin(config) {
 
   import org.apache.logging.log4j.{Logger, LogManager}
