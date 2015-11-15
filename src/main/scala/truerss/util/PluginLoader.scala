@@ -88,14 +88,6 @@ object PluginLoader {
             superClass.getCanonicalName match {
               case `contentPluginName` =>
                 val constructor = clz.getConstructor(classOf[Config])
-                try {
-                  constructor.newInstance(pluginConfig)
-                    .asInstanceOf[BaseContentPlugin]
-                } catch  {
-                  case x: Throwable =>
-                    println("@"*100)
-                    println(x)
-                }
                 val instance = constructor.newInstance(pluginConfig)
                   .asInstanceOf[BaseContentPlugin]
                 appPlugins.contentPlugins += instance
@@ -132,7 +124,7 @@ object PluginLoader {
           }
         } catch {
           case x: java.lang.reflect.InvocationTargetException =>
-            Console.err.println("====")
+            Console.err.println("Error on plugin initialization")
             sys.exit(1)
         }
       }
