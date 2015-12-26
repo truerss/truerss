@@ -1,8 +1,9 @@
 `var c = function(m){console.log(m);};`
 
 $ ->
-  # from http://getuikit.com/docs/upload.html
+  # TODO move to controller plz
   `
+  // source http://getuikit.com/docs/upload.html
   var progressbar = $("#progressbar"),
     bar         = progressbar.find('.uk-progress-bar'),
     settings    = {
@@ -31,7 +32,8 @@ $ ->
             progressbar.addClass("uk-hidden");
         }, 250);
 
-        alert("Upload Completed")
+        // hide modal
+        UIkit.modal("#add-modal").hide();
     }
   };
 
@@ -71,6 +73,6 @@ $ ->
     route: routes
     adapter: new JQueryAdapter()
     mix_logger_into_controller: true
-    controller_wrapper: ControllerStatesExt
+    controller_wrapper: ControllerExt
     log: true
-    log_filters: []
+    log_filters: ['Redirect']

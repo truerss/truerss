@@ -9,8 +9,12 @@ WSController =
       source = Sources.takeFirst (s) -> s.id() == feeds[0].source_id()
       feeds.forEach (f) -> source.add_feed(f)
       source.count(source.count() + feeds.length)
-      # TODO redirect ?
+
       if source
+        if location.pathname == "" || location.pathname == "/"
+          redirect(source.href())
+
+
         UIkit.notify
           message : "Given #{feeds.length} feeds, from #{source.name()}"
           status  : 'success',

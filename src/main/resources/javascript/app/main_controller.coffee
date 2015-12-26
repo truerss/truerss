@@ -12,16 +12,16 @@ MainController =
   """
 
   _init_ws: (logger, adapter, port) ->
-    sock = new WebSocket("ws://#{location.hostname}:#{port}/")
-    sock.onopen = () ->
+    ws = new WebSocket("ws://#{location.hostname}:#{port}/")
+    ws.onopen = () ->
       logger.info("ws open on port: #{port}")
 
-    sock.onmessage = (e) ->
+    ws.onmessage = (e) ->
       message = JSON.parse(e.data)
       logger.info("ws given message: #{message.messageType}")
       adapter.fire(document, "ws:#{message.messageType}", message.body)
 
-    sock.onclose = () ->
+    ws.onclose = () ->
       logger.info("ws close")
 
   _bind_modal: () ->
@@ -51,14 +51,14 @@ MainController =
   _load_js_and_css: (ajax) ->
     ajax.js_all (resp) ->
       script = document.createElement('script')
-      $(script).text(resp)
-      $("head").append(script)
+      jQuery(script).text(resp)
+      jQuery("head").append(script)
 
     ajax.css_all (resp) ->
       style = document.createElement('style')
       style.setAttribute("type", "text/css")
-      $(style).text(resp)
-      $("head").append(style)
+      jQuery(style).text(resp)
+      jQuery("head").append(style)
 
   start: () ->
     jQuery.when(
@@ -133,15 +133,13 @@ MainController =
 
         @_bind_modal()
       delete_cookie("redirect")
-
-
+    return
 
   view: () ->
     unless state.hasState(States.Main)
       source = Sources.first()
       if source
         redirect(source.href())
-
 
   about: () ->
     Templates.article_view.render("<h1>about truerss</h1>").html()

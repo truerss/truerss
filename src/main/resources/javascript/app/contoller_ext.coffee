@@ -135,8 +135,9 @@ class Steps
   hasState: (state) ->
     @_swap[state] is @_state
 
-# from http://stackoverflow.com/a/5639455/1581531
+
 `
+// source http://stackoverflow.com/a/5639455/1581531
 (function(){
     var cookies;
 
@@ -159,7 +160,7 @@ class Steps
 `
 
 
-ControllerStatesExt =
+ControllerExt =
   ajax: new AjaxService()
   state: new Steps()
   read_cookie: window.readCookie

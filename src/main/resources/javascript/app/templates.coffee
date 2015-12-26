@@ -1,4 +1,4 @@
-# old ejs
+# old ejs interface
 class EJS
   constructor: (@_template) ->
 

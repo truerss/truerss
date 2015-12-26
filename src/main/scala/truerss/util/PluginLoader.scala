@@ -39,7 +39,7 @@ case class ApplicationPlugins(
 
 
 }
-//TODO pass params to plugin instance
+
 object PluginLoader {
 
   import scala.collection.JavaConversions._
@@ -133,20 +133,3 @@ object PluginLoader {
     appPlugins
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
