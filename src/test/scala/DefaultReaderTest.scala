@@ -5,6 +5,7 @@ import akka.actor._
 import akka.io.IO
 import akka.pattern._
 import akka.util.Timeout
+import com.typesafe.config.ConfigFactory
 import org.scalatest.{BeforeAndAfterAll, FunSpec, Matchers}
 import spray.can.Http
 import spray.testkit.ScalatestRouteTest
@@ -42,7 +43,7 @@ with ScalatestRouteTest with BeforeAndAfterAll {
   val content1Url = s"$url/content1"
   val content2Url = s"$url/content2"
 
-  val defaultReader = new DefaultSiteReader(Map.empty)
+  val defaultReader = new DefaultSiteReader(ConfigFactory.empty)
 
   describe("matchUrl") {
     it("match any url") {
