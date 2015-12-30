@@ -5,6 +5,7 @@ import akka.actor._
 import akka.io.IO
 import akka.pattern._
 import akka.util.Timeout
+import java.net.URL
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{BeforeAndAfterAll, FunSpec, Matchers}
 import spray.can.Http
@@ -47,9 +48,9 @@ with ScalatestRouteTest with BeforeAndAfterAll {
 
   describe("matchUrl") {
     it("match any url") {
-      defaultReader.matchUrl(url) should be(true)
-      defaultReader.matchUrl("https://www.youtube.com") should be(true)
-      defaultReader.matchUrl("https://news.ycombinator.com/") should be(true)
+      defaultReader.matchUrl(new URL(url)) should be(true)
+      defaultReader.matchUrl(new URL("https://www.youtube.com")) should be(true)
+      defaultReader.matchUrl(new URL("https://news.ycombinator.com/")) should be(true)
     }
   }
 
@@ -82,7 +83,7 @@ with ScalatestRouteTest with BeforeAndAfterAll {
 
   describe("Content") {
     it("extract content") {
-      val result = defaultReader.content(content1Url)
+      val result = defaultReader.content(scala.util.Left(new URL(content1Url)))
       result.isRight should be(true)
       result.right.get.get should include("The US digital service")
     }

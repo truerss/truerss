@@ -50,7 +50,7 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
     case None => feedNotFound
   }
 
-  def getState(url: String) = if (appPlugins.matchUrl(url)) {
+  def getState(url: String) = if (appPlugins.matchUrl(new java.net.URL(url))) {
     Enable
   } else {
     Neutral

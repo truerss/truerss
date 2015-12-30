@@ -1,7 +1,7 @@
 package truerss.util
 
 import java.io.File
-import java.net.URLClassLoader
+import java.net.{URLClassLoader, URL}
 import java.util.jar._
 
 import com.github.truerss.base._
@@ -19,19 +19,19 @@ case class ApplicationPlugins(
   css: ArrayBuffer[String] = ArrayBuffer.empty, // content of js files
   js: ArrayBuffer[String] = ArrayBuffer.empty
 ) extends Jsonize {
-  def matchUrl(url: String): Boolean = {
+  def matchUrl(url: URL): Boolean = {
     feedPlugins.exists(_.matchUrl(url)) ||
     contentPlugins.exists(_.matchUrl(url)) ||
     sitePlugin.exists(_.matchUrl(url))
   }
 
-  def getFeedReader(url: String) = {
+  def getFeedReader(url: URL) = {
     (feedPlugins.filter(_.matchUrl(url)) ++
       sitePlugin.filter(_.matchUrl(url)))
       .sortBy(_.priority).reverse.headOption
   }
 
-  def getContentReader(url: String) = {
+  def getContentReader(url: URL) = {
     (contentPlugins.filter(_.matchUrl(url)) ++
       sitePlugin.filter(_.matchUrl(url)))
       .sortBy(_.priority).reverse.headOption
@@ -55,8 +55,6 @@ object PluginLoader {
       scala.io.Source.fromInputStream(stream).mkString
     }.toVector
   }
-
-  def init() = {}
 
   def load(dirName: String,
            pluginConfig: Config): ApplicationPlugins = {

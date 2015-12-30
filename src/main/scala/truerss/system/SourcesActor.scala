@@ -8,6 +8,8 @@ import akka.util.Timeout
 import com.github.truerss.base.{PluginInfo, Priority, UrlMatcher, BaseContentReader}
 import com.typesafe.config.ConfigFactory
 
+import java.net.URL
+
 import truerss.models.{Enable, Disable, Neutral, Source}
 import truerss.plugins.DefaultSiteReader
 import truerss.util.ApplicationPlugins
@@ -57,13 +59,14 @@ class SourcesActor(plugins: ApplicationPlugins,
   }
 
   def getSourceReader(source: Source) = {
+    val url = new URL(source.url)
     source.state match {
       case Neutral =>
         Some(defaultPlugin)
       case Enable =>
-        val feedReader = plugins.getFeedReader(source.url)
+        val feedReader = plugins.getFeedReader(url)
 
-        val contentReader = plugins.getContentReader(source.url)
+        val contentReader = plugins.getContentReader(url)
 
         (feedReader, contentReader) match {
           case (None, None) =>

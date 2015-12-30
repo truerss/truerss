@@ -1,32 +1,26 @@
 package truerss.plugins
 
 import java.io.ByteArrayInputStream
-import java.util.Date
 import java.net.URL
-import java.util.zip.GZIPInputStream
+import java.util.Date
 
-import com.rometools.rome.feed.synd.SyndEntry
-import com.rometools.rome.io.{SyndFeedInput, XmlReader}
+import com.github.truerss.ContentExtractor
+import com.github.truerss.base.{BaseSitePlugin, Entry, Errors, Text}
+import com.rometools.rome.io.{ParsingFeedException => PE, SyndFeedInput, XmlReader}
+import com.typesafe.config.Config
 import org.jsoup.Jsoup
-import org.jsoup.parser._
 
 import scala.collection.JavaConversions._
 import scala.util.control.Exception._
-import com.rometools.rome.io.{ParsingFeedException => PE}
-
-import com.github.truerss.ContentExtractor
-import com.github.truerss.base.{Errors, BaseSitePlugin, Entry, Text}
-import com.typesafe.config.Config
 
 class DefaultSiteReader(config: Config)
   extends BaseSitePlugin(config) {
 
-  import org.apache.logging.log4j.{Logger, LogManager}
+  import org.apache.logging.log4j.LogManager
   private final val logger = LogManager.getLogger("DefaultSiteReader")
 
-  import truerss.util.Request._
   import Errors._
-
+  import truerss.util.Request._
 
   implicit def exception2error(x: Throwable) = x match {
     case x: PE => Left(ParsingError(x.getMessage))
@@ -39,12 +33,13 @@ class DefaultSiteReader(config: Config)
   override val pluginName = "Default"
   override val version = "0.0.3"
   override val contentType = Text
+  override val needUrl = true
 
-  override val priority = 0
+  override val priority = -1
 
   val sfi = new SyndFeedInput()
 
-  override def matchUrl(url: String) = true
+  override def matchUrl(url: URL) = true
 
   override def newEntries(url: String) = {
     catching(classOf[Exception]) either extract(url) fold(
@@ -124,14 +119,16 @@ class DefaultSiteReader(config: Config)
     }
   }
 
-  override def content(url: String) = {
-    catching(classOf[Exception]) either extractContent(url) fold(
-      err => {
-        logger.error(s"content error -> ${url}", err.getMessage)
-        err
-      },
-      ok => Right(ok)
-    )
+  override def content(urlOrContent: Either[URL, String]) = {
+    urlOrContent.fold(url => {
+      catching(classOf[Exception]) either extractContent(url.toString) fold(
+        err => {
+          logger.error(s"content error -> ${url}", err.getMessage)
+          err
+        },
+        ok => Right(ok)
+        )
+    }, _ => Left(UnexpectedError("Pass url only")))
   }
 
   private def extractContent(url: String) = {
@@ -166,4 +163,5 @@ class DefaultSiteReader(config: Config)
 
     Some(need.html())
   }
+
 }

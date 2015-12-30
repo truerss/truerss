@@ -4,12 +4,16 @@ import akka.actor.{ActorLogging, Actor}
 
 import com.github.truerss.base._
 
+import java.net.URL
 import java.util.Date
+
+import org.jsoup.Jsoup
 
 import truerss.models.Source
 
 import scala.concurrent.duration._
 import scala.util.{Right, Left}
+import scala.util.control.Exception._
 
 class SourceActor(source: Source, feedReader: BaseFeedReader,
                    contentReaders: Vector[BaseContentReader
@@ -19,6 +23,7 @@ class SourceActor(source: Source, feedReader: BaseFeedReader,
   import network._
   import util._
   import db.AddFeeds
+  import truerss.util.Request._
   import truerss.util.Util.EntryExt
   import context.dispatcher
 
@@ -60,14 +65,40 @@ class SourceActor(source: Source, feedReader: BaseFeedReader,
 
 
     case ExtractContent(sourceId, feedId, url) =>
-      val c = contentReaders.filter(_.matchUrl(url)).sortBy(_.priority).head
+      val url0 = new URL(url)
+      val c = contentReaders.filter(_.matchUrl(url0)).sortWith((a, b) => a.priority > b.priority).head
       log.info(s"Read content from $url ~> (${source.name}) with ${c.pluginName}")
-      c.content(url) match {
-        case Right(content) =>
-          sender ! ExtractContentForEntry(sourceId, feedId, content)
-        case Left(error) =>
-          sender ! ExtractError(error.error)
+
+      def pass(result: Either[Errors.Error, Option[String]]) = {
+        result match {
+          case Right(content) =>
+            sender ! ExtractContentForEntry(sourceId, feedId, content)
+          case Left(error) =>
+            sender ! ExtractError(error.error)
+        }
       }
+
+      if (c.needUrl) {
+        pass(c.content(Left(url0)))
+      } else {
+        catching(classOf[Exception]) either extractContent(url) fold(
+          err => {
+            sender ! ExtractError(err.getMessage)
+          },
+          ok => pass(c.content(Right(ok)))
+        )
+      }
+
+  }
+
+  private def extractContent(url: String) = {
+    val response = getResponse(url)
+
+    if (response.isError) {
+      throw new RuntimeException(s"Connection error for ${url}")
+    }
+
+    Jsoup.parse(response.body).body().html()
   }
 
 }
