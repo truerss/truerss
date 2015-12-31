@@ -6,6 +6,7 @@ import akka.io.IO
 import akka.pattern._
 import akka.util.Timeout
 import java.net.URL
+import com.github.truerss.base.ContentTypeParam
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{BeforeAndAfterAll, FunSpec, Matchers}
 import spray.can.Http
@@ -83,7 +84,7 @@ with ScalatestRouteTest with BeforeAndAfterAll {
 
   describe("Content") {
     it("extract content") {
-      val result = defaultReader.content(scala.util.Left(new URL(content1Url)))
+      val result = defaultReader.content(ContentTypeParam.UrlRequest(new URL(content1Url)))
       result.isRight should be(true)
       result.right.get.get should include("The US digital service")
     }

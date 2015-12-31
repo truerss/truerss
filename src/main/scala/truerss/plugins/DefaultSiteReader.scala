@@ -5,7 +5,8 @@ import java.net.URL
 import java.util.Date
 
 import com.github.truerss.ContentExtractor
-import com.github.truerss.base.{BaseSitePlugin, Entry, Errors, Text}
+import com.github.truerss.base.ContentTypeParam.{HtmlRequest, UrlRequest}
+import com.github.truerss.base._
 import com.rometools.rome.io.{ParsingFeedException => PE, SyndFeedInput, XmlReader}
 import com.typesafe.config.Config
 import org.jsoup.Jsoup
@@ -33,7 +34,7 @@ class DefaultSiteReader(config: Config)
   override val pluginName = "Default"
   override val version = "0.0.3"
   override val contentType = Text
-  override val needUrl = true
+  override val contentTypeParam = ContentTypeParam.URL
 
   override val priority = -1
 
@@ -119,16 +120,18 @@ class DefaultSiteReader(config: Config)
     }
   }
 
-  override def content(urlOrContent: Either[URL, String]) = {
-    urlOrContent.fold(url => {
-      catching(classOf[Exception]) either extractContent(url.toString) fold(
-        err => {
-          logger.error(s"content error -> ${url}", err.getMessage)
-          err
-        },
-        ok => Right(ok)
+  override def content(urlOrContent: ContentTypeParam.RequestParam) = {
+    urlOrContent match {
+      case UrlRequest(url) =>
+        catching(classOf[Exception]) either extractContent(url.toString) fold(
+          err => {
+            logger.error(s"content error -> $url", err.getMessage)
+            Left(UnexpectedError(err.getMessage))
+          },
+          ok => Right(ok)
         )
-    }, _ => Left(UnexpectedError("Pass url only")))
+      case HtmlRequest(_) => Left(UnexpectedError("Pass url only"))
+    }
   }
 
   private def extractContent(url: String) = {
