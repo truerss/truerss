@@ -83,7 +83,8 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
 
     case ExtractFeedsForSource(sourceId) =>
       complete { implicit session =>
-        feeds.filter(_.sourceId === sourceId).buildColl
+        feeds.filter(_.sourceId === sourceId)
+          .sortBy(_.publishedDate.desc).buildColl
       }
 
     case Favorites =>

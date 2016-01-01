@@ -116,7 +116,7 @@ MainController =
                   source.add_feed(f)
                   f
 
-                result = Templates.feeds_template.render({feeds: source.feed_sort()})
+                result = Templates.feeds_template.render({feeds: source.feed()})
                 Templates.feeds_view.render(result).html()
 
                 follow = if feeds.length == 0
