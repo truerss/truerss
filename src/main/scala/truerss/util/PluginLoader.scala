@@ -88,6 +88,7 @@ object PluginLoader {
                 val constructor = clz.getConstructor(classOf[Config])
                 val instance = constructor.newInstance(pluginConfig)
                   .asInstanceOf[BaseContentPlugin]
+
                 appPlugins.contentPlugins += instance
                 read(instance, js).map(appPlugins.js += _)
                 read(instance, css).map(appPlugins.css += _)

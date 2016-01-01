@@ -15,7 +15,7 @@ import truerss.util.Lens
 
 import scala.concurrent.Future
 import scala.util.control.Exception._
-import scala.util.{Failure => F, Success => S}
+import scala.util.{Failure => F, Success => S, Try}
 
 trait SourceController extends BaseController
   with ProxyRefProvider with ActorRefExt with ResponseHelper {
@@ -58,8 +58,11 @@ trait SourceController extends BaseController
 
   def latest(count: Long) = end(Latest(count))
 
-  def feeds(num: Long) = end(ExtractFeedsForSource(num))
-
+  def feeds(num: Long) = {
+    parameters('from ? "0", 'limit ? "100") { (from, limit) =>
+      end(ExtractFeedsForSource(num, ttry(from, 0), ttry(limit, 100)))
+    }
+  }
   def refresh = end(Update)
 
   def refreshOne(num: Long) = end(UpdateOne(num))
@@ -98,5 +101,6 @@ trait SourceController extends BaseController
     }
   }
 
+  private def ttry(possibleInt: String, recover: Int) = Try(possibleInt.toInt).getOrElse(recover)
 
 }

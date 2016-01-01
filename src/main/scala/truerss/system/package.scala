@@ -31,7 +31,7 @@ package object system {
 
 
     case class Latest(count: Long) extends ApiMessage
-    case class ExtractFeedsForSource(sourceId: Long) extends ApiMessage
+    case class ExtractFeedsForSource(sourceId: Long, from: Int = 0, limit: Int = Int.MaxValue) extends ApiMessage
 
     // util:
     case class UrlIsUniq(url: String, id: Option[Long] = None) extends ApiMessage
