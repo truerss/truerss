@@ -3,7 +3,7 @@ import sbt._
 object Libs {
   object versions {
     val scalaVersion = "2.1.6"
-    val scalajVersion = "1.1.5"
+    val scalajVersion = "2.2.0"
     val rountingExtVersion = "0.3.3"
     val h2Version = "1.3.173"
     val postgresqlVersion = "9.1-901-1.jdbc4"

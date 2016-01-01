@@ -19,5 +19,5 @@ Templates =
   feeds_template: null
   favorites_template: null
   plugins_template: null
-
+  pagination_view: new Sirius.View("#pagination")
 

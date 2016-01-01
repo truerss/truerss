@@ -46,3 +46,7 @@ input.custom-input {
 .count-hidden {
     display: none;
 }
+
+#pagination {
+  margin-left: 5%;
+}
