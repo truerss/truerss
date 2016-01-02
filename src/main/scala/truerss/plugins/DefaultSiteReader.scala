@@ -56,8 +56,9 @@ class DefaultSiteReader(config: Config)
     val response = getResponse(url)
 
     if (response.isError) {
-      throw new RuntimeException(s"Connection error for ${url} with status code: ${response.code}")
+      throw new RuntimeException(s"Connection error for $url with status code: ${response.code}")
     }
+    // oom ?
     val asBytes = response.body
       .trim
       .replaceAll("[^\\x20-\\x7e\\x0A]", "")

@@ -11,7 +11,7 @@ object Libs {
     val sqliteVersion = "3.8.7"
     val romeVersion = "1.5.0"
     val commonValidatorVersion = "1.4.0"
-    val ceVersion = "0.0.1"
+    val ceVersion = "0.0.2"
     val shapelessVersion = "2.1.0"
     val sprayVersion = "1.3.3"
     val sprayJsonVersion = "1.3.2"
@@ -70,7 +70,11 @@ object Libs {
   val logs = Seq(
     "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
     "ch.qos.logback" % "logback-classic" % logbackVersion,
-    "cn.q-game" % "akka-log4j2-logger_2.11" % log4j2Version
+    "cn.q-game" % "akka-log4j2-logger_2.11" % log4j2Version,
+    "org.apache.logging.log4j" % "log4j-api" % "2.5",
+    "org.apache.logging.log4j" % "log4j-core" % "2.5"
+
+
   )
 
   val jsoup = "org.jsoup" % "jsoup" % jsoupVersion
@@ -94,9 +98,7 @@ object Libs {
 
   val tests = Seq(
     "org.scalatest" % "scalatest_2.11" % scalaTestVersion % "test",
-    "org.scalactic" % "scalactic_2.11" % scalaTestVersion % "test",
-    "io.codearte.jfairy" % "jfairy" % jfairyVersion % "test",
-    "io.spray" %%  "spray-testkit" % sprayVersion % "test"
+    "org.scalactic" % "scalactic_2.11" % scalaTestVersion % "test"
   )
 
   val deps = db ++ spray ++ rome ++ truerss ++ logs ++

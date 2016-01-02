@@ -38,8 +38,8 @@ class SourcesActor(plugins: ApplicationPlugins,
     plugins.contentPlugins.toVector ++ Vector(defaultPlugin)
   val queue = ArrayBuffer[ActorRef]()
 
-  val maxUpdateCount = 10
-  var currentUpdateTask = 0
+  val maxUpdateCount = 3
+  var inProgress = 0
   val sourceNetwork = scala.collection.mutable.Map[Long, ActorRef]()
 
   override val supervisorStrategy = OneForOneStrategy(
@@ -101,7 +101,7 @@ class SourcesActor(plugins: ApplicationPlugins,
     case Start =>
       log.info("Start source actors")
       (proxyRef ? OnlySources).mapTo[Vector[Source]].map { xs =>
-        currentUpdateTask = 0
+        inProgress = 0
         sourceNetwork.clear()
         queue.clear()
         xs.filter(_.state match {
@@ -118,11 +118,11 @@ class SourcesActor(plugins: ApplicationPlugins,
       context.children.foreach{ _ ! Update }
 
     case UpdateMe(ref) =>
-      if (currentUpdateTask >= maxUpdateCount) {
+      if (inProgress >= maxUpdateCount) {
         queue += ref
         nextTick
       } else {
-        currentUpdateTask += 1
+        inProgress += 1
         ref ! Update
       }
 
@@ -133,14 +133,15 @@ class SourcesActor(plugins: ApplicationPlugins,
       }
 
     case Updated =>
-      currentUpdateTask -= 1
+      inProgress -= 1
 
     case Tick =>
-      if (currentUpdateTask > maxUpdateCount) {
+      if (inProgress >= maxUpdateCount) {
         nextTick
       } else {
         queue.slice(0, maxUpdateCount).foreach { ref =>
           queue -= ref
+          inProgress += 1
           ref ! Update
         }
       }
