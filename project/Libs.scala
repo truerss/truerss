@@ -96,7 +96,10 @@ object Libs {
 
   val tests = Seq(
     "org.scalatest" % "scalatest_2.11" % scalaTestVersion % "test",
-    "org.scalactic" % "scalactic_2.11" % scalaTestVersion % "test"
+    "org.scalactic" % "scalactic_2.11" % scalaTestVersion % "test",
+    "com.typesafe.akka" %% "akka-testkit" % akkaVersion % "test",
+    "io.spray" %% "spray-testkit" % sprayVersion % "test",
+    "io.codearte.jfairy" % "jfairy" % "0.5.1" % "test"
   )
 
   val deps = db ++ spray ++ rome ++ truerss ++ logs ++

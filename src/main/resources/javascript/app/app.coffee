@@ -74,5 +74,5 @@ $ ->
     adapter: new JQueryAdapter()
     mix_logger_into_controller: true
     controller_wrapper: ControllerExt
-    log: true
+    log: false
     log_filters: ['Redirect']

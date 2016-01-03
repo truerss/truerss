@@ -2,6 +2,7 @@ import akka.actor.{ActorSystem, Props}
 import akka.testkit.{ImplicitSender, TestKit, TestProbe}
 import akka.util.Timeout
 import org.scalatest.{BeforeAndAfterAll, FunSpecLike, Matchers}
+import truerss.config.TrueRSSConfig
 import truerss.controllers.ModelsResponse
 import truerss.plugins.DefaultSiteReader
 import truerss.system.SourcesActor
@@ -28,7 +29,7 @@ class SourcesActorTest(_system: ActorSystem) extends TestKit(_system)
   val dbRef = TestProbe()
   val sysActor = TestProbe()
   val sourcesRef = system.actorOf(Props(new SourcesActor(
-    truerss.util.ApplicationPlugins(),
+    TrueRSSConfig(),
     sysActor.ref)), "sources")
 
   import truerss.system.db.{OnlySources, AddFeeds}
