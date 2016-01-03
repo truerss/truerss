@@ -1,5 +1,6 @@
 
 class AjaxService
+
   constructor: () ->
     @sources_api = "/api/v1/sources"
     @feeds_api = "/api/v1/feeds"
@@ -71,6 +72,8 @@ class AjaxService
     jQuery.ajax
       type: "GET"
       url: "templates/#{url}.ejs"
+
+  count_header: () -> "XCount"
 
   _delete: (url, success, error = () -> ) ->
     $.ajax

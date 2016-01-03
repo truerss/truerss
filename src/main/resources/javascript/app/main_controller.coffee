@@ -105,28 +105,10 @@ MainController =
           arr.forEach((x) => Sources.add(new Source(x)))
 
           if arr.length > 0
-            max_count_id = Sources.all().filter (s) -> s.count()
-            if max_count_id[0]
-              source = max_count_id[0]
-              ajax.get_feeds max_count_id[0].id(), (arr) ->
-                feeds = arr.map (x) ->
-                  pd = moment(x['publishedDate'])
-                  x['publishedDate'] = pd
-                  f = new Feed(x)
-                  source.add_feed(f)
-                  f
-
-                result = Templates.feeds_template.render({feeds: source.feed()})
-                Templates.feeds_view.render(result).html()
-
-                follow = if feeds.length == 0
-                  max_count_id[0].href()
-                else
-                  feeds[0].href()
-
-                logger.info("redirect to #{follow}")
-                redirect(follow)
-
+            sxs = Sources.all().filter (s) -> s.count()
+            if sxs[0]
+              source = sxs[0]
+              redirect(source.href())
             else
               redirect(Sources.first().href())
 

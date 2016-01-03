@@ -18,7 +18,7 @@ SourcesController =
     normalized = decodeURIComponent(normalized)
     source = Sources.takeFirst (s) -> s.normalized() == normalized
     if source
-      ajax.get_feeds source.id(), (feeds) ->
+      ajax.get_unread source.id(), (feeds) ->
         source.reset('feed')
         feeds = feeds.map (x) ->
           pd = moment(x['publishedDate'])
@@ -27,10 +27,23 @@ SourcesController =
           source.add_feed(f)
           f
 
-        result = Templates.feeds_template.render({feeds: source.feed()})
-        Templates.feeds_view.render(result).html()
         if feeds.length > 0
+          result = Templates.feeds_template.render({feeds: source.feed()})
+          Templates.feeds_view.render(result).html()
           redirect(source.feed()[0].href())
+        else
+          ajax.get_feeds source.id(), (feeds) ->
+            feeds = feeds.map (x) ->
+              pd = moment(x['publishedDate'])
+              x['publishedDate'] = pd
+              f = new Feed(x)
+              source.add_feed(f)
+              f
+
+            result = Templates.feeds_template.render({feeds: source.feed()})
+            Templates.feeds_view.render(result).html()
+            if feeds.length > 0
+              redirect(source.feed()[0].href())
 
   refresh_one: (e, id) ->
     ajax.refresh_one id
