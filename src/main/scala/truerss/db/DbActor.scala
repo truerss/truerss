@@ -24,7 +24,8 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
 
   val stream = context.system.eventStream
 
-  def complete[T] = (f: SessionDef => T) => Future.successful(db withSession(f)) pipeTo sender
+  def complete[T] = (f: SessionDef => T) =>
+    Future.successful(db withSession(f)) pipeTo sender
 
   def receive = {
     case GetAll | OnlySources =>
@@ -42,6 +43,11 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
         feeds.filter(_.read === read).groupBy(_.sourceId).map {
           case (sourceId, xs) => sourceId -> xs.size
         }.buildColl
+      }
+
+    case FeedCountForSource(sourceId) =>
+      complete { implicit session =>
+        feeds.filter(_.sourceId === sourceId).length.run
       }
 
     case GetSource(sourceId) =>

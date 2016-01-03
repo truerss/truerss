@@ -37,6 +37,7 @@ package object system {
     case class UrlIsUniq(url: String, id: Option[Long] = None) extends ApiMessage
     case class NameIsUniq(name: String, id: Option[Long] = None) extends ApiMessage
     case class FeedCount(read: Boolean = false) extends ApiMessage
+    case class FeedCountForSource(sourceId: Long) extends ApiMessage
 
     case class SetState(sourceId: Long, state: SourceState) extends ApiMessage
   }

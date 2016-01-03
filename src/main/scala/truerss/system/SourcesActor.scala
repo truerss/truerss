@@ -160,6 +160,6 @@ class SourcesActor(plugins: ApplicationPlugins,
     case msg: ExtractContent =>
       sourceNetwork.get(msg.sourceId).foreach(_ forward msg)
 
-    case x => log.warning(s"Unhandled message ${x}")
+    case x => log.warning(s"Unhandled message $x")
   }
 }
