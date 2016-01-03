@@ -48,59 +48,60 @@ class DefaultSiteReader(config: Config)
         logger.error(s"new entries error -> ${url}", err)
         err
       },
-      ok => Right(ok)
-      )
+      either => either
+    )
   }
 
-  private def extract(url: String) = {
+  private def extract(url: String): Either[Errors.Error, Vector[Entry]] = {
     val response = getResponse(url)
 
     if (response.isError) {
-      throw new RuntimeException(s"Connection error for $url with status code: ${response.code}")
-    }
-    // oom ?
-    val asBytes = response.body
-      .trim
-      .replaceAll("[^\\x20-\\x7e\\x0A]", "")
-      .getBytes("UTF-8")
+      Left(UnexpectedError(s"Connection error for $url with status code: ${response.code}"))
+    } else {
+      // oom ?
+      val asBytes = response.body
+        .trim
+        .replaceAll("[^\\x20-\\x7e\\x0A]", "")
+        .getBytes("UTF-8")
 
-    val xml = new XmlReader(new ByteArrayInputStream(asBytes))
-    val feed = sfi.build(xml)
+      val xml = new XmlReader(new ByteArrayInputStream(asBytes))
+      val feed = sfi.build(xml)
 
-    val entries = feed.getEntries.zipWithIndex.collect {
-      case p @ (entry, index) =>
-        val author = entry.getAuthor
-        val date = Option(entry.getPublishedDate).getOrElse(new Date())
-        val title = Option(entry.getTitle).map(_.trim)
+      val entries = feed.getEntries.zipWithIndex.collect {
+        case p@(entry, index) =>
+          val author = entry.getAuthor
+          val date = Option(entry.getPublishedDate).getOrElse(new Date())
+          val title = Option(entry.getTitle).map(_.trim)
 
 
-        val link = (Option(entry.getLink) ++ Option(entry.getUri))
-          .reduceLeftOption { (link, uri) =>
-            if (link != "") {
-              link
-            } else {
-              uri
-            }
-          }.getOrElse {
+          val link = (Option(entry.getLink) ++ Option(entry.getUri))
+            .reduceLeftOption { (link, uri) =>
+              if (link != "") {
+                link
+              } else {
+                uri
+              }
+            }.getOrElse {
             throw new RuntimeException(s"Impossible extract feeds for $url")
           }
 
-        val cont = None
+          val cont = None
 
-        val description = Option(entry.getDescription)
-          .map(d => Jsoup.parse(d.getValue).select("img").remove().text()).
-          orElse(None)
+          val description = Option(entry.getDescription)
+            .map(d => Jsoup.parse(d.getValue).select("img").remove().text()).
+            orElse(None)
 
-        val d = if (description.map(_.trim.length).getOrElse(0) == 0) {
-          None
-        } else {
-          description
-        }
+          val d = if (description.map(_.trim.length).getOrElse(0) == 0) {
+            None
+          } else {
+            description
+          }
 
-        Entry(normalizeLink(url, link), title.getOrElse(s"No title-$index"),
-          author, date, d, cont)
+          Entry(normalizeLink(url, link), title.getOrElse(s"No title-$index"),
+            author, date, d, cont)
+      }
+      Right(entries.toVector.reverse)
     }
-    entries.toVector.reverse
   }
 
   private def normalizeLink(url0: String, link: String): String = {
@@ -129,43 +130,42 @@ class DefaultSiteReader(config: Config)
             logger.error(s"content error -> $url", err.getMessage)
             Left(UnexpectedError(err.getMessage))
           },
-          ok => Right(ok)
+          either => either
         )
       case HtmlRequest(_) => Left(UnexpectedError("Pass url only"))
     }
   }
 
-  private def extractContent(url: String) = {
+  private def extractContent(url: String): Either[Errors.Error, Option[String]] = {
     val response = getResponse(url)
-
     if (response.isError) {
-      throw new RuntimeException(s"Connection error for ${url}")
-    }
+      Left(UnexpectedError(s"Connection error for $url"))
+    } else {
+      val url0 = new URL(url)
+      val base = s"${url0.getProtocol}://${url0.getHost}"
 
-    val url0 = new URL(url)
-    val base = s"${url0.getProtocol}://${url0.getHost}"
+      val doc = Jsoup.parse(response.body)
+      val result = ContentExtractor.extract(doc.body())
 
-    val doc = Jsoup.parse(response.body)
-    val result = ContentExtractor.extract(doc.body())
+      val need = doc.select(result.selector)
 
-    val need = doc.select(result.selector)
-
-    need.select("img").foreach { img =>
-      Option(img.absUrl("src")).map(img.attr("src", _)).getOrElse(img)
-    }
-
-    need.select("a").foreach { a =>
-      val absUrl = a.attr("abs:href")
-      if (absUrl.isEmpty) {
-        a.attr("href", s"$base${a.attr("href")}")
-      } else {
-        a.attr("href", absUrl)
+      need.select("img").foreach { img =>
+        Option(img.absUrl("src")).map(img.attr("src", _)).getOrElse(img)
       }
+
+      need.select("a").foreach { a =>
+        val absUrl = a.attr("abs:href")
+        if (absUrl.isEmpty) {
+          a.attr("href", s"$base${a.attr("href")}")
+        } else {
+          a.attr("href", absUrl)
+        }
+      }
+
+      need.select("form, input, meta, style, script").foreach(_.remove)
+
+      Right(Some(need.html()))
     }
-
-    need.select("form, input, meta, style, script").foreach(_.remove)
-
-    Some(need.html())
   }
 
 }

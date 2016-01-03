@@ -105,7 +105,7 @@ MainController =
           arr.forEach((x) => Sources.add(new Source(x)))
 
           if arr.length > 0
-            sxs = Sources.all().filter (s) -> s.count()
+            sxs = Sources.all().filter (s) -> s.count() > 0
             if sxs[0]
               source = sxs[0]
               redirect(source.href())
