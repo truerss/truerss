@@ -7,7 +7,15 @@ case class TrueRSSConfig(
   host: String = "localhost",
   port: Int = 8000,
   wsPort: Int = 8080,
+  parallelFeedUpdate: Int = 10, // update-parallelism
   appPlugins: ApplicationPlugins = ApplicationPlugins()
 ) {
   require(port != wsPort)
+}
+
+object TrueRSSConfig {
+  val db = "db"
+  val plugins = "plugins"
+  val root = "truerss"
+  val updateParallelism = "update-parallelism"
 }

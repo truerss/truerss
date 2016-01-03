@@ -39,6 +39,10 @@ WSController =
 
   notify: (e, msg) ->
     obj = JSON.parse(msg) # level: lvl, message: msg
+    position = if obj.level == 'success'
+      'pos-right'
+    else
+      'pos-center'
     UIkit.notify
       message : obj.message
       status  : obj.level,

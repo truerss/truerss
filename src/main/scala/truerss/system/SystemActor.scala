@@ -43,7 +43,7 @@ class SystemActor(config: TrueRSSConfig,
   val dbRef = context.actorOf(Props(classOf[DbActor], dbDef, driver), "db")
 
   val sourcesRef = context.actorOf(Props(classOf[SourcesActor],
-    config.appPlugins,
+    config,
     self), "sources")
 
   val proxyRef = context.actorOf(Props(

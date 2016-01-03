@@ -55,9 +55,11 @@ object Boot extends App {
       }
 
       val conf = ConfigFactory.parseFile(configFile)
-      val appConfig = conf.getConfig("truerss")
-      val dbConf = appConfig.getConfig("db")
-      val pluginConf = appConfig.getConfig("plugins")
+      val appConfig = conf.getConfig(TrueRSSConfig.root)
+      val dbConf = appConfig.getConfig(TrueRSSConfig.db)
+      val pluginConf = appConfig.getConfig(TrueRSSConfig.plugins)
+      val parallelFeed = catching(classOf[ConfigException]) either
+        appConfig.getInt(TrueRSSConfig.updateParallelism) fold(e => 10, pf => pf)
 
       val port = catching(classOf[ConfigException]) either
         appConfig.getInt("port") fold(_ => trueRSSConfig.port, identity)
@@ -160,6 +162,7 @@ object Boot extends App {
         port = port,
         host = host,
         wsPort = wsPort,
+        parallelFeedUpdate = parallelFeed,
         appPlugins = appPlugins
       )
 

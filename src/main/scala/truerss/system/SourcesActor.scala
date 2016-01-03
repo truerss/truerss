@@ -10,6 +10,7 @@ import com.typesafe.config.ConfigFactory
 
 import java.net.URL
 
+import truerss.config.TrueRSSConfig
 import truerss.models.{Enable, Disable, Neutral, Source}
 import truerss.plugins.DefaultSiteReader
 import truerss.util.ApplicationPlugins
@@ -19,7 +20,7 @@ import scala.concurrent.Future
 import scala.collection.mutable.ArrayBuffer
 
 
-class SourcesActor(plugins: ApplicationPlugins,
+class SourcesActor(config: TrueRSSConfig,
                    proxyRef: ActorRef) extends Actor with ActorLogging {
 
   import context.dispatcher
@@ -33,14 +34,17 @@ class SourcesActor(plugins: ApplicationPlugins,
   implicit val timeout = Timeout(30 seconds)
 
   val defaultPlugin = new DefaultSiteReader(ConfigFactory.empty())
+  val plugins = config.appPlugins
   val contentReaders: Vector[BaseContentReader with UrlMatcher
     with Priority with PluginInfo] =
     plugins.contentPlugins.toVector ++ Vector(defaultPlugin)
   val queue = ArrayBuffer[ActorRef]()
 
-  val maxUpdateCount = 3
+  val maxUpdateCount = config.parallelFeedUpdate
   var inProgress = 0
   val sourceNetwork = scala.collection.mutable.Map[Long, ActorRef]()
+
+  log.info(s"Feed parallelism: $maxUpdateCount")
 
   override val supervisorStrategy = OneForOneStrategy(
       maxNrOfRetries = 3,
