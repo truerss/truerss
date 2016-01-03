@@ -26,15 +26,19 @@ object Tasks {
   )
 
   val fonts = Seq(
-    "https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/fonts/FontAwesome.otf",
-    "https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/fonts/fontawesome-webfont.eot",
-    "https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/fonts/fontawesome-webfont.ttf",
-    "https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/fonts/fontawesome-webfont.woff",
-    "https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/fonts/fontawesome-webfont.woff2"
+    "https://github.com/FortAwesome/Font-Awesome/blob/master/fonts/FontAwesome.otf",
+    "https://github.com/FortAwesome/Font-Awesome/blob/master/fonts/fontawesome-webfont.eot",
+    "https://github.com/FortAwesome/Font-Awesome/blob/master/fonts/fontawesome-webfont.ttf",
+    "https://github.com/FortAwesome/Font-Awesome/blob/master/fonts/fontawesome-webfont.woff",
+    "https://github.com/FortAwesome/Font-Awesome/blob/master/fonts/fontawesome-webfont.woff2"
   )
 
   def download(url: String, dir: String): Unit = {
     val fileName = url.split("""/""").last
+    val d = new File(dir)
+    if (!d.exists()) {
+      d.mkdir()
+    }
     val file = s"$dir$fileName"
     val pf = new File(file)
     if (pf.exists()) {
