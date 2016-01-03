@@ -68,6 +68,9 @@ class AjaxService
   set_read: (num, success) ->
     @_put("#{@feeds_api}/read/#{num}", {}, success, @k)
 
+  about: (success) ->
+    @_get("/about", success, @k)
+
   load_ejs: (url) ->
     jQuery.ajax
       type: "GET"

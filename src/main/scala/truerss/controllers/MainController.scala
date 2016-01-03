@@ -28,4 +28,19 @@ trait MainController extends BaseController with WsPortProvider with Redirectize
       }
     }
   }
+
+  def about = {
+    complete("""
+      <h1>About</h1>
+      <p>
+        TrueRss is open source feed reader with customizable plugin system
+        for any content (atom, rss, youtube channels...).
+        More info <a href='truerss.net'>truerss official site</a>
+        Download plugins: <a href='truerss.net/download/plugins'>plugins</a>
+      </p>
+             """.stripMargin)
+  }
+
+
+
 }

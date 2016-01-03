@@ -124,8 +124,9 @@ MainController =
         redirect(source.href())
 
   about: () ->
-    Templates.article_view.render("<h1>about truerss</h1>").html()
-    state.to(States.About)
+    ajax.about (info) ->
+      Templates.article_view.render(info).html()
+      state.to(States.About)
 
   plugin_list: () ->
     ajax.plugins_all (list) ->

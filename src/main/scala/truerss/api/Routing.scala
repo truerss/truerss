@@ -54,7 +54,7 @@ trait Routing extends Routable with Redirectize {
             get0[SystemController]("exit")
           }
         }
-      } ~
+      } ~ get0[MainController]("about") ~
       pathPrefix("css") {
         getFromResourceDirectory("css")
       } ~
