@@ -59,20 +59,16 @@ class DefaultSiteReader(config: Config)
       Left(UnexpectedError(s"Connection error for $url with status code: ${response.code}"))
     } else {
       // oom ?
-      val asBytes = response.body
-        .trim
-        .replaceAll("[^\\x20-\\x7e\\x0A]", "")
-        .getBytes("UTF-8")
+      val asBytes = response.body.getBytes("UTF-8")
 
       val xml = new XmlReader(new ByteArrayInputStream(asBytes))
       val feed = sfi.build(xml)
 
       val entries = feed.getEntries.zipWithIndex.collect {
-        case p@(entry, index) =>
+        case p @ (entry, index) =>
           val author = entry.getAuthor
           val date = Option(entry.getPublishedDate).getOrElse(new Date())
           val title = Option(entry.getTitle).map(_.trim)
-
 
           val link = (Option(entry.getLink) ++ Option(entry.getUri))
             .reduceLeftOption { (link, uri) =>

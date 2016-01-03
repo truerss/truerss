@@ -84,7 +84,6 @@ MainController =
       @_load_js_and_css(ajax)
       port = read_cookie("port")
       mb_redirect = read_cookie("redirect")
-      logger.info("need redirect to '#{mb_redirect}'")
       default_count = 100
 
       if !(!!window.WebSocket && !!window.FormData && !!history.pushState)

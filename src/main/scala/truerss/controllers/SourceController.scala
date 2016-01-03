@@ -1,6 +1,7 @@
 package truerss.controllers
 
 import java.io.StringReader
+import java.net.URL
 
 import akka.pattern.ask
 import com.github.fntzr.spray.routing.ext.BaseController
@@ -75,7 +76,7 @@ trait SourceController extends BaseController
       val file = formData.fields.map(_.entity.asString).reduce(_ + _)
       val input = new WireFeedInput()
       val opml = input.build(new InputSource(
-        new StringReader(file.replaceAll("[^\\x20-\\x7e]", ""))))
+        new StringReader(file.replaceAll("[^\\x20-\\x7e]", "")))) // FIXME this not correct, when we replace characters
       .asInstanceOf[Opml]
       val result = opml.getOutlines.flatMap(_.getChildren).map { x =>
         (Option(x.getXmlUrl), Option(x.getTitle))
@@ -83,7 +84,12 @@ trait SourceController extends BaseController
         case p @ (Some(url), Some(title)) => Some((url, title))
         case _ => None
       }.flatMap(identity(_)).map { case t @ (url, title) =>
-        val s = SourceHelper.from(url, title, interval)
+        val _t = if (title.trim.isEmpty) {
+          new URL(url).getHost.replaceAll("""\.""", "-")
+        } else {
+          title
+        }
+        val s = SourceHelper.from(url, _t, interval)
         (proxyRef ? AddSource(s.normalize)).mapTo[Response]
       }
       Future.sequence(result).onComplete {
