@@ -36,7 +36,7 @@ truerss {
 
 1. clone repo
 2. run sbt
-3. for work with UI need install web-dependencies (with `sbt install`)
+3. for work with UI need install web-dependencies (with `sbt install`) and coffeescript
 4. for backend part just open in your IDE and add feature, fix bugs
 5. create pull request
 
