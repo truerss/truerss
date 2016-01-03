@@ -34,6 +34,16 @@ truerss {
 
 # How to develop
 
+## Before work
+
+1. install java
+2. scala, and sbt
+3. for ui part install coffeescript
+
+Compile app with `rake` or with `sbt jsbuild` command
+
+## And then...
+
 1. clone repo
 2. run sbt
 3. for work with UI need install web-dependencies (with `sbt install`) and coffeescript

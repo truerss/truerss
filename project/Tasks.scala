@@ -6,6 +6,8 @@ import sbt._
 import scala.io.Source
 
 object Tasks {
+  import sys.process._
+
   val jsLibs = Seq(
     "https://code.jquery.com/jquery-2.1.4.min.js",
     "https://github.com/mde/ejs/releases/download/v2.3.4/ejs.min.js",
@@ -26,11 +28,11 @@ object Tasks {
   )
 
   val fonts = Seq(
-    "https://github.com/FortAwesome/Font-Awesome/blob/master/fonts/FontAwesome.otf",
-    "https://github.com/FortAwesome/Font-Awesome/blob/master/fonts/fontawesome-webfont.eot",
-    "https://github.com/FortAwesome/Font-Awesome/blob/master/fonts/fontawesome-webfont.ttf",
-    "https://github.com/FortAwesome/Font-Awesome/blob/master/fonts/fontawesome-webfont.woff",
-    "https://github.com/FortAwesome/Font-Awesome/blob/master/fonts/fontawesome-webfont.woff2"
+    "https://github.com/FortAwesome/Font-Awesome/raw/master/fonts/FontAwesome.otf",
+    "https://github.com/FortAwesome/Font-Awesome/raw/master/fonts/fontawesome-webfont.eot",
+    "https://github.com/FortAwesome/Font-Awesome/raw/master/fonts/fontawesome-webfont.ttf",
+    "https://github.com/FortAwesome/Font-Awesome/raw/master/fonts/fontawesome-webfont.woff",
+    "https://github.com/FortAwesome/Font-Awesome/raw/master/fonts/fontawesome-webfont.woff2"
   )
 
   def download(url: String, dir: String): Unit = {
@@ -44,11 +46,9 @@ object Tasks {
     if (pf.exists()) {
       pf.delete()
     }
-    val fw = new FileWriter(file, true)
     println(s"Download $fileName")
-    val content = Source.fromURL(new URL(url)).mkString
-    fw.write(content)
-    fw.close()
+
+    new URL(url) #> pf !!
   }
 
   val install = TaskKey[Unit]("install", "install all dependencies for web ui")
@@ -73,9 +73,20 @@ object Tasks {
   val buildCoffee = TaskKey[Unit]("jsbuild", "compile coffeescript")
   val buildCoffeeTask = buildCoffee := {
     println("Compile Coffeescript")
-    import sys.process._
 
-    "rake"!
+    val pwd = baseDirectory.value.getAbsolutePath
+    val c_to = s"$pwd/src/main/resources/javascript/"
+    val path = s"$pwd/src/main/resources/javascript/app"
+
+    val files = "ext" :: "feeds_controller" :: "ws_controller" :: "contoller_ext" ::
+      "main_controller" :: "models" :: "sources_controller" :: "system_controller" ::
+      "templates" :: "app" :: Nil
+
+    val rfiles = files.map { f => s"$path/$f.coffee" }.mkString(" ")
+
+    val result = new File(s"$c_to/truerss.js")
+
+    s"cat $rfiles" #| "coffee -c -b --stdio" #> result !
 
     println("Done")
   }
