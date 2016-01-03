@@ -68,13 +68,11 @@ object Libs {
   )
 
   val logs = Seq(
+    "org.apache.logging.log4j" % "log4j-api" % "2.5",
+    "org.apache.logging.log4j" % "log4j-core" % "2.5",
     "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
     "ch.qos.logback" % "logback-classic" % logbackVersion,
-    "cn.q-game" % "akka-log4j2-logger_2.11" % log4j2Version,
-    "org.apache.logging.log4j" % "log4j-api" % "2.5",
-    "org.apache.logging.log4j" % "log4j-core" % "2.5"
-
-
+    "cn.q-game" % "akka-log4j2-logger_2.11" % log4j2Version
   )
 
   val jsoup = "org.jsoup" % "jsoup" % jsoupVersion

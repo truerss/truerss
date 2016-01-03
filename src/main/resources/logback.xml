@@ -11,7 +11,6 @@
 
     <logger name="scala.slick" level="ERROR" />
     <logger name="akka" level="WARN" />
-    <logger name="truerss" level="DEBUG" />
     <root level="DEBUG">
         <appender-ref ref="CONSOLE"/>
     </root>
