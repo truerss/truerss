@@ -1,11 +1,21 @@
 
-```
+# TrueRSS version 0.0.1
 
-// Sqlite config
+is open source feed reader with customizable plugin system for any content (atom, rss, youtube channels...).
+
+# How to run
+
+1. install java
+2. download truerss-${version}.jar
+3. add config
+
+```
+// Sample config (with sqlite backend)
 truerss {
   port = 8000
   host = localhost
   wsPort = 8080
+  update-parallelism = 10
   db {
     backend = sqlite
     port = ""
@@ -17,4 +27,21 @@ truerss {
   plugins = {}
 }
 ```
+
+4. run with `java -jar -Xmx150m path/to/truerss-${version}.jar &`
+5. open in browser localhost:8000/
+6. enjoy!
+
+# How to develop
+
+1. clone repo
+2. run sbt
+3. for work with UI need install web-dependencies (with `sbt install`)
+4. for backend part just open in your IDE and add feature, fix bugs
+5. create pull request
+
+# License: MIT
+
+
+
 
