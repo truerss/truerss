@@ -35,7 +35,7 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
 
     case Unread(sourceId) =>
       complete { implicit session =>
-        feeds.filter(_.read === false).buildColl
+        feeds.filter(_.read === false).sortBy(_.publishedDate.desc).buildColl
       }
 
     case FeedCount(read) =>
@@ -84,7 +84,7 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
 
     case Latest(count) =>
       complete { implicit session =>
-        feeds.filter(_.read === false).take(count).sortBy(_.publishedDate).buildColl
+        feeds.filter(_.read === false).take(count).sortBy(_.publishedDate.desc).buildColl
       }
 
     case ExtractFeedsForSource(sourceId, from, limit) =>
