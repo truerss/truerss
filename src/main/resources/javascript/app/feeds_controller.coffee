@@ -54,8 +54,11 @@ FeedsController =
         ajax.show_feed feeds[0].id(),
           (feed) ->
             feed = new Feed(feed)
-            result = Templates.feed_template.render({feed: feed})
-            Templates.article_view.render(result).html()
+            try
+              result = Templates.feed_template.render({feed: feed})
+              Templates.article_view.render(result).html()
+            catch error
+              logger.error("error when insert feed #{error}")
 
             original_feed.merge(feed)
             unless feed.read()
