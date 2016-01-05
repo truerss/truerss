@@ -1,7 +1,7 @@
 project/project
 project/target
 target
-
+output*
 *.class
 *.log
 .history
