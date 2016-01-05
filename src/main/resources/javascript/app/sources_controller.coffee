@@ -45,6 +45,8 @@ SourcesController =
             if feeds.length > 0
               redirect(source.feed()[0].href())
 
+      state.to(States.Source)
+
   refresh_one: (e, id) ->
     ajax.refresh_one id
 
@@ -83,13 +85,15 @@ SourcesController =
             source.set_error("url.url_validator", e.responseText)
 
 
+  mark_all: (event) ->
+    unless !state.hasState(States.Source)
+      url = location.pathname
+      if url.startsWith("/show/")
+        normalized = decodeURIComponent(url.split("/")[2])
+        source = Sources.takeFirst (s) -> s.normalized() == normalized
+        if source
+          ajax.mark_as_read(source.id())
+        else
+          logger.warn("source not found with normalized: '#{normalized}' from '#{url}'")
 
-
-
-
-
-
-
-
-
-
+    event.preventDefault()

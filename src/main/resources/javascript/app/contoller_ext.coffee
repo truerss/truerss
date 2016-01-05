@@ -71,6 +71,9 @@ class AjaxService
   about: (success) ->
     @_get("/about", success, @k)
 
+  mark_as_read: (source_id) ->
+    @_put("#{@sources_api}/mark/#{source_id}", @k, @k)
+
   load_ejs: (url) ->
     jQuery.ajax
       type: "GET"
@@ -119,6 +122,7 @@ States =
   About: 4
   Plugins: 5
   List: 6
+  Source: 7
 
 class Steps
   constructor: (state = States.Main) ->

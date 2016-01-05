@@ -78,9 +78,8 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
 
     case MarkAll(sourceId) =>
       complete { implicit session =>
-        val source = sources.filter(_.id === sourceId).firstOption
         feeds.filter(_.sourceId === sourceId).map(f => f.read).update(true)
-        source
+        sources.filter(_.id === sourceId).firstOption
       }
 
     case Latest(count) =>
