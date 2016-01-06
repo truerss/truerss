@@ -1,4 +1,6 @@
 package truerss
+
+import java.net.URLClassLoader
 import java.util.Properties
 
 import akka.actor.{ActorSystem, Props}
@@ -91,7 +93,7 @@ object Boot extends App {
       val dbUsername = dbConf.getString("username")
       val dbPassword = dbConf.getString("password")
 
-      val backend: Option[SupportedDb] = DBProfile.get(dbBackend)//Some(H2)
+      val backend: Option[SupportedDb] = Some(H2)// DBProfile.get(dbBackend)//Some(H2)
 
       if (backend.isEmpty) {
         Console.err.println(s"Unsupported database backend: $dbBackend")
@@ -150,7 +152,7 @@ object Boot extends App {
 
       implicit val system = ActorSystem("truerss")
 
-      system.actorOf(Props(new SystemActor(actualConfig, db, driver)), "system-actor")
+      system.actorOf(Props(classOf[SystemActor], actualConfig, db, driver), "system-actor")
 
     case None =>
       Console.err.println("Unknown argument")

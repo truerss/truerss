@@ -1,5 +1,7 @@
 
 FeedsController =
+  _current_feed: null
+
   view: (normalized) ->
     normalized = decodeURIComponent(normalized)
     source = Sources.takeFirst (s) -> s.normalized() == normalized
@@ -45,10 +47,18 @@ FeedsController =
       logger.info("#{f} remove from favorite list")
       @_favorite_helper(f, false)
 
+  view0: (e, id) -> # helper, if feeds have not uniq name need check it
+    @_current_feed = id
+
   show: (source_name, feed_name) ->
     source = Sources.takeFirst (s) -> s.normalized() == source_name
     if source
-      feeds = source.feed().filter (feed) -> feed.normalized() == decodeURI(feed_name)
+      feeds = if @_current_feed
+        cf = @_current_feed
+        source.feed().filter (feed) -> feed.id() == parseInt(cf)
+      else
+        source.feed().filter (feed) -> feed.normalized() == decodeURI(feed_name)
+
       if feeds.length > 0
         original_feed = feeds[0]
         ajax.show_feed feeds[0].id(),

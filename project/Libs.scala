@@ -9,7 +9,7 @@ object Libs {
     val postgresqlVersion = "9.1-901-1.jdbc4"
     val mysqlVersion = "5.1.36"
     val sqliteVersion = "3.8.7"
-    val romeVersion = "1.5.0"
+    val romeVersion = "1.5.1"
     val commonValidatorVersion = "1.4.0"
     val ceVersion = "0.0.2"
     val shapelessVersion = "2.1.0"
