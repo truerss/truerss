@@ -93,6 +93,7 @@ SourcesController =
         source = Sources.takeFirst (s) -> s.normalized() == normalized
         if source
           ajax.mark_as_read(source.id())
+          source.count(0)
         else
           logger.warn("source not found with normalized: '#{normalized}' from '#{url}'")
 
