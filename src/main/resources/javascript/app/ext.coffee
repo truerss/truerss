@@ -49,3 +49,13 @@ String::htmlize = () ->
   @replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/&/g,'&amp;')
   .replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&')
   .replace(/@/,'`at`')
+
+Array::group_by = (key) ->
+  o = {}
+  for a in @
+    k = a[key]
+    if o[k]
+      o[k].push(a)
+    else
+      o[k] = [a]
+  o
