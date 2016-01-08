@@ -64,6 +64,16 @@ class Feed extends Sirius.BaseModel
     else
       "<div>impossible extract content <a href='#{@url()}'>#{@title()}</a></div>"
 
+# just a wrapper on Feed + Source Name
+class FavoriteFeed
+  constructor: (feed) ->
+    @id = feed.id()
+    @url = feed.url()
+    @title = feed.title()
+    @description = feed.description()
+    @href = feed.href()
+    @source_name = feed.source().name()
+
 
 Sources = new Sirius.Collection(Source, {index: ['id', 'name', 'normalized']})
 Sources.subscribe "add", (source) ->

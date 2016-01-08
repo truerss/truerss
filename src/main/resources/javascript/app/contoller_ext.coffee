@@ -169,10 +169,24 @@ class Steps
 })();
 `
 
+class CurrentPostService
+  constructor: () ->
+    @current = null
+  set: (id) ->
+    @current = id
+    return
+  is_empty: () -> @current is null
+  get: () -> @current
+  clear: () ->
+    @current = null
+    return
+
+
 
 ControllerExt =
   ajax: new AjaxService()
   state: new Steps()
+  posts: new CurrentPostService()
   read_cookie: window.readCookie
   delete_cookie: (cn) ->
     document.cookie = cn + '=; Path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;'

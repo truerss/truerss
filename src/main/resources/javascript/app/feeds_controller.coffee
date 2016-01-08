@@ -1,6 +1,5 @@
 
 FeedsController =
-  _current_feed: null
 
   view: (normalized) ->
     normalized = decodeURIComponent(normalized)
@@ -20,8 +19,12 @@ FeedsController =
 
   favorites: () ->
     ajax.favorites_feed (response) ->
-      feeds = response.map (f) -> new Feed(f)
-      html = Templates.favorites_template.render({feeds: feeds})
+      # extract sources
+      feeds = response.map (f) ->
+        feed = new Feed(f)
+        new FavoriteFeed(feed)
+
+      html = Templates.favorites_template.render({feeds: feeds.group_by('source_name')})
       Templates.article_view.render(html).html()
       state.to(States.Favorites)
 
@@ -48,13 +51,13 @@ FeedsController =
       @_favorite_helper(f, false)
 
   view0: (e, id) -> # helper, if feeds have not uniq name need check it
-    @_current_feed = id
+    posts.set(id)
 
   show: (source_name, feed_name) ->
     source = Sources.takeFirst (s) -> s.normalized() == source_name
     if source
-      feeds = if @_current_feed
-        cf = @_current_feed
+      feeds = if !posts.is_empty()
+        cf = posts.get()
         source.feed().filter (feed) -> feed.id() == parseInt(cf)
       else
         source.feed().filter (feed) -> feed.normalized() == decodeURI(feed_name)

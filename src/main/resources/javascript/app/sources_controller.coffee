@@ -46,6 +46,7 @@ SourcesController =
               redirect(source.feed()[0].href())
 
       state.to(States.Source)
+      posts.clear()
 
   refresh_one: (e, id) ->
     ajax.refresh_one id
