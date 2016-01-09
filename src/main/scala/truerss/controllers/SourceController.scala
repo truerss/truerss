@@ -8,7 +8,7 @@ import com.github.fntzr.spray.routing.ext.BaseController
 import com.rometools.opml.feed.opml.Opml
 import com.rometools.rome.io.WireFeedInput
 import org.xml.sax.InputSource
-import spray.http.{MultipartFormData, StatusCodes}
+import spray.http.{HttpCharsets, HttpCharset, MultipartFormData, StatusCodes}
 import spray.routing.{Route, HttpService}
 import truerss.models.{ApiJsonProtocol, Source, SourceHelper}
 import truerss.system.{db, util}
@@ -17,6 +17,8 @@ import truerss.util.Lens
 import scala.concurrent.Future
 import scala.util.control.Exception._
 import scala.util.{Failure => F, Success => S, Try}
+
+import shapeless.syntax.typeable._
 
 trait SourceController extends BaseController
   with ProxyRefProvider with ActorRefExt with ResponseHelper {
@@ -73,11 +75,9 @@ trait SourceController extends BaseController
   def fromFile = {
     entity(as[MultipartFormData]) { formData => c =>
       val interval = 8
-      val file = formData.fields.map(_.entity.asString).reduce(_ + _)
+      val file = formData.fields.map(_.entity.asString(HttpCharsets.`UTF-8`)).reduce(_ + _)
       val input = new WireFeedInput()
-      val opml = input.build(new InputSource(
-        new StringReader(file.replaceAll("[^\\x20-\\x7e]", "")))) // FIXME this not correct, when we replace characters
-      .asInstanceOf[Opml]
+      val opml = input.build(new InputSource(new StringReader(file))).cast[Opml].get
       val result = opml.getOutlines.flatMap(_.getChildren).map { x =>
         (Option(x.getXmlUrl), Option(x.getTitle))
       }.collect {
