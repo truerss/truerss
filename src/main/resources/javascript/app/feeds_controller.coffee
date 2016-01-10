@@ -54,6 +54,8 @@ FeedsController =
     posts.set(id)
 
   show: (source_name, feed_name) ->
+    source_name = decodeURIComponent(source_name)
+    feed_name = decodeURIComponent(feed_name)
     source = Sources.takeFirst (s) -> s.normalized() == source_name
     if source
       feeds = if !posts.is_empty()
@@ -85,6 +87,7 @@ FeedsController =
               status  : 'danger',
               timeout : 4000,
               pos     : 'top-center'
-
+    else
+      logger.warn("Source not found #{source_name}")
 
 

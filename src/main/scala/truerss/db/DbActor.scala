@@ -60,6 +60,7 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
       complete { implicit session =>
         val res = sources.filter(_.id === sourceId).firstOption
         sources.filter(_.id === sourceId).delete
+        feeds.filter(_.sourceId === sourceId).delete
         res
       }
 
