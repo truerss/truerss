@@ -1,6 +1,7 @@
 package truerss
 
 import java.net.URLClassLoader
+import java.nio.file.Paths
 import java.util.Properties
 
 import akka.actor.{ActorSystem, Props}
@@ -38,11 +39,15 @@ object Boot extends App {
     case Some(trueRSSConfig) =>
       val configFileName = "truerss.config"
       val appDir = trueRSSConfig.appDir
+      val confPath = s"${appDir}/${configFileName}"
       val pluginDir = s"${appDir}/plugins"
-      val configFile = new File(s"${appDir}/${configFileName}")
-      if (!configFile.exists()) {
-        Console.err.println(s"Config file ${configFileName} not exist in ${appDir}")
-        sys.exit(1)
+      val userConfigFile = new File(confPath)
+
+      val (isUserConf, configFile) = if (!userConfigFile.exists()) {
+        Console.println(s"Config file $configFileName not exist in $appDir")
+        (false, new File(getClass.getClassLoader.getResource("default.conf").getPath))
+      } else {
+        (true, userConfigFile)
       }
 
       val pluginDirFile = new File(pluginDir)
@@ -104,7 +109,11 @@ object Boot extends App {
 
       val db = backend.get match {
         case Sqlite =>
-          val url =   s"jdbc:$dbBackend:/$dbName"
+          val url = if (isUserConf) {
+            s"jdbc:$dbBackend:/$dbName"
+          } else {
+            s"jdbc:$dbBackend:/${Paths.get("").toAbsolutePath}/$dbName"
+          }
           JdbcBackend.Database.forURL(url, driver=dbProfile.driver)
         case H2 =>
           val url = "jdbc:h2:mem:test;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1"
