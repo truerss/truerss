@@ -1,4 +1,4 @@
-<div class="tm-main uk-width-medium-3-4">
+<div class="tm-main uk-width-medium-3-4 uk-margin-top">
     <article class="uk-article" style="width:120%;">
 
         <h1 class="uk-article-title">
@@ -23,6 +23,15 @@
                 Original
             <a/>
           </div>
+
+          <div class="uk-width-1-2 uk-text-left uk-margin-top">
+              <button id="truerss-prev" class="uk-button uk-button-success uk-button-mini"
+              type="button" data-feed-id="<%= feed.id() %>">prev</button>
+            </div>
+            <div class="uk-width-1-2 uk-text-right uk-margin-top">
+              <button id="truerss-next" class="uk-button uk-button-success uk-button-mini"
+              type="button" data-feed-id="<%= feed.id() %>">next</button>
+            </div>
         </div>
 
         <hr class="uk-article-divider">

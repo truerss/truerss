@@ -47,6 +47,7 @@ SourcesController =
 
       state.to(States.Source)
       posts.clear()
+      sources.set(source.id())
 
   refresh_one: (e, id) ->
     ajax.refresh_one id

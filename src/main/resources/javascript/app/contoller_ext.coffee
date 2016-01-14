@@ -123,6 +123,7 @@ States =
   Plugins: 5
   List: 6
   Source: 7
+  Feed: 8
 
 class Steps
   constructor: (state = States.Main) ->
@@ -169,7 +170,7 @@ class Steps
 })();
 `
 
-class CurrentPostService
+class GlobalStateService
   constructor: () ->
     @current = null
   set: (id) ->
@@ -186,7 +187,8 @@ class CurrentPostService
 ControllerExt =
   ajax: new AjaxService()
   state: new Steps()
-  posts: new CurrentPostService()
+  posts: new GlobalStateService()
+  sources: new GlobalStateService()
   read_cookie: window.readCookie
   delete_cookie: (cn) ->
     document.cookie = cn + '=; Path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;'

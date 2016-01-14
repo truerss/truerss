@@ -69,6 +69,8 @@ $ ->
     "click a[href='#restart-system']": controller: SystemController, action: "restart"
     "click a[href='#stop-system']": controller: SystemController, action: "stop"
     "click a[href='#exit-app']": controller: SystemController, action: "exit"
+    "click #truerss-next": controller: FeedsController, action: "next", data: "data-feed-id", guard: "prev_next_guard"
+    "click #truerss-prev": controller: FeedsController, action: "prev", data: "data-feed-id", guard: "prev_next_guard"
 
 
   app = Sirius.Application.run

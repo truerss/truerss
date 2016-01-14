@@ -81,6 +81,7 @@ FeedsController =
                 original_feed.read(true)
                 feed.read(true)
                 source.count(source.count() - 1)
+            state.to(States.Feed)
           (error) ->
             UIkit.notify
               message : error.responseText,
@@ -90,4 +91,42 @@ FeedsController =
     else
       logger.warn("Source not found #{source_name}")
 
+  prev_next_guard: () -> state.hasState(States.Feed)
 
+  prev: (e, feed_id) ->
+    source_id = sources.get()
+    source = Sources.takeFirst (s) -> s.id() == source_id
+    if source
+      arr = source.feed()
+      if arr.length > 0
+        index = 0
+        for f in arr
+          if f.id() == parseInt(feed_id)
+            index = f.id()
+        ch = jQuery("a[data-feed-id='#{index}']").parent().prev().children()
+        if ch.length > 0
+          new_feed_id = ch.attr('data-feed-id')
+          posts.set(new_feed_id)
+          redirect(ch.attr('href'))
+
+    else
+      logger.warn("Source not found #{source_id}")
+
+  next: (e, feed_id) ->
+    source_id = sources.get()
+    source = Sources.takeFirst (s) -> s.id() == source_id
+    if source
+      arr = source.feed()
+      if arr.length > 0
+        index = 0
+        for f in arr
+          if f.id() == parseInt(feed_id)
+            index = f.id()
+        ch = jQuery("a[data-feed-id='#{index}']").parent().next().children()
+        if ch.length > 0
+          new_feed_id = ch.attr('data-feed-id')
+          posts.set(new_feed_id)
+          redirect(ch.attr('href'))
+
+    else
+      logger.warn("Source not found #{source_id}")
