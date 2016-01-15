@@ -88,7 +88,7 @@ SourcesController =
 
 
   mark_all: (event) ->
-    unless !state.hasState(States.Source)
+    unless !(state.hasState(States.Source) || state.hasState(States.Feed))
       url = location.pathname
       if url.startsWith("/show/")
         normalized = decodeURIComponent(url.split("/")[2])
