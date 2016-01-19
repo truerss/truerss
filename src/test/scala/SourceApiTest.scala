@@ -1,5 +1,3 @@
-
-
 import akka.actor.Props
 import akka.testkit.TestProbe
 import org.scalatest._
@@ -216,7 +214,7 @@ class SourceApiTest extends FunSpec with Matchers
       }
     }
 
-    it("mark all as read for source") {
+    it("mark as read for source") {
       val sourceId = feeds.filterNot(_.read)(0).sourceId
       Put(s"$sourceUrl/mark/${sourceId}") ~> computeRoute ~> check {
         val count = db withSession { implicit session =>
@@ -226,10 +224,25 @@ class SourceApiTest extends FunSpec with Matchers
         count should be(0)
       }
     }
+
+    it("mark all as read") {
+      Put(s"$sourceUrl/markall") ~> computeRoute ~> check {
+        val count = db withSession { implicit session =>
+          driver.query.feeds
+            .filter(f => f.read === false).length.run
+        }
+        count should be(0)
+      }
+    }
   }
 
-  describe("Lates") {
+  describe("Latest") {
     it("return all non read feeds") {
+
+      db withSession { implicit session =>
+        driver.query.feeds.filter(_.read === true).map(f => f.read).update(false).toLong
+      }
+
       Get(s"${sourceUrl}/latest/10") ~> computeRoute ~> check {
         val res = JsonParser(responseAs[String]).convertTo[Vector[Feed]]
         res.size should be > 0

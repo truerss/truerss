@@ -44,9 +44,11 @@ trait SourceController extends BaseController
     }
   }
 
+  def markAll = end(MarkAll)
+
   def delete(num: Long) = end(DeleteSource(num))
 
-  def markAll(num: Long) = end(MarkAll(num))
+  def mark(num: Long) = end(Mark(num))
 
   def latest(count: Long) = end(Latest(count))
 

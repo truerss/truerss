@@ -74,6 +74,9 @@ class AjaxService
   mark_as_read: (source_id) ->
     @_put("#{@sources_api}/mark/#{source_id}", @k, @k)
 
+  mark_all_as_read: () ->
+    @_put("#{@sources_api}/markall", @k, @k)
+
   load_ejs: (url) ->
     jQuery.ajax
       type: "GET"

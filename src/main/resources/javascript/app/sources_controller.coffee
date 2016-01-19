@@ -87,7 +87,7 @@ SourcesController =
             source.set_error("url.url_validator", e.responseText)
 
 
-  mark_all: (event) ->
+  mark: (event) ->
     unless !(state.hasState(States.Source) || state.hasState(States.Feed))
       url = location.pathname
       if url.startsWith("/show/")
@@ -100,3 +100,8 @@ SourcesController =
           logger.warn("source not found with normalized: '#{normalized}' from '#{url}'")
 
     event.preventDefault()
+
+  mark_all: (event) ->
+    ajax.mark_all_as_read()
+    Sources.all().forEach (s) -> s.count(0)
+    return

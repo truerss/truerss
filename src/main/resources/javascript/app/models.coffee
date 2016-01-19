@@ -97,7 +97,7 @@ Sources.subscribe "add", (source) ->
     "span.source-count":
       from: "count"
       transform: (x) ->
-        if isNaN(parseInt(x, 10)) || x <= 0
+        if isNaN(parseInt(x, 10)) || parseInt(x, 10) <= 0
           "0"
         else
           "#{x}"

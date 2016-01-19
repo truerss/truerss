@@ -77,7 +77,12 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
             source.state, source.normalized).toLong
       }
 
-    case MarkAll(sourceId) =>
+    case MarkAll =>
+      complete { implicit session =>
+        feeds.filter(_.read === false).map(f => f.read).update(true).toLong
+      }
+
+    case Mark(sourceId) =>
       complete { implicit session =>
         feeds.filter(_.sourceId === sourceId).map(f => f.read).update(true)
         sources.filter(_.id === sourceId).firstOption

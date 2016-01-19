@@ -30,7 +30,8 @@ trait Routing extends Routable with Redirectize {
             post0[SourceController]("create") ~
             delete0[SourceController](LongNumber ~> "delete") ~
             put0[SourceController](LongNumber ~> "update") ~
-            put0[SourceController](("mark" / LongNumber) ~> "markAll") ~
+            put0[SourceController]("markall" ~> "markAll") ~
+            put0[SourceController](("mark" / LongNumber) ~> "mark") ~
             get0[SourceController](("unread" / LongNumber) ~> "unread") ~
             get0[SourceController](("latest"  / LongNumber) ~> "latest") ~
             get0[SourceController](("feeds" / LongNumber) ~> "feeds") ~

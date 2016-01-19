@@ -4,7 +4,6 @@ import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.pattern._
 import akka.util.Timeout
 import truerss.controllers.BadRequestResponse
-import truerss.system.db.FeedCountForSource
 import truerss.util.{ApplicationPlugins, Jsonize, SourceValidator}
 
 import scala.concurrent.Future
@@ -157,6 +156,9 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
     case msg @ (_: Latest | _ : Favorites.type) =>
       (dbRef ? msg).mapTo[Vector[Feed]]
         .map(ModelsResponse(_)) pipeTo sender
+
+    case MarkAll => (dbRef ? MarkAll).mapTo[Long]
+      .map(l => OkResponse(s"$l")) pipeTo sender
 
     // also necessary extract content if need
     case msg: GetFeed =>

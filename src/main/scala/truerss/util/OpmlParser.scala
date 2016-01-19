@@ -34,9 +34,7 @@ object OpmlParser {
     (x \\ _outline).filter { implicit outline =>
       present(_title) && present(_xmlUrl)
     }.map { implicit outline =>
-      val z = Outline(get(_title), get(_xmlUrl))
-      println(z)
-      z
+      Outline(get(_title), get(_xmlUrl))
     }
   }
 

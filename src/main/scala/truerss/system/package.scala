@@ -14,8 +14,9 @@ package object system {
 
     case object OnlySources extends ApiMessage
     case object GetAll extends ApiMessage
+    case object MarkAll extends ApiMessage // mark all sources as read
     case class GetSource(num: Long) extends ApiMessage with Numerable
-    case class MarkAll(num: Long) extends ApiMessage with Numerable
+    case class Mark(num: Long) extends ApiMessage with Numerable
     case class DeleteSource(num: Long) extends ApiMessage with Numerable
     case class AddSource(source: Source) extends ApiMessage with Sourcing
     case class UpdateSource(num: Long, source: Source) extends ApiMessage with Sourcing
