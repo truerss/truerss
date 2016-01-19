@@ -9,9 +9,8 @@ object Libs {
     val postgresqlVersion = "9.1-901-1.jdbc4"
     val mysqlVersion = "5.1.36"
     val sqliteVersion = "3.8.7"
-    val romeVersion = "1.5.1"
     val commonValidatorVersion = "1.4.0"
-    val ceVersion = "0.0.2"
+    val ceVersion = "0.0.3"
     val shapelessVersion = "2.1.0"
     val sprayVersion = "1.3.3"
     val sprayJsonVersion = "1.3.2"
@@ -55,11 +54,6 @@ object Libs {
       .exclude("org.scala-lang", "scala-reflect")
   )
 
-  val rome = Seq(
-    "com.rometools" % "rome" % romeVersion,
-    "com.rometools" % "rome-opml" % romeVersion
-  )
-
   val scalaLib = "org.scala-lang" % "scala-library" % scalaVersion
 
   val truerss = Seq(
@@ -90,8 +84,7 @@ object Libs {
       .exclude("commons-collections", "commons-collections"),
     "com.typesafe" % "config" % configVersion,
     "com.github.scopt" %% "scopt" % scoptVersion,
-    "org.java-websocket" % "Java-WebSocket" % jwsVersion,
-    "joda-time" % "joda-time" % jodaVersion
+    "org.java-websocket" % "Java-WebSocket" % jwsVersion
   )
 
   val tests = Seq(
@@ -102,7 +95,7 @@ object Libs {
     "io.codearte.jfairy" % "jfairy" % "0.5.1" % "test"
   )
 
-  val deps = db ++ spray ++ rome ++ truerss ++ logs ++
+  val deps = db ++ spray ++ truerss ++ logs ++
     Seq(jsoup, akka, shapeless) ++ utils ++ tests
 
 }

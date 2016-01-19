@@ -126,7 +126,7 @@ case class CurrentDriver(profile: JdbcProfile) {
 
     def publishedDate = column[Date]("published_date")
 
-    def description = column[String]("description", O.Nullable, O.DBType("VARCHAR(6000)"))
+    def description = column[String]("description", O.Nullable, O.DBType("TEXT"))
 
     def content = column[String]("content", O.Nullable, O.DBType("TEXT"))
 

@@ -95,7 +95,7 @@ class SourceActor(source: Source, feedReader: BaseFeedReader,
     val response = getResponse(url)
 
     if (response.isError) {
-      throw new RuntimeException(s"Connection error for ${url}")
+      throw new RuntimeException(s"Connection error for $url")
     }
 
     Jsoup.parse(response.body).body().html()

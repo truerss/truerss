@@ -1,24 +1,16 @@
 package truerss.controllers
 
-import java.io.StringReader
-import java.net.URL
-
 import akka.pattern.ask
 import com.github.fntzr.spray.routing.ext.BaseController
-import com.rometools.opml.feed.opml.Opml
-import com.rometools.rome.io.WireFeedInput
-import org.xml.sax.InputSource
-import spray.http.{HttpCharsets, HttpCharset, MultipartFormData, StatusCodes}
-import spray.routing.{Route, HttpService}
+import spray.http.{HttpCharsets, MultipartFormData, StatusCodes}
+import spray.routing.{HttpService, Route}
 import truerss.models.{ApiJsonProtocol, Source, SourceHelper}
 import truerss.system.{db, util}
-import truerss.util.Lens
+import truerss.util.OpmlParser
 
 import scala.concurrent.Future
 import scala.util.control.Exception._
 import scala.util.{Failure => F, Success => S, Try}
-
-import shapeless.syntax.typeable._
 
 trait SourceController extends BaseController
   with ProxyRefProvider with ActorRefExt with ResponseHelper {
@@ -29,9 +21,6 @@ trait SourceController extends BaseController
   import db._
   import spray.json._
   import util._
-  import Lens._
-
-  import scala.collection.JavaConversions._
 
   def all = end(GetAll)
 
@@ -75,38 +64,35 @@ trait SourceController extends BaseController
   def fromFile = {
     entity(as[MultipartFormData]) { formData => c =>
       val interval = 8
-      val file = formData.fields.map(_.entity.asString(HttpCharsets.`UTF-8`)).reduce(_ + _)
-      val input = new WireFeedInput()
-      val opml = input.build(new InputSource(new StringReader(file))).cast[Opml].get
-      val result = opml.getOutlines.flatMap(_.getChildren).map { x =>
-        (Option(x.getXmlUrl), Option(x.getTitle))
-      }.collect {
-        case p @ (Some(url), Some(title)) => Some((url, title))
-        case _ => None
-      }.flatMap(identity(_)).map { case t @ (url, title) =>
-        val _t = if (title.trim.isEmpty) {
-          new URL(url).getHost.replaceAll("""\.""", "-")
-        } else {
-          title
-        }
-        val s = SourceHelper.from(url, _t, interval)
-        (proxyRef ? AddSource(s.normalize)).mapTo[Response]
-      }
-      Future.sequence(result).onComplete {
-        case S(xs) =>
-          xs.foreach {
-            case BadRequestResponse(msg) =>
-              proxyRef ! Notify(NotifyLevels.Danger, msg)
-            case _ =>
+      val file = formData.fields.map(_.entity.asString(HttpCharsets.`UTF-8`))
+        .reduce(_ + _)
+      OpmlParser.parse(file).fold(
+        err => {
+          proxyRef ! Notify(NotifyLevels.Danger, s"Error when import file $err")
+          c.complete(StatusCodes.BadRequest, err)
+        },
+        xs => {
+          val result = xs.map { x =>
+            SourceHelper.from(x.link, x.title, interval)
+          }.map(s => (proxyRef ? AddSource(s.normalize)).mapTo[Response])
+          Future.sequence(result).onComplete {
+            case S(xs) =>
+              xs.foreach {
+                case BadRequestResponse(msg) =>
+                  proxyRef ! Notify(NotifyLevels.Danger, msg)
+                case _ =>
+              }
+              c.complete(StatusCodes.OK, "ok")
+            case F(error) =>
+              proxyRef ! Notify(NotifyLevels.Danger, s"Error when import file ${error.getMessage}")
+              c.complete(StatusCodes.BadRequest, "oops")
           }
-          c.complete(StatusCodes.OK, "ok")
-        case F(error) =>
-          proxyRef ! Notify(NotifyLevels.Danger, s"Error when import file ${error.getMessage}")
-          c.complete(StatusCodes.BadRequest, "oops")
-      }
+        }
+      )
     }
   }
 
-  private def ttry(possibleInt: String, recover: Int) = Try(possibleInt.toInt).getOrElse(recover)
+  private def ttry(possibleInt: String, recover: Int) =
+    Try(possibleInt.toInt).getOrElse(recover)
 
 }

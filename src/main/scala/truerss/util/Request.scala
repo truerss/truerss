@@ -23,7 +23,6 @@ final object Request {
   )
 
 
-
   def getResponse(url: String): HttpResponse[String] = {
     val response = scalaj.http.Http(url)
       .option(HttpOptions.connTimeout(connectionTimeout))

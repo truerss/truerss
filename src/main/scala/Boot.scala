@@ -143,7 +143,6 @@ object Boot extends App {
       import driver.profile.simple._
 
       import truerss.models.{Source, Neutral}
-      import org.joda.time.DateTime
 
       db withSession { implicit session =>
         if (MTable.getTables("sources").list.isEmpty) {

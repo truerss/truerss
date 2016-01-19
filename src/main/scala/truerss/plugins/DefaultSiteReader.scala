@@ -1,22 +1,21 @@
 package truerss.plugins
 
-import java.io.ByteArrayInputStream
 import java.net.URL
-import java.util.Date
 
 import com.github.truerss.ContentExtractor
 import com.github.truerss.base.ContentTypeParam.{HtmlRequest, UrlRequest}
 import com.github.truerss.base._
-import com.rometools.rome.io.{ParsingFeedException => PE, SyndFeedInput, XmlReader}
 import com.typesafe.config.Config
 import org.jsoup.Jsoup
 
 import scala.collection.JavaConversions._
 import scala.util.control.Exception._
 
+import truerss.util.syntax.{\/, ext}
+
 class DefaultSiteReader(config: Config)
   extends BaseSitePlugin(config) {
-
+  import ext._
   import org.apache.logging.log4j.LogManager
   private final val logger = LogManager.getLogger("DefaultSiteReader")
 
@@ -24,9 +23,8 @@ class DefaultSiteReader(config: Config)
   import truerss.util.Request._
 
   implicit def exception2error(x: Throwable) = x match {
-    case x: PE => Left(ParsingError(x.getMessage))
-    case x: RuntimeException => Left(ConnectionError(x.getMessage))
-    case x: Exception => Left(UnexpectedError(x.getMessage))
+    case x: RuntimeException => ConnectionError(x.getMessage).left
+    case x: Exception => UnexpectedError(x.getMessage).left
   }
 
   override val author = "fntz"
@@ -38,65 +36,42 @@ class DefaultSiteReader(config: Config)
 
   override val priority = -1
 
-  val sfi = new SyndFeedInput()
-
   override def matchUrl(url: URL) = true
 
   override def newEntries(url: String) = {
     catching(classOf[Exception]) either extract(url) fold(
       err => {
-        logger.error(s"new entries error -> ${url}", err)
+        logger.error(s"new entries error -> $url", err)
         err
       },
       either => either
     )
   }
 
-  private def extract(url: String): Either[Errors.Error, Vector[Entry]] = {
+  private def extract(url: String): Error \/ Vector[Entry] = {
     val response = getResponse(url)
 
     if (response.isError) {
-      Left(UnexpectedError(s"Connection error for $url with status code: ${response.code}"))
+      UnexpectedError(s"Connection error for $url with status code: ${response.code}").left
     } else {
-      // oom ?
-      val asBytes = response.body.getBytes("UTF-8")
+      val x = scala.xml.XML.loadString(response.body)
+      val parser = FeedParser.matchParser(x)
+      val xs = parser.parse(x)
 
-      val xml = new XmlReader(new ByteArrayInputStream(asBytes))
-      val feed = sfi.build(xml)
-
-      val entries = feed.getEntries.zipWithIndex.collect {
-        case p @ (entry, index) =>
-          val author = entry.getAuthor
-          val date = Option(entry.getPublishedDate).getOrElse(new Date())
-          val title = Option(entry.getTitle).map(_.trim)
-
-          val link = (Option(entry.getLink) ++ Option(entry.getUri))
-            .reduceLeftOption { (link, uri) =>
-              if (link != "") {
-                link
-              } else {
-                uri
-              }
-            }.getOrElse {
-            throw new RuntimeException(s"Impossible extract feeds for $url")
+      // filter by empty url
+      // transform url
+      // filter description
+      val result = xs.filter(_.url.isDefined)
+        .map(p =>  p.copy(url = Some(normalizeLink(url, p.url.get))))
+        .map { p =>
+          p.description match {
+            case Some(d) if d.contains("<img") =>
+              p.copy(description =  Some(Jsoup.parse(d).select("img").remove().text()))
+            case _ => p
           }
+        }.map(_.toEntry).toVector
 
-          val cont = None
-
-          val description = Option(entry.getDescription)
-            .map(d => Jsoup.parse(d.getValue).select("img").remove().text()).
-            orElse(None)
-
-          val d = if (description.map(_.trim.length).getOrElse(0) == 0) {
-            None
-          } else {
-            description
-          }
-
-          Entry(normalizeLink(url, link), title.getOrElse(s"No title-$index"),
-            author, date, d, cont)
-      }
-      Right(entries.toVector.reverse)
+      result.right
     }
   }
 
@@ -124,18 +99,18 @@ class DefaultSiteReader(config: Config)
         catching(classOf[Exception]) either extractContent(url.toString) fold(
           err => {
             logger.error(s"content error -> $url", err.getMessage)
-            Left(UnexpectedError(err.getMessage))
+            UnexpectedError(err.getMessage).left
           },
           either => either
         )
-      case HtmlRequest(_) => Left(UnexpectedError("Pass url only"))
+      case HtmlRequest(_) => UnexpectedError("Pass url only").left
     }
   }
 
-  private def extractContent(url: String): Either[Errors.Error, Option[String]] = {
+  private def extractContent(url: String): Error \/ Option[String] = {
     val response = getResponse(url)
     if (response.isError) {
-      Left(UnexpectedError(s"Connection error for $url"))
+      UnexpectedError(s"Connection error for $url").left
     } else {
       val url0 = new URL(url)
       val base = s"${url0.getProtocol}://${url0.getHost}"
@@ -160,7 +135,7 @@ class DefaultSiteReader(config: Config)
 
       need.select("form, input, meta, style, script").foreach(_.remove)
 
-      Right(Some(need.html()))
+      need.html().some.right
     }
   }
 

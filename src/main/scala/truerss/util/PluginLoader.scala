@@ -1,12 +1,11 @@
 package truerss.util
 
 import java.io.File
-import java.net.{URLClassLoader, URL}
+import java.net.{URL, URLClassLoader}
 import java.util.jar._
 
 import com.github.truerss.base._
-import com.typesafe.config.{ConfigFactory, Config}
-
+import com.typesafe.config.Config
 
 import scala.collection.mutable.ArrayBuffer
 import scala.language.existentials

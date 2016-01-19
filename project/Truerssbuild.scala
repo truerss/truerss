@@ -49,15 +49,18 @@ object Truerssbuild extends Build {
       assemblyMergeStrategy in assembly := {
         case x if x.toString.contains(".conf") => MergeStrategy.concat
         case PathList(ps @ _*) =>
-          if (ps.contains("MANIFEST.MF") || ps.contains("META-INF"))
-            if (ps == List("MANIFEST.MF", "META-INF"))
-              MergeStrategy.first
-            else
-              MergeStrategy.discard
+          if (ps.contains("log4j-provider.properties"))
+            MergeStrategy.concat
           else
+            if (ps.contains("MANIFEST.MF") || ps.contains("META-INF"))
+              if (ps == List("MANIFEST.MF", "META-INF"))
+                MergeStrategy.first
+              else
+                MergeStrategy.discard
+            else
+              MergeStrategy.first
+          case x =>
             MergeStrategy.first
-        case x =>
-          MergeStrategy.first
       },
       test in assembly := {},
       fork in compile := true,

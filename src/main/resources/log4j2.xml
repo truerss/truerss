@@ -6,12 +6,12 @@
             <TimeBasedTriggeringPolicy />
         </RollingFile>
 
-        <!--
 
-        <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%highlight{ %d{HH:mm:ss} %X{akkaSource} %-5level %logger{36} - %msg{1}%n }"/>
-        </Console>
-        -->
+
+        <!--<Console name="rollingFile" target="SYSTEM_OUT">-->
+            <!--<PatternLayout pattern="%highlight{ %d{HH:mm:ss} %X{akkaSource} %-5level %logger{36} - %msg{1}%n }"/>-->
+        <!--</Console>-->
+
 
     </Appenders>
     <Loggers>

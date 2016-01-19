@@ -1,7 +1,11 @@
 package truerss.util
 
+import java.time.{LocalDateTime, ZoneId, LocalDate}
+import java.util.Date
+
 import com.github.truerss.base.Entry
 import truerss.models.Feed
+
 
 object Util {
   implicit class StringExt(s: String) {
@@ -36,9 +40,14 @@ object Util {
     )
   }
 
+  implicit class LocalDateExt(ld: LocalDateTime) {
+    def toDate: Date = {
+      Date.from(ld.atZone(ZoneId.systemDefault()).toInstant)
+    }
+  }
 
 }
 
-trait Jsonize
+
 
 

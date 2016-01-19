@@ -2,10 +2,9 @@
 import java.util.{Date, UUID}
 
 import io.codearte.jfairy.Fairy
-import org.joda.time._
 import truerss.models
 import truerss.models.Neutral
-
+import java.time.LocalDateTime
 
 object Gen {
   import models.{Feed, Source}
@@ -41,7 +40,7 @@ object Gen {
 
   def genSource(id: Option[Long] = None) = {
     val name = genName
-    val z = new DateTime()
+    val z = LocalDateTime.now()
 
     Source(id = id,
       url = genUrl,

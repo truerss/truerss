@@ -7,6 +7,7 @@ import akka.pattern._
 import akka.util.Timeout
 import java.net.URL
 import com.github.truerss.base.ContentTypeParam
+import com.github.truerss.base.Errors.UnexpectedError
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{BeforeAndAfterAll, FunSpec, Matchers}
 import spray.can.Http
@@ -71,8 +72,8 @@ with ScalatestRouteTest with BeforeAndAfterAll {
     it("return error when parse failed") {
       val result = defaultReader.newEntries(badRss)
       result.isLeft should be(true)
-      result.left.get should be(ParsingError(
-        "Invalid XML: Error on line 1: Content is not allowed in prolog.")
+      result.left.get should be(UnexpectedError(
+        "Content is not allowed in prolog.")
       )
     }
 
