@@ -17,7 +17,7 @@ object Truerssbuild extends Build {
     resolvers += "JCenter" at "http://jcenter.bintray.com/",
     resolvers += "karussell_releases" at "https://github.com/karussell/mvnrepo",
     resolvers += Resolver.bintrayRepo("truerss", "maven"),
-    scalaVersion := "2.11.6",
+    scalaVersion := "2.11.7",
     scalacOptions ++= Seq(
       "-deprecation",
       "-feature",
