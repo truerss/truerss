@@ -6,7 +6,7 @@ import java.util.Properties
 
 import akka.actor.{ActorSystem, Props}
 
-import com.typesafe.config.{ConfigException, ConfigFactory}
+import com.typesafe.config.{Config, ConfigException, ConfigFactory}
 import com.zaxxer.hikari.{HikariDataSource, HikariConfig}
 
 import java.io.File
@@ -39,13 +39,15 @@ object Boot extends App {
     case Some(trueRSSConfig) =>
       val configFileName = "truerss.config"
       val appDir = trueRSSConfig.appDir
-      val confPath = s"${appDir}/${configFileName}"
-      val pluginDir = s"${appDir}/plugins"
+      val confPath = s"$appDir/$configFileName"
+      val pluginDir = s"$appDir/plugins"
       val userConfigFile = new File(confPath)
+
+      val defaultConfigName = "default.conf"
 
       val (isUserConf, configFile) = if (!userConfigFile.exists()) {
         Console.println(s"Config file $configFileName not exist in $appDir")
-        (false, new File(getClass.getClassLoader.getResource("default.conf").getPath))
+        (false, new File(getClass.getClassLoader.getResource(defaultConfigName).getFile))
       } else {
         (true, userConfigFile)
       }
@@ -54,14 +56,19 @@ object Boot extends App {
 
       if (pluginDirFile.exists()) {
         if (!pluginDirFile.canRead) {
-          Console.err.println(s"""Add read access for ${pluginDir}""")
+          Console.err.println(s"""Add read access for $pluginDir""")
           sys.exit(1)
         }
       } else {
-        pluginDirFile.mkdir()
+        pluginDirFile.mkdirs()
       }
 
       val conf = ConfigFactory.parseFile(configFile)
+        .withFallback(ConfigFactory.parseString(
+          scala.io.Source
+          .fromInputStream(getClass.getClassLoader.getResourceAsStream(defaultConfigName)).mkString)
+      )
+      
       val appConfig = conf.getConfig(TrueRSSConfig.root)
       val dbConf = appConfig.getConfig(TrueRSSConfig.db)
       val pluginConf = appConfig.getConfig(TrueRSSConfig.plugins)
@@ -98,7 +105,7 @@ object Boot extends App {
       val dbUsername = dbConf.getString("username")
       val dbPassword = dbConf.getString("password")
 
-      val backend: Option[SupportedDb] = DBProfile.get(dbBackend)//Some(H2)
+      val backend: Option[SupportedDb] = Some(H2)//DBProfile.get(dbBackend)//Some(H2)
 
       if (backend.isEmpty) {
         Console.err.println(s"Unsupported database backend: $dbBackend")
