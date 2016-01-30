@@ -92,7 +92,9 @@ object Libs {
     "org.scalactic" % "scalactic_2.11" % scalaTestVersion % "test",
     "com.typesafe.akka" %% "akka-testkit" % akkaVersion % "test",
     "io.spray" %% "spray-testkit" % sprayVersion % "test",
-    "io.codearte.jfairy" % "jfairy" % "0.5.1" % "test"
+    ("io.codearte.jfairy" % "jfairy" % "0.5.1" % "test")
+      .exclude("org.yaml", "snakeyaml"),
+    "org.yaml" % "snakeyaml" % "1.16" % "test"
   )
 
   val deps = db ++ spray ++ truerss ++ logs ++
