@@ -1,7 +1,6 @@
 
-import java.util.{Date, UUID}
+import java.util.{Random, Date, UUID}
 
-import io.codearte.jfairy.Fairy
 import truerss.models
 import truerss.models.Neutral
 import java.time.LocalDateTime
@@ -9,8 +8,6 @@ import java.time.LocalDateTime
 object Gen {
   import models.{Feed, Source}
   import truerss.util.Util._
-
-  private val fairy = Fairy.create()
 
   def genId = UUID.randomUUID().toString
 
@@ -30,13 +27,17 @@ object Gen {
       url
   }
 
-  def genName = fairy.company().name()
+  def genName = genId
 
-  def genUrl = fairy.company().url()
+  def genUrl = s"http://example${genId.replaceAll("-", "")}.com"
 
-  def genAuthor = fairy.person().fullName()
+  def genAuthor = genId
 
-  def genText = fairy.textProducer().paragraph()
+  def genText = Vector.fill(10)(genId).mkString("\n")
+
+  def genInt = new Random().nextInt(11) + 1
+
+  def tOf = if (genInt / 2 == 0) true else false
 
   def genSource(id: Option[Long] = None) = {
     val name = genName
@@ -45,7 +46,7 @@ object Gen {
     Source(id = id,
       url = genUrl,
       name = name,
-      interval = fairy.baseProducer().randomBetween(1, 12),
+      interval = genInt,
       state = Neutral,
       normalized = name.normalize,
       lastUpdate = z.plusDays(1).toDate
@@ -57,15 +58,15 @@ object Gen {
     Feed(
       id = None,
       sourceId = sourceId,
-      url = s"${sourceUrl}/feed/${genId}",
+      url = s"$sourceUrl/feed/$genId",
       title = title,
       author = genAuthor,
       publishedDate = new Date(),
       description = Some(genText),
       content = None,
       normalized = title.normalize,
-      favorite = fairy.baseProducer().trueOrFalse(),
-      read = fairy.baseProducer().trueOrFalse(),
+      favorite = tOf,
+      read = tOf,
       delete = false
     )
   }

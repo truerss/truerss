@@ -24,10 +24,7 @@ object Libs {
     val log4j2Version = "1.0.0"
     val baseVersion = "0.0.5"
     val jsoupVersion = "1.8.3"
-    val jodaVersion = "2.8.2"
     val scalaTestVersion = "3.0.0-M7"
-    val javafakerVersion = "0.5"
-    val jfairyVersion = "0.4.3"
   }
 
   import versions._
@@ -91,8 +88,7 @@ object Libs {
     "org.scalatest" % "scalatest_2.11" % scalaTestVersion % "test",
     "org.scalactic" % "scalactic_2.11" % scalaTestVersion % "test",
     "com.typesafe.akka" %% "akka-testkit" % akkaVersion % "test",
-    "io.spray" %% "spray-testkit" % sprayVersion % "test",
-    "io.codearte.jfairy" % "jfairy" % "0.5.1" % "test"
+    "io.spray" %% "spray-testkit" % sprayVersion % "test"
   )
 
   val deps = db ++ spray ++ truerss ++ logs ++
