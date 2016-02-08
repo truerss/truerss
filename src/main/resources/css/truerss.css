@@ -8,7 +8,7 @@ table div.truerss-middle input {
 }
 
 /*nav div ul li a,*/
-nav div ul li i {
+nav div ul li i, li span.uk-badge.source-count {
   cursor: pointer !important;
 }
 
