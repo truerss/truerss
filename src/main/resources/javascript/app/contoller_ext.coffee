@@ -44,14 +44,14 @@ class AjaxService
   update_source: (id, params, success, error) ->
     @_put("#{@sources_api}/#{id}", params, success, error)
 
-  restart_system: (success, error) ->
-    @_get("#{@system_api}/restart", success, error)
+  restart_system: (success) ->
+    @_get("#{@system_api}/restart", success, @k)
 
-  stop_system: (success, error) ->
-    @_get("#{@system_api}/stop", success, error)
+  stop_system: (success) ->
+    @_get("#{@system_api}/stop", success, @k)
 
-  exit_app: (success, error) ->
-    @_get("#{@system_api}/exit", success, error)
+  exit_app: (success) ->
+    @_get("#{@system_api}/exit", success, @k)
 
   favorites_feed: (success, error) ->
     @_get("#{@feeds_api}/favorites", success, error)
@@ -84,7 +84,7 @@ class AjaxService
 
   count_header: () -> "XCount"
 
-  _delete: (url, success, error = () -> ) ->
+  _delete: (url, success, error = @k ) ->
     $.ajax
       type: "DELETE"
       url: url
@@ -109,7 +109,7 @@ class AjaxService
       success: success
       error: error
 
-  _get: (url, success, error = () -> ) ->
+  _get: (url, success, error = @k ) ->
     $.ajax
       type: "GET"
       url: url
