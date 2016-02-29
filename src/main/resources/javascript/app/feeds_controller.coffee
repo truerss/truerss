@@ -82,6 +82,7 @@ FeedsController =
                 feed.read(true)
                 source.count(source.count() - 1)
             state.to(States.Feed)
+            posts.set(original_feed.id())
           (error) ->
             UIkit.notify
               message : error.responseText,
@@ -130,3 +131,19 @@ FeedsController =
 
     else
       logger.warn("Source not found #{source_id}")
+
+  check_key: (e) ->
+    code = e.keyCode
+    (code == 39 || code == 37) && state.hasState(States.Feed)
+
+  move: (e) ->
+    code = e.keyCode
+    post = posts.get()
+    if post
+      if e.keyCode == 37 # prev
+        @prev(e, post)
+      else if e.keyCode == 39 # next
+        @next(e, post)
+      else
+        # skip
+
