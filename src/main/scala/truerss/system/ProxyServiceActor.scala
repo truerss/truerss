@@ -4,7 +4,7 @@ import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.pattern._
 import akka.util.Timeout
 import truerss.controllers.BadRequestResponse
-import truerss.util.{ApplicationPlugins, Jsonize, SourceValidator}
+import truerss.util.{ApplicationPlugins, Jsonize, SourceValidator, Util}
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -21,9 +21,11 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
   import network._
   import plugins.GetPluginList
   import truerss.controllers.{InternalServerErrorResponse, ModelResponse, ModelsResponse, NotFoundResponse, OkResponse}
-  import truerss.models.{Enable, Feed, Neutral, Source}
+  import truerss.models.{Feed, Source}
   import util._
   import ws._
+  import Util._
+  import responseHelpers._
 
   implicit val timeout = Timeout(7 seconds)
 
@@ -39,28 +41,12 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
   stream.subscribe(dbRef, classOf[AddFeeds])
   stream.subscribe(dbRef, classOf[SetState])
 
-  val ok = OkResponse("ok")
-  def sourceNotFound(x: Numerable) =
-    NotFoundResponse(s"Source with id = ${x.num} not found")
-  def sourceNotFound = NotFoundResponse(s"Source not found")
-  def feedNotFound = NotFoundResponse(s"Feed not found")
-  def feedNotFound(num: Long) = NotFoundResponse(s"Feed with id = ${num} not found")
-  def optionFeedResponse[T <: Jsonize](x: Option[T]) = x match {
-    case Some(m) => ModelResponse(m)
-    case None => feedNotFound
-  }
-
-  def getState(url: String) = if (appPlugins.matchUrl(new java.net.URL(url))) {
-    Enable
-  } else {
-    Neutral
-  }
 
   def addOrUpdate[T <: Jsonize](msg: Sourcing,
                                 f: Long => ModelResponse[T]) = {
     SourceValidator.validate(msg.source) match {
       case Right(source) =>
-        val state = getState(msg.source.url)
+        val state = appPlugins.getState(msg.source.url)
         val newSource = msg.source.copy(state = state)
         val (newMsg, checkUrl, checkName) = msg match {
           case AddSource(_) => (AddSource(newSource), UrlIsUniq(msg.source.url),
@@ -127,7 +113,7 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
         msg,
         (x: Long) => {
           val source = msg.source.copy(id = Some(x))
-          val newSource = source.recount(0).withState(getState(source.url))
+          val newSource = source.recount(0).withState(appPlugins.getState(source.url))
           stream.publish(SourceAdded(newSource))
           sourcesRef ! NewSource(newSource)
           ModelResponse(newSource)
