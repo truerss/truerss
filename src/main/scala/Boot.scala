@@ -1,12 +1,11 @@
 package truerss
 
-import java.net.URLClassLoader
 import java.nio.file.Paths
 import java.util.Properties
 
 import akka.actor.{ActorSystem, Props}
 
-import com.typesafe.config.{Config, ConfigException, ConfigFactory}
+import com.typesafe.config.{ConfigException, ConfigFactory}
 import com.zaxxer.hikari.{HikariDataSource, HikariConfig}
 
 import java.io.File
@@ -68,7 +67,7 @@ object Boot extends App {
           scala.io.Source
           .fromInputStream(getClass.getClassLoader.getResourceAsStream(defaultConfigName)).mkString)
       )
-      
+
       val appConfig = conf.getConfig(TrueRSSConfig.root)
       val dbConf = appConfig.getConfig(TrueRSSConfig.db)
       val pluginConf = appConfig.getConfig(TrueRSSConfig.plugins)
@@ -105,7 +104,7 @@ object Boot extends App {
       val dbUsername = dbConf.getString("username")
       val dbPassword = dbConf.getString("password")
 
-      val backend: Option[SupportedDb] = Some(H2)//DBProfile.get(dbBackend)//Some(H2)
+      val backend: Option[SupportedDb] = DBProfile.get(dbBackend)//Some(H2)
 
       if (backend.isEmpty) {
         Console.err.println(s"Unsupported database backend: $dbBackend")
