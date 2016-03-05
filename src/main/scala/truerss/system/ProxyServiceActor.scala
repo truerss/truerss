@@ -1,12 +1,14 @@
 package truerss.system
 
+import java.util.concurrent.Executors
+
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.pattern._
 import akka.util.Timeout
 import truerss.controllers.BadRequestResponse
 import truerss.util.{ApplicationPlugins, Jsonize, SourceValidator, Util}
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 import scala.language.postfixOps
 

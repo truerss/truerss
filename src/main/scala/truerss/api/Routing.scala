@@ -2,21 +2,22 @@ package truerss.api
 
 import akka.actor._
 import akka.event.LoggingReceive
-
+import java.util.concurrent.Executors
 import com.github.fntzr.spray.routing.ext.Routable
-import spray.http.HttpHeaders.RawHeader
 
-import spray.http.{HttpHeaders, HttpCookie, StatusCodes}
+import spray.http.StatusCodes
 import spray.routing.PathMatcher
 
 import truerss.controllers._
+
+import scala.concurrent.ExecutionContext
 
 
 trait Routing extends Routable with Redirectize {
 
   def route(
              proxyRef: ActorRef,
-             context: ActorRefFactory,
+             ectx: scala.concurrent.ExecutionContextExecutor,
              wsPort: Int,
              jsFiles: Vector[String],
              cssFiles: Vector[String]
@@ -85,6 +86,7 @@ class RoutingService(proxyRef: ActorRef, wsPort: Int,
                      jsFiles: Vector[String], cssFiles: Vector[String])
   extends Actor with Routing with ActorLogging {
   def actorRefFactory = context
+  val ectx = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(10))
   def receive = LoggingReceive { runRoute(route(proxyRef,
-    context, wsPort, jsFiles, cssFiles)) }
+    ectx, wsPort, jsFiles, cssFiles)) }
 }

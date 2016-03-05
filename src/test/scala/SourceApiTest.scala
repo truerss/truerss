@@ -1,3 +1,5 @@
+import java.util.concurrent.Executors
+
 import akka.actor.Props
 import akka.testkit.TestProbe
 import org.scalatest._
@@ -11,6 +13,7 @@ import truerss.system.ProxyServiceActor
 import truerss.system.util.NewSource
 import truerss.util.ApplicationPlugins
 
+import scala.concurrent.ExecutionContext
 import scala.language.postfixOps
 import scala.slick.driver.H2Driver.simple._
 
@@ -30,7 +33,7 @@ class SourceApiTest extends FunSpec with Matchers
   val proxyRef = system.actorOf(Props(new ProxyServiceActor(
     ApplicationPlugins(),
     dbRef, sourcesRef.ref, sysActor.ref)), "test-proxy")
-  val context = system
+  val context = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(10))
 
   val computeRoute = route(proxyRef, context, 8081, Vector.empty, Vector.empty)
 

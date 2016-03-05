@@ -1,22 +1,23 @@
 package truerss.controllers
 
-import akka.actor.{ActorRef, ActorRefFactory}
+import akka.actor.ActorRef
 import akka.pattern.ask
 import akka.util.Timeout
-import spray.http.{HttpHeaders, HttpHeader}
+import spray.http.HttpHeaders
 import spray.http.HttpHeaders.RawHeader
-import spray.httpx.marshalling.ToResponseMarshallable
 import spray.routing.HttpService._
 import spray.routing.RequestContext
 import truerss.models.ApiJsonProtocol
 import truerss.system.ApiMessage
 
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.language.postfixOps
+import scala.concurrent.ExecutionContextExecutor
 
 trait ProxyRefProvider {
   val proxyRef: akka.actor.ActorRef
-  val context: ActorRefFactory
+  val ectx: ExecutionContextExecutor
 }
 
 trait WsPortProvider {
@@ -42,7 +43,7 @@ trait ResponseHelper { self : ProxyRefProvider with ActorRefExt =>
 
 trait ActorRefExt { self : ProxyRefProvider =>
   import ApiJsonProtocol._
-  import context.dispatcher
+  implicit val ec = ectx
   import spray.json._
 
   implicit val timeout = Timeout(10 seconds)

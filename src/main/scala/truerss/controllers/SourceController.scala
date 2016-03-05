@@ -17,7 +17,6 @@ trait SourceController extends BaseController
 
   import ApiJsonProtocol._
   import HttpService._
-  import context.dispatcher
   import db._
   import spray.json._
   import util._

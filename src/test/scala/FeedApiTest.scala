@@ -1,3 +1,5 @@
+import java.util.concurrent.Executors
+
 import akka.actor.Props
 import akka.testkit.{TestProbe, TestActorRef}
 import akka.util.Timeout
@@ -11,6 +13,7 @@ import truerss.db._
 import truerss.models.{Source, Feed, CurrentDriver}
 import truerss.system.network.{ExtractError, ExtractContent, ExtractContentForEntry}
 
+import scala.concurrent.ExecutionContext
 import scala.slick.driver.H2Driver.simple._
 import scala.language.postfixOps
 import scala.concurrent.duration._
@@ -45,7 +48,7 @@ with ScalatestRouteTest with Routing with Common {
   val proxyRef = system.actorOf(Props(new ProxyServiceActor(
     ApplicationPlugins(),
     dbRef, sourcesRef.ref, sysActor.ref)), "test-proxy")
-  val context = system
+  val context = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(10))
 
   val computeRoute = route(proxyRef, context, 8080, Vector.empty, Vector.empty)
 
