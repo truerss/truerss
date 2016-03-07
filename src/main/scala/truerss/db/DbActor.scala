@@ -14,6 +14,7 @@ import scala.slick.jdbc.JdbcBackend.{DatabaseDef, SessionDef}
 
 class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLogging {
 
+  // TODO use another ec
   import context.dispatcher
   import driver.profile.simple._
   import driver.query._

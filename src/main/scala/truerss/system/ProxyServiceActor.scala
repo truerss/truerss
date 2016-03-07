@@ -1,14 +1,12 @@
 package truerss.system
 
-import java.util.concurrent.Executors
-
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.pattern._
 import akka.util.Timeout
 import truerss.controllers.BadRequestResponse
 import truerss.util.{ApplicationPlugins, Jsonize, SourceValidator, Util}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
@@ -17,17 +15,17 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
                         sourcesRef: ActorRef, parent: ActorRef)
   extends Actor with ActorLogging {
 
+  import Util._
   import context.dispatcher
   import db._
   import global._
   import network._
   import plugins.GetPluginList
-  import truerss.controllers.{InternalServerErrorResponse, ModelResponse, ModelsResponse, NotFoundResponse, OkResponse}
+  import responseHelpers._
+  import truerss.controllers.{InternalServerErrorResponse, ModelResponse, ModelsResponse, OkResponse}
   import truerss.models.{Feed, Source}
   import util._
   import ws._
-  import Util._
-  import responseHelpers._
 
   implicit val timeout = Timeout(7 seconds)
 

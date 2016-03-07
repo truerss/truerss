@@ -10,7 +10,7 @@ import spray.can.Http
 
 import truerss.api.{RoutingService, WSApi}
 import truerss.config.TrueRSSConfig
-import truerss.db.DbActor
+import truerss.db.{SupportedDb, DbActor}
 import truerss.models.CurrentDriver
 import truerss.system.util.{NotifyLevels, Notify}
 
@@ -20,7 +20,8 @@ import scala.concurrent.Future
 
 class SystemActor(config: TrueRSSConfig,
                   dbDef: DatabaseDef,
-                  driver: CurrentDriver) extends Actor with ActorLogging {
+                  driver: CurrentDriver,
+                  backend: SupportedDb) extends Actor with ActorLogging {
 
   import global._
   import context.dispatcher

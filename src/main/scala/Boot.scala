@@ -166,7 +166,8 @@ object Boot extends App {
 
       implicit val system = ActorSystem("truerss")
 
-      system.actorOf(Props(classOf[SystemActor], actualConfig, db, driver), "system-actor")
+      system.actorOf(Props(classOf[SystemActor], actualConfig, db, driver,
+        backend.get), "system-actor")
 
     case None =>
       Console.err.println("Unknown argument")
