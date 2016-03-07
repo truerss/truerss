@@ -56,14 +56,21 @@ FeedsController =
   show: (source_name, feed_name) ->
     source_name = decodeURIComponent(source_name)
     feed_name = decodeURIComponent(feed_name)
+
     source = Sources.takeFirst (s) -> s.normalized() == source_name
     if source
+      name = decodeURI(feed_name)
+      finder = (source, name) ->
+        source.feed().filter (feed) -> feed.normalized() == name
       feeds = if !posts.is_empty()
         cf = posts.get()
-        source.feed().filter (feed) -> feed.id() == parseInt(cf)
+        xs = source.feed().filter (feed) -> feed.id() == parseInt(cf)
+        if xs.length == 0
+          finder(source, name)
+        else
+          xs
       else
-        source.feed().filter (feed) -> feed.normalized() == decodeURI(feed_name)
-
+        finder(source, name)
       if feeds.length > 0
         original_feed = feeds[0]
         ajax.show_feed feeds[0].id(),
