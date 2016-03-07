@@ -8,7 +8,9 @@
         </encoder>
     </appender>
 
-
+    <logger name="com.zaxxer.hikari">
+        <level value="error"/>
+    </logger>
     <logger name="scala.slick" level="ERROR" />
     <logger name="akka" level="WARN" />
     <root level="DEBUG">
