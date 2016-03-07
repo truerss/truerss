@@ -14,6 +14,7 @@ Templates =
   source_list_view: new Sirius.View("#source-list")
   feed_template: null
   article_view: new Sirius.View("#main")
+  modal_element: "#add-modal"
   modal_view: new Sirius.View("#add-modal")
   feeds_view: new Sirius.View("#feeds")
   feeds_template: null

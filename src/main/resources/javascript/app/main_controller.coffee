@@ -35,6 +35,9 @@ MainController =
       "span.source-url-error" : from: "errors.url.url_validator"
 
     modal = UIkit.modal("#add-modal")
+    # TODO use binding
+    clear_input = () ->
+      jQuery("#{Templates.modal_element} .uk-form input.custom-input").val('')
 
     Templates.modal_view.on 'button.uk-button-primary', 'click', (e) ->
       if source.is_valid()
@@ -42,11 +45,13 @@ MainController =
           (json) ->
             # see WSController
             modal.hide()
+            clear_input()
           (err) ->
             source.set_error("url.url_validator", err.responseText)
 
     Templates.modal_view.on 'button.close-modal', 'click', (e) ->
       modal.hide()
+      clear_input()
 
   _load_js_and_css: (ajax) ->
     ajax.js_all (resp) ->
