@@ -1,6 +1,8 @@
 
 # TrueRSS version 0.0.1
 
+# [Demo](http://demo.truerss.net/)
+
 is open source feed reader with customizable plugin system for any content (atom, rss, youtube channels...).
 
 # How to run
