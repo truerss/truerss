@@ -3,6 +3,8 @@
 
 # [Demo](http://demo.truerss.net/)
 
+# [screenshots](https://github.com/truerss/truerss/wiki/screenshots)
+
 is open source feed reader with customizable plugin system for any content (atom, rss, youtube channels...).
 
 # How to run
