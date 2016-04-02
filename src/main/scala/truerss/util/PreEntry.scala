@@ -13,7 +13,7 @@ case class PreEntry(
 ) {
   def toEntry: Entry = Entry(
     url = url.get,
-    title = title.getOrElse("no-title"),
+    title = title.map(x => x.substring(0, 42)).getOrElse("no-title"),
     author = author.getOrElse(""),
     description = description,
     publishedDate = publishedDate,
