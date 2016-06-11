@@ -38,7 +38,8 @@ trait Routing extends Routable with Redirectize {
             get0[SourceController](("feeds" / LongNumber) ~> "feeds") ~
             put0[SourceController](("refresh" / LongNumber) ~> "refreshOne") ~
             put0[SourceController]("refresh") ~
-            post0[SourceController]("import" ~> "fromFile")
+            post0[SourceController]("import" ~> "fromFile") ~
+            get0[SourceController]("opml")
           } ~ scope("feeds") {
             get0[FeedController]("favorites") ~
             get0[FeedController](LongNumber ~> "show") ~

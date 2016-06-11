@@ -104,7 +104,7 @@ object Boot extends App {
       val dbUsername = dbConf.getString("username")
       val dbPassword = dbConf.getString("password")
 
-      val backend: Option[SupportedDb] = DBProfile.get(dbBackend)//Some(H2)
+      val backend: Option[SupportedDb] = Some(H2)//DBProfile.get(dbBackend)//Some(H2)
 
       if (backend.isEmpty) {
         Console.err.println(s"Unsupported database backend: $dbBackend")
