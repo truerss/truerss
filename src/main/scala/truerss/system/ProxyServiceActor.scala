@@ -22,7 +22,12 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
   import network._
   import plugins.GetPluginList
   import responseHelpers._
-  import truerss.controllers.{InternalServerErrorResponse, ModelResponse, ModelsResponse, OkResponse}
+  import truerss.controllers.{
+    InternalServerErrorResponse,
+    ModelResponse,
+    ModelsResponse,
+    OkResponse
+  }
   import truerss.models.{Feed, Source}
   import util._
   import ws._
@@ -73,7 +78,7 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
           }).flatMap(identity)
 
       case Left(errs) => Future.successful(
-        BadRequestResponse(errs.toList.mkString(", ")))
+        BadRequestResponse(errs.mkString(", ")))
     }
   }
 
@@ -82,16 +87,18 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
 
     case GetAll =>
       (for {
-        counts <- (dbRef ? FeedCount(false)).mapTo[Vector[(Long, Int)]]
-        sources <- (dbRef ? GetAll).mapTo[Vector[Source]]
+        counts <- (dbRef ? FeedCount(false)).mapTo[ResponseFeedCount]
+        sources <- (dbRef ? GetAll).mapTo[ResponseSources]
       } yield {
-        val map = counts.toMap
+        val map = counts.response.toMap
         ModelsResponse(
-          sources.map(s => s.recount(map.getOrElse(s.id.get, 0)))
+          sources.xs.map(s => s.recount(map.getOrElse(s.id.get, 0)))
         )
       }) pipeTo sender
 
-    case msg: Unread => (dbRef ? msg).mapTo[Vector[Feed]]
+    case msg: Unread => (dbRef ? msg)
+      .mapTo[ResponseFeeds]
+      .map(_.xs)
       .map(ModelsResponse(_)) pipeTo sender
 
     case msg: DeleteSource =>
@@ -135,20 +142,20 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
     case msg: ExtractFeedsForSource =>
       (for {
         feeds <- (dbRef ? msg).mapTo[Vector[Feed]]
-        count <- (dbRef ? FeedCountForSource(msg.sourceId)).mapTo[Int]
-      } yield ModelsResponse(feeds, count)
+        rc <- (dbRef ? FeedCountForSource(msg.sourceId)).mapTo[ResponseCount]
+      } yield ModelsResponse(feeds, rc.count)
       ) pipeTo sender
 
     case msg @ (_: Latest | _ : Favorites.type) =>
-      (dbRef ? msg).mapTo[Vector[Feed]]
+      (dbRef ? msg).mapTo[ResponseFeeds].map(_.xs)
         .map(ModelsResponse(_)) pipeTo sender
 
-    case MarkAll => (dbRef ? MarkAll).mapTo[Long]
+    case MarkAll => (dbRef ? MarkAll).mapTo[ResponseDone].map(_.id)
       .map(l => OkResponse(s"$l")) pipeTo sender
 
     // also necessary extract content if need
     case msg: GetFeed =>
-      (dbRef ? msg).mapTo[Option[Feed]].flatMap {
+      (dbRef ? msg).mapTo[ResponseMaybeFeed].map(_.feed).flatMap {
         case Some(x) => x.content match {
           case Some(content) =>
             log.info("feed have content")
@@ -179,7 +186,7 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
     } pipeTo sender
 
     case msg : MarkFeed =>
-      (dbRef ? msg).mapTo[Option[Feed]]
+      (dbRef ? msg).mapTo[ResponseMaybeFeed].map(_.feed)
         .map{ x =>
         x.foreach(f => stream.publish(PublishEvent(f)))
         optionFeedResponse(x)
@@ -187,7 +194,7 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
 
     case msg @ (_ : UnmarkFeed |
                 _ : MarkAsReadFeed | _ : MarkAsUnreadFeed)  =>
-      (dbRef ? msg).mapTo[Option[Feed]]
+      (dbRef ? msg).mapTo[ResponseMaybeFeed].map(_.feed)
         .map(optionFeedResponse) pipeTo sender
 
     case msg: SetState =>

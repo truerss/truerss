@@ -26,30 +26,39 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
   val stream = context.system.eventStream
 
   def complete[T] = (f: SessionDef => T) =>
-    Future.successful(db withSession(f)) pipeTo sender
+    Future(db.withSession(f)) pipeTo sender
 
   def receive = {
     case GetAll | OnlySources =>
       complete { implicit session =>
-        sources.buildColl
+        ResponseSources(sources.buildColl)
       }
 
     case Unread(sourceId) =>
       complete { implicit session =>
-        feeds.filter(_.sourceId === sourceId)
-          .filter(_.read === false).sortBy(_.publishedDate.desc).buildColl
+        ResponseFeeds(
+          feeds.filter(_.sourceId === sourceId)
+            .filter(_.read === false)
+            .sortBy(_.publishedDate.desc)
+            .buildColl
+        )
       }
 
     case FeedCount(read) =>
       complete { implicit session =>
-        feeds.filter(_.read === read).groupBy(_.sourceId).map {
-          case (sourceId, xs) => sourceId -> xs.size
-        }.buildColl
+        ResponseFeedCount(
+          feeds
+            .filter(_.read === read)
+            .groupBy(_.sourceId)
+            .map {
+              case (sourceId, xs) => sourceId -> xs.size
+            }.buildColl
+        )
       }
 
     case FeedCountForSource(sourceId) =>
       complete { implicit session =>
-        feeds.filter(_.sourceId === sourceId).length.run
+        ResponseCount(feeds.filter(_.sourceId === sourceId).length.run)
       }
 
     case GetSource(sourceId) =>
@@ -80,7 +89,13 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
 
     case MarkAll =>
       complete { implicit session =>
-        feeds.filter(_.read === false).map(f => f.read).update(true).toLong
+        ResponseDone(
+          feeds
+            .filter(_.read === false)
+            .map(f => f.read)
+            .update(true)
+            .toLong
+        )
       }
 
     case Mark(sourceId) =>
@@ -91,7 +106,13 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
 
     case Latest(count) =>
       complete { implicit session =>
-        feeds.filter(_.read === false).take(count).sortBy(_.publishedDate.desc).buildColl
+        ResponseFeeds(
+          feeds
+            .filter(_.read === false)
+            .take(count)
+            .sortBy(_.publishedDate.desc)
+            .buildColl
+        )
       }
 
     case ExtractFeedsForSource(sourceId, from, limit) =>
@@ -102,40 +123,46 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
 
     case Favorites =>
       complete { implicit session =>
-        feeds.filter(_.favorite === true).buildColl
+        ResponseFeeds(
+          feeds
+            .filter(_.favorite === true)
+            .buildColl
+        )
       }
 
     case GetFeed(num) =>
       complete { implicit session =>
-        feeds.filter(_.id === num).firstOption
+        ResponseMaybeFeed(
+          feeds.filter(_.id === num).firstOption
+        )
       }
 
     case MarkFeed(feedId) =>
       complete { implicit session =>
         val res = feeds.filter(_.id === feedId).firstOption
         feeds.filter(_.id === feedId).map(e => e.favorite).update(true)
-        res
+        ResponseMaybeFeed(res.map(f => f.mark(true)))
       }
 
     case UnmarkFeed(feedId) =>
       complete { implicit session =>
         val res = feeds.filter(_.id === feedId).firstOption
         feeds.filter(_.id === feedId).map(e => e.favorite).update(false)
-        res
+        ResponseMaybeFeed(res.map(f => f.mark(false)))
       }
 
     case MarkAsReadFeed(feedId) =>
       complete { implicit session =>
         val res = feeds.filter(_.id === feedId).firstOption
         feeds.filter(_.id === feedId).map(e => e.read).update(true)
-        res
+        ResponseMaybeFeed(res.map(f => f.mark(true)))
       }
 
     case MarkAsUnreadFeed(feedId) =>
       complete { implicit session =>
         val res = feeds.filter(_.id === feedId).firstOption
         feeds.filter(_.id === feedId).map(e => e.read).update(false)
-        res
+        ResponseMaybeFeed(res.map(f => f.mark(false)))
       }
 
     case UrlIsUniq(url, id) =>
