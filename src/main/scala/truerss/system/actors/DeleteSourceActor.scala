@@ -1,24 +1,13 @@
 package truerss.system.actors
 
-import akka.actor.Actor.Receive
 import akka.actor._
-import truerss.controllers.ModelsResponse
-import truerss.system.util.SourceDeleted
-import truerss.system.{db, util}
+import truerss.system.db
+import truerss.system.util
 
 class DeleteSourceActor(override val dbRef: ActorRef, sourcesRef: ActorRef) extends CommonActor {
 
   import db._
-
-  /*
-  (dbRef ? msg).mapTo[Option[Source]].map {
-        case Some(source) =>
-          sourcesRef ! SourceDeleted(source)
-          stream.publish(SourceDeleted(source)) // => ws
-          ok
-        case None => sourceNotFound(msg)
-      }
-   */
+  import util.SourceDeleted
 
   override def receive = {
     case msg: DeleteSource =>

@@ -58,12 +58,19 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
 
     case FeedCountForSource(sourceId) =>
       complete { implicit session =>
-        ResponseCount(feeds.filter(_.sourceId === sourceId).length.run)
+        ResponseCount(
+          feeds
+            .filter(_.sourceId === sourceId)
+            .length
+            .run
+        )
       }
 
     case GetSource(sourceId) =>
       complete { implicit session =>
-        sources.filter(_.id === sourceId).firstOption
+        ResponseMaybeSource(
+          sources.filter(_.id === sourceId).firstOption
+        )
       }
 
     case DeleteSource(sourceId) =>
@@ -101,7 +108,9 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
     case Mark(sourceId) =>
       complete { implicit session =>
         feeds.filter(_.sourceId === sourceId).map(f => f.read).update(true)
-        sources.filter(_.id === sourceId).firstOption
+        ResponseMaybeSource(
+          sources.filter(_.id === sourceId).firstOption
+        )
       }
 
     case Latest(count) =>
@@ -117,8 +126,14 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
 
     case ExtractFeedsForSource(sourceId, from, limit) =>
       complete { implicit session =>
-        feeds.filter(_.sourceId === sourceId)
-          .sortBy(_.publishedDate.desc).drop(from).take(limit).buildColl
+        ResponseFeeds(
+          feeds
+            .filter(_.sourceId === sourceId)
+            .sortBy(_.publishedDate.desc)
+            .drop(from)
+            .take(limit)
+            .buildColl
+        )
       }
 
     case Favorites =>
