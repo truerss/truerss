@@ -166,7 +166,7 @@ class SourcesActor(config: TrueRSSConfig,
       source.id.map { id =>
         sourceNetwork.get(id).foreach(ref => context.stop(ref))
         sourceNetwork -= id
-        
+
         startSourceActor(source)
       }
 

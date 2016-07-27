@@ -1,11 +1,9 @@
 package truerss.system
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
-import akka.util.Timeout
 import truerss.system.actors._
 import truerss.util.{ApplicationPlugins, Util}
 
-import scala.concurrent.duration._
 import scala.language.postfixOps
 
 class ProxyServiceActor(appPlugins: ApplicationPlugins,
@@ -22,8 +20,6 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
   import util._
   import ws._
 
-  implicit val timeout = Timeout(7 seconds)
-
   val stream = context.system.eventStream
 
   val publishActor = context.actorOf(Props(
@@ -36,7 +32,8 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
   stream.subscribe(dbRef, classOf[AddFeeds])
   stream.subscribe(dbRef, classOf[SetState])
 
-  def create(props: Props) = context.actorOf(props)
+  def create(props: Props) =
+    context.actorOf(props.withDispatcher("dispatchers.truerss-dispatcher"))
 
   def dbReceive: Receive = {
     case OnlySources =>

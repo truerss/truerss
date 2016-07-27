@@ -14,8 +14,6 @@ import scala.slick.jdbc.JdbcBackend.{DatabaseDef, SessionDef}
 
 class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLogging {
 
-  // TODO use another ec
-  import context.dispatcher
   import driver.profile.simple._
   import driver.query._
   import system.db._
@@ -24,6 +22,9 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
   import truerss.util.Util._
 
   val stream = context.system.eventStream
+
+  implicit val ec = context.system.dispatchers.lookup("dispatchers.db-dispatcher")
+
 
   def complete[T] = (f: SessionDef => T) =>
     Future(db.withSession(f)) pipeTo sender
