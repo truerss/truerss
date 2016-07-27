@@ -46,13 +46,13 @@ class UpdateSourceFSM(override val dbRef: ActorRef,
           dbRef ! UpdateSource(context.sourceId, context.source)
           goto(Finish) using context
         case (0, _) =>
-          originalSender ! asBadResponse(nameError(context.source))
+          originalSender ! BadRequestResponse(nameError(context.source))
           stop
         case (_, 0) =>
-          originalSender ! asBadResponse(urlError(context.source))
+          originalSender ! BadRequestResponse(urlError(context.source))
           stop
         case (_, _) =>
-          originalSender ! asBadResponse(s"${urlError(context.source)}, ${nameError(context.source)}")
+          originalSender ! BadRequestResponse(s"${urlError(context.source)}, ${nameError(context.source)}")
           stop
       }
   }

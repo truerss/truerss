@@ -104,7 +104,7 @@ with ScalatestRouteTest with Routing with Common {
 
     it("return 404 when id not found") {
       Get(s"${feedUrl}/1000") ~> computeRoute ~> check {
-        responseAs[String] should be("Feed with id = 1000 not found")
+        responseAs[String] should be("Feed not found")
         status should be(StatusCodes.NotFound)
       }
     }

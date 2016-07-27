@@ -23,7 +23,7 @@ class FetchFeedsForSourceActor(override val dbRef: ActorRef) extends CommonActor
       dbRef ! FeedCountForSource(sourceId)
 
     case ResponseCount(count) =>
-      ModelsResponse(feeds, count)
+      originalSender ! ModelsResponse(feeds, count)
       context.stop(self)
 
   }

@@ -59,11 +59,8 @@ object Util {
 
   trait responseHelpers {
     val ok = OkResponse("ok")
-    def sourceNotFound(x: Numerable) =
-      NotFoundResponse(s"Source with id = ${x.num} not found")
-    def sourceNotFound = NotFoundResponse(s"Source not found")
-    def feedNotFound = NotFoundResponse(s"Feed not found")
-    def feedNotFound(num: Long) = NotFoundResponse(s"Feed with id = ${num} not found")
+    val sourceNotFound = NotFoundResponse(s"Source not found")
+    val feedNotFound = NotFoundResponse(s"Feed not found")
     def optionFeedResponse[T <: Jsonize](x: Option[T]) = x match {
       case Some(m) => ModelResponse(m)
       case None => feedNotFound
