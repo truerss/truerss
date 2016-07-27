@@ -4,6 +4,7 @@ import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.pattern._
 import akka.util.Timeout
 import truerss.controllers.BadRequestResponse
+import truerss.system.actors.GetAllActor
 import truerss.util.{ApplicationPlugins, Jsonize, SourceValidator, Util}
 
 import scala.concurrent.Future
@@ -86,15 +87,7 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
     case OnlySources => dbRef forward OnlySources
 
     case GetAll =>
-      (for {
-        counts <- (dbRef ? FeedCount(false)).mapTo[ResponseFeedCount]
-        sources <- (dbRef ? GetAll).mapTo[ResponseSources]
-      } yield {
-        val map = counts.response.toMap
-        ModelsResponse(
-          sources.xs.map(s => s.recount(map.getOrElse(s.id.get, 0)))
-        )
-      }) pipeTo sender
+      context.actorOf(GetAllActor.props(dbRef)) forward GetAll
 
     case msg: Unread => (dbRef ? msg)
       .mapTo[ResponseFeeds]
