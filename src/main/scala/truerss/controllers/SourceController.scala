@@ -77,8 +77,8 @@ trait SourceController extends BaseController
             SourceHelper.from(x.link, x.title, interval)
           }.map(s => (proxyRef ? AddSource(s.normalize)).mapTo[Response])
           Future.sequence(result).onComplete {
-            case S(xs) =>
-              xs.foreach {
+            case S(seq) =>
+              seq.foreach {
                 case BadRequestResponse(msg) =>
                   proxyRef ! Notify(NotifyLevels.Danger, msg)
                 case _ =>
