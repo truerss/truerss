@@ -9,30 +9,30 @@ object Tasks {
   import sys.process._
 
   val jsLibs = Seq(
-    "https://code.jquery.com/jquery-2.1.4.min.js",
-    "https://github.com/mde/ejs/releases/download/v2.3.4/ejs.min.js",
-    "https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.6/moment.min.js",
-    "https://cdnjs.cloudflare.com/ajax/libs/uikit/2.22.0/js/components/notify.min.js",
-    "https://raw.githubusercontent.com/fntz/sirius/master/sirius.min.js",
-    "https://raw.githubusercontent.com/fntz/sirius/master/jquery_adapter.min.js",
-    "https://cdnjs.cloudflare.com/ajax/libs/uikit/2.22.0/js/uikit.min.js",
-    "https://cdnjs.cloudflare.com/ajax/libs/uikit/2.22.0/js/components/upload.min.js"
+    "http://code.jquery.com/jquery-2.1.4.min.js",
+    "http://github.com/mde/ejs/releases/download/v2.3.4/ejs.min.js",
+    "http://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.6/moment.min.js",
+    "http://cdnjs.cloudflare.com/ajax/libs/uikit/2.22.0/js/components/notify.min.js",
+    "http://raw.githubusercontent.com/fntz/sirius/master/sirius.min.js",
+    "http://raw.githubusercontent.com/fntz/sirius/master/jquery_adapter.min.js",
+    "http://cdnjs.cloudflare.com/ajax/libs/uikit/2.22.0/js/uikit.min.js",
+    "http://cdnjs.cloudflare.com/ajax/libs/uikit/2.22.0/js/components/upload.min.js"
   )
 
   val cssLibs = Seq(
-    "https://cdnjs.cloudflare.com/ajax/libs/uikit/2.22.0/css/components/form-file.min.css",
-    "https://cdnjs.cloudflare.com/ajax/libs/uikit/2.22.0/css/components/notify.min.css",
-    "https://cdnjs.cloudflare.com/ajax/libs/uikit/2.22.0/css/components/placeholder.min.css",
-    "https://cdnjs.cloudflare.com/ajax/libs/uikit/2.22.0/css/components/upload.min.css",
-    "https://cdnjs.cloudflare.com/ajax/libs/uikit/2.22.0/css/uikit.almost-flat.min.css"
+    "http://cdnjs.cloudflare.com/ajax/libs/uikit/2.22.0/css/components/form-file.min.css",
+    "http://cdnjs.cloudflare.com/ajax/libs/uikit/2.22.0/css/components/notify.min.css",
+    "http://cdnjs.cloudflare.com/ajax/libs/uikit/2.22.0/css/components/placeholder.min.css",
+    "http://cdnjs.cloudflare.com/ajax/libs/uikit/2.22.0/css/components/upload.min.css",
+    "http://cdnjs.cloudflare.com/ajax/libs/uikit/2.22.0/css/uikit.almost-flat.min.css"
   )
 
   val fonts = Seq(
-    "https://github.com/FortAwesome/Font-Awesome/raw/master/fonts/FontAwesome.otf",
-    "https://github.com/FortAwesome/Font-Awesome/raw/master/fonts/fontawesome-webfont.eot",
-    "https://github.com/FortAwesome/Font-Awesome/raw/master/fonts/fontawesome-webfont.ttf",
-    "https://github.com/FortAwesome/Font-Awesome/raw/master/fonts/fontawesome-webfont.woff",
-    "https://github.com/FortAwesome/Font-Awesome/raw/master/fonts/fontawesome-webfont.woff2"
+    "http://github.com/FortAwesome/Font-Awesome/raw/master/fonts/FontAwesome.otf",
+    "http://github.com/FortAwesome/Font-Awesome/raw/master/fonts/fontawesome-webfont.eot",
+    "http://github.com/FortAwesome/Font-Awesome/raw/master/fonts/fontawesome-webfont.ttf",
+    "http://github.com/FortAwesome/Font-Awesome/raw/master/fonts/fontawesome-webfont.woff",
+    "http://github.com/FortAwesome/Font-Awesome/raw/master/fonts/fontawesome-webfont.woff2"
   )
 
   def download(url: String, dir: String): Unit = {
