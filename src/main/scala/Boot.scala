@@ -126,6 +126,8 @@ object Boot extends App {
           JdbcBackend.Database.forURL(url, driver = dbProfile.driver)
         case Postgresql | Mysql =>
           val props = new Properties()
+          props.setProperty("dataSource.serverName", dbHost)
+          props.setProperty("dataSource.portNumber", dbPort)
           props.setProperty("dataSourceClassName", dbProfile.sourceClassName)
           props.setProperty("dataSource.user", dbUsername)
           props.setProperty("dataSource.password", dbPassword)
