@@ -90,6 +90,7 @@ package object system {
     case class FeedContentUpdate(feedId: Long, content: String)
 
     case class NewSource(source: Source)
+    case class ReloadSource(source: Source)
     case class StopSource(source: Source) //TODO use
 
     case class PublishEvent(feed: Feed)

@@ -162,6 +162,14 @@ class SourcesActor(config: TrueRSSConfig,
     case msg: ExtractContent =>
       sourceNetwork.get(msg.sourceId).foreach(_ forward msg)
 
+    case ReloadSource(source) =>
+      source.id.map { id =>
+        sourceNetwork.get(id).foreach(ref => context.stop(ref))
+        sourceNetwork -= id
+        
+        startSourceActor(source)
+      }
+
     case x => log.warning(s"Unhandled message $x")
   }
 }

@@ -3,7 +3,7 @@ package truerss.system.actors
 import akka.actor.{FSM, _}
 import truerss.controllers.{BadRequestResponse, ModelResponse}
 import truerss.models.Source
-import truerss.system.{db, ws}
+import truerss.system.{db, ws, util}
 import truerss.util.{ApplicationPlugins, SourceValidator, Util}
 
 class UpdateSourceFSM(override val dbRef: ActorRef,
@@ -15,6 +15,7 @@ class UpdateSourceFSM(override val dbRef: ActorRef,
   import UpdateSourceFSM._
   import Util._
   import db._
+  import util.ReloadSource
   import ws.SourceUpdated
 
   startWith(Idle, Uninitiated)
@@ -64,7 +65,7 @@ class UpdateSourceFSM(override val dbRef: ActorRef,
         .recount(0)
 
       stream.publish(SourceUpdated(source))
-      // TODO update source actor
+      sourcesRef ! ReloadSource(source)
       originalSender ! ModelResponse(source)
       stop
   }
