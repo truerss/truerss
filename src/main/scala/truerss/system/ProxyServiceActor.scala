@@ -138,16 +138,11 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
       create(GetFeedActor.props(dbRef, sourcesRef)) forward msg
 
     case msg : MarkFeed =>
-      (dbRef ? msg).mapTo[ResponseMaybeFeed].map(_.feed)
-        .map{ x =>
-        x.foreach(f => stream.publish(PublishEvent(f)))
-        optionFeedResponse(x)
-      } pipeTo sender
+      create(MarkFeedActor.props(dbRef)) forward msg
 
     case msg @ (_ : UnmarkFeed |
                 _ : MarkAsReadFeed | _ : MarkAsUnreadFeed)  =>
-      (dbRef ? msg).mapTo[ResponseMaybeFeed].map(_.feed)
-        .map(optionFeedResponse) pipeTo sender
+      create(MarkMessagesActor.props(dbRef)) forward msg
 
     case msg: SetState =>
       stream.publish(msg)
