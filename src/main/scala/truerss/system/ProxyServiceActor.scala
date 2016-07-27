@@ -4,7 +4,7 @@ import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.pattern._
 import akka.util.Timeout
 import truerss.controllers.BadRequestResponse
-import truerss.system.actors.{GetAllActor, UnreadActor}
+import truerss.system.actors.{DeleteSourceActor, GetAllActor, UnreadActor}
 import truerss.util.{ApplicationPlugins, Jsonize, SourceValidator, Util}
 
 import scala.concurrent.Future
@@ -93,13 +93,7 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
       context.actorOf(UnreadActor.props(dbRef)) forward msg
 
     case msg: DeleteSource =>
-      (dbRef ? msg).mapTo[Option[Source]].map {
-        case Some(source) =>
-          sourcesRef ! SourceDeleted(source)
-          stream.publish(SourceDeleted(source)) // => ws
-          ok
-        case None => sourceNotFound(msg)
-      } pipeTo sender
+      context.actorOf(DeleteSourceActor.props(dbRef, sourcesRef)) forward msg
 
     case msg : Numerable => (dbRef ? msg).mapTo[Option[Source]].map{
       case Some(x) => ModelResponse(x)

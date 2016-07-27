@@ -57,7 +57,7 @@ object Util {
     }
   }
 
-  object responseHelpers {
+  trait responseHelpers {
     val ok = OkResponse("ok")
     def sourceNotFound(x: Numerable) =
       NotFoundResponse(s"Source with id = ${x.num} not found")
@@ -69,6 +69,7 @@ object Util {
       case None => feedNotFound
     }
   }
+  object responseHelpers extends responseHelpers
 
 
 }

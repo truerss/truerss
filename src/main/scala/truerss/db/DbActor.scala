@@ -71,7 +71,7 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
         val res = sources.filter(_.id === sourceId).firstOption
         sources.filter(_.id === sourceId).delete
         feeds.filter(_.sourceId === sourceId).delete
-        res
+        ResponseMaybeSource(res)
       }
 
     case AddSource(source) =>

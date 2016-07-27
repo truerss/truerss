@@ -4,11 +4,10 @@ import akka.actor._
 import truerss.controllers.ModelsResponse
 import truerss.system.db
 
-class GetAllActor(dbRef: ActorRef) extends Actor {
+class GetAllActor(override val dbRef: ActorRef) extends CommonActor {
 
   import db._
 
-  var originalSender: ActorRef = null
   var source2feedCount: Map[Long, Int] = Map.empty
 
   def receive = {
