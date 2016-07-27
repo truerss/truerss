@@ -4,7 +4,7 @@ import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.pattern._
 import akka.util.Timeout
 import truerss.controllers.BadRequestResponse
-import truerss.system.actors.GetAllActor
+import truerss.system.actors.{GetAllActor, UnreadActor}
 import truerss.util.{ApplicationPlugins, Jsonize, SourceValidator, Util}
 
 import scala.concurrent.Future
@@ -89,10 +89,8 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
     case GetAll =>
       context.actorOf(GetAllActor.props(dbRef)) forward GetAll
 
-    case msg: Unread => (dbRef ? msg)
-      .mapTo[ResponseFeeds]
-      .map(_.xs)
-      .map(ModelsResponse(_)) pipeTo sender
+    case msg: Unread =>
+      context.actorOf(UnreadActor.props(dbRef)) forward msg
 
     case msg: DeleteSource =>
       (dbRef ? msg).mapTo[Option[Source]].map {
