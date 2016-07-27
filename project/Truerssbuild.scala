@@ -1,6 +1,5 @@
 import java.util.Date
 
-import org.sbtidea.SbtIdeaPlugin._
 import sbt.Keys._
 import sbt.Package.ManifestAttributes
 import sbt._
@@ -37,11 +36,10 @@ object Truerssbuild extends Build {
   lazy val mainProject = Project(
     id = "truerss",
     base = file("."),
-    settings = net.virtualvoid.sbt.graph.Plugin.graphSettings ++ setting ++ Seq(installTask, buildCoffeeTask) ++ Seq(
+    settings = setting ++ Seq(installTask, buildCoffeeTask) ++ Seq(
       (compile in Compile) <<= (compile in Compile).dependsOn(buildCoffee),
       organization := "net.truerss",
       name := "truerss",
-      ideaExcludeFolders := ".idea" :: ".idea_modules" :: Nil,
       version := "0.0.1",
       parallelExecution in Test := false,
       assemblyJarName in assembly := s"truerss-${version.value}.jar",
