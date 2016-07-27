@@ -135,35 +135,7 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
 
     // also necessary extract content if need
     case msg: GetFeed =>
-      (dbRef ? msg).mapTo[ResponseMaybeFeed].map(_.feed).flatMap {
-        case Some(x) => x.content match {
-          case Some(content) =>
-            log.info("feed have content")
-            Future.successful(ModelResponse(x))
-          case None =>
-            (sourcesRef ? ExtractContent(x.sourceId, x.id.get, x.url))
-              .mapTo[NetworkResult].map {
-              case ExtractedEntries(sourceId, xs) =>
-                InternalServerErrorResponse("Unexpected message")
-              case ExtractContentForEntry(sourceId, feedId, content) =>
-                content match {
-                  case Some(content) =>
-                    stream.publish(FeedContentUpdate(feedId, content))
-                    ModelResponse(x.copy(content = Some(content)))
-                  case None => ModelResponse(x)
-                }
-              case ExtractError(error) =>
-                log.error(s"error on extract from ${x.sourceId} -> ${x.url}: $error")
-                InternalServerErrorResponse(error)
-
-              case SourceNotFound(sourceId) =>
-                log.error(s"source ${sourceId} not found")
-                InternalServerErrorResponse(s"source ${sourceId} not found")
-            }
-        }
-
-        case None => Future.successful(feedNotFound(msg.num))
-    } pipeTo sender
+      create(GetFeedActor.props(dbRef, sourcesRef)) forward msg
 
     case msg : MarkFeed =>
       (dbRef ? msg).mapTo[ResponseMaybeFeed].map(_.feed)
