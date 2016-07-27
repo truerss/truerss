@@ -83,15 +83,17 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
 
     case AddSource(source) =>
       complete { implicit session =>
-        (sources returning sources.map(_.id)) += source
+        ResponseSourceId((sources returning sources.map(_.id)) += source)
       }
 
     case UpdateSource(num, source) =>
       complete { implicit session =>
-        sources.filter(_.id === source.id)
-          .map(s => (s.url, s.name, s.interval, s.state, s.normalized))
-          .update(source.url, source.name, source.interval,
-            source.state, source.normalized).toLong
+        ResponseSourceId(
+          sources.filter(_.id === source.id)
+            .map(s => (s.url, s.name, s.interval, s.state, s.normalized))
+            .update(source.url, source.name, source.interval,
+              source.state, source.normalized).toLong
+        )
       }
 
     case MarkAll =>
@@ -182,13 +184,21 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
 
     case UrlIsUniq(url, id) =>
       complete { implicit session =>
-        id.map(id => sources.filter(s => s.url === url && !(s.id === id)))
-          .getOrElse(sources.filter(s => s.url === url)).length.run
+        ResponseFeedCheck(
+          id
+            .map(id => sources.filter(s => s.url === url && !(s.id === id)))
+            .getOrElse(sources.filter(s => s.url === url))
+            .length
+            .run
+        )
       }
 
     case NameIsUniq(name, id) => complete { implicit session =>
-        id.map(id => sources.filter(s => s.name === name && !(s.id === id)))
-        .getOrElse(sources.filter(s => s.name === name)).length.run
+        ResponseFeedCheck(
+          id.map(id => sources.filter(s => s.name === name && !(s.id === id)))
+          .getOrElse(sources.filter(s => s.name === name))
+            .length.run
+        )
       }
 
     case SourceLastUpdate(sourceId) =>

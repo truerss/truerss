@@ -49,44 +49,9 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
 
   def create(props: Props) = context.actorOf(props)
 
-
-  def addOrUpdate[T <: Jsonize](msg: Sourcing,
-                                f: Long => ModelResponse[T]) = {
-    SourceValidator.validate(msg.source) match {
-      case Right(source) =>
-        val state = appPlugins.getState(msg.source.url)
-        val newSource = msg.source.copy(state = state)
-        val (newMsg, checkUrl, checkName) = msg match {
-          case AddSource(_) => (AddSource(newSource), UrlIsUniq(msg.source.url),
-                NameIsUniq(msg.source.name))
-          case UpdateSource(sId, _) =>
-            (UpdateSource(sId, newSource), UrlIsUniq(msg.source.url, msg.source.id),
-              NameIsUniq(msg.source.name, msg.source.id))
-        }
-
-        (for {
-          urlIsUniq <- (dbRef ? checkUrl).mapTo[Int]
-          nameIsUniq <- (dbRef ? checkName).mapTo[Int]
-        } yield {
-            val tofb = (x: String) => Future.successful(BadRequestResponse(x))
-            val u = s"Url '${newSource.url}' already present in db"
-            val n = s"Name '${newSource.name}' not unique"
-            (urlIsUniq, nameIsUniq) match {
-              case (0, 0) =>
-                (dbRef ? newMsg).mapTo[Long].map(f)
-              case (0, _) => tofb(n)
-              case (_, 0) => tofb(u)
-              case (_, _) => tofb(s"$u, $n")
-            }
-          }).flatMap(identity)
-
-      case Left(errs) => Future.successful(
-        BadRequestResponse(errs.mkString(", ")))
-    }
-  }
-
   def dbReceive: Receive = {
-    case OnlySources => dbRef forward OnlySources
+    case OnlySources =>
+      dbRef forward OnlySources
 
     case GetAll =>
       create(GetAllActor.props(dbRef)) forward GetAll
@@ -101,28 +66,10 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
       create(NumerableActor.props(dbRef)) forward msg
 
     case msg: AddSource =>
-      addOrUpdate(
-        msg,
-        (x: Long) => {
-          val source = msg.source.copy(id = Some(x))
-          val newSource = source.recount(0).withState(appPlugins.getState(source.url))
-          stream.publish(SourceAdded(newSource))
-          sourcesRef ! NewSource(newSource)
-          ModelResponse(newSource)
-        }
-      ) pipeTo sender
+      create(AddSourceFSM.props(dbRef, sourcesRef, appPlugins)) forward msg
 
     case msg: UpdateSource =>
-      addOrUpdate(
-        msg,
-        (x: Long) => {
-          val source = msg.source.copy(id = Some(x))
-          val frontendSource = source.recount(0)
-          stream.publish(SourceUpdated(frontendSource))
-          //TODO update source actor
-          ModelResponse(frontendSource)
-        }
-      ) pipeTo sender
+      create(UpdateSourceFSM.props(dbRef, sourcesRef, appPlugins)) forward msg
 
     case msg: ExtractFeedsForSource =>
       create(FetchFeedsForSourceActor.props(dbRef)) forward msg

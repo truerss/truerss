@@ -50,6 +50,8 @@ package object system {
     case class ResponseFeedCount(response: Vector[(Long, Int)])
     case class ResponseCount(count: Int)
     case class ResponseDone(id: Long)
+    case class ResponseFeedCheck(count: Int)
+    case class ResponseSourceId(id: Long)
 
 
   }
