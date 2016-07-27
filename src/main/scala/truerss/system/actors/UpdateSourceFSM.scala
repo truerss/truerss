@@ -71,6 +71,8 @@ class UpdateSourceFSM(override val dbRef: ActorRef,
 
   initialize()
 
+  override def defaultHandler: Receive = PartialFunction.empty
+
 }
 
 object UpdateSourceFSM {

@@ -10,7 +10,7 @@ class MarkFeedActor(override val dbRef: ActorRef) extends CommonActor {
   import util.PublishEvent
   import controllers.ModelResponse
 
-  def receive = {
+  def defaultHandler = {
     case msg: MarkFeed =>
       originalSender = sender
       dbRef ! msg

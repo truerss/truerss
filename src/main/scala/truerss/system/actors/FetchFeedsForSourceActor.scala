@@ -12,7 +12,7 @@ class FetchFeedsForSourceActor(override val dbRef: ActorRef) extends CommonActor
   var feeds: Vector[Feed] = Vector.empty
   var sourceId: Long = 0L
 
-  def receive = {
+  def defaultHandler = {
     case msg: ExtractFeedsForSource =>
       originalSender = sender
       sourceId = msg.sourceId

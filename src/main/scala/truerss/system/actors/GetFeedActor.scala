@@ -15,7 +15,7 @@ class GetFeedActor(override val dbRef: ActorRef, sourcesRef: ActorRef)
 
   var feed: Feed = null
 
-  def receive = {
+  def defaultHandler = {
     case msg: GetFeed =>
       originalSender = sender
       dbRef ! msg

@@ -57,7 +57,7 @@ object Util {
     }
   }
 
-  trait responseHelpers {
+  trait ResponseHelpers {
     val ok = OkResponse("ok")
     val sourceNotFound = NotFoundResponse(s"Source not found")
     val feedNotFound = NotFoundResponse(s"Feed not found")
@@ -66,7 +66,8 @@ object Util {
       case None => feedNotFound
     }
   }
-  object responseHelpers extends responseHelpers
+
+  object ResponseHelpers extends ResponseHelpers
 
 
 }

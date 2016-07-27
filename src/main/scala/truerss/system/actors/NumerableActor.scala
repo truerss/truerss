@@ -8,7 +8,7 @@ class NumerableActor(override val dbRef: ActorRef) extends CommonActor {
 
   import db.{Numerable, ResponseMaybeSource}
 
-  override def receive = {
+  override def defaultHandler = {
     case msg: Numerable =>
       originalSender = sender
       dbRef ! msg

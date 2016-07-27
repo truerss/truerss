@@ -10,7 +10,7 @@ class GetAllActor(override val dbRef: ActorRef) extends CommonActor {
 
   var source2feedCount: Map[Long, Int] = Map.empty
 
-  def receive = {
+  def defaultHandler = {
     case GetAll =>
       originalSender = sender
       dbRef ! FeedCount(false)

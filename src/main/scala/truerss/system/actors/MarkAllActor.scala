@@ -8,7 +8,7 @@ class MarkAllActor(override val dbRef: ActorRef) extends CommonActor {
 
   import db.{MarkAll, ResponseDone}
 
-  def receive = {
+  def defaultHandler = {
     case MarkAll =>
       originalSender = sender
       dbRef ! MarkAll

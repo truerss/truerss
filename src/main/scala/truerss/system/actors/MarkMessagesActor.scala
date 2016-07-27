@@ -7,7 +7,7 @@ class MarkMessagesActor(override val dbRef: ActorRef) extends CommonActor {
 
   import db._
 
-  def receive = {
+  def defaultHandler = {
     case msg @ (_ : UnmarkFeed |
                 _ : MarkAsReadFeed | _ : MarkAsUnreadFeed) =>
       originalSender = sender

@@ -8,7 +8,7 @@ class LatestFavoritesActor(override val dbRef: ActorRef) extends CommonActor {
 
   import db.{Favorites, Latest, ResponseFeeds}
 
-  def receive = {
+  def defaultHandler = {
     case msg @ (_: Latest | _ : Favorites.type) =>
       originalSender = sender
       dbRef ! msg

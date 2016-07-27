@@ -17,7 +17,7 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
   import db._
   import global._
   import plugins.GetPluginList
-  import responseHelpers._
+  import ResponseHelpers._
   import truerss.controllers.ModelResponse
   import util._
   import ws._

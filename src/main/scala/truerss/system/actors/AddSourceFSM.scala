@@ -72,6 +72,7 @@ class AddSourceFSM(override val dbRef: ActorRef,
 
   initialize()
 
+  override def defaultHandler: Receive = PartialFunction.empty
 }
 
 object AddSourceFSM {

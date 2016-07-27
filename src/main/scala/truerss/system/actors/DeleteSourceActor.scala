@@ -9,7 +9,7 @@ class DeleteSourceActor(override val dbRef: ActorRef, sourcesRef: ActorRef) exte
   import db._
   import util.SourceDeleted
 
-  override def receive = {
+  override def defaultHandler = {
     case msg: DeleteSource =>
       originalSender = sender
       dbRef ! msg

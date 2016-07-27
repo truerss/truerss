@@ -9,7 +9,7 @@ class UnreadActor(override val dbRef: ActorRef) extends CommonActor {
   import db.ResponseFeeds
   import util.Unread
 
-  def receive = {
+  def defaultHandler = {
     case msg: Unread =>
       originalSender = sender
       dbRef ! msg
