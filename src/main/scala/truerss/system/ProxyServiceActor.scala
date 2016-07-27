@@ -47,6 +47,8 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
   stream.subscribe(dbRef, classOf[AddFeeds])
   stream.subscribe(dbRef, classOf[SetState])
 
+  def create(props: Props) = context.actorOf(props)
+
 
   def addOrUpdate[T <: Jsonize](msg: Sourcing,
                                 f: Long => ModelResponse[T]) = {
@@ -87,16 +89,16 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
     case OnlySources => dbRef forward OnlySources
 
     case GetAll =>
-      context.actorOf(GetAllActor.props(dbRef)) forward GetAll
+      create(GetAllActor.props(dbRef)) forward GetAll
 
     case msg: Unread =>
-      context.actorOf(UnreadActor.props(dbRef)) forward msg
+      create(UnreadActor.props(dbRef)) forward msg
 
     case msg: DeleteSource =>
-      context.actorOf(DeleteSourceActor.props(dbRef, sourcesRef)) forward msg
+      create(DeleteSourceActor.props(dbRef, sourcesRef)) forward msg
 
     case msg : Numerable =>
-      context.actorOf(NumerableActor.props(dbRef)) forward msg
+      create(NumerableActor.props(dbRef)) forward msg
 
     case msg: AddSource =>
       addOrUpdate(
@@ -123,14 +125,13 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
       ) pipeTo sender
 
     case msg: ExtractFeedsForSource =>
-      context.actorOf(FetchFeedsForSourceActor.props(dbRef)) forward msg
+      create(FetchFeedsForSourceActor.props(dbRef)) forward msg
 
     case msg @ (_: Latest | _ : Favorites.type) =>
-      (dbRef ? msg).mapTo[ResponseFeeds].map(_.xs)
-        .map(ModelsResponse(_)) pipeTo sender
+      create(LatestFavoritesActor.props(dbRef)) forward msg
 
-    case MarkAll => (dbRef ? MarkAll).mapTo[ResponseDone].map(_.id)
-      .map(l => OkResponse(s"$l")) pipeTo sender
+    case MarkAll =>
+      create(MarkAllActor.props(dbRef)) forward MarkAll
 
     // also necessary extract content if need
     case msg: GetFeed =>
