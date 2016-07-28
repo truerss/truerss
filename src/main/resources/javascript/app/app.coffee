@@ -72,6 +72,7 @@ $ ->
     "click #truerss-next": controller: FeedsController, action: "next", data: "data-feed-id", guard: "prev_next_guard"
     "click #truerss-prev": controller: FeedsController, action: "prev", data: "data-feed-id", guard: "prev_next_guard"
     "keyup body": controller: FeedsController, action: "move", guard: "check_key"
+    "keydown body": controller: FeedsController, action: "key_action", guard: "check_shift"
     "click #truerss-markall": controller: SourcesController, action: "mark_all"
     "click span.source-count": controller: SourcesController, action: "mark", data: "data-source-id"
 

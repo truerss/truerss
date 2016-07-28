@@ -40,6 +40,17 @@ FeedsController =
     remove.forEach (klass) -> v.render(klass).remove_class()
     add.forEach (klass) -> v.render(klass).add_class()
 
+    # mark feed in collection as favorite or unmark
+    if !sources.is_empty()
+      source = Sources.takeFirst (s) -> s.id() == sources.get()
+      if source && !posts.is_empty()
+        feed = source.feed().filter (f) -> f.id() == posts.get()
+        if feed && feed.length > 0
+          feed[0].favorite(favorite)
+
+
+
+
   favorite: (e, f) ->
     ajax.set_favorite f, (response) =>
       logger.info("#{f} mark as favorite feed")
@@ -139,8 +150,15 @@ FeedsController =
     else
       logger.warn("Source not found #{source_id}")
 
+
+  _shift_pushed : false
+
   check_key: (e) ->
     code = e.keyCode
+
+    if code == 16
+      @_shift_pushed = false
+
     (code == 39 || code == 37) && state.hasState(States.Feed)
 
   move: (e) ->
@@ -153,4 +171,73 @@ FeedsController =
         @next(e, post)
       else
         # skip
+
+
+  check_shift: (e) ->
+    code = e.keyCode
+
+    if @_shift_pushed
+      true
+    else
+      @_shift_pushed = true
+      code == 16
+
+  key_action: (e) ->
+    # shift + n (78) - next source
+    # shift + p (80) - prev source
+    # shift + m (77) - mark source as read
+    # shift + f (70) - favorite\unfavorite
+
+    if e.keyCode
+      code = e.keyCode
+
+      if code == 78
+        if !sources.is_empty()
+          next = jQuery("li\#source-#{sources.get()}").next()
+          if next.length > 0
+            next_id = parseInt(jQuery(next[0]).data("source-id"))
+            source = Sources.takeFirst (s) -> s.id() == next_id
+            if source
+              redirect("/show/#{source.normalized()}")
+
+
+
+      else if code == 80
+        if !sources.is_empty()
+          prev = jQuery("li\#source-#{sources.get()}").prev()
+          if prev.length > 0
+            prev_id = parseInt(jQuery(prev[0]).data("source-id"))
+            source = Sources.takeFirst (s) -> s.id() == prev_id
+            if source
+              redirect("/show/#{source.normalized()}")
+
+
+      else if code == 77
+        # emulate event :)
+        SourcesController.mark({
+          preventDefault: () ->
+        })
+
+      else if code == 70
+        if !posts.is_empty() && !sources.is_empty()
+          current_source_id = sources.get()
+          current_feed_id = posts.get()
+          source = Sources.takeFirst (s) -> s.id() == current_source_id
+          if source
+            feed = source.feed().filter (f) ->
+              f.id() == current_feed_id
+
+            if feed && feed.length > 0
+              f = feed[0]
+              if f.favorite()
+                FeedsController.unfavorite({}, current_feed_id)
+              else
+                FeedsController.favorite({}, current_feed_id)
+
+
+      else
+        # ignore
+
+
+
 
