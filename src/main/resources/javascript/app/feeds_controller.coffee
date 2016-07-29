@@ -64,6 +64,26 @@ FeedsController =
   view0: (e, id) -> # helper, if feeds have not uniq name need check it
     posts.set(id)
 
+
+  _display_feed: (source, original_feed, feed) ->
+
+    feed = new Feed(feed)
+
+    try
+      result = Templates.feed_template.render({feed: feed})
+      Templates.article_view.render(result).html()
+    catch error
+      logger.error("error when insert feed #{error}")
+
+    original_feed.merge(feed)
+    unless feed.read()
+      ajax.set_read feed.id(), (x) ->
+        original_feed.read(true)
+        feed.read(true)
+        source.count(source.count() - 1)
+    state.to(States.Feed)
+    posts.set(original_feed.id())
+
   show: (source_name, feed_name) ->
     source_name = decodeURIComponent(source_name)
     feed_name = decodeURIComponent(feed_name)
@@ -83,31 +103,19 @@ FeedsController =
       else
         finder(source, name)
       if feeds.length > 0
+        self = @
         original_feed = feeds[0]
         ajax.show_feed feeds[0].id(),
           (feed) ->
-            feed = new Feed(feed)
-            try
-              result = Templates.feed_template.render({feed: feed})
-              Templates.article_view.render(result).html()
-            catch error
-              logger.error("error when insert feed #{error}")
-
-            original_feed.merge(feed)
-            unless feed.read()
-              ajax.set_read feed.id(), (x) ->
-                original_feed.read(true)
-                feed.read(true)
-                source.count(source.count() - 1)
-            state.to(States.Feed)
-            posts.set(original_feed.id())
+            self._display_feed(source, original_feed, feed)
 
           (error) ->
+            self._display_feed(source, original_feed, JSON.parse(original_feed.to_json()))
             UIkit.notify
               message : error.responseText,
               status  : 'danger',
               timeout : 4000,
-              pos     : 'top-center'
+              pos     : 'top-right'
     else
       logger.warn("Source not found #{source_name}")
 
