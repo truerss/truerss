@@ -7,6 +7,8 @@
 
 # [group](https://groups.google.com/forum/#!forum/truerss)
 
+# [![Codewake](https://www.codewake.com/badges/ask_question.svg)](https://www.codewake.com/p/truerss)
+
 is open source feed reader with customizable plugin system for any content (atom, rss, youtube channels...).
 
 # How to run
