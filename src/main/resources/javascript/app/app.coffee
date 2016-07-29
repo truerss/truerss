@@ -74,7 +74,7 @@ $ ->
     "keyup body": controller: FeedsController, action: "move", guard: "check_key"
     "keydown body": controller: FeedsController, action: "key_action", guard: "check_shift"
     "click #truerss-markall": controller: SourcesController, action: "mark_all"
-    "click span.source-count": controller: SourcesController, action: "mark", data: "data-source-id"
+    "click span.source-count": controller: SourcesController, action: "mark_by_click_on_count_button", data: "data-source-id"
 
   app = Sirius.Application.run
     route: routes
