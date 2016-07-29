@@ -18,7 +18,7 @@ object Libs {
     val slickVersion = "2.1.0"
     val configVersion = "1.3.0"
     val scoptVersion = "3.3.0"
-    val hikariCPVersion = "2.3.1"
+    val hikariCPVersion = "2.4.7"
     val jwsVersion = "1.3.0"
     val logbackVersion = "1.1.2"
     val log4j2Version = "1.0.0"
@@ -34,7 +34,7 @@ object Libs {
     "postgresql" % "postgresql" % postgresqlVersion,
     "mysql" % "mysql-connector-java" % mysqlVersion,
     "org.xerial" % "sqlite-jdbc" % sqliteVersion,
-    "com.zaxxer" % "HikariCP-java6" % hikariCPVersion,
+    "com.zaxxer" % "HikariCP" % hikariCPVersion,
     "com.typesafe.slick" %% "slick" %  slickVersion
   )
 

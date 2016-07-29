@@ -1,26 +1,23 @@
 package truerss
 
+import java.io.File
 import java.nio.file.Paths
 import java.util.Properties
 
 import akka.actor.{ActorSystem, Props}
-
 import com.typesafe.config.{ConfigException, ConfigFactory}
-import com.zaxxer.hikari.{HikariDataSource, HikariConfig}
-
-import java.io.File
-
+import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
+import scopt.OptionParser
+import truerss.config.TrueRSSConfig
 import truerss.db._
 import truerss.models.CurrentDriver
 import truerss.system.SystemActor
-import truerss.config.TrueRSSConfig
 import truerss.util.PluginLoader
 
 import scala.language.postfixOps
 import scala.slick.jdbc.JdbcBackend
 import scala.slick.jdbc.meta.MTable
 import scala.util.control.Exception._
-import scopt.OptionParser
 
 
 object Boot extends App {
@@ -130,6 +127,8 @@ object Boot extends App {
           props.setProperty("dataSource.user", dbUsername)
           props.setProperty("dataSource.password", dbPassword)
           props.setProperty("dataSource.databaseName", dbName)
+          props.setProperty("dataSource.serverName", dbHost)
+          props.setProperty("dataSource.portNumber", dbPort)
           val hc = new HikariConfig(props)
           hc.setConnectionTestQuery("SELECT 1;")
           hc.setMaximumPoolSize(10)
@@ -147,8 +146,6 @@ object Boot extends App {
       val driver = new CurrentDriver(dbProfile.profile)
 
       import driver.profile.simple._
-
-      import truerss.models.{Source, Neutral}
 
       db withSession { implicit session =>
         if (MTable.getTables("sources").list.isEmpty) {

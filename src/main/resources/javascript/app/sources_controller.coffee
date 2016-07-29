@@ -28,9 +28,7 @@ SourcesController =
           f
 
         if feeds.length > 0
-          result = Templates.feeds_template.render({feeds: source.feed()})
-          Templates.feeds_view.render(result).html()
-          redirect(source.feed()[0].href())
+          render_source_feeds_and_redirect_to_first(source)
         else
           ajax.get_feeds source.id(), (feeds) ->
             feeds = feeds.map (x) ->
@@ -40,10 +38,7 @@ SourcesController =
               source.add_feed(f)
               f
 
-            result = Templates.feeds_template.render({feeds: source.feed()})
-            Templates.feeds_view.render(result).html()
-            if feeds.length > 0
-              redirect(source.feed()[0].href())
+            render_source_feeds_and_redirect_to_first(source)
 
       state.to(States.Source)
       posts.clear()
@@ -86,6 +81,14 @@ SourcesController =
             logger.error("error on update source")
             source.set_error("url.url_validator", e.responseText)
 
+  mark_by_click_on_count_button: (_, id) ->
+    id = parseInt(id, 10)
+    source = Sources.takeFirst (s) -> s.id() == id
+    if source
+      ajax.mark_as_read(id)
+      source.count(0)
+    else
+      logger.warn("source with id=#{id} not found")
 
   mark: (event, id) ->
     unless !(state.hasState(States.Source) || state.hasState(States.Feed))
@@ -98,15 +101,6 @@ SourcesController =
           source.count(0)
         else
           logger.warn("source not found with normalized: '#{normalized}' from '#{url}'")
-    else
-      # click on count button
-      id = parseInt(id, 10)
-      source = Sources.takeFirst (s) -> s.id() == id
-      if s
-        ajax.mark_as_read(id)
-        source.count(0)
-      else
-        logger.warn("source with id=#{id} not found")
 
     event.preventDefault()
 
@@ -114,3 +108,23 @@ SourcesController =
     ajax.mark_all_as_read()
     Sources.all().forEach (s) -> s.count(0)
     return
+
+  filter: (event) ->
+    hc = "uk-hidden"
+    q = jQuery(event.target).val()
+    if q.trim().length == 0
+      jQuery("li.source-element").removeClass(hc)
+
+    hide = Sources.filter (s) -> s.name().indexOf(q) == -1
+    show = Sources.filter (s) -> s.name().indexOf(q) != -1
+
+    if show.length > 0
+      show_ids = show.map (s) -> "\#source-#{s.id()}"
+      jQuery(show_ids.join(",")).removeClass(hc)
+
+    if hide.length > 0
+      hide_ids = hide.map (s) -> "\#source-#{s.id()}"
+      jQuery(hide_ids.join(",")).addClass(hc)
+
+  download: (e) ->
+    window.open("/api/v1/sources/opml")

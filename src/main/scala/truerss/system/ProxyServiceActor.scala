@@ -1,13 +1,9 @@
 package truerss.system
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
-import akka.pattern._
-import akka.util.Timeout
-import truerss.controllers.BadRequestResponse
-import truerss.util.{ApplicationPlugins, Jsonize, SourceValidator, Util}
+import truerss.system.actors._
+import truerss.util.{ApplicationPlugins, Util}
 
-import scala.concurrent.Future
-import scala.concurrent.duration._
 import scala.language.postfixOps
 
 class ProxyServiceActor(appPlugins: ApplicationPlugins,
@@ -16,18 +12,13 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
   extends Actor with ActorLogging {
 
   import Util._
-  import context.dispatcher
   import db._
   import global._
-  import network._
   import plugins.GetPluginList
-  import responseHelpers._
-  import truerss.controllers.{InternalServerErrorResponse, ModelResponse, ModelsResponse, OkResponse}
-  import truerss.models.{Feed, Source}
+  import ResponseHelpers._
+  import truerss.controllers.ModelResponse
   import util._
   import ws._
-
-  implicit val timeout = Timeout(7 seconds)
 
   val stream = context.system.eventStream
 
@@ -41,154 +32,53 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
   stream.subscribe(dbRef, classOf[AddFeeds])
   stream.subscribe(dbRef, classOf[SetState])
 
-
-  def addOrUpdate[T <: Jsonize](msg: Sourcing,
-                                f: Long => ModelResponse[T]) = {
-    SourceValidator.validate(msg.source) match {
-      case Right(source) =>
-        val state = appPlugins.getState(msg.source.url)
-        val newSource = msg.source.copy(state = state)
-        val (newMsg, checkUrl, checkName) = msg match {
-          case AddSource(_) => (AddSource(newSource), UrlIsUniq(msg.source.url),
-                NameIsUniq(msg.source.name))
-          case UpdateSource(sId, _) =>
-            (UpdateSource(sId, newSource), UrlIsUniq(msg.source.url, msg.source.id),
-              NameIsUniq(msg.source.name, msg.source.id))
-        }
-
-        (for {
-          urlIsUniq <- (dbRef ? checkUrl).mapTo[Int]
-          nameIsUniq <- (dbRef ? checkName).mapTo[Int]
-        } yield {
-            val tofb = (x: String) => Future.successful(BadRequestResponse(x))
-            val u = s"Url '${newSource.url}' already present in db"
-            val n = s"Name '${newSource.name}' not unique"
-            (urlIsUniq, nameIsUniq) match {
-              case (0, 0) =>
-                (dbRef ? newMsg).mapTo[Long].map(f)
-              case (0, _) => tofb(n)
-              case (_, 0) => tofb(u)
-              case (_, _) => tofb(s"$u, $n")
-            }
-          }).flatMap(identity)
-
-      case Left(errs) => Future.successful(
-        BadRequestResponse(errs.toList.mkString(", ")))
-    }
-  }
+  def create(props: Props) =
+    context.actorOf(props.withDispatcher("dispatchers.truerss-dispatcher"))
 
   def dbReceive: Receive = {
-    case OnlySources => dbRef forward OnlySources
+    case OnlySources =>
+      dbRef forward OnlySources
 
     case GetAll =>
-      (for {
-        counts <- (dbRef ? FeedCount(false)).mapTo[Vector[(Long, Int)]]
-        sources <- (dbRef ? GetAll).mapTo[Vector[Source]]
-      } yield {
-        val map = counts.toMap
-        ModelsResponse(
-          sources.map(s => s.recount(map.getOrElse(s.id.get, 0)))
-        )
-      }) pipeTo sender
+      create(GetAllActor.props(dbRef)) forward GetAll
 
-    case msg: Unread => (dbRef ? msg).mapTo[Vector[Feed]]
-      .map(ModelsResponse(_)) pipeTo sender
+    case msg: Unread =>
+      create(UnreadActor.props(dbRef)) forward msg
 
     case msg: DeleteSource =>
-      (dbRef ? msg).mapTo[Option[Source]].map {
-        case Some(source) =>
-          sourcesRef ! SourceDeleted(source)
-          stream.publish(SourceDeleted(source)) // => ws
-          ok
-        case None => sourceNotFound(msg)
-      } pipeTo sender
+      create(DeleteSourceActor.props(dbRef, sourcesRef)) forward msg
 
-    case msg : Numerable => (dbRef ? msg).mapTo[Option[Source]].map{
-      case Some(x) => ModelResponse(x)
-      case None => sourceNotFound(msg)
-    } pipeTo sender
+    case msg : Numerable =>
+      create(NumerableActor.props(dbRef)) forward msg
 
     case msg: AddSource =>
-      addOrUpdate(
-        msg,
-        (x: Long) => {
-          val source = msg.source.copy(id = Some(x))
-          val newSource = source.recount(0).withState(appPlugins.getState(source.url))
-          stream.publish(SourceAdded(newSource))
-          sourcesRef ! NewSource(newSource)
-          ModelResponse(newSource)
-        }
-      ) pipeTo sender
+      create(AddSourceFSM.props(dbRef, sourcesRef, appPlugins)) forward msg
 
     case msg: UpdateSource =>
-      addOrUpdate(
-        msg,
-        (x: Long) => {
-          val source = msg.source.copy(id = Some(x))
-          val frontendSource = source.recount(0)
-          stream.publish(SourceUpdated(frontendSource))
-          //TODO update source actor
-          ModelResponse(frontendSource)
-        }
-      ) pipeTo sender
+      create(UpdateSourceFSM.props(dbRef, sourcesRef, appPlugins)) forward msg
 
     case msg: ExtractFeedsForSource =>
-      (for {
-        feeds <- (dbRef ? msg).mapTo[Vector[Feed]]
-        count <- (dbRef ? FeedCountForSource(msg.sourceId)).mapTo[Int]
-      } yield ModelsResponse(feeds, count)
-      ) pipeTo sender
+      create(FetchFeedsForSourceActor.props(dbRef)) forward msg
 
     case msg @ (_: Latest | _ : Favorites.type) =>
-      (dbRef ? msg).mapTo[Vector[Feed]]
-        .map(ModelsResponse(_)) pipeTo sender
+      create(LatestFavoritesActor.props(dbRef)) forward msg
 
-    case MarkAll => (dbRef ? MarkAll).mapTo[Long]
-      .map(l => OkResponse(s"$l")) pipeTo sender
+    case MarkAll =>
+      create(MarkAllActor.props(dbRef)) forward MarkAll
 
     // also necessary extract content if need
     case msg: GetFeed =>
-      (dbRef ? msg).mapTo[Option[Feed]].flatMap {
-        case Some(x) => x.content match {
-          case Some(content) =>
-            log.info("feed have content")
-            Future.successful(ModelResponse(x))
-          case None =>
-            (sourcesRef ? ExtractContent(x.sourceId, x.id.get, x.url))
-              .mapTo[NetworkResult].map {
-              case ExtractedEntries(sourceId, xs) =>
-                InternalServerErrorResponse("Unexpected message")
-              case ExtractContentForEntry(sourceId, feedId, content) =>
-                content match {
-                  case Some(content) =>
-                    stream.publish(FeedContentUpdate(feedId, content))
-                    ModelResponse(x.copy(content = Some(content)))
-                  case None => ModelResponse(x)
-                }
-              case ExtractError(error) =>
-                log.error(s"error on extract from ${x.sourceId} -> ${x.url}: $error")
-                InternalServerErrorResponse(error)
-
-              case SourceNotFound(sourceId) =>
-                log.error(s"source ${sourceId} not found")
-                InternalServerErrorResponse(s"source ${sourceId} not found")
-            }
-        }
-
-        case None => Future.successful(feedNotFound(msg.num))
-    } pipeTo sender
+      create(GetFeedActor.props(dbRef, sourcesRef)) forward msg
 
     case msg : MarkFeed =>
-      (dbRef ? msg).mapTo[Option[Feed]]
-        .map{ x =>
-        x.foreach(f => stream.publish(PublishEvent(f)))
-        optionFeedResponse(x)
-      } pipeTo sender
+      create(MarkFeedActor.props(dbRef)) forward msg
 
     case msg @ (_ : UnmarkFeed |
                 _ : MarkAsReadFeed | _ : MarkAsUnreadFeed)  =>
-      (dbRef ? msg).mapTo[Option[Feed]]
-        .map(optionFeedResponse) pipeTo sender
+      create(MarkMessagesActor.props(dbRef)) forward msg
+
+    case Opml =>
+      create(OpmlActor.props(dbRef)) forward Opml
 
     case msg: SetState =>
       stream.publish(msg)

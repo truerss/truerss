@@ -8,18 +8,20 @@
 
 
 
-        <!--<Console name="rollingFile" target="SYSTEM_OUT">-->
-            <!--<PatternLayout pattern="%highlight{ %d{HH:mm:ss} %X{akkaSource} %-5level %logger{36} - %msg{1}%n }"/>-->
-        <!--</Console>-->
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%highlight{ %d{HH:mm:ss} %X{akkaSource} %-5level %logger{36} - %msg{1}%n }"/>
+        </Console>
 
 
     </Appenders>
     <Loggers>
         <Logger name="truerss" level="trace" additivity="false">
             <AppenderRef ref="rollingFile"/>
+            <AppenderRef ref="console"/>
         </Logger>
         <Root level="error">
             <AppenderRef ref="rollingFile"/>
+            <AppenderRef ref="console"/>
         </Root>
     </Loggers>
 </Configuration>

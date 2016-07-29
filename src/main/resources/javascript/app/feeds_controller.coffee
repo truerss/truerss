@@ -40,6 +40,17 @@ FeedsController =
     remove.forEach (klass) -> v.render(klass).remove_class()
     add.forEach (klass) -> v.render(klass).add_class()
 
+    # mark feed in collection as favorite or unmark
+    if !sources.is_empty()
+      source = Sources.takeFirst (s) -> s.id() == sources.get()
+      if source && !posts.is_empty()
+        feed = source.feed().filter (f) -> f.id() == posts.get()
+        if feed && feed.length > 0
+          feed[0].favorite(favorite)
+
+
+
+
   favorite: (e, f) ->
     ajax.set_favorite f, (response) =>
       logger.info("#{f} mark as favorite feed")
@@ -52,6 +63,26 @@ FeedsController =
 
   view0: (e, id) -> # helper, if feeds have not uniq name need check it
     posts.set(id)
+
+
+  _display_feed: (source, original_feed, feed) ->
+
+    feed = new Feed(feed)
+
+    try
+      result = Templates.feed_template.render({feed: feed})
+      Templates.article_view.render(result).html()
+    catch error
+      logger.error("error when insert feed #{error}")
+
+    original_feed.merge(feed)
+    unless feed.read()
+      ajax.set_read feed.id(), (x) ->
+        original_feed.read(true)
+        feed.read(true)
+        source.count(source.count() - 1)
+    state.to(States.Feed)
+    posts.set(original_feed.id())
 
   show: (source_name, feed_name) ->
     source_name = decodeURIComponent(source_name)
@@ -72,30 +103,19 @@ FeedsController =
       else
         finder(source, name)
       if feeds.length > 0
+        self = @
         original_feed = feeds[0]
         ajax.show_feed feeds[0].id(),
           (feed) ->
-            feed = new Feed(feed)
-            try
-              result = Templates.feed_template.render({feed: feed})
-              Templates.article_view.render(result).html()
-            catch error
-              logger.error("error when insert feed #{error}")
+            self._display_feed(source, original_feed, feed)
 
-            original_feed.merge(feed)
-            unless feed.read()
-              ajax.set_read feed.id(), (x) ->
-                original_feed.read(true)
-                feed.read(true)
-                source.count(source.count() - 1)
-            state.to(States.Feed)
-            posts.set(original_feed.id())
           (error) ->
+            self._display_feed(source, original_feed, JSON.parse(original_feed.to_json()))
             UIkit.notify
               message : error.responseText,
               status  : 'danger',
               timeout : 4000,
-              pos     : 'top-center'
+              pos     : 'top-right'
     else
       logger.warn("Source not found #{source_name}")
 
@@ -139,8 +159,15 @@ FeedsController =
     else
       logger.warn("Source not found #{source_id}")
 
+
+  _shift_pushed : false
+
   check_key: (e) ->
     code = e.keyCode
+
+    if code == 16
+      @_shift_pushed = false
+
     (code == 39 || code == 37) && state.hasState(States.Feed)
 
   move: (e) ->
@@ -153,4 +180,73 @@ FeedsController =
         @next(e, post)
       else
         # skip
+
+
+  check_shift: (e) ->
+    code = e.keyCode
+
+    if @_shift_pushed
+      true
+    else
+      @_shift_pushed = true
+      code == 16
+
+  key_action: (e) ->
+    # shift + n (78) - next source
+    # shift + p (80) - prev source
+    # shift + m (77) - mark source as read
+    # shift + f (70) - favorite\unfavorite
+
+    if e.keyCode
+      code = e.keyCode
+
+      if code == 78
+        if !sources.is_empty()
+          next = jQuery("li\#source-#{sources.get()}").next()
+          if next.length > 0
+            next_id = parseInt(jQuery(next[0]).data("source-id"))
+            source = Sources.takeFirst (s) -> s.id() == next_id
+            if source
+              redirect("/show/#{source.normalized()}")
+
+
+
+      else if code == 80
+        if !sources.is_empty()
+          prev = jQuery("li\#source-#{sources.get()}").prev()
+          if prev.length > 0
+            prev_id = parseInt(jQuery(prev[0]).data("source-id"))
+            source = Sources.takeFirst (s) -> s.id() == prev_id
+            if source
+              redirect("/show/#{source.normalized()}")
+
+
+      else if code == 77
+        # emulate event :)
+        SourcesController.mark({
+          preventDefault: () ->
+        })
+
+      else if code == 70
+        if !posts.is_empty() && !sources.is_empty()
+          current_source_id = sources.get()
+          current_feed_id = posts.get()
+          source = Sources.takeFirst (s) -> s.id() == current_source_id
+          if source
+            feed = source.feed().filter (f) ->
+              f.id() == current_feed_id
+
+            if feed && feed.length > 0
+              f = feed[0]
+              if f.favorite()
+                FeedsController.unfavorite({}, current_feed_id)
+              else
+                FeedsController.favorite({}, current_feed_id)
+
+
+      else
+        # ignore
+
+
+
 

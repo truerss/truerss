@@ -13,6 +13,10 @@ WSController =
       if source
         if location.pathname == "" || location.pathname == "/"
           redirect(source.href())
+        else
+          if state.isState(States.Source) || state.isState(States.Feed)
+            if sources && sources.get() && sources.get() == source.id()
+              render_source_feeds_and_redirect_to_first(source)
 
 
         UIkit.notify
@@ -39,12 +43,8 @@ WSController =
 
   notify: (e, msg) ->
     obj = JSON.parse(msg) # level: lvl, message: msg
-    position = if obj.level == 'success'
-      'top-left'
-    else
-      'top-center'
     UIkit.notify
       message : obj.message
       status  : obj.level,
       timeout : 3000,
-      pos     : position
+      pos     : 'top-right'

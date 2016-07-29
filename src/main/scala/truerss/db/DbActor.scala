@@ -14,8 +14,6 @@ import scala.slick.jdbc.JdbcBackend.{DatabaseDef, SessionDef}
 
 class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLogging {
 
-  // TODO use another ec
-  import context.dispatcher
   import driver.profile.simple._
   import driver.query._
   import system.db._
@@ -25,36 +23,55 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
 
   val stream = context.system.eventStream
 
+  implicit val ec = context.system.dispatchers.lookup("dispatchers.db-dispatcher")
+
+
   def complete[T] = (f: SessionDef => T) =>
-    Future.successful(db withSession(f)) pipeTo sender
+    Future(db.withSession(f)) pipeTo sender
 
   def receive = {
     case GetAll | OnlySources =>
       complete { implicit session =>
-        sources.buildColl
+        ResponseSources(sources.buildColl)
       }
 
     case Unread(sourceId) =>
       complete { implicit session =>
-        feeds.filter(_.sourceId === sourceId)
-          .filter(_.read === false).sortBy(_.publishedDate.desc).buildColl
+        ResponseFeeds(
+          feeds.filter(_.sourceId === sourceId)
+            .filter(_.read === false)
+            .sortBy(_.publishedDate.desc)
+            .buildColl
+        )
       }
 
     case FeedCount(read) =>
       complete { implicit session =>
-        feeds.filter(_.read === read).groupBy(_.sourceId).map {
-          case (sourceId, xs) => sourceId -> xs.size
-        }.buildColl
+        ResponseFeedCount(
+          feeds
+            .filter(_.read === read)
+            .groupBy(_.sourceId)
+            .map {
+              case (sourceId, xs) => sourceId -> xs.size
+            }.buildColl
+        )
       }
 
     case FeedCountForSource(sourceId) =>
       complete { implicit session =>
-        feeds.filter(_.sourceId === sourceId).length.run
+        ResponseCount(
+          feeds
+            .filter(_.sourceId === sourceId)
+            .length
+            .run
+        )
       }
 
     case GetSource(sourceId) =>
       complete { implicit session =>
-        sources.filter(_.id === sourceId).firstOption
+        ResponseMaybeSource(
+          sources.filter(_.id === sourceId).firstOption
+        )
       }
 
     case DeleteSource(sourceId) =>
@@ -62,91 +79,127 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
         val res = sources.filter(_.id === sourceId).firstOption
         sources.filter(_.id === sourceId).delete
         feeds.filter(_.sourceId === sourceId).delete
-        res
+        ResponseMaybeSource(res)
       }
 
     case AddSource(source) =>
       complete { implicit session =>
-        (sources returning sources.map(_.id)) += source
+        ResponseSourceId((sources returning sources.map(_.id)) += source)
       }
 
     case UpdateSource(num, source) =>
       complete { implicit session =>
-        sources.filter(_.id === source.id)
-          .map(s => (s.url, s.name, s.interval, s.state, s.normalized))
-          .update(source.url, source.name, source.interval,
-            source.state, source.normalized).toLong
+        ResponseSourceId(
+          sources.filter(_.id === source.id)
+            .map(s => (s.url, s.name, s.interval, s.state, s.normalized))
+            .update(source.url, source.name, source.interval,
+              source.state, source.normalized).toLong
+        )
       }
 
     case MarkAll =>
       complete { implicit session =>
-        feeds.filter(_.read === false).map(f => f.read).update(true).toLong
+        ResponseDone(
+          feeds
+            .filter(_.read === false)
+            .map(f => f.read)
+            .update(true)
+            .toLong
+        )
       }
 
     case Mark(sourceId) =>
       complete { implicit session =>
         feeds.filter(_.sourceId === sourceId).map(f => f.read).update(true)
-        sources.filter(_.id === sourceId).firstOption
+        ResponseMaybeSource(
+          sources.filter(_.id === sourceId).firstOption
+        )
       }
 
     case Latest(count) =>
       complete { implicit session =>
-        feeds.filter(_.read === false).take(count).sortBy(_.publishedDate.desc).buildColl
+        ResponseFeeds(
+          feeds
+            .filter(_.read === false)
+            .take(count)
+            .sortBy(_.publishedDate.desc)
+            .buildColl
+        )
       }
 
     case ExtractFeedsForSource(sourceId, from, limit) =>
       complete { implicit session =>
-        feeds.filter(_.sourceId === sourceId)
-          .sortBy(_.publishedDate.desc).drop(from).take(limit).buildColl
+        ResponseFeeds(
+          feeds
+            .filter(_.sourceId === sourceId)
+            .sortBy(_.publishedDate.desc)
+            .drop(from)
+            .take(limit)
+            .buildColl
+        )
       }
 
     case Favorites =>
       complete { implicit session =>
-        feeds.filter(_.favorite === true).buildColl
+        ResponseFeeds(
+          feeds
+            .filter(_.favorite === true)
+            .buildColl
+        )
       }
 
     case GetFeed(num) =>
       complete { implicit session =>
-        feeds.filter(_.id === num).firstOption
+        ResponseMaybeFeed(
+          feeds.filter(_.id === num).firstOption
+        )
       }
 
     case MarkFeed(feedId) =>
       complete { implicit session =>
         val res = feeds.filter(_.id === feedId).firstOption
         feeds.filter(_.id === feedId).map(e => e.favorite).update(true)
-        res
+        ResponseMaybeFeed(res.map(f => f.mark(true)))
       }
 
     case UnmarkFeed(feedId) =>
       complete { implicit session =>
         val res = feeds.filter(_.id === feedId).firstOption
         feeds.filter(_.id === feedId).map(e => e.favorite).update(false)
-        res
+        ResponseMaybeFeed(res.map(f => f.mark(false)))
       }
 
     case MarkAsReadFeed(feedId) =>
       complete { implicit session =>
         val res = feeds.filter(_.id === feedId).firstOption
         feeds.filter(_.id === feedId).map(e => e.read).update(true)
-        res
+        ResponseMaybeFeed(res.map(f => f.mark(true)))
       }
 
     case MarkAsUnreadFeed(feedId) =>
       complete { implicit session =>
         val res = feeds.filter(_.id === feedId).firstOption
         feeds.filter(_.id === feedId).map(e => e.read).update(false)
-        res
+        ResponseMaybeFeed(res.map(f => f.mark(false)))
       }
 
     case UrlIsUniq(url, id) =>
       complete { implicit session =>
-        id.map(id => sources.filter(s => s.url === url && !(s.id === id)))
-          .getOrElse(sources.filter(s => s.url === url)).length.run
+        ResponseFeedCheck(
+          id
+            .map(id => sources.filter(s => s.url === url && !(s.id === id)))
+            .getOrElse(sources.filter(s => s.url === url))
+            .length
+            .run
+        )
       }
 
     case NameIsUniq(name, id) => complete { implicit session =>
-        id.map(id => sources.filter(s => s.name === name && !(s.id === id)))
-        .getOrElse(sources.filter(s => s.name === name)).length.run
+        ResponseFeedCheck(
+          id.map(id => sources.filter(s => s.name === name && !(s.id === id)))
+          .getOrElse(sources.filter(s => s.name === name))
+            .length.run
+        )
       }
 
     case SourceLastUpdate(sourceId) =>

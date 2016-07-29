@@ -12,7 +12,12 @@ MainController =
   """
 
   _init_ws: (logger, adapter, port) ->
-    ws = new WebSocket("ws://#{location.hostname}:#{port}/")
+    protocol = if location.protocol is "https"
+      "wss"
+    else
+      "ws"
+
+    ws = new WebSocket("#{protocol}://#{location.hostname}:#{port}/")
     ws.onopen = () ->
       logger.info("ws open on port: #{port}")
 

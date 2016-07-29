@@ -1,19 +1,17 @@
 package truerss.system
 
-import akka.actor.SupervisorStrategy.Restart
+import akka.actor.SupervisorStrategy.Resume
 import akka.actor._
 import akka.pattern.{ask, gracefulStop}
 import akka.util.Timeout
-
-import com.github.truerss.base.{PluginInfo, Priority, UrlMatcher, BaseContentReader}
+import com.github.truerss.base.{BaseContentReader, PluginInfo, Priority, UrlMatcher}
 import com.typesafe.config.ConfigFactory
-
 import java.net.URL
 
 import truerss.config.TrueRSSConfig
-import truerss.models.{Enable, Disable, Neutral, Source}
+import truerss.models.{Disable, Enable, Neutral, Source}
 import truerss.plugins.DefaultSiteReader
-import truerss.util.ApplicationPlugins
+import truerss.system.db.ResponseSources
 
 import scala.concurrent.duration._
 import scala.concurrent.Future
@@ -51,7 +49,7 @@ class SourcesActor(config: TrueRSSConfig,
       withinTimeRange = 1 minute) {
     case x: Throwable =>
       log.error(x, x.getMessage)
-      Restart
+      Resume
   }
 
   context.system.scheduler.scheduleOnce(3 seconds, self, Start)
@@ -104,7 +102,7 @@ class SourcesActor(config: TrueRSSConfig,
   def receive = {
     case Start =>
       log.info("Start source actors")
-      (proxyRef ? OnlySources).mapTo[Vector[Source]].map { xs =>
+      (proxyRef ? OnlySources).mapTo[ResponseSources].map(_.xs).map { xs =>
         inProgress = 0
         sourceNetwork.clear()
         queue.clear()
@@ -163,6 +161,14 @@ class SourcesActor(config: TrueRSSConfig,
 
     case msg: ExtractContent =>
       sourceNetwork.get(msg.sourceId).foreach(_ forward msg)
+
+    case ReloadSource(source) =>
+      source.id.map { id =>
+        sourceNetwork.get(id).foreach(ref => context.stop(ref))
+        sourceNetwork -= id
+
+        startSourceActor(source)
+      }
 
     case x => log.warning(s"Unhandled message $x")
   }

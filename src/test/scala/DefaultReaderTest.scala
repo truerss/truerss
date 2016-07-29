@@ -62,10 +62,19 @@ with ScalatestRouteTest with BeforeAndAfterAll {
       result.isRight should be(true)
       val entries = result.right.get
       entries should have size 3
-      entries.map(_.title) should contain allOf (
+      val need = Seq(
         "Brains Sweep Themselves Clean of Toxins During Sleep (2013)",
         "Memory Efficient Hard Real-Time Garbage Collection [pdf]",
         "The US digital service"
+      ).map { title =>
+        if (title.length > 42) {
+          title.substring(0, 42)
+        } else {
+          title
+        }
+      }
+      entries.map(_.title) should contain allOf (
+        need.head, need(1), need(2)
       )
     }
 

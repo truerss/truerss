@@ -41,6 +41,19 @@ package object system {
     case class FeedCountForSource(sourceId: Long) extends ApiMessage
 
     case class SetState(sourceId: Long, state: SourceState) extends ApiMessage
+
+    // responses
+    case class ResponseSources(xs: Vector[Source])
+    case class ResponseMaybeSource(source: Option[Source])
+    case class ResponseFeeds(xs: Vector[Feed])
+    case class ResponseMaybeFeed(feed: Option[Feed])
+    case class ResponseFeedCount(response: Vector[(Long, Int)])
+    case class ResponseCount(count: Int)
+    case class ResponseDone(id: Long)
+    case class ResponseFeedCheck(count: Int)
+    case class ResponseSourceId(id: Long)
+
+
   }
 
   object network {
@@ -72,11 +85,14 @@ package object system {
     case class UpdateOne(num: Long) extends ApiMessage
     case class Unread(sourceId: Long) extends ApiMessage
 
+    case object Opml extends ApiMessage
+
     case class SourceDeleted(source: Source)
     case class SourceLastUpdate(sourceId: Long)
     case class FeedContentUpdate(feedId: Long, content: String)
 
     case class NewSource(source: Source)
+    case class ReloadSource(source: Source)
     case class StopSource(source: Source) //TODO use
 
     case class PublishEvent(feed: Feed)
@@ -96,6 +112,5 @@ package object system {
     case class SourceUpdated(source: Source)
     case class NewFeeds(xs: Vector[Feed])
   }
-
 
 }

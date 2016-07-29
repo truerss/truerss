@@ -55,7 +55,9 @@ case class Feed(id: Option[Long],
                 normalized: String,
                 favorite: Boolean = false,
                 read: Boolean = false,
-                delete: Boolean = false) extends Jsonize
+                delete: Boolean = false) extends Jsonize {
+  def mark(flag: Boolean): Feed = L.fav.set(this)(flag)
+}
 
 case class WSMessage(messageType: String, body: String)
 

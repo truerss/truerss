@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="/css/upload.min.css">
     <link rel="stylesheet" href="/css/notify.min.css">
     <link rel="stylesheet" href="/css/placeholder.min.css">
+    <link rel="stylesheet" href="/css/search.min.css">
     <link rel="stylesheet" href="/css/truerss.css">
 
 
@@ -44,6 +45,7 @@
                 <li><a href="/sources" rel="noreferrer">Sources</a></li>
                 <li><a href="/plugins" rel="noreferrer">Plugins</a></li>
                 <li><a href="/by-source" rel="noreferrer">By Source</a></li>
+                <li><a href="/opml" target="_blank">Download Opml</a></li>
                 <li><a href="/about">About</a></li>
             </ul>
 
@@ -114,6 +116,10 @@
         <div class="uk-panel">
             <h3 class="uk-panel-title">Sources<button id="truerss-markall" class="uk-button uk-button-mini uk-float-right">mark all as read</button></h3>
         </div>
+
+        <form class="uk-search">
+            <input id="search" class="uk-search-field" type="search" placeholder="search...">
+        </form>
 
         <div class="uk-panel">
             <ul class="uk-list uk-list-line" id="source-list">
