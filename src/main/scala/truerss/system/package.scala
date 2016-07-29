@@ -85,6 +85,8 @@ package object system {
     case class UpdateOne(num: Long) extends ApiMessage
     case class Unread(sourceId: Long) extends ApiMessage
 
+    case object Opml extends ApiMessage
+
     case class SourceDeleted(source: Source)
     case class SourceLastUpdate(sourceId: Long)
     case class FeedContentUpdate(feedId: Long, content: String)

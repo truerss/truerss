@@ -1,21 +1,19 @@
 package truerss.controllers
 
-import java.io.File
-
 import akka.pattern.ask
 import com.github.fntzr.spray.routing.ext.BaseController
 import spray.http._
 import spray.routing.{HttpService, Route}
 import truerss.models.{ApiJsonProtocol, Source, SourceHelper}
 import truerss.system.{db, util}
-import truerss.util.{OpmlMediaType, OpmlParser}
+import truerss.util.OpmlParser
 
 import scala.concurrent.Future
 import scala.util.control.Exception._
 import scala.util.{Try, Failure => F, Success => S}
 
 trait SourceController extends BaseController
-  with ProxyRefProvider with ActorRefExt with ResponseHelper {
+  with ProxyRefProvider with ActorRefExt with ResponseHelper  {
 
   import ApiJsonProtocol._
   import HttpService._
@@ -95,13 +93,10 @@ trait SourceController extends BaseController
     }
   }
 
-  def opml = { // x-opml+xml
-    respondWithMediaType(OpmlMediaType.opml) {
-      complete {
-        "asd"
-      }
+  def opml = {
+    respondWithMediaType(spray.http.MediaTypes.`application/octet-stream`) {
+      end(Opml)
     }
-
   }
 
   private def ttry(possibleInt: String, recover: Int) =

@@ -77,6 +77,9 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
                 _ : MarkAsReadFeed | _ : MarkAsUnreadFeed)  =>
       create(MarkMessagesActor.props(dbRef)) forward msg
 
+    case Opml =>
+      create(OpmlActor.props(dbRef)) forward Opml
+
     case msg: SetState =>
       stream.publish(msg)
 

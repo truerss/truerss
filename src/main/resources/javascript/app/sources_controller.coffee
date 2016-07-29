@@ -125,3 +125,6 @@ SourcesController =
     if hide.length > 0
       hide_ids = hide.map (s) -> "\#source-#{s.id()}"
       jQuery(hide_ids.join(",")).addClass(hc)
+
+  download: (e) ->
+    window.open("/api/v1/sources/opml")

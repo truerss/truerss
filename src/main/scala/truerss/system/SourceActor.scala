@@ -33,11 +33,12 @@ class SourceActor(source: Source, feedReader: BaseFeedReader,
   val interval = source.interval * 60 // interval in hours
   val diff = (currentTime - lastUpdate) / (60 * 1000)
 
-  val tickTime = if ((diff > interval) || diff == 0) {
-    0 seconds
-  } else {
-    (interval - diff) minutes
-  }
+//  val tickTime = if ((diff > interval) || diff == 0) {
+//    0 seconds
+//  } else {
+//    (interval - diff) minutes
+//  }
+  val tickTime = 3 seconds
 
   log.info(s"Next time update for ${source.name} -> ${tickTime}; " +
     s"Interval: ${interval} minutes")
