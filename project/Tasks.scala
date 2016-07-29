@@ -24,6 +24,7 @@ object Tasks {
     "https://cdnjs.cloudflare.com/ajax/libs/uikit/2.22.0/css/components/notify.min.css",
     "https://cdnjs.cloudflare.com/ajax/libs/uikit/2.22.0/css/components/placeholder.min.css",
     "https://cdnjs.cloudflare.com/ajax/libs/uikit/2.22.0/css/components/upload.min.css",
+    "https://cdnjs.cloudflare.com/ajax/libs/uikit/2.22.0/css/components/search.min.css",
     "https://cdnjs.cloudflare.com/ajax/libs/uikit/2.22.0/css/uikit.almost-flat.min.css"
   )
 

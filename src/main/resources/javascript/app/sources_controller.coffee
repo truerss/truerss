@@ -108,3 +108,20 @@ SourcesController =
     ajax.mark_all_as_read()
     Sources.all().forEach (s) -> s.count(0)
     return
+
+  filter: (event) ->
+    hc = "uk-hidden"
+    q = jQuery(event.target).val()
+    if q.trim().length == 0
+      jQuery("li.source-element").removeClass(hc)
+
+    hide = Sources.filter (s) -> s.name().indexOf(q) == -1
+    show = Sources.filter (s) -> s.name().indexOf(q) != -1
+
+    if show.length > 0
+      show_ids = show.map (s) -> "\#source-#{s.id()}"
+      jQuery(show_ids.join(",")).removeClass(hc)
+
+    if hide.length > 0
+      hide_ids = hide.map (s) -> "\#source-#{s.id()}"
+      jQuery(hide_ids.join(",")).addClass(hc)
