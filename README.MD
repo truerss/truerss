@@ -5,6 +5,8 @@
 
 # [screenshots](https://github.com/truerss/truerss/wiki/screenshots)
 
+# [group](https://groups.google.com/forum/#!forum/truerss)
+
 is open source feed reader with customizable plugin system for any content (atom, rss, youtube channels...).
 
 # How to run
