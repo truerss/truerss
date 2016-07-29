@@ -40,7 +40,7 @@ object Truerssbuild extends Build {
       (compile in Compile) <<= (compile in Compile).dependsOn(buildCoffee),
       organization := "net.truerss",
       name := "truerss",
-      version := "0.0.1",
+      version := "0.0.2",
       parallelExecution in Test := false,
       assemblyJarName in assembly := s"truerss-${version.value}.jar",
       mainClass in assembly := Some("truerss.Boot"),
