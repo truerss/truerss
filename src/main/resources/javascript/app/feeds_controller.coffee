@@ -101,6 +101,7 @@ FeedsController =
                 source.count(source.count() - 1)
             state.to(States.Feed)
             posts.set(original_feed.id())
+
           (error) ->
             UIkit.notify
               message : error.responseText,

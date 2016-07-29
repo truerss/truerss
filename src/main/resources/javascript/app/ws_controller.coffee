@@ -13,6 +13,10 @@ WSController =
       if source
         if location.pathname == "" || location.pathname == "/"
           redirect(source.href())
+        else
+          if state.isState(States.Source) || state.isState(States.Feed)
+            if sources && sources.get() && sources.get() == source.id()
+              render_source_feeds_and_redirect_to_first(source)
 
 
         UIkit.notify

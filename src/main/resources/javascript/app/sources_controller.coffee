@@ -28,9 +28,7 @@ SourcesController =
           f
 
         if feeds.length > 0
-          result = Templates.feeds_template.render({feeds: source.feed()})
-          Templates.feeds_view.render(result).html()
-          redirect(source.feed()[0].href())
+          render_source_feeds_and_redirect_to_first(source)
         else
           ajax.get_feeds source.id(), (feeds) ->
             feeds = feeds.map (x) ->
@@ -40,10 +38,7 @@ SourcesController =
               source.add_feed(f)
               f
 
-            result = Templates.feeds_template.render({feeds: source.feed()})
-            Templates.feeds_view.render(result).html()
-            if feeds.length > 0
-              redirect(source.feed()[0].href())
+            render_source_feeds_and_redirect_to_first(source)
 
       state.to(States.Source)
       posts.clear()

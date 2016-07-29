@@ -149,6 +149,9 @@ class Steps
   hasState: (state) ->
     @_swap[state] is @_state
 
+  isState: (state) ->
+    @_swap[state] is @_state
+
 
 `
 // source http://stackoverflow.com/a/5639455/1581531
@@ -195,5 +198,11 @@ ControllerExt =
   read_cookie: window.readCookie
   delete_cookie: (cn) ->
     document.cookie = cn + '=; Path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;'
+
+  render_source_feeds_and_redirect_to_first: (source) ->
+    result = Templates.feeds_template.render({feeds: source.feed()})
+    Templates.feeds_view.render(result).html()
+    if source.feed().length > 0
+      redirect(source.feed()[0].href())
 
 
