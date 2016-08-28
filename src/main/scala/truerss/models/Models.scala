@@ -122,7 +122,7 @@ case class CurrentDriver(profile: JdbcProfile) {
 
     def url = column[String]("url")
 
-    def title = column[String]("title")
+    def title = column[String]("title", O.DBType("TEXT"))
 
     def author = column[String]("author")
 

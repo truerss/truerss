@@ -13,8 +13,8 @@ case class PreEntry(
 ) {
   def toEntry: Entry = {
     val length = title.map(_.length).map{ length =>
-      if (length > 42) {
-        42
+      if (length > 250) {
+        250
       } else {
         length
       }
