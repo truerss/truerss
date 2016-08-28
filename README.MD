@@ -1,11 +1,13 @@
 
-# TrueRSS version 0.0.1
+# TrueRSS version 0.0.2
 
 # [Demo](http://demo.truerss.net/)
 
 # [screenshots](https://github.com/truerss/truerss/wiki/screenshots)
 
 # [group](https://groups.google.com/forum/#!forum/truerss)
+
+# [![Codewake](https://www.codewake.com/badges/ask_question.svg)](https://www.codewake.com/p/truerss)
 
 is open source feed reader with customizable plugin system for any content (atom, rss, youtube channels...).
 
