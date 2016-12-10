@@ -27,10 +27,6 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
 
   implicit val ec = context.system.dispatchers.lookup("dispatchers.db-dispatcher")
 
-
-//  def complete[T] = (f: SessionDef => T) =>
-//    db.run(f) pipeTo sender
-
   def receive = {
     case GetAll | OnlySources =>
       db.run(sources.result).map(_.toVector).map(ResponseSources) pipeTo sender
@@ -74,71 +70,61 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
         res
       }.map(_.headOption).map(ResponseMaybeSource) pipeTo sender
 
-//    case AddSource(source) =>
-//      complete { implicit session =>
-//        ResponseSourceId((sources returning sources.map(_.id)) += source)
-//      }
+    case AddSource(source) =>
+      db.run {
+        (sources returning sources.map(_.id)) += source
+      }.map(ResponseSourceId) pipeTo sender
+
+    case UpdateSource(num, source) =>
+//      db.run {
+//        sources.filter(_.id === source.id)
+//          .map(s => (s.url, s.name, s.interval, s.state, s.normalized))
+//          .update(source.url, source.name, source.interval,
+//            source.state, source.normalized)
+//      }.map(ResponseSourceId) pipeTo sender
 //
-//    case UpdateSource(num, source) =>
-//      complete { implicit session =>
-//        ResponseSourceId(
-//          sources.filter(_.id === source.id)
-//            .map(s => (s.url, s.name, s.interval, s.state, s.normalized))
-//            .update(source.url, source.name, source.interval,
-//              source.state, source.normalized).toLong
-//        )
-//      }
-//
-//    case MarkAll =>
-//      complete { implicit session =>
-//        ResponseDone(
-//          feeds
-//            .filter(_.read === false)
-//            .map(f => f.read)
-//            .update(true)
-//            .toLong
-//        )
-//      }
-//
-//    case Mark(sourceId) =>
-//      complete { implicit session =>
-//        feeds.filter(_.sourceId === sourceId).map(f => f.read).update(true)
-//        ResponseMaybeSource(
-//          sources.filter(_.id === sourceId).firstOption
-//        )
-//      }
-//
-//    case Latest(count) =>
-//      complete { implicit session =>
-//        ResponseFeeds(
-//          feeds
-//            .filter(_.read === false)
-//            .take(count)
-//            .sortBy(_.publishedDate.desc)
-//            .buildColl
-//        )
-//      }
-//
-//    case ExtractFeedsForSource(sourceId, from, limit) =>
-//      complete { implicit session =>
-//        ResponseFeeds(
-//          feeds
-//            .filter(_.sourceId === sourceId)
-//            .sortBy(_.publishedDate.desc)
-//            .drop(from)
-//            .take(limit)
-//            .buildColl
-//        )
-//      }
-//
-//    case Favorites =>
-//      complete { implicit session =>
-//        ResponseFeeds(
-//          feeds
-//            .filter(_.favorite === true)
-//            .buildColl
-//        )
-//      }
+    case MarkAll =>
+      db.run {
+        feeds
+          .filter(_.read === false)
+          .map(_.read)
+          .update(true)
+      }.map(_.toLong).map(ResponseDone) pipeTo sender
+
+
+    case Mark(sourceId) =>
+      db.run {
+        feeds.filter(_.sourceId === sourceId)
+          .map(f => f.read).update(true)
+        sources.filter(_.id === sourceId).take(1).result
+      }.map(_.headOption).map(ResponseMaybeSource)
+
+    case Latest(count) =>
+      db.run {
+        feeds
+          .filter(_.read === false)
+          .take(count)
+          .sortBy(_.publishedDate.desc)
+          .result
+      }.map(_.toVector).map(ResponseFeeds) pipeTo sender
+
+
+    case ExtractFeedsForSource(sourceId, from, limit) =>
+      db.run {
+        feeds
+          .filter(_.sourceId === sourceId)
+          .sortBy(_.publishedDate.desc)
+          .drop(from)
+          .take(limit)
+          .result
+      }.map(_.toVector).map(ResponseFeeds) pipeTo sender
+
+    case Favorites =>
+      db.run {
+        feeds
+          .filter(_.favorite === true)
+          .result 
+      }.map(_.toVector).map(ResponseFeeds) pipeTo sender
 //
 //    case GetFeed(num) =>
 //      complete { implicit session =>
