@@ -71,7 +71,7 @@ case class CurrentDriver(profile: JdbcProfile) {
 
   object DateSupport {
     implicit val javaUtilDateMapper =
-      MappedColumnType.base[Date, java.sql.Timestamp] (
+      MappedColumnType.base[Date, java.sql.Timestamp](
         d => new java.sql.Timestamp(d.getTime),
         d => new java.util.Date(d.getTime))
   }
@@ -92,6 +92,7 @@ case class CurrentDriver(profile: JdbcProfile) {
   }
 
   class Sources(tag: Tag) extends Table[Source](tag, "sources") {
+
     import DateSupport._
     import StateSupport._
 
@@ -118,6 +119,7 @@ case class CurrentDriver(profile: JdbcProfile) {
   }
 
   class Feeds(tag: Tag) extends Table[Feed](tag, "feeds") {
+
     import DateSupport._
 
     def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
@@ -151,211 +153,7 @@ case class CurrentDriver(profile: JdbcProfile) {
 
   object query {
     lazy val sources = TableQuery[Sources]
-    lazy val feeds   = TableQuery[Feeds]
-
-    lazy val actualFeeds = feeds.filter(_.delete === false)
-  }
-
-
-}
-
-class SourceDao(val db: DatabaseDef)(implicit
-                                 val ec: ExecutionContext,
-                                 driver: CurrentDriver
-) {
-
-  import driver.profile.api._
-  import driver.query.sources
-  import driver.DateSupport._
-  import driver.StateSupport._
-
-  def all: Future[Seq[Source]] = db.run(sources.result)
-
-  def findOne(sourceId: Long): Future[Option[Source]] = {
-    db.run(sources.filter(_.id === sourceId).take(1).result)
-      .map(_.headOption)
-  }
-
-  def delete(sourceId: Long): Future[Int] = {
-    db.run(sources.filter(_.id === sourceId).delete)
-  }
-
-  def insert(source: Source): Future[Long] = {
-    db.run {
-      (sources returning sources.map(_.id)) += source
-    }
-  }
-
-  def findByUrl(url: String, id: Option[Long]): Future[Int] = {
-    db.run {
-      id
-        .map(id => sources.filter(s => s.url === url && !(s.id === id)))
-        .getOrElse(sources.filter(s => s.url === url))
-        .length
-        .result
-    }
-  }
-
-  def findByName(name: String, id: Option[Long]): Future[Int] = {
-    db.run {
-      id.map(id => sources.filter(s => s.name === name && !(s.id === id)))
-        .getOrElse(sources.filter(s => s.name === name))
-        .length
-        .result
-    }
-  }
-
-  def updateSource(source: Source): Future[Int] = {
-    db.run {
-      sources.filter(_.id === source.id)
-        .map(s => (s.url, s.name, s.interval, s.state, s.normalized))
-        .update(source.url, source.name, source.interval,
-          source.state, source.normalized)
-    }
-  }
-
-  def updateLastUpdateDate(sourceId: Long): Future[Int] = {
-    db.run {
-      sources.filter(_.id === sourceId)
-        .map(s => s.lastUpdate).update(new Date())
-    }
-  }
-
-  def updateState(sourceId: Long, state: SourceState): Future[Int] = {
-    db.run {
-      sources.filter(_.id === sourceId)
-        .map(_.state)
-        .update(state)
-    }
+    lazy val feeds = TableQuery[Feeds]
   }
 
 }
-
-class FeedDao(val db: DatabaseDef)(implicit
-                                     val ec: ExecutionContext,
-                                     driver: CurrentDriver
-) {
-
-  import driver.profile.api._
-  import driver.query.feeds
-  import driver.DateSupport._
-  import driver.StateSupport._
-
-  def findUnread(sourceId: Long): Future[Seq[Feed]] = {
-    db.run {
-      feeds.filter(_.sourceId === sourceId)
-        .filter(_.read === false)
-        .sortBy(_.publishedDate.desc)
-        .result
-    }
-  }
-
-  def feedBySourceCount(read: Boolean): Future[Seq[(Long, Int)]] = {
-    db.run {
-      feeds
-        .filter(_.read === read)
-        .groupBy(_.sourceId)
-        .map {
-          case (sourceId, xs) => sourceId -> xs.size
-        }.result
-    }
-  }
-
-  def feedCountBySourceId(sourceId: Long): Future[Int] = {
-    db.run {
-      feeds
-        .filter(_.sourceId === sourceId)
-        .length.result
-    }
-  }
-
-  def deleteFeedsBySource(sourceId: Long): Future[Int] = {
-    db.run {
-      feeds.filter(_.sourceId === sourceId).delete
-    }
-  }
-
-  def markAll: Future[Int] = {
-    db.run {
-      feeds
-        .filter(_.read === false)
-        .map(_.read)
-        .update(true)
-    }
-  }
-
-  def markBySource(sourceId: Long): Future[Int] = {
-    db.run {
-      feeds.filter(_.sourceId === sourceId)
-        .map(f => f.read).update(true)
-    }
-  }
-
-  def lastN(count: Long): Future[Seq[Feed]] = {
-    db.run {
-      feeds
-        .filter(_.read === false)
-        .take(count)
-        .sortBy(_.publishedDate.desc)
-        .result
-    }
-  }
-
-  def pageForSource(sourceId: Long, from: Int, limit: Int): Future[Seq[Feed]] = {
-    db.run {
-      feeds
-        .filter(_.sourceId === sourceId)
-        .sortBy(_.publishedDate.desc)
-        .drop(from)
-        .take(limit)
-        .result
-    }
-  }
-
-  def favorites: Future[Seq[Feed]] = {
-    db.run {
-      feeds
-        .filter(_.favorite === true)
-        .result
-    }
-  }
-
-  def findOne(feedId: Long): Future[Option[Feed]] = {
-    db.run {
-      feeds.filter(_.id === feedId).take(1).result
-    }.map(_.headOption)
-  }
-
-  def modifyFav(feedId: Long, fav: Boolean) = {
-    db.run {
-      feeds.filter(_.id === feedId).map(e => e.favorite).update(fav)
-    }
-  }
-
-  def modifyRead(feedId: Long, read: Boolean) = {
-    db.run {
-      feeds.filter(_.id === feedId).map(e => e.read).update(read)
-    }
-  }
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
