@@ -123,74 +123,73 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
       db.run {
         feeds
           .filter(_.favorite === true)
-          .result 
+          .result
       }.map(_.toVector).map(ResponseFeeds) pipeTo sender
-//
-//    case GetFeed(num) =>
-//      complete { implicit session =>
-//        ResponseMaybeFeed(
-//          feeds.filter(_.id === num).firstOption
-//        )
-//      }
-//
-//    case MarkFeed(feedId) =>
-//      complete { implicit session =>
-//        val res = feeds.filter(_.id === feedId).firstOption
-//        feeds.filter(_.id === feedId).map(e => e.favorite).update(true)
-//        ResponseMaybeFeed(res.map(f => f.mark(true)))
-//      }
-//
-//    case UnmarkFeed(feedId) =>
-//      complete { implicit session =>
-//        val res = feeds.filter(_.id === feedId).firstOption
-//        feeds.filter(_.id === feedId).map(e => e.favorite).update(false)
-//        ResponseMaybeFeed(res.map(f => f.mark(false)))
-//      }
-//
-//    case MarkAsReadFeed(feedId) =>
-//      complete { implicit session =>
-//        val res = feeds.filter(_.id === feedId).firstOption
-//        feeds.filter(_.id === feedId).map(e => e.read).update(true)
-//        ResponseMaybeFeed(res.map(f => f.mark(true)))
-//      }
-//
-//    case MarkAsUnreadFeed(feedId) =>
-//      complete { implicit session =>
-//        val res = feeds.filter(_.id === feedId).firstOption
-//        feeds.filter(_.id === feedId).map(e => e.read).update(false)
-//        ResponseMaybeFeed(res.map(f => f.mark(false)))
-//      }
-//
-//    case UrlIsUniq(url, id) =>
-//      complete { implicit session =>
-//        ResponseFeedCheck(
-//          id
-//            .map(id => sources.filter(s => s.url === url && !(s.id === id)))
-//            .getOrElse(sources.filter(s => s.url === url))
-//            .length
-//            .run
-//        )
-//      }
-//
-//    case NameIsUniq(name, id) => complete { implicit session =>
-//        ResponseFeedCheck(
-//          id.map(id => sources.filter(s => s.name === name && !(s.id === id)))
-//          .getOrElse(sources.filter(s => s.name === name))
-//            .length.run
-//        )
-//      }
-//
-//    case SourceLastUpdate(sourceId) =>
-//      db withSession { implicit session =>
+
+    case GetFeed(num) =>
+      db.run {
+        feeds.filter(_.id === num).take(1).result
+      }.map(_.headOption).map(ResponseMaybeFeed) pipeTo sender
+
+    case MarkFeed(feedId) =>
+      db.run {
+        val res = feeds.filter(_.id === feedId).take(1).result.headOption
+        feeds.filter(_.id === feedId).map(e => e.favorite).update(true)
+        res.map(f => f.map(_.mark(true)))
+      }.map(ResponseMaybeFeed) pipeTo sender
+
+    case UnmarkFeed(feedId) =>
+      db.run {
+        val res = feeds.filter(_.id === feedId).take(1).result.headOption
+        feeds.filter(_.id === feedId).map(e => e.favorite).update(false)
+        res.map(f => f.map(_.mark(false)))
+      }.map(ResponseMaybeFeed) pipeTo sender
+
+    case MarkAsReadFeed(feedId) =>
+      db.run {
+        val res = feeds.filter(_.id === feedId).take(1).result.headOption
+        feeds.filter(_.id === feedId).map(e => e.read).update(true)
+        res.map(f => f.map(_.mark(true)))
+      }.map(ResponseMaybeFeed) pipeTo sender
+
+    case MarkAsUnreadFeed(feedId) =>
+      db.run {
+        val res = feeds.filter(_.id === feedId).take(1).result.headOption
+        feeds.filter(_.id === feedId).map(e => e.read).update(false)
+        res.map(f => f.map(_.mark(false)))
+      }.map(ResponseMaybeFeed) pipeTo sender
+
+    case UrlIsUniq(url, id) =>
+      db.run {
+        id
+          .map(id => sources.filter(s => s.url === url && !(s.id === id)))
+          .getOrElse(sources.filter(s => s.url === url))
+          .length
+          .result
+      }.map(ResponseFeedCheck) pipeTo sender
+
+    case NameIsUniq(name, id) =>
+      db.run {
+        id.map(id => sources.filter(s => s.name === name && !(s.id === id)))
+        .getOrElse(sources.filter(s => s.name === name))
+        .length
+        .result
+      }.map(ResponseFeedCheck) pipeTo sender
+
+
+    case SourceLastUpdate(sourceId) =>
+      db.run {
+        sources.filter(_.id === sourceId)
+          .map(s => s.lastUpdate).update(new Date())
+      }
+
+    case SetState(sourceId, state) =>
+//      db.run {
 //        sources.filter(_.id === sourceId)
-//          .map(s => s.lastUpdate).update(new Date())
+//          .map(s => s.state)
+//          .update(state)
 //      }
-//
-//    case SetState(sourceId, state) =>
-//      db withSession { implicit session =>
-//        sources.filter(_.id === sourceId).map(s => s.state).update(state)
-//      }
-//
+
 //    case AddFeeds(sourceId, xs) =>
 //      val newFeeds = db withSession { implicit session =>
 //        val urls = xs.map(_.url)
@@ -223,11 +222,11 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
 //          .filter(_.url inSet(newUrls)).buildColl
 //      }
 //      stream.publish(NewFeeds(newFeeds.toVector))
-//
-//    case FeedContentUpdate(feedId, content) =>
-//      db withSession { implicit session =>
-//        feeds.filter(_.id === feedId).map(_.content).update(content)
-//      }
+
+    case FeedContentUpdate(feedId, content) =>
+      db.run {
+        feeds.filter(_.id === feedId).map(_.content).update(content)
+      }
 
   }
 }
