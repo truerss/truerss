@@ -14,7 +14,7 @@ import truerss.models.{Source, Feed, CurrentDriver}
 import truerss.system.network.{ExtractError, ExtractContent, ExtractContentForEntry}
 
 import scala.concurrent.ExecutionContext
-import scala.slick.driver.H2Driver.simple._
+import slick.jdbc.H2Profile.api._
 import scala.language.postfixOps
 import scala.concurrent.duration._
 
@@ -29,8 +29,8 @@ import truerss.db.DbActor
 import truerss.api._
 import truerss.util.ApplicationPlugins
 
-import scala.slick.jdbc.JdbcBackend
-
+import slick.jdbc.JdbcBackend
+/*
 class FeedApiTest extends FunSpec with Matchers
 with ScalatestRouteTest with Routing with Common {
 
@@ -217,3 +217,4 @@ with ScalatestRouteTest with Routing with Common {
 
 
 }
+*/

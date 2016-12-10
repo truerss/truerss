@@ -61,10 +61,10 @@ class SourceDao(val db: DatabaseDef)(implicit
     }
   }
 
-  def updateLastUpdateDate(sourceId: Long): Future[Int] = {
+  def updateLastUpdateDate(sourceId: Long, date: Date = new Date()): Future[Int] = {
     db.run {
       sources.filter(_.id === sourceId)
-        .map(s => s.lastUpdate).update(new Date())
+        .map(s => s.lastUpdate).update(date)
     }
   }
 

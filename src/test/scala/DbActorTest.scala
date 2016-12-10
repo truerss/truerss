@@ -13,7 +13,7 @@ import truerss.db._
 import truerss.models.{Source, Feed, CurrentDriver}
 import truerss.system.network.{ExtractError, ExtractContent, ExtractContentForEntry}
 
-import scala.slick.driver.H2Driver.simple._
+import slick.jdbc.H2Profile.api._
 import scala.language.postfixOps
 import scala.concurrent.duration._
 
@@ -29,11 +29,11 @@ import truerss.db.DbActor
 import truerss.api._
 import truerss.util.ApplicationPlugins
 
-import scala.slick.jdbc.JdbcBackend
+import slick.jdbc.JdbcBackend
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-
+/*
 class DbActorTest extends DbHelper with FunSpecLike
   with Matchers with Common with ScalatestRouteTest {
 
@@ -99,3 +99,4 @@ class DbActorTest extends DbHelper with FunSpecLike
 
 
 }
+*/
