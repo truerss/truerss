@@ -10,7 +10,7 @@ import truerss.system
 import truerss.system.util.Unread
 
 import scala.concurrent.Future
-import scala.slick.jdbc.JdbcBackend.{DatabaseDef, SessionDef}
+import slick.jdbc.JdbcBackend.{DatabaseDef, SessionDef}
 
 class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLogging {
 

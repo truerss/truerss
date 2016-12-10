@@ -1,10 +1,12 @@
 package truerss.models
 
 import java.util.Date
-import truerss.util.Jsonize
-import scala.language.postfixOps
-import slick.driver.JdbcProfile
 
+import truerss.util.Jsonize
+
+import scala.language.postfixOps
+import slick.jdbc.JdbcProfile
+import slick.sql.SqlProfile.ColumnOption._
 import truerss.util.Util._
 import truerss.util.{Lens => L}
 
@@ -63,7 +65,7 @@ case class WSMessage(messageType: String, body: String)
 
 case class CurrentDriver(profile: JdbcProfile) {
 
-  import profile.simple._
+  import profile.api._
 
   object DateSupport {
     implicit val javaUtilDateMapper =
@@ -118,19 +120,19 @@ case class CurrentDriver(profile: JdbcProfile) {
 
     def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
 
-    def sourceId = column[Long]("source_id", O.NotNull)
+    def sourceId = column[Long]("source_id", NotNull)
 
     def url = column[String]("url")
 
-    def title = column[String]("title", O.DBType("TEXT"))
+    def title = column[String]("title", SqlType("TEXT"))
 
     def author = column[String]("author")
 
     def publishedDate = column[Date]("published_date")
 
-    def description = column[String]("description", O.Nullable, O.DBType("TEXT"))
+    def description = column[String]("description", Nullable, SqlType("TEXT"))
 
-    def content = column[String]("content", O.Nullable, O.DBType("TEXT"))
+    def content = column[String]("content", Nullable, SqlType("TEXT"))
 
     def normalized = column[String]("normalized")
 
