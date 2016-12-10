@@ -190,38 +190,44 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
 //          .update(state)
 //      }
 
-//    case AddFeeds(sourceId, xs) =>
-//      val newFeeds = db withSession { implicit session =>
-//        val urls = xs.map(_.url)
-//        val inDb = feeds.filter(_.sourceId === sourceId)
-//          .filter(_.url inSet(urls))
-//        val inDbMap = inDb.map(f => f.url -> f).toMap
-//        val (forceUpdateXs, updateXs) = xs.partition(_.forceUpdate)
-//        forceUpdateXs.map { entry =>
-//          val feed = entry.toFeed(sourceId)
-//          inDbMap.get(feed.url) match {
-//            case Some(alreadyInDb) =>
-//              inDb.filter(_.url === feed.url)
-//                .map(f => (f.title, f.author, f.publishedDate,
-//                  f.description, f.normalized, f.content, f.read))
-//                  .update((feed.title, feed.author, feed.publishedDate,
-//                  feed.description.orNull,
-//                    feed.normalized, feed.content.orNull, false))
-//            case None =>
-//              feeds.insert(feed)
-//          }
-//        }
-//        val updateXsMap = updateXs.map(_.toFeed(sourceId)).map(f => f.url -> f).toMap
-//        val inDbUrls = inDbMap.keySet
-//        val fromNetwork = updateXsMap.keySet
-//        val newFeeds = (fromNetwork diff inDbUrls).flatMap(updateXsMap.get)
-//        feeds.insertAll(newFeeds.toSeq : _*)
-//
-//        val newUrls = forceUpdateXs.map(_.url) ++ newFeeds.map(_.url)
-//        feeds.filter(_.sourceId === sourceId)
-//          .filter(_.url inSet(newUrls)).buildColl
-//      }
-//      stream.publish(NewFeeds(newFeeds.toVector))
+    // TODO move this logic in another place
+    case AddFeeds(sourceId, xs) =>
+      val urls = xs.map(_.url)
+      val q = feeds.filter(_.sourceId === sourceId)
+        .filter(_.url inSet urls)
+      db.run {
+        q.result
+      }.flatMap { inDb =>
+        val inDbMap = inDb.map(f => f.url -> f).toMap
+        val (forceUpdateXs, updateXs) = xs.partition(_.forceUpdate)
+        db.run {
+          forceUpdateXs.map { entry =>
+            val feed = entry.toFeed(sourceId)
+            inDbMap.get(feed.url) match {
+              case Some(_) =>
+                q.filter(_.url === feed.url)
+                  .map(f => (f.title, f.author, f.publishedDate,
+                    f.description, f.normalized, f.content, f.read))
+                  .update((feed.title, feed.author, feed.publishedDate,
+                    feed.description.orNull,
+                    feed.normalized, feed.content.orNull, false))
+              case None =>
+                feeds += feed
+            }
+          }
+
+          val updateXsMap = updateXs.map(_.toFeed(sourceId)).map(f => f.url -> f).toMap
+          val inDbUrls = inDbMap.keySet
+          val fromNetwork = updateXsMap.keySet
+          val newFeeds = (fromNetwork diff inDbUrls).flatMap(updateXsMap.get)
+          feeds ++= newFeeds.toSeq
+
+          val newUrls = forceUpdateXs.map(_.url) ++ newFeeds.map(_.url)
+          feeds.filter(_.sourceId === sourceId)
+            .filter(_.url inSet newUrls)
+            .result
+        }
+      }.map(_.toVector).map(NewFeeds) pipeTo sender
 
     case FeedContentUpdate(feedId, content) =>
       db.run {
