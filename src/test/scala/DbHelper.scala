@@ -1,7 +1,7 @@
 import truerss.db.{H2, DBProfile}
 import truerss.models.CurrentDriver
 
-import scala.slick.jdbc.JdbcBackend
+import slick.jdbc.JdbcBackend
 
 trait DbHelper {
 

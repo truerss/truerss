@@ -4,10 +4,8 @@ import java.util.Date
 
 import akka.actor.{Actor, ActorLogging}
 import akka.pattern._
-
-import truerss.models.CurrentDriver
+import truerss.models.{CurrentDriver, Source, SourceDao}
 import truerss.system
-import truerss.models.Source
 import truerss.system.util.Unread
 
 import scala.concurrent.Future
@@ -23,13 +21,17 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
   import system.ws.NewFeeds
   import truerss.util.Util._
 
-  val stream = context.system.eventStream
 
   implicit val ec = context.system.dispatchers.lookup("dispatchers.db-dispatcher")
 
+  val stream = context.system.eventStream
+
+  val sourceDao = new SourceDao(db)(ec, driver)
+
+
   def receive = {
     case GetAll | OnlySources =>
-      db.run(sources.result).map(_.toVector).map(ResponseSources) pipeTo sender
+      sourceDao.all.map(_.toVector).map(ResponseSources) pipeTo sender
 
     case Unread(sourceId) =>
       db.run {
@@ -57,32 +59,22 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
       }.map(ResponseCount) pipeTo sender
 
     case GetSource(sourceId) =>
-      db.run {
-        sources.filter(_.id === sourceId).take(1).result
-      }.map(_.headOption).map(ResponseMaybeSource) pipeTo sender
+      sourceDao.findOne(sourceId).map(ResponseMaybeSource) pipeTo sender
 
 
     case DeleteSource(sourceId) =>
-      db.run {
-        val res = sources.filter(_.id === sourceId).take(1).result
-        sources.filter(_.id === sourceId).delete
-        feeds.filter(_.sourceId === sourceId).delete
-        res
-      }.map(_.headOption).map(ResponseMaybeSource) pipeTo sender
+      sourceDao.findOne(sourceId).map { source =>
+        sourceDao.delete(sourceId)
+        //feeds.filter(_.sourceId === sourceId).delete
+        source
+      }.map(ResponseMaybeSource) pipeTo sender
 
     case AddSource(source) =>
-      db.run {
-        (sources returning sources.map(_.id)) += source
-      }.map(ResponseSourceId) pipeTo sender
+      sourceDao.insert(source).map(ResponseSourceId) pipeTo sender
 
-    case UpdateSource(num, source) =>
-//      db.run {
-//        sources.filter(_.id === source.id)
-//          .map(s => (s.url, s.name, s.interval, s.state, s.normalized))
-//          .update(source.url, source.name, source.interval,
-//            source.state, source.normalized)
-//      }.map(ResponseSourceId) pipeTo sender
-//
+    case UpdateSource(_, source) =>
+      sourceDao.updateSource(source).map(_.toLong).map(ResponseSourceId) pipeTo sender
+
     case MarkAll =>
       db.run {
         feeds
@@ -160,35 +152,16 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
       }.map(ResponseMaybeFeed) pipeTo sender
 
     case UrlIsUniq(url, id) =>
-      db.run {
-        id
-          .map(id => sources.filter(s => s.url === url && !(s.id === id)))
-          .getOrElse(sources.filter(s => s.url === url))
-          .length
-          .result
-      }.map(ResponseFeedCheck) pipeTo sender
+      sourceDao.findByUrl(url, id).map(ResponseFeedCheck) pipeTo sender
 
     case NameIsUniq(name, id) =>
-      db.run {
-        id.map(id => sources.filter(s => s.name === name && !(s.id === id)))
-        .getOrElse(sources.filter(s => s.name === name))
-        .length
-        .result
-      }.map(ResponseFeedCheck) pipeTo sender
-
+      sourceDao.findByName(name, id).map(ResponseFeedCheck) pipeTo sender
 
     case SourceLastUpdate(sourceId) =>
-      db.run {
-        sources.filter(_.id === sourceId)
-          .map(s => s.lastUpdate).update(new Date())
-      }
+      sourceDao.updateLastUpdateDate(sourceId)
 
     case SetState(sourceId, state) =>
-//      db.run {
-//        sources.filter(_.id === sourceId)
-//          .map(s => s.state)
-//          .update(state)
-//      }
+      sourceDao.updateState(sourceId, state)
 
     // TODO move this logic in another place
     case AddFeeds(sourceId, xs) =>
