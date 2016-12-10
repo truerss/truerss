@@ -2,16 +2,12 @@ package truerss.models
 
 import java.util.Date
 
-import slick.jdbc.JdbcBackend.DatabaseDef
-import truerss.util.Jsonize
-
-import scala.language.postfixOps
 import slick.jdbc.JdbcProfile
 import slick.sql.SqlProfile.ColumnOption._
 import truerss.util.Util._
-import truerss.util.{Lens => L}
+import truerss.util.{Jsonize, Lens => L}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.language.postfixOps
 
 sealed trait SourceState
 case object Neutral extends SourceState

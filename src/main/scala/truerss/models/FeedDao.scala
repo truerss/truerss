@@ -1,5 +1,6 @@
 package truerss.models
 
+import com.github.truerss.base.Entry
 import slick.jdbc.JdbcBackend.DatabaseDef
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -11,6 +12,7 @@ class FeedDao(val db: DatabaseDef)(implicit
 
   import driver.DateSupport._
   import driver.profile.api._
+  import truerss.util.Util._
   import driver.query.feeds
 
   def findUnread(sourceId: Long): Future[Seq[Feed]] = {
@@ -107,6 +109,51 @@ class FeedDao(val db: DatabaseDef)(implicit
   def modifyRead(feedId: Long, read: Boolean) = {
     db.run {
       feeds.filter(_.id === feedId).map(e => e.read).update(read)
+    }
+  }
+
+  def updateContent(feedId: Long, content: String): Future[Int] = {
+    db.run {
+      feeds.filter(_.id === feedId).map(_.content).update(content)
+    }
+  }
+
+  def mergeFeeds(sourceId: Long, xs: Vector[Entry]): Future[Seq[Feed]] = {
+    val urls = xs.map(_.url)
+    val q = feeds.filter(_.sourceId === sourceId)
+      .filter(_.url inSet urls)
+    db.run {
+      q.result
+    }.flatMap { inDb =>
+      val inDbMap = inDb.map(f => f.url -> f).toMap
+      val (forceUpdateXs, updateXs) = xs.partition(_.forceUpdate)
+      db.run {
+        forceUpdateXs.map { entry =>
+          val feed = entry.toFeed(sourceId)
+          inDbMap.get(feed.url) match {
+            case Some(_) =>
+              q.filter(_.url === feed.url)
+                .map(f => (f.title, f.author, f.publishedDate,
+                  f.description, f.normalized, f.content, f.read))
+                .update((feed.title, feed.author, feed.publishedDate,
+                  feed.description.orNull,
+                  feed.normalized, feed.content.orNull, false))
+            case None =>
+              feeds += feed
+          }
+        }
+
+        val updateXsMap = updateXs.map(_.toFeed(sourceId)).map(f => f.url -> f).toMap
+        val inDbUrls = inDbMap.keySet
+        val fromNetwork = updateXsMap.keySet
+        val newFeeds = (fromNetwork diff inDbUrls).flatMap(updateXsMap.get)
+        feeds ++= newFeeds.toSeq
+
+        val newUrls = forceUpdateXs.map(_.url) ++ newFeeds.map(_.url)
+        feeds.filter(_.sourceId === sourceId)
+          .filter(_.url inSet newUrls)
+          .result
+      }
     }
   }
 
