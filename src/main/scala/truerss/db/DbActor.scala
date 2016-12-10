@@ -4,7 +4,7 @@ import java.util.Date
 
 import akka.actor.{Actor, ActorLogging}
 import akka.pattern._
-import truerss.models.{CurrentDriver, Source, SourceDao}
+import truerss.models.{CurrentDriver, FeedDao, Source, SourceDao}
 import truerss.system
 import truerss.system.util.Unread
 
@@ -27,6 +27,7 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
   val stream = context.system.eventStream
 
   val sourceDao = new SourceDao(db)(ec, driver)
+  val feedDao = new FeedDao(db)(ec, driver)
 
 
   def receive = {
@@ -34,121 +35,90 @@ class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLo
       sourceDao.all.map(_.toVector).map(ResponseSources) pipeTo sender
 
     case Unread(sourceId) =>
-      db.run {
-        feeds.filter(_.sourceId === sourceId)
-          .filter(_.read === false)
-          .sortBy(_.publishedDate.desc)
-          .result
-      }.map(_.toVector).map(ResponseFeeds) pipeTo sender
+      feedDao.findUnread(sourceId)
+        .map(_.toVector)
+        .map(ResponseFeeds) pipeTo sender
 
     case FeedCount(read) =>
-      db.run {
-        feeds
-          .filter(_.read === read)
-          .groupBy(_.sourceId)
-          .map {
-            case (sourceId, xs) => sourceId -> xs.size
-          }.result
-      }.map(_.toVector).map(ResponseFeedCount) pipeTo sender
+      feedDao.feedBySourceCount(read)
+        .map(_.toVector)
+        .map(ResponseFeedCount) pipeTo sender
 
     case FeedCountForSource(sourceId) =>
-      db.run {
-        feeds
-        .filter(_.sourceId === sourceId)
-        .length.result
-      }.map(ResponseCount) pipeTo sender
+      feedDao.feedCountBySourceId(sourceId)
+        .map(ResponseCount) pipeTo sender
 
     case GetSource(sourceId) =>
       sourceDao.findOne(sourceId).map(ResponseMaybeSource) pipeTo sender
 
-
     case DeleteSource(sourceId) =>
       sourceDao.findOne(sourceId).map { source =>
         sourceDao.delete(sourceId)
-        //feeds.filter(_.sourceId === sourceId).delete
+        feedDao.deleteFeedsBySource(sourceId)
         source
       }.map(ResponseMaybeSource) pipeTo sender
 
     case AddSource(source) =>
-      sourceDao.insert(source).map(ResponseSourceId) pipeTo sender
+      sourceDao.insert(source)
+        .map(ResponseSourceId) pipeTo sender
 
     case UpdateSource(_, source) =>
-      sourceDao.updateSource(source).map(_.toLong).map(ResponseSourceId) pipeTo sender
+      sourceDao.updateSource(source)
+        .map(_.toLong)
+        .map(ResponseSourceId) pipeTo sender
 
     case MarkAll =>
-      db.run {
-        feeds
-          .filter(_.read === false)
-          .map(_.read)
-          .update(true)
-      }.map(_.toLong).map(ResponseDone) pipeTo sender
-
+      feedDao.markAll
+        .map(_.toLong)
+        .map(ResponseDone) pipeTo sender
 
     case Mark(sourceId) =>
-      db.run {
-        feeds.filter(_.sourceId === sourceId)
-          .map(f => f.read).update(true)
-        sources.filter(_.id === sourceId).take(1).result
-      }.map(_.headOption).map(ResponseMaybeSource)
+      sourceDao.findOne(sourceId).map { source =>
+        feedDao.markBySource(sourceId)
+        source
+      }.map(ResponseMaybeSource) pipeTo sender
 
     case Latest(count) =>
-      db.run {
-        feeds
-          .filter(_.read === false)
-          .take(count)
-          .sortBy(_.publishedDate.desc)
-          .result
-      }.map(_.toVector).map(ResponseFeeds) pipeTo sender
-
+      feedDao.lastN(count)
+        .map(_.toVector)
+        .map(ResponseFeeds) pipeTo sender
 
     case ExtractFeedsForSource(sourceId, from, limit) =>
-      db.run {
-        feeds
-          .filter(_.sourceId === sourceId)
-          .sortBy(_.publishedDate.desc)
-          .drop(from)
-          .take(limit)
-          .result
-      }.map(_.toVector).map(ResponseFeeds) pipeTo sender
+      feedDao.pageForSource(sourceId, from, limit)
+        .map(_.toVector)
+        .map(ResponseFeeds) pipeTo sender
 
     case Favorites =>
-      db.run {
-        feeds
-          .filter(_.favorite === true)
-          .result
-      }.map(_.toVector).map(ResponseFeeds) pipeTo sender
+      feedDao.favorites
+        .map(_.toVector)
+        .map(ResponseFeeds) pipeTo sender
 
     case GetFeed(num) =>
-      db.run {
-        feeds.filter(_.id === num).take(1).result
-      }.map(_.headOption).map(ResponseMaybeFeed) pipeTo sender
+      feedDao.findOne(num)
+        .map(ResponseMaybeFeed) pipeTo sender
 
     case MarkFeed(feedId) =>
-      db.run {
-        val res = feeds.filter(_.id === feedId).take(1).result.headOption
-        feeds.filter(_.id === feedId).map(e => e.favorite).update(true)
-        res.map(f => f.map(_.mark(true)))
+      feedDao.findOne(feedId).map { feed =>
+        feedDao.modifyFav(feedId, true)
+        feed.map(_.mark(true))
       }.map(ResponseMaybeFeed) pipeTo sender
 
     case UnmarkFeed(feedId) =>
-      db.run {
-        val res = feeds.filter(_.id === feedId).take(1).result.headOption
-        feeds.filter(_.id === feedId).map(e => e.favorite).update(false)
-        res.map(f => f.map(_.mark(false)))
+      feedDao.findOne(feedId).map { feed =>
+        feedDao.modifyFav(feedId, false)
+        feed.map(_.mark(false))
       }.map(ResponseMaybeFeed) pipeTo sender
 
     case MarkAsReadFeed(feedId) =>
-      db.run {
-        val res = feeds.filter(_.id === feedId).take(1).result.headOption
-        feeds.filter(_.id === feedId).map(e => e.read).update(true)
-        res.map(f => f.map(_.mark(true)))
+      feedDao.findOne(feedId).map { feed =>
+        feedDao.modifyRead(feedId, true)
+        feed.map(f => f.copy(read = true))
       }.map(ResponseMaybeFeed) pipeTo sender
 
     case MarkAsUnreadFeed(feedId) =>
-      db.run {
-        val res = feeds.filter(_.id === feedId).take(1).result.headOption
-        feeds.filter(_.id === feedId).map(e => e.read).update(false)
-        res.map(f => f.map(_.mark(false)))
+      feedDao.findOne(feedId).map { feed =>
+        feedDao.modifyRead(feedId, false)
+        feed.map(f => f.copy(read = false))
       }.map(ResponseMaybeFeed) pipeTo sender
 
     case UrlIsUniq(url, id) =>
