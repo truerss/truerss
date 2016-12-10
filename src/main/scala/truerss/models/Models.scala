@@ -152,8 +152,6 @@ case class CurrentDriver(profile: JdbcProfile) {
     lazy val feeds   = TableQuery[Feeds]
 
     lazy val actualFeeds = feeds.filter(_.delete === false)
-    lazy val feedsWithEmptyContent = actualFeeds.map(f => (f.id, f.sourceId, f.url,
-      f.title, f.author, f.publishedDate, f.description, f.favorite, f.read))
   }
 
 
