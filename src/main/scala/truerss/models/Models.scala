@@ -3,7 +3,7 @@ package truerss.models
 import java.util.Date
 import truerss.util.Jsonize
 import scala.language.postfixOps
-import scala.slick.driver.JdbcProfile
+import slick.driver.JdbcProfile
 
 import truerss.util.Util._
 import truerss.util.{Lens => L}

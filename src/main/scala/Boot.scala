@@ -15,8 +15,8 @@ import truerss.system.SystemActor
 import truerss.util.PluginLoader
 
 import scala.language.postfixOps
-import scala.slick.jdbc.JdbcBackend
-import scala.slick.jdbc.meta.MTable
+import slick.jdbc.JdbcBackend
+import slick.jdbc.meta.MTable
 import scala.util.control.Exception._
 
 
