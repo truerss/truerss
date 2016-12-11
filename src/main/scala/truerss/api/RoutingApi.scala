@@ -57,8 +57,34 @@ trait RoutingApi {
           complete("mark as unread")
         }
       }
+    } ~ pathPrefix("plugins") {
+      get {
+        pathPrefix("all") {
+          complete("all")
+        } ~ pathPrefix("js") {
+          complete("js")
+        } ~ pathPrefix("css") {
+          complete("css")
+        }
+      }
+    } ~ pathPrefix("system") {
+      get {
+        pathPrefix("stop") {
+          complete("stop")
+        } ~ pathPrefix("restart") {
+          complete("restart")
+        } ~ pathPrefix("exit") {
+          complete("exit")
+        }
+      }
     }
   }
+
+  /*
+  get0[SystemController]("stop") ~
+            get0[SystemController]("restart") ~
+            get0[SystemController]("exit")
+            */
 
 
 }

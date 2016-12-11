@@ -24,6 +24,8 @@ class RoutingApiSpec extends RouteTest
   val baseUrl = "/api/v1"
   val sourcesUrl = s"$baseUrl/sources"
   val feedsUrl = s"$baseUrl/feeds"
+  val pluginsUrl = s"$baseUrl/plugins"
+  val systemUrl = s"$baseUrl/system"
 
   def checkRoute(x: HttpRequest) = {
     x ~> route ~> check {
@@ -114,6 +116,34 @@ class RoutingApiSpec extends RouteTest
       r(Put(s"$feedsUrl/unread/123"))
     }
   }
+
+  section("http", "api")
+  "plugins api" should {
+    "get all" in {
+      r(Get(s"$pluginsUrl/all"))
+    }
+    "get js" in {
+      r(Get(s"$pluginsUrl/js"))
+    }
+    "get css" in {
+      r(Get(s"$pluginsUrl/css"))
+    }
+  }
+
+  section("http", "api")
+  "system api" should {
+    "stop" in {
+      r(Get(s"$systemUrl/stop"))
+    }
+    "restart" in {
+      r(Get(s"$systemUrl/restart"))
+    }
+    "exit" in {
+      r(Get(s"$systemUrl/exit"))
+    }
+  }
+
+
 
 
 }
