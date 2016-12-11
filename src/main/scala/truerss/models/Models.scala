@@ -1,13 +1,13 @@
 package truerss.models
 
 import java.util.Date
-import truerss.util.Jsonize
-import scala.language.postfixOps
-import scala.slick.driver.JdbcProfile
 
+import slick.jdbc.JdbcProfile
+import slick.sql.SqlProfile.ColumnOption._
 import truerss.util.Util._
-import truerss.util.{Lens => L}
+import truerss.util.{Jsonize, Lens => L}
 
+import scala.language.postfixOps
 
 sealed trait SourceState
 case object Neutral extends SourceState
@@ -63,11 +63,11 @@ case class WSMessage(messageType: String, body: String)
 
 case class CurrentDriver(profile: JdbcProfile) {
 
-  import profile.simple._
+  import profile.api._
 
   object DateSupport {
     implicit val javaUtilDateMapper =
-      MappedColumnType.base[Date, java.sql.Timestamp] (
+      MappedColumnType.base[Date, java.sql.Timestamp](
         d => new java.sql.Timestamp(d.getTime),
         d => new java.util.Date(d.getTime))
   }
@@ -88,6 +88,7 @@ case class CurrentDriver(profile: JdbcProfile) {
   }
 
   class Sources(tag: Tag) extends Table[Source](tag, "sources") {
+
     import DateSupport._
     import StateSupport._
 
@@ -114,23 +115,24 @@ case class CurrentDriver(profile: JdbcProfile) {
   }
 
   class Feeds(tag: Tag) extends Table[Feed](tag, "feeds") {
+
     import DateSupport._
 
     def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
 
-    def sourceId = column[Long]("source_id", O.NotNull)
+    def sourceId = column[Long]("source_id", NotNull)
 
     def url = column[String]("url")
 
-    def title = column[String]("title", O.DBType("TEXT"))
+    def title = column[String]("title", SqlType("TEXT"))
 
     def author = column[String]("author")
 
     def publishedDate = column[Date]("published_date")
 
-    def description = column[String]("description", O.Nullable, O.DBType("TEXT"))
+    def description = column[String]("description", Nullable, SqlType("TEXT"))
 
-    def content = column[String]("content", O.Nullable, O.DBType("TEXT"))
+    def content = column[String]("content", Nullable, SqlType("TEXT"))
 
     def normalized = column[String]("normalized")
 
@@ -147,32 +149,7 @@ case class CurrentDriver(profile: JdbcProfile) {
 
   object query {
     lazy val sources = TableQuery[Sources]
-    lazy val feeds   = TableQuery[Feeds]
-
-    lazy val actualFeeds = feeds.filter(_.delete === false)
-    lazy val feedsWithEmptyContent = actualFeeds.map(f => (f.id, f.sourceId, f.url,
-      f.title, f.author, f.publishedDate, f.description, f.favorite, f.read))
+    lazy val feeds = TableQuery[Feeds]
   }
 
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

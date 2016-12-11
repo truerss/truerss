@@ -1,255 +1,138 @@
 package truerss.db
 
-import java.util.Date
-
 import akka.actor.{Actor, ActorLogging}
 import akka.pattern._
-
-import truerss.models.CurrentDriver
+import slick.jdbc.JdbcBackend.DatabaseDef
+import truerss.models.{CurrentDriver, FeedDao, SourceDao}
 import truerss.system
 import truerss.system.util.Unread
 
-import scala.concurrent.Future
-import scala.slick.jdbc.JdbcBackend.{DatabaseDef, SessionDef}
-
 class DbActor(db: DatabaseDef, driver: CurrentDriver) extends Actor with ActorLogging {
 
-  import driver.profile.simple._
-  import driver.query._
   import system.db._
   import system.util.{FeedContentUpdate, SourceLastUpdate}
   import system.ws.NewFeeds
-  import truerss.util.Util._
 
-  val stream = context.system.eventStream
 
   implicit val ec = context.system.dispatchers.lookup("dispatchers.db-dispatcher")
 
+  val stream = context.system.eventStream
 
-  def complete[T] = (f: SessionDef => T) =>
-    Future(db.withSession(f)) pipeTo sender
+  val sourceDao = new SourceDao(db)(ec, driver)
+  val feedDao = new FeedDao(db)(ec, driver)
+
 
   def receive = {
     case GetAll | OnlySources =>
-      complete { implicit session =>
-        ResponseSources(sources.buildColl)
-      }
+      sourceDao.all.map(_.toVector).map(ResponseSources) pipeTo sender
 
     case Unread(sourceId) =>
-      complete { implicit session =>
-        ResponseFeeds(
-          feeds.filter(_.sourceId === sourceId)
-            .filter(_.read === false)
-            .sortBy(_.publishedDate.desc)
-            .buildColl
-        )
-      }
+      feedDao.findUnread(sourceId)
+        .map(_.toVector)
+        .map(ResponseFeeds) pipeTo sender
 
     case FeedCount(read) =>
-      complete { implicit session =>
-        ResponseFeedCount(
-          feeds
-            .filter(_.read === read)
-            .groupBy(_.sourceId)
-            .map {
-              case (sourceId, xs) => sourceId -> xs.size
-            }.buildColl
-        )
-      }
+      feedDao.feedBySourceCount(read)
+        .map(_.toVector)
+        .map(ResponseFeedCount) pipeTo sender
 
     case FeedCountForSource(sourceId) =>
-      complete { implicit session =>
-        ResponseCount(
-          feeds
-            .filter(_.sourceId === sourceId)
-            .length
-            .run
-        )
-      }
+      feedDao.feedCountBySourceId(sourceId)
+        .map(ResponseCount) pipeTo sender
 
     case GetSource(sourceId) =>
-      complete { implicit session =>
-        ResponseMaybeSource(
-          sources.filter(_.id === sourceId).firstOption
-        )
-      }
+      sourceDao.findOne(sourceId).map(ResponseMaybeSource) pipeTo sender
 
     case DeleteSource(sourceId) =>
-      complete { implicit session =>
-        val res = sources.filter(_.id === sourceId).firstOption
-        sources.filter(_.id === sourceId).delete
-        feeds.filter(_.sourceId === sourceId).delete
-        ResponseMaybeSource(res)
-      }
+      sourceDao.findOne(sourceId).map { source =>
+        sourceDao.delete(sourceId)
+        feedDao.deleteFeedsBySource(sourceId)
+        source
+      }.map(ResponseMaybeSource) pipeTo sender
 
     case AddSource(source) =>
-      complete { implicit session =>
-        ResponseSourceId((sources returning sources.map(_.id)) += source)
-      }
+      sourceDao.insert(source)
+        .map(ResponseSourceId) pipeTo sender
 
-    case UpdateSource(num, source) =>
-      complete { implicit session =>
-        ResponseSourceId(
-          sources.filter(_.id === source.id)
-            .map(s => (s.url, s.name, s.interval, s.state, s.normalized))
-            .update(source.url, source.name, source.interval,
-              source.state, source.normalized).toLong
-        )
-      }
+    case UpdateSource(_, source) =>
+      sourceDao.updateSource(source)
+        .map(_.toLong)
+        .map(ResponseSourceId) pipeTo sender
 
     case MarkAll =>
-      complete { implicit session =>
-        ResponseDone(
-          feeds
-            .filter(_.read === false)
-            .map(f => f.read)
-            .update(true)
-            .toLong
-        )
-      }
+      feedDao.markAll
+        .map(_.toLong)
+        .map(ResponseDone) pipeTo sender
 
     case Mark(sourceId) =>
-      complete { implicit session =>
-        feeds.filter(_.sourceId === sourceId).map(f => f.read).update(true)
-        ResponseMaybeSource(
-          sources.filter(_.id === sourceId).firstOption
-        )
-      }
+      sourceDao.findOne(sourceId).map { source =>
+        feedDao.markBySource(sourceId)
+        source
+      }.map(ResponseMaybeSource) pipeTo sender
 
     case Latest(count) =>
-      complete { implicit session =>
-        ResponseFeeds(
-          feeds
-            .filter(_.read === false)
-            .take(count)
-            .sortBy(_.publishedDate.desc)
-            .buildColl
-        )
-      }
+      feedDao.lastN(count)
+        .map(_.toVector)
+        .map(ResponseFeeds) pipeTo sender
 
     case ExtractFeedsForSource(sourceId, from, limit) =>
-      complete { implicit session =>
-        ResponseFeeds(
-          feeds
-            .filter(_.sourceId === sourceId)
-            .sortBy(_.publishedDate.desc)
-            .drop(from)
-            .take(limit)
-            .buildColl
-        )
-      }
+      feedDao.pageForSource(sourceId, from, limit)
+        .map(_.toVector)
+        .map(ResponseFeeds) pipeTo sender
 
     case Favorites =>
-      complete { implicit session =>
-        ResponseFeeds(
-          feeds
-            .filter(_.favorite === true)
-            .buildColl
-        )
-      }
+      feedDao.favorites
+        .map(_.toVector)
+        .map(ResponseFeeds) pipeTo sender
 
     case GetFeed(num) =>
-      complete { implicit session =>
-        ResponseMaybeFeed(
-          feeds.filter(_.id === num).firstOption
-        )
-      }
+      feedDao.findOne(num)
+        .map(ResponseMaybeFeed) pipeTo sender
 
     case MarkFeed(feedId) =>
-      complete { implicit session =>
-        val res = feeds.filter(_.id === feedId).firstOption
-        feeds.filter(_.id === feedId).map(e => e.favorite).update(true)
-        ResponseMaybeFeed(res.map(f => f.mark(true)))
-      }
+      feedDao.findOne(feedId).map { feed =>
+        feedDao.modifyFav(feedId, true)
+        feed.map(_.mark(true))
+      }.map(ResponseMaybeFeed) pipeTo sender
 
     case UnmarkFeed(feedId) =>
-      complete { implicit session =>
-        val res = feeds.filter(_.id === feedId).firstOption
-        feeds.filter(_.id === feedId).map(e => e.favorite).update(false)
-        ResponseMaybeFeed(res.map(f => f.mark(false)))
-      }
+      feedDao.findOne(feedId).map { feed =>
+        feedDao.modifyFav(feedId, false)
+        feed.map(_.mark(false))
+      }.map(ResponseMaybeFeed) pipeTo sender
 
     case MarkAsReadFeed(feedId) =>
-      complete { implicit session =>
-        val res = feeds.filter(_.id === feedId).firstOption
-        feeds.filter(_.id === feedId).map(e => e.read).update(true)
-        ResponseMaybeFeed(res.map(f => f.mark(true)))
-      }
+      feedDao.findOne(feedId).map { feed =>
+        feedDao.modifyRead(feedId, true)
+        feed.map(f => f.copy(read = true))
+      }.map(ResponseMaybeFeed) pipeTo sender
 
     case MarkAsUnreadFeed(feedId) =>
-      complete { implicit session =>
-        val res = feeds.filter(_.id === feedId).firstOption
-        feeds.filter(_.id === feedId).map(e => e.read).update(false)
-        ResponseMaybeFeed(res.map(f => f.mark(false)))
-      }
+      feedDao.findOne(feedId).map { feed =>
+        feedDao.modifyRead(feedId, false)
+        feed.map(f => f.copy(read = false))
+      }.map(ResponseMaybeFeed) pipeTo sender
 
     case UrlIsUniq(url, id) =>
-      complete { implicit session =>
-        ResponseFeedCheck(
-          id
-            .map(id => sources.filter(s => s.url === url && !(s.id === id)))
-            .getOrElse(sources.filter(s => s.url === url))
-            .length
-            .run
-        )
-      }
+      sourceDao.findByUrl(url, id).map(ResponseFeedCheck) pipeTo sender
 
-    case NameIsUniq(name, id) => complete { implicit session =>
-        ResponseFeedCheck(
-          id.map(id => sources.filter(s => s.name === name && !(s.id === id)))
-          .getOrElse(sources.filter(s => s.name === name))
-            .length.run
-        )
-      }
+    case NameIsUniq(name, id) =>
+      sourceDao.findByName(name, id).map(ResponseFeedCheck) pipeTo sender
 
     case SourceLastUpdate(sourceId) =>
-      db withSession { implicit session =>
-        sources.filter(_.id === sourceId)
-          .map(s => s.lastUpdate).update(new Date())
-      }
+      sourceDao.updateLastUpdateDate(sourceId)
 
     case SetState(sourceId, state) =>
-      db withSession { implicit session =>
-        sources.filter(_.id === sourceId).map(s => s.state).update(state)
-      }
+      sourceDao.updateState(sourceId, state)
 
     case AddFeeds(sourceId, xs) =>
-      val newFeeds = db withSession { implicit session =>
-        val urls = xs.map(_.url)
-        val inDb = feeds.filter(_.sourceId === sourceId)
-          .filter(_.url inSet(urls))
-        val inDbMap = inDb.map(f => f.url -> f).toMap
-        val (forceUpdateXs, updateXs) = xs.partition(_.forceUpdate)
-        forceUpdateXs.map { entry =>
-          val feed = entry.toFeed(sourceId)
-          inDbMap.get(feed.url) match {
-            case Some(alreadyInDb) =>
-              inDb.filter(_.url === feed.url)
-                .map(f => (f.title, f.author, f.publishedDate,
-                  f.description, f.normalized, f.content, f.read))
-                  .update((feed.title, feed.author, feed.publishedDate,
-                  feed.description.orNull,
-                    feed.normalized, feed.content.orNull, false))
-            case None =>
-              feeds.insert(feed)
-          }
-        }
-        val updateXsMap = updateXs.map(_.toFeed(sourceId)).map(f => f.url -> f).toMap
-        val inDbUrls = inDbMap.keySet
-        val fromNetwork = updateXsMap.keySet
-        val newFeeds = (fromNetwork diff inDbUrls).flatMap(updateXsMap.get)
-        feeds.insertAll(newFeeds.toSeq : _*)
-
-        val newUrls = forceUpdateXs.map(_.url) ++ newFeeds.map(_.url)
-        feeds.filter(_.sourceId === sourceId)
-          .filter(_.url inSet(newUrls)).buildColl
-      }
-      stream.publish(NewFeeds(newFeeds.toVector))
+      feedDao.mergeFeeds(sourceId, xs)
+        .map(_.toVector)
+        .map(NewFeeds)
+        .foreach(stream.publish)
 
     case FeedContentUpdate(feedId, content) =>
-      db withSession { implicit session =>
-        feeds.filter(_.id === feedId).map(_.content).update(content)
-      }
+      feedDao.updateContent(feedId, content)
 
   }
 }

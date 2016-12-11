@@ -15,10 +15,12 @@ import truerss.system.SystemActor
 import truerss.util.PluginLoader
 
 import scala.language.postfixOps
-import scala.slick.jdbc.JdbcBackend
-import scala.slick.jdbc.meta.MTable
-import scala.util.control.Exception._
+import slick.jdbc.JdbcBackend
+import slick.jdbc.meta.MTable
 
+import scala.util.control.Exception._
+import scala.concurrent.duration._
+import scala.concurrent.Await
 
 object Boot extends App {
   import scala.collection.JavaConversions._
@@ -143,14 +145,23 @@ object Boot extends App {
           }
       }
 
+      implicit val system = ActorSystem("truerss")
+      import system.dispatcher
+
       val driver = new CurrentDriver(dbProfile.profile)
 
-      import driver.profile.simple._
+      import driver.profile.api._
 
-      db withSession { implicit session =>
-        if (MTable.getTables("sources").list.isEmpty) {
-          (driver.query.sources.ddl ++ driver.query.feeds.ddl).create
-        }
+      val tables = Await.result(db.run(MTable.getTables), 10 seconds)
+        .toList.map(_.name).map(_.name)
+
+      if (!tables.contains("sources")) {
+        Await.result(
+          db.run {
+            (driver.query.sources.schema ++ driver.query.feeds.schema).create
+          },
+        10 seconds
+        )
       }
 
       val actualConfig = trueRSSConfig.copy(
@@ -161,7 +172,7 @@ object Boot extends App {
         appPlugins = appPlugins
       )
 
-      implicit val system = ActorSystem("truerss")
+
 
       system.actorOf(Props(classOf[SystemActor], actualConfig, db, driver,
         backend.get), "system-actor")

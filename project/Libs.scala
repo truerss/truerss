@@ -15,7 +15,7 @@ object Libs {
     val sprayVersion = "1.3.3"
     val sprayJsonVersion = "1.3.2"
     val akkaVersion  = "2.3.9"
-    val slickVersion = "2.1.0"
+    val slickVersion = "3.2.0-M2"
     val configVersion = "1.3.0"
     val scoptVersion = "3.3.0"
     val hikariCPVersion = "2.4.7"
@@ -35,7 +35,8 @@ object Libs {
     "mysql" % "mysql-connector-java" % mysqlVersion,
     "org.xerial" % "sqlite-jdbc" % sqliteVersion,
     "com.zaxxer" % "HikariCP" % hikariCPVersion,
-    "com.typesafe.slick" %% "slick" %  slickVersion
+    "com.typesafe.slick" %% "slick" %  slickVersion,
+    "com.typesafe.slick" %% "slick-hikaricp" %  slickVersion
   )
 
   val spray = Seq(
@@ -87,6 +88,10 @@ object Libs {
   val tests = Seq(
     "org.scalatest" % "scalatest_2.11" % scalaTestVersion % "test",
     "org.scalactic" % "scalactic_2.11" % scalaTestVersion % "test",
+
+    "org.specs2" %% "specs2-core" % "3.8.6" % "test",
+    "org.specs2" %% "specs2-mock" % "3.8.6" % "test",
+
     "com.typesafe.akka" %% "akka-testkit" % akkaVersion % "test",
     "io.spray" %% "spray-testkit" % sprayVersion % "test"
   )

@@ -14,7 +14,7 @@ import truerss.db.{SupportedDb, DbActor}
 import truerss.models.CurrentDriver
 import truerss.system.util.{NotifyLevels, Notify}
 
-import scala.slick.jdbc.JdbcBackend.DatabaseDef
+import slick.jdbc.JdbcBackend.DatabaseDef
 import scala.concurrent.duration._
 import scala.concurrent.Future
 
