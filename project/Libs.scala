@@ -14,7 +14,7 @@ object Libs {
     val shapelessVersion = "2.1.0"
     val sprayVersion = "1.3.3"
     val sprayJsonVersion = "1.3.2"
-    val akkaVersion  = "2.3.9"
+    val akkaVersion  = "2.4.14"
     val slickVersion = "3.2.0-M2"
     val configVersion = "1.3.0"
     val scoptVersion = "3.3.0"
@@ -25,6 +25,7 @@ object Libs {
     val baseVersion = "0.0.5"
     val jsoupVersion = "1.8.3"
     val scalaTestVersion = "3.0.0-M7"
+    val akkaHttpVersion = "10.0.0"
   }
 
   import versions._
@@ -69,7 +70,12 @@ object Libs {
 
   val jsoup = "org.jsoup" % "jsoup" % jsoupVersion
 
-  val akka = "com.typesafe.akka" %% "akka-actor" % akkaVersion
+  val akka = Seq(
+    "com.typesafe.akka" %% "akka-actor" % akkaVersion,
+    "com.typesafe.akka" %% "akka-stream" % akkaVersion,
+    "com.typesafe.akka" %% "akka-http-core" % akkaHttpVersion,
+    "com.typesafe.akka" %% "akka-http" % akkaHttpVersion
+  )
 
   val shapeless = "com.chuusai" %% "shapeless" % "2.1.0"
 
@@ -96,7 +102,7 @@ object Libs {
     "io.spray" %% "spray-testkit" % sprayVersion % "test"
   )
 
-  val deps = db ++ spray ++ truerss ++ logs ++
-    Seq(jsoup, akka, shapeless) ++ utils ++ tests
+  val deps = db ++ akka ++ spray ++ truerss ++ logs ++
+    Seq(jsoup, shapeless) ++ utils ++ tests
 
 }
