@@ -62,7 +62,20 @@ class SourceDaoSpec(implicit ee: ExecutionEnv) extends Specification with DbHelp
     }
 
     "update source" in {
-      Unit ==== Unit
+      val source = Gen.genSource()
+      val id = insert(source)
+      val newName = "new-source-name"
+      val newUrl = "http://new-url.com"
+
+      val updSource = source.copy(
+        id = Some(id),
+        name = newName,
+        url = newUrl
+      )
+
+      sourceDao.updateSource(updSource) must be_==(1).await
+
+      sourceDao.findOne(id) must beSome(updSource).await
     }
 
     "update last date" in {
@@ -86,6 +99,31 @@ class SourceDaoSpec(implicit ee: ExecutionEnv) extends Specification with DbHelp
       sourceDao.findOne(id).map(s => s.map(_.state)) must beSome(state).await
     }
 
+    "find source by url" in {
+      val source = Gen.genSource()
+      val id = insert(source)
+
+      val source1 = source
+      val id1 = insert(source1)
+
+      // when `id` is present
+      sourceDao.findByUrl(source.url, Some(id)) must be_==(1).await
+      // when `id` is missed
+      sourceDao.findByUrl(source.url, None) must be_==(2).await
+    }
+
+    "find by name" in {
+      val source = Gen.genSource()
+      val id = insert(source)
+
+      val source1 = source
+      val id1 = insert(source1)
+
+      // when `id` is present
+      sourceDao.findByName(source.name, Some(id)) must be_==(1).await
+      // when `id` is missed
+      sourceDao.findByName(source.name, None) must be_==(2).await
+    }
 
   }
 
