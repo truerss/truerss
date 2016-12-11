@@ -118,7 +118,30 @@ class FeedDao(val db: DatabaseDef)(implicit
     }
   }
 
-  def mergeFeeds(sourceId: Long, xs: Vector[Entry]): Future[Seq[Feed]] = {
+  def insert(feed: Feed): Future[Long] = {
+    db.run {
+      (feeds returning feeds.map(_.id)) += feed
+    }
+  }
+
+  def updateByUrl(feed: Feed): Future[Int] = {
+    db.run {
+      feeds.filter(_.url === feed.url)
+        .map(f => (f.title, f.author, f.publishedDate,
+          f.description, f.normalized, f.content, f.read))
+        .update((feed.title, feed.author, feed.publishedDate,
+          feed.description.orNull,
+          feed.normalized, feed.content.orNull, false))
+    }
+  }
+
+  def findBySource(sourceId: Long): Future[Seq[Feed]] = {
+    db.run {
+      feeds.filter(_.sourceId === sourceId).result
+    }
+  }
+
+  def mergeFeeds(sourceId: Long, xs: Iterable[Entry]): Future[Seq[Feed]] = {
     val urls = xs.map(_.url)
     val q = feeds.filter(_.sourceId === sourceId)
       .filter(_.url inSet urls)
@@ -128,28 +151,25 @@ class FeedDao(val db: DatabaseDef)(implicit
       val inDbMap = inDb.map(f => f.url -> f).toMap
       val (forceUpdateXs, updateXs) = xs.partition(_.forceUpdate)
       db.run {
-        forceUpdateXs.map { entry =>
+        val t = forceUpdateXs.map { entry =>
           val feed = entry.toFeed(sourceId)
           inDbMap.get(feed.url) match {
             case Some(_) =>
-              q.filter(_.url === feed.url)
-                .map(f => (f.title, f.author, f.publishedDate,
-                  f.description, f.normalized, f.content, f.read))
-                .update((feed.title, feed.author, feed.publishedDate,
-                  feed.description.orNull,
-                  feed.normalized, feed.content.orNull, false))
+              updateByUrl(feed)
             case None =>
-              feeds += feed
+              insert(feed)
           }
         }
+
 
         val updateXsMap = updateXs.map(_.toFeed(sourceId)).map(f => f.url -> f).toMap
         val inDbUrls = inDbMap.keySet
         val fromNetwork = updateXsMap.keySet
         val newFeeds = (fromNetwork diff inDbUrls).flatMap(updateXsMap.get)
-        feeds ++= newFeeds.toSeq
+        newFeeds.map(insert)
 
         val newUrls = forceUpdateXs.map(_.url) ++ newFeeds.map(_.url)
+
         feeds.filter(_.sourceId === sourceId)
           .filter(_.url inSet newUrls)
           .result
