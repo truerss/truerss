@@ -98,6 +98,7 @@ object Libs {
     "org.specs2" %% "specs2-core" % "3.8.6" % "test",
     "org.specs2" %% "specs2-mock" % "3.8.6" % "test",
 
+    "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion % "test",
     "com.typesafe.akka" %% "akka-testkit" % akkaVersion % "test",
     "io.spray" %% "spray-testkit" % sprayVersion % "test"
   )
