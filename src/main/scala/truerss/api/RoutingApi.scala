@@ -4,11 +4,11 @@ import akka.actor.ActorRef
 import akka.http.scaladsl.server.Directives._
 
 
-class RoutingApiImpl extends RoutingApi
+class RoutingApiImpl(override val service: ActorRef) extends RoutingApi
 
 trait RoutingApi {
 
-//  def service: ActorRef
+  def service: ActorRef
   // TODO add root
   val route = pathPrefix("api" / "v1") {
     pathPrefix("sources") {

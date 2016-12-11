@@ -16,7 +16,9 @@ class RoutingApiSpec extends RouteTest
     ???
   }
 
-  val httpApi = new RoutingApiImpl()
+  val service = TestProbe()
+
+  val httpApi = new RoutingApiImpl(service.ref)
   val route = httpApi.route
 
   val _ok = Unit ==== Unit
