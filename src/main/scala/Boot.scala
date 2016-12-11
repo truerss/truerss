@@ -156,18 +156,13 @@ object Boot extends App {
         .toList.map(_.name).map(_.name)
 
       if (!tables.contains("sources")) {
-
+        Await.result(
+          db.run {
+            (driver.query.sources.schema ++ driver.query.feeds.schema).create
+          },
+        10 seconds
+        )
       }
-
-
-
-
-
-//      db withSession { implicit session =>
-//        if (MTable.getTables("sources").list.isEmpty) {
-//          (driver.query.sources.ddl ++ driver.query.feeds.ddl).create
-//        }
-//      }
 
       val actualConfig = trueRSSConfig.copy(
         port = port,
