@@ -41,18 +41,24 @@ trait RoutingApi {
       } ~ (get & pathPrefix("opml")) {
         complete("opml")
       }
+    } ~ pathPrefix("feeds") {
+      (get & pathPrefix("favorites")) {
+        complete("favorites")
+      } ~ (get & pathPrefix(LongNumber)) { feedId =>
+        complete("get one feed")
+      } ~ put {
+        pathPrefix("mark" / LongNumber) { feedId =>
+          complete("mark feed as fav")
+        } ~ pathPrefix("unmark" / LongNumber) { feedId =>
+          complete("mark feed as unfav")
+        } ~ pathPrefix("read" / LongNumber) { feedId =>
+          complete("mark as read feed")
+        } ~ pathPrefix("unread" / LongNumber) { feedId =>
+          complete("mark as unread")
+        }
+      }
     }
   }
 
-  /*
-
-            get0[SourceController](("unread" / LongNumber) ~> "unread") ~
-            get0[SourceController](("latest"  / LongNumber) ~> "latest") ~
-            get0[SourceController](("feeds" / LongNumber) ~> "feeds") ~
-            put0[SourceController](("refresh" / LongNumber) ~> "refreshOne") ~
-            put0[SourceController]("refresh") ~
-            post0[SourceController]("import" ~> "fromFile") ~
-            get0[SourceController]("opml")
-   */
 
 }

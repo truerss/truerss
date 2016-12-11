@@ -21,7 +21,9 @@ class RoutingApiSpec extends RouteTest
 
   val _ok = Unit ==== Unit
 
-  val url = "/api/v1/sources"
+  val baseUrl = "/api/v1"
+  val sourcesUrl = s"$baseUrl/sources"
+  val feedsUrl = s"$baseUrl/feeds"
 
   def checkRoute(x: HttpRequest) = {
     x ~> route ~> check {
@@ -34,61 +36,84 @@ class RoutingApiSpec extends RouteTest
   section("api", "http")
   "source api" should {
     "get all" in {
-      r(Get(s"$url/all"))
+      r(Get(s"$sourcesUrl/all"))
     }
 
     "get source by id" in {
-      r(Get(s"$url/123"))
+      r(Get(s"$sourcesUrl/123"))
     }
 
     "create source" in {
-      r(Post(s"$url"))
+      r(Post(s"$sourcesUrl"))
     }
 
     "delete source" in {
-      r(Delete(s"$url/123"))
+      r(Delete(s"$sourcesUrl/123"))
     }
 
     "update source" in {
-      r(Put(s"$url/123"))
+      r(Put(s"$sourcesUrl/123"))
     }
 
     "mark all" in {
-      r(Put(s"$url/markAll"))
+      r(Put(s"$sourcesUrl/markAll"))
     }
 
     "mark source as read" in {
-      r(Put(s"$url/mark/123"))
+      r(Put(s"$sourcesUrl/mark/123"))
     }
 
     "get unread feeds" in {
-      r(Get(s"$url/unread/123"))
+      r(Get(s"$sourcesUrl/unread/123"))
     }
 
     "get latest feeds for all sources" in {
-      r(Get(s"$url/latest/100"))
+      r(Get(s"$sourcesUrl/latest/100"))
     }
 
     "get feeds by source" in {
-      r(Get(s"$url/feeds/123"))
+      r(Get(s"$sourcesUrl/feeds/123"))
     }
 
     "refresh all" in {
-      r(Put(s"$url/refresh"))
+      r(Put(s"$sourcesUrl/refresh"))
     }
 
     "refresh one source" in {
-      r(Put(s"$url/refresh/123"))
+      r(Put(s"$sourcesUrl/refresh/123"))
     }
 
     "import new sources" in {
-      r(Post(s"$url/import"))
+      r(Post(s"$sourcesUrl/import"))
     }
 
     "get opml" in {
-      r(Get(s"$url/opml"))
+      r(Get(s"$sourcesUrl/opml"))
     }
 
   }
+
+  section("http", "api")
+  "feeds api" should {
+    "get favorites" in {
+      r(Get(s"$feedsUrl/favorites"))
+    }
+    "get one feed" in {
+      r(Get(s"$feedsUrl/123"))
+    }
+    "mark as favorite" in {
+      r(Put(s"$feedsUrl/mark/123"))
+    }
+    "remove from favorite list" in {
+      r(Put(s"$feedsUrl/unmark/123"))
+    }
+    "mark as read" in {
+      r(Put(s"$feedsUrl/read/123"))
+    }
+    "mark as unread" in {
+      r(Put(s"$feedsUrl/unread/123"))
+    }
+  }
+
 
 }
