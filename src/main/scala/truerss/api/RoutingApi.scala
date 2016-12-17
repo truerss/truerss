@@ -1,8 +1,8 @@
 package truerss.api
 
 import akka.actor.ActorRef
-import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
-import akka.http.scaladsl.model.headers.HttpCookie
+import akka.http.scaladsl.model.{ContentTypes, HttpEntity, StatusCodes}
+import akka.http.scaladsl.model.headers.{HttpCookie, RawHeader}
 import akka.http.scaladsl.server.Directives._
 import truerss.models.{ApiJsonProtocol, SourceW}
 import truerss.system.{db, global, plugins, util}
@@ -124,7 +124,20 @@ trait RoutingApi { self: HttpHelper =>
     } ~
     pathPrefix("templates") {
       getFromResourceDirectory("templates")
+    } ~ pathPrefix("show" / Segments) { segments =>
+      respondWithHeader(makeRedirect(s"/show/${segments.mkString("/")}")) {
+        redirect("/", StatusCodes.Found)
+      }
+    } ~ pathPrefix(Segment) { segment =>
+      respondWithHeader(makeRedirect(segment)) {
+        redirect("/", StatusCodes.Found)
+      }
     }
+
+
+  def makeRedirect(location: String) = {
+    RawHeader("Redirect", location)
+  }
 
   private def ttry(possibleInt: String, recover: Int) =
     Try(possibleInt.toInt).getOrElse(recover)
