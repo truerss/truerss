@@ -69,6 +69,8 @@ package object system {
 
   object plugins {
     case object GetPluginList extends ApiMessage
+    case object GetJs extends ApiMessage
+    case object GetCss extends ApiMessage
   }
 
   object global {

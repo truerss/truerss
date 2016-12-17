@@ -14,6 +14,26 @@ case object Neutral extends SourceState
 case object Enable extends SourceState
 case object Disable extends SourceState
 
+case class SourceW(id: Option[Long],
+              url: String,
+              name: String,
+              interval: Int
+             ) {
+  def toSource = {
+    Source(
+      id = id,
+      url = url,
+      name = name,
+      interval = interval,
+      state = Neutral,
+      normalized = name.normalize,
+      lastUpdate = new Date()
+    )
+  }
+}
+
+
+
 case class Source(id: Option[Long],
                   url: String,
                   name: String,

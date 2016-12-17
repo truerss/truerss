@@ -3,9 +3,11 @@ package truerss.api
 import akka.actor.ActorRef
 import akka.http.scaladsl.server.Directives._
 import truerss.controllers.HttpHelper
-import truerss.system.{db, util}
+import truerss.models.{ApiJsonProtocol, SourceW}
+import truerss.system.{db, plugins, util, global}
 
 import scala.concurrent.ExecutionContext
+import scala.util.Try
 
 
 class RoutingApiImpl(override val service: ActorRef)(
@@ -17,6 +19,10 @@ trait RoutingApi { self: HttpHelper =>
 
   import db._
   import util._
+  import plugins._
+  import global._
+  import spray.json._
+  import ApiJsonProtocol._
 
   // TODO add root
   val route = pathPrefix("api" / "v1") {
@@ -24,76 +30,108 @@ trait RoutingApi { self: HttpHelper =>
       (get & pathPrefix("all")) {
         sendAndWait(GetAll)
       } ~ (get & pathPrefix(LongNumber)) { sourceId =>
-        complete(s"show $sourceId")
+        sendAndWait(GetSource(sourceId))
       } ~ (post & pathEndOrSingleSlash) {
-        complete("create")
+        create[SourceW](x => AddSource(x.toSource))
       } ~ (delete & pathPrefix(LongNumber)) { sourceId =>
-        complete("delete ")
+        sendAndWait(DeleteSource(sourceId))
       } ~ (put & pathPrefix(LongNumber)) { sourceId =>
-        complete("update")
+        create[SourceW](x => UpdateSource(sourceId, x.toSource))
       } ~ (put & pathPrefix("markAll")) {
-        complete("markAll")
+         sendAndWait(MarkAll)
       } ~ (put & pathPrefix("mark" / LongNumber)) { sourceId =>
-        complete("mark one")
+         sendAndWait(Mark(sourceId))
       } ~ (get & pathPrefix("unread" / LongNumber)) { sourceId =>
-        complete("unread")
+         sendAndWait(Unread(sourceId))
       } ~ (get & pathPrefix("latest" / LongNumber)) { count =>
-        complete("latest")
+         sendAndWait(Latest(count))
       } ~ (get & pathPrefix("feeds" / LongNumber)) { sourceId =>
-        complete("feeds")
+        parameters('from ? "0", 'limit ? "100") { (from, limit) =>
+          sendAndWait(ExtractFeedsForSource(sourceId, ttry(from, 0), ttry(limit, 100)))
+        }
       } ~ (put & pathPrefix("refresh" / LongNumber)) { sourceId =>
-        complete("refresh")
+        sendAndWait(UpdateOne(sourceId))
       } ~ (put & pathPrefix("refresh")) {
-        complete("refresh all")
+        sendAndWait(Update)
       } ~ (post & pathPrefix("import")) {
         complete("import")
       } ~ (get & pathPrefix("opml")) {
-        complete("opml")
+        sendAndWait(Opml)
       }
     } ~ pathPrefix("feeds") {
       (get & pathPrefix("favorites")) {
-        complete("favorites")
+        sendAndWait(Favorites)
       } ~ (get & pathPrefix(LongNumber)) { feedId =>
-        complete("get one feed")
+        sendAndWait(GetFeed(feedId))
       } ~ put {
         pathPrefix("mark" / LongNumber) { feedId =>
-          complete("mark feed as fav")
+          sendAndWait(MarkFeed(feedId))
         } ~ pathPrefix("unmark" / LongNumber) { feedId =>
-          complete("mark feed as unfav")
+          sendAndWait(UnmarkFeed(feedId))
         } ~ pathPrefix("read" / LongNumber) { feedId =>
-          complete("mark as read feed")
+          sendAndWait(MarkAsReadFeed(feedId))
         } ~ pathPrefix("unread" / LongNumber) { feedId =>
-          complete("mark as unread")
+          sendAndWait(MarkAsUnreadFeed(feedId))
         }
       }
     } ~ pathPrefix("plugins") {
       get {
         pathPrefix("all") {
-          complete("all")
+          sendAndWait(GetPluginList)
         } ~ pathPrefix("js") {
-          complete("js")
+          sendAndWait(GetJs)
         } ~ pathPrefix("css") {
-          complete("css")
+          sendAndWait(GetCss)
         }
       }
     } ~ pathPrefix("system") {
       get {
         pathPrefix("stop") {
-          complete("stop")
+          sendAndWait(StopSystem)
         } ~ pathPrefix("restart") {
-          complete("restart")
+          sendAndWait(RestartSystem)
         } ~ pathPrefix("exit") {
-          complete("exit")
+          sendAndWait(StopApp)
         }
       }
     }
   }
 
-  /*
-  get0[SystemController]("stop") ~
-            get0[SystemController]("restart") ~
-            get0[SystemController]("exit")
-            */
+  private def ttry(possibleInt: String, recover: Int) =
+    Try(possibleInt.toInt).getOrElse(recover)
 
+
+  /*
+  def fromFile = {
+    entity(as[MultipartFormData]) { formData => c =>
+      val interval = 8
+      val file = formData.fields.map(_.entity.asString(HttpCharsets.`UTF-8`))
+        .reduce(_ + _)
+      OpmlParser.parse(file).fold(
+        err => {
+          proxyRef ! Notify(NotifyLevels.Danger, s"Error when import file $err")
+          c.complete(StatusCodes.BadRequest, err)
+        },
+        xs => {
+          val result = xs.map { x =>
+            SourceHelper.from(x.link, x.title, interval)
+          }.map(s => (proxyRef ? AddSource(s.normalize)).mapTo[Response])
+          Future.sequence(result).onComplete {
+            case S(seq) =>
+              seq.foreach {
+                case BadRequestResponse(msg) =>
+                  proxyRef ! Notify(NotifyLevels.Danger, msg)
+                case _ =>
+              }
+              c.complete(StatusCodes.OK, "ok")
+            case F(error) =>
+              proxyRef ! Notify(NotifyLevels.Danger, s"Error when import file ${error.getMessage}")
+              c.complete(StatusCodes.BadRequest, "oops")
+          }
+        }
+      )
+    }
+  }
+   */
 
 }
