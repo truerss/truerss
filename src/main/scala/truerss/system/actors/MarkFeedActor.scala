@@ -1,14 +1,13 @@
 package truerss.system.actors
 
 import akka.actor._
-import truerss.controllers
 import truerss.system.{db, util}
 
 class MarkFeedActor(override val dbRef: ActorRef) extends CommonActor {
 
   import db.{MarkFeed, ResponseMaybeFeed}
+  import truerss.api.ModelResponse
   import util.PublishEvent
-  import controllers.ModelResponse
 
   def defaultHandler = {
     case msg: MarkFeed =>

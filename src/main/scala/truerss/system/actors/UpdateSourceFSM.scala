@@ -1,9 +1,9 @@
 package truerss.system.actors
 
 import akka.actor.{FSM, _}
-import truerss.controllers.{BadRequestResponse, ModelResponse}
+import truerss.api.{BadRequestResponse, ModelResponse}
 import truerss.models.Source
-import truerss.system.{db, ws, util}
+import truerss.system.{db, util, ws}
 import truerss.util.{ApplicationPlugins, SourceValidator, Util}
 
 class UpdateSourceFSM(override val dbRef: ActorRef,

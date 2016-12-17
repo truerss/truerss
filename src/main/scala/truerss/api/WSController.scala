@@ -1,12 +1,11 @@
-package truerss.controllers
+package truerss.api
 
-import akka.actor.{ActorLogging, Actor}
+import akka.actor.{Actor, ActorLogging}
 import org.java_websocket.WebSocket
-
-import truerss.system.ws.{SourceUpdated, SourceAdded, NewFeeds}
-import truerss.system.util.{SourceDeleted, Notify}
-import truerss.models.{ApiJsonProtocol, WSMessage}
 import spray.json._
+import truerss.models.{ApiJsonProtocol, WSMessage}
+import truerss.system.util.{Notify, SourceDeleted}
+import truerss.system.ws.{NewFeeds, SourceAdded, SourceUpdated}
 
 class WSController(ws: WebSocket) extends Actor with ActorLogging {
 
