@@ -14,8 +14,8 @@ object Libs {
     val shapelessVersion = "2.1.0"
     val sprayVersion = "1.3.3"
     val sprayJsonVersion = "1.3.2"
-    val akkaVersion  = "2.3.9"
-    val slickVersion = "2.1.0"
+    val akkaVersion  = "2.4.14"
+    val slickVersion = "3.2.0-M2"
     val configVersion = "1.3.0"
     val scoptVersion = "3.3.0"
     val hikariCPVersion = "2.4.7"
@@ -25,6 +25,7 @@ object Libs {
     val baseVersion = "0.0.5"
     val jsoupVersion = "1.8.3"
     val scalaTestVersion = "3.0.0-M7"
+    val akkaHttpVersion = "10.0.0"
   }
 
   import versions._
@@ -35,21 +36,11 @@ object Libs {
     "mysql" % "mysql-connector-java" % mysqlVersion,
     "org.xerial" % "sqlite-jdbc" % sqliteVersion,
     "com.zaxxer" % "HikariCP" % hikariCPVersion,
-    "com.typesafe.slick" %% "slick" %  slickVersion
+    "com.typesafe.slick" %% "slick" %  slickVersion,
+    "com.typesafe.slick" %% "slick-hikaricp" %  slickVersion
   )
 
-  val spray = Seq(
-    "io.spray" %% "spray-routing-shapeless2" % sprayVersion,
-    "io.spray" %% "spray-util" % sprayVersion,
-    "io.spray" %% "spray-can"  % sprayVersion,
-    ("io.spray" %% "spray-http" % sprayVersion)
-      .exclude("org.scala-lang.modules", "scala-xml"),
-    ("io.spray" %% "spray-httpx" % sprayVersion)
-      .exclude("org.scala-lang.modules", "scala-xml"),
-    "io.spray" %% "spray-json" % sprayJsonVersion,
-    ("com.github.fntzr" %% "spray-routing-ext" % rountingExtVersion)
-      .exclude("org.scala-lang", "scala-reflect")
-  )
+  val sprayJson = "io.spray" %% "spray-json" % sprayJsonVersion
 
   val scalaLib = "org.scala-lang" % "scala-library" % scalaVersion
 
@@ -68,12 +59,17 @@ object Libs {
 
   val jsoup = "org.jsoup" % "jsoup" % jsoupVersion
 
-  val akka = "com.typesafe.akka" %% "akka-actor" % akkaVersion
-
-  val shapeless = "com.chuusai" %% "shapeless" % "2.1.0"
+  val akka = Seq(
+    "com.typesafe.akka" %% "akka-actor" % akkaVersion,
+    "com.typesafe.akka" %% "akka-stream" % akkaVersion,
+    "com.typesafe.akka" %% "akka-http-core" % akkaHttpVersion,
+    "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion,
+    "com.typesafe.akka" %% "akka-http" % akkaHttpVersion
+  )
 
   val utils = Seq(
     "org.scalaj" %% "scalaj-http" % scalajVersion,
+    "org.scala-lang.modules" %% "scala-xml" % "1.0.6",
    ("commons-validator" % "commons-validator" % commonValidatorVersion)
       .exclude("commons-beanutils", "commons-beanutils")
       .exclude("commons-logging", "commons-logging")
@@ -85,13 +81,14 @@ object Libs {
   )
 
   val tests = Seq(
-    "org.scalatest" % "scalatest_2.11" % scalaTestVersion % "test",
-    "org.scalactic" % "scalactic_2.11" % scalaTestVersion % "test",
-    "com.typesafe.akka" %% "akka-testkit" % akkaVersion % "test",
-    "io.spray" %% "spray-testkit" % sprayVersion % "test"
+    "org.specs2" %% "specs2-core" % "3.8.6" % "test",
+    "org.specs2" %% "specs2-mock" % "3.8.6" % "test",
+
+    "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion % "test",
+    "com.typesafe.akka" %% "akka-testkit" % akkaVersion % "test"
   )
 
-  val deps = db ++ spray ++ truerss ++ logs ++
-    Seq(jsoup, akka, shapeless) ++ utils ++ tests
+  val deps = db ++ akka ++ truerss ++ logs ++
+    Seq(jsoup, sprayJson) ++ utils ++ tests
 
 }

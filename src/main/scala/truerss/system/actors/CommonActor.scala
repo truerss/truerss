@@ -1,7 +1,7 @@
 package truerss.system.actors
 
 import akka.actor._
-import truerss.controllers.InternalServerErrorResponse
+import truerss.api.InternalServerErrorResponse
 import truerss.util.Util.ResponseHelpers
 
 import scala.concurrent.duration._

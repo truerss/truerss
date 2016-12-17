@@ -1,8 +1,8 @@
 package truerss.system.actors
 
 import akka.actor._
+import truerss.api.ModelsResponse
 import truerss.system.db
-import truerss.controllers.ModelsResponse
 
 class LatestFavoritesActor(override val dbRef: ActorRef) extends CommonActor {
 

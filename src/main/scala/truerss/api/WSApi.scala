@@ -1,15 +1,12 @@
 package truerss.api
 
 import akka.actor._
-import akka.event.{LoggingAdapter, EventStream}
-
+import akka.event.{EventStream, LoggingAdapter}
 import java.net.InetSocketAddress
 
 import org.java_websocket.WebSocket
 import org.java_websocket.handshake.ClientHandshake
 import org.java_websocket.server.WebSocketServer
-
-import truerss.controllers.WSController
 import truerss.system.ws._
 import truerss.system.util.SourceDeleted
 import truerss.system.util.Notify

@@ -31,8 +31,9 @@ object ApiJsonProtocol extends DefaultJsonProtocol {
     }
   }
 
+  implicit val SourceWFormat = jsonFormat4(SourceW)
+
   implicit object SourceFormat extends JsonFormat[Source] {
-    //TODO possible validate url and name ?
     override def read(json: JsValue) = json.asJsObject
       .getFields("url", "name", "interval") match {
       case Seq(JsString(url), JsString(name), JsNumber(interval)) =>

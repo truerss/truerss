@@ -1,7 +1,7 @@
 package truerss.system.actors
 
 import akka.actor._
-import truerss.controllers.ModelResponse
+import truerss.api.ModelResponse
 import truerss.system.db
 
 class NumerableActor(override val dbRef: ActorRef) extends CommonActor {

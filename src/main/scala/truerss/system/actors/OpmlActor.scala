@@ -1,8 +1,9 @@
 package truerss.system.actors
 
 import akka.actor._
-import truerss.controllers.OkResponse
+import truerss.api.OkResponse
 import truerss.system.{db, util}
+
 import scala.xml.Utility
 
 class OpmlActor(override val dbRef: ActorRef) extends CommonActor {
