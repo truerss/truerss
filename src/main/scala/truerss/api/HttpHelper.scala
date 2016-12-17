@@ -19,7 +19,7 @@ import scala.util.{Try, Failure => F, Success => S}
 trait HttpHelper {
 
   import ApiJsonProtocol._
-  import akka.http.scaladsl.model._
+  import akka.http.scaladsl.model.{ContentType => C, _}
   import StatusCodes._
   import akka.http.scaladsl.server.Directives._
   import akka.http.scaladsl.server._
@@ -68,6 +68,26 @@ trait HttpHelper {
     }
   }
 
+  def flush(cnt: C, content: String) = {
+    val entity = if (cnt.binary) {
+      HttpEntity.apply(
+        cnt,
+        content.getBytes(utf8)
+      )
+    } else {
+      HttpEntity.apply(
+        content
+      )
+    }
+
+    RouteResult.Complete(
+      HttpResponse(
+        status = OK,
+        entity = entity
+      )
+    )
+  }
+
   def sendAndWait(message: ApiMessage): Route = {
     val f = service.ask(message).mapTo[Response].map {
       case ModelsResponse(xs, c) =>
@@ -80,38 +100,14 @@ trait HttpHelper {
       case ModelResponse(x) => finish(OK, x.toJson.toString)
       case OkResponse(x) => finish(OK, x.toString)
       case OpmlResponse(content) =>
-        RouteResult.Complete(
-          HttpResponse(
-            status = OK,
-            entity = HttpEntity.apply(
-              ContentTypes.`application/octet-stream`,
-              content.getBytes(utf8)
-            )
-          )
-        )
+        flush(ContentTypes.`application/octet-stream`, content)
+
       case CssResponse(content) =>
-        RouteResult.Complete(
-          HttpResponse(
-            status = OK,
-            entity = HttpEntity.apply(
-              ContentTypes.`text/plain(UTF-8)`,
-              content
-            )
-          )
-        )
+        flush(ContentTypes.`text/plain(UTF-8)`, content)
 
       case JsResponse(content) =>
-        RouteResult.Complete(
-          HttpResponse(
-            status = OK,
-            entity = HttpEntity.apply(
-              ContentTypes.`text/plain(UTF-8)`,
-              content
-            )
-          )
-        )
-
-
+        flush(ContentTypes.`text/plain(UTF-8)`, content)
+        
       case NotFoundResponse(msg) => finish(NotFound, msg)
       case BadRequestResponse(msg) => finish(BadRequest, msg)
       case InternalServerErrorResponse(msg) => finish(InternalServerError, msg)
