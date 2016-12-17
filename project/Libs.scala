@@ -67,8 +67,6 @@ object Libs {
     "com.typesafe.akka" %% "akka-http" % akkaHttpVersion
   )
 
-  val shapeless = "com.chuusai" %% "shapeless" % "2.1.0"
-
   val utils = Seq(
     "org.scalaj" %% "scalaj-http" % scalajVersion,
     "org.scala-lang.modules" %% "scala-xml" % "1.0.6",
@@ -91,6 +89,6 @@ object Libs {
   )
 
   val deps = db ++ akka ++ truerss ++ logs ++
-    Seq(jsoup, shapeless, sprayJson) ++ utils ++ tests
+    Seq(jsoup, sprayJson) ++ utils ++ tests
 
 }

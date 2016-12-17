@@ -2,7 +2,6 @@ package truerss.system.actors
 
 import akka.actor._
 import truerss.api.{InternalServerErrorResponse, ModelResponse}
-import truerss.controllers
 import truerss.models.Feed
 import truerss.system.{db, network, util}
 

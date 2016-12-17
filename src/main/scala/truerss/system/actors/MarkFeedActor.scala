@@ -1,7 +1,6 @@
 package truerss.system.actors
 
 import akka.actor._
-import truerss.controllers
 import truerss.system.{db, util}
 
 class MarkFeedActor(override val dbRef: ActorRef) extends CommonActor {

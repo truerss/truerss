@@ -5,7 +5,7 @@ import java.util.Date
 import slick.jdbc.JdbcProfile
 import slick.sql.SqlProfile.ColumnOption._
 import truerss.util.Util._
-import truerss.util.{Jsonize, Lens => L}
+import truerss.util.Jsonize
 
 import scala.language.postfixOps
 
@@ -43,10 +43,10 @@ case class Source(id: Option[Long],
                   lastUpdate: Date,
                   count: Int = 0) extends Jsonize {
 
-  def normalize: Source = L.normalized.set(this)(name.normalize)
-  def recount(x: Int): Source = L.count.set(this)(x)
-  def newId(x: Long): Source = L.id.set(this)(Some(x))
-  def withState(x: SourceState): Source = L.state.set(this)(x)
+  def normalize: Source = copy(normalized = name.normalize)
+  def recount(x: Int): Source = copy(count = x)
+  def newId(x: Long): Source = copy(id = Some(x))
+  def withState(x: SourceState): Source = copy(state = state)
 
 }
 
@@ -76,7 +76,7 @@ case class Feed(id: Option[Long],
                 favorite: Boolean = false,
                 read: Boolean = false,
                 delete: Boolean = false) extends Jsonize {
-  def mark(flag: Boolean): Feed = L.fav.set(this)(flag)
+  def mark(flag: Boolean): Feed = copy(favorite = flag)
 }
 
 case class WSMessage(messageType: String, body: String)
