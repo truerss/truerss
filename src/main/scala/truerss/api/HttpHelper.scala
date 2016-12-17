@@ -68,8 +68,6 @@ trait HttpHelper {
     }
   }
 
-
-
   def sendAndWait(message: ApiMessage): Route = {
     val f = service.ask(message).mapTo[Response].map {
       case ModelsResponse(xs, c) =>
@@ -91,6 +89,29 @@ trait HttpHelper {
             )
           )
         )
+      case CssResponse(content) =>
+        RouteResult.Complete(
+          HttpResponse(
+            status = OK,
+            entity = HttpEntity.apply(
+              ContentTypes.`text/plain(UTF-8)`,
+              content
+            )
+          )
+        )
+
+      case JsResponse(content) =>
+        RouteResult.Complete(
+          HttpResponse(
+            status = OK,
+            entity = HttpEntity.apply(
+              ContentTypes.`text/plain(UTF-8)`,
+              content
+            )
+          )
+        )
+
+
       case NotFoundResponse(msg) => finish(NotFound, msg)
       case BadRequestResponse(msg) => finish(BadRequest, msg)
       case InternalServerErrorResponse(msg) => finish(InternalServerError, msg)

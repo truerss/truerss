@@ -1,6 +1,7 @@
 package truerss.system
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
+import truerss.api.{CssResponse, JsResponse}
 import truerss.system.actors._
 import truerss.util.{ApplicationPlugins, Util}
 
@@ -14,7 +15,7 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
   import Util._
   import db._
   import global._
-  import plugins.GetPluginList
+  import plugins._
   import ResponseHelpers._
   import truerss.api.ModelResponse
   import util._
@@ -79,6 +80,12 @@ class ProxyServiceActor(appPlugins: ApplicationPlugins,
 
     case Opml =>
       create(OpmlActor.props(dbRef)) forward Opml
+
+    case GetJs =>
+      sender ! JsResponse(appPlugins.js.mkString)
+
+    case GetCss =>
+      sender ! CssResponse(appPlugins.css.mkString)
 
     case msg: SetState =>
       stream.publish(msg)
