@@ -6,7 +6,6 @@ import org.specs2.specification.BeforeAfterAll
 import org.specs2.concurrent.ExecutionEnv
 import truerss.models.{Enable, Source, SourceDao, SourceState}
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.Await
 

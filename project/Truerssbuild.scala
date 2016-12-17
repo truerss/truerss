@@ -16,10 +16,9 @@ object Truerssbuild extends Build {
     resolvers += "JCenter" at "http://jcenter.bintray.com/",
     resolvers += "karussell_releases" at "https://github.com/karussell/mvnrepo",
     resolvers += Resolver.bintrayRepo("truerss", "maven"),
-    scalaVersion := "2.11.7",
+    scalaVersion := "2.12.1",
     scalacOptions ++= Seq(
       "-deprecation",
-      "-feature",
       "-encoding", "UTF-8",
       "-feature",
       "-language:higherKinds",
@@ -30,7 +29,8 @@ object Truerssbuild extends Build {
       "-Xcheckinit",
       "-Xverify",
       "-Xfuture"
-    )
+    ),
+    javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
   )
 
   lazy val mainProject = Project(

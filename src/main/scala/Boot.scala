@@ -23,7 +23,7 @@ import scala.concurrent.duration._
 import scala.concurrent.Await
 
 object Boot extends App {
-  import scala.collection.JavaConversions._
+  import scala.collection.JavaConverters._
 
   val parser = new OptionParser[TrueRSSConfig]("truerss") {
     head("truerss", "0.0.1")
@@ -83,7 +83,7 @@ object Boot extends App {
       val appPlugins = PluginLoader.load(pluginDir, pluginConf)
 
       val need = Vector("backend", "port", "host", "dbname", "username", "password")
-      val given = dbConf.entrySet().map(_.getKey).toVector
+      val given = dbConf.entrySet().asScala.map(_.getKey).toVector
 
       val diff1 = given.diff(need)
       val diff2 = need.diff(given)

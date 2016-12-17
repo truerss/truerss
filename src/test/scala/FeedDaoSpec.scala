@@ -7,7 +7,6 @@ import org.specs2.specification.{BeforeAfterAll, Scope}
 import org.specs2.concurrent.ExecutionEnv
 import truerss.models.{Feed, FeedDao, Source, SourceDao}
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.Await
 

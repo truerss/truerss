@@ -1,17 +1,16 @@
 
-import java.net.ServerSocket
+import java.net.{ServerSocket, URI, URL}
 
 import akka.actor._
 import akka.io.IO
 import akka.pattern._
 import akka.util.Timeout
-import java.net.URL
 import com.github.truerss.base.ContentTypeParam
+import com.github.truerss.base.ContentTypeParam.UrlRequest
 import com.github.truerss.base.Errors.UnexpectedError
 import com.github.truerss.base.Errors.ParsingError
 import com.typesafe.config.ConfigFactory
 import org.specs2.mutable.Specification
-
 import truerss.plugins.DefaultSiteReader
 
 import scala.concurrent.Await
@@ -80,7 +79,7 @@ class DefaultReaderTest extends Specification {
 //
   "Content" should {
     "extract content" in {
-      val result = defaultReader.extractContent(content1Url)
+      val result = defaultReader.content(UrlRequest(new URL(content1Url)))
       result.isRight should beTrue
       result.right.get.get must contain("The US digital service")
     }

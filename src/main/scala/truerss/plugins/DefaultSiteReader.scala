@@ -8,7 +8,7 @@ import com.github.truerss.base._
 import com.typesafe.config.Config
 import org.jsoup.Jsoup
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.util.control.Exception._
 
 import truerss.util.syntax.{\/, ext}
@@ -120,11 +120,11 @@ class DefaultSiteReader(config: Config)
 
       val need = doc.select(result.selector)
 
-      need.select("img").foreach { img =>
+      need.select("img").asScala.foreach { img =>
         Option(img.absUrl("src")).map(img.attr("src", _)).getOrElse(img)
       }
 
-      need.select("a").foreach { a =>
+      need.select("a").asScala.foreach { a =>
         val absUrl = a.attr("abs:href")
         if (absUrl.isEmpty) {
           a.attr("href", s"$base${a.attr("href")}")
@@ -133,7 +133,7 @@ class DefaultSiteReader(config: Config)
         }
       }
 
-      need.select("form, input, meta, style, script").foreach(_.remove)
+      need.select("form, input, meta, style, script").asScala.foreach(_.remove)
 
       need.html().some.right
     }

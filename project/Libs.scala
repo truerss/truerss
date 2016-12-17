@@ -3,7 +3,7 @@ import sbt._
 object Libs {
   object versions {
     val scalaVersion = "2.11.7"
-    val scalajVersion = "2.2.0"
+    val scalajVersion = "2.3.0"
     val rountingExtVersion = "0.3.3"
     val h2Version = "1.3.173"
     val postgresqlVersion = "9.1-901-1.jdbc4"
@@ -17,14 +17,13 @@ object Libs {
     val akkaVersion  = "2.4.14"
     val slickVersion = "3.2.0-M2"
     val configVersion = "1.3.0"
-    val scoptVersion = "3.3.0"
+    val scoptVersion = "3.5.0"
     val hikariCPVersion = "2.4.7"
     val jwsVersion = "1.3.0"
     val logbackVersion = "1.1.2"
     val log4j2Version = "1.0.0"
-    val baseVersion = "0.0.5"
+    val baseVersion = "0.0.6"
     val jsoupVersion = "1.8.3"
-    val scalaTestVersion = "3.0.0-M7"
     val akkaHttpVersion = "10.0.0"
   }
 
@@ -53,8 +52,7 @@ object Libs {
     "org.apache.logging.log4j" % "log4j-api" % "2.5",
     "org.apache.logging.log4j" % "log4j-core" % "2.5",
     "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
-    "ch.qos.logback" % "logback-classic" % logbackVersion,
-    "cn.q-game" % "akka-log4j2-logger_2.11" % log4j2Version
+    "ch.qos.logback" % "logback-classic" % logbackVersion
   )
 
   val jsoup = "org.jsoup" % "jsoup" % jsoupVersion
