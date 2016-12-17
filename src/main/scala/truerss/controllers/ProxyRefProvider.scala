@@ -7,6 +7,7 @@ import spray.http.HttpHeaders
 import spray.http.HttpHeaders.RawHeader
 import spray.routing.HttpService._
 import spray.routing.RequestContext
+import truerss.api._
 import truerss.models.ApiJsonProtocol
 import truerss.system.ApiMessage
 

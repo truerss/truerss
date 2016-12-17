@@ -1,7 +1,7 @@
 package truerss.system.actors
 
 import akka.actor._
-import truerss.controllers.ModelsResponse
+import truerss.api.ModelsResponse
 import truerss.models.Feed
 import truerss.system.db
 

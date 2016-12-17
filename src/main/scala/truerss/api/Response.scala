@@ -1,4 +1,4 @@
-package truerss.controllers
+package truerss.api
 
 import truerss.util.Jsonize
 

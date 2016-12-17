@@ -1,19 +1,18 @@
-package truerss.controllers
-
-import akka.actor.ActorRef
-import akka.util.Timeout
-import akka.pattern.ask
+package truerss.api
 
 import java.nio.charset.Charset
 
+import akka.actor.ActorRef
+import akka.pattern.ask
+import akka.util.Timeout
+import truerss.controllers._
 import truerss.models.ApiJsonProtocol
 import truerss.system.ApiMessage
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
-import scala.util.{Try, Failure => F, Success => S}
-
 import scala.reflect.ClassTag
+import scala.util.{Try, Failure => F, Success => S}
 
 /**
   * Created by mike on 17.12.16.
@@ -22,8 +21,8 @@ trait HttpHelper {
 
   import ApiJsonProtocol._
   import akka.http.scaladsl.model._
-  import akka.http.scaladsl.server.Directives._
   import StatusCodes._
+  import akka.http.scaladsl.server.Directives._
   import akka.http.scaladsl.server._
   import RouteResult._
   import spray.json._

@@ -2,9 +2,8 @@ package truerss.api
 
 import akka.actor.ActorRef
 import akka.http.scaladsl.server.Directives._
-import truerss.controllers.HttpHelper
 import truerss.models.{ApiJsonProtocol, SourceW}
-import truerss.system.{db, plugins, util, global}
+import truerss.system.{db, global, plugins, util}
 
 import scala.concurrent.ExecutionContext
 import scala.util.Try

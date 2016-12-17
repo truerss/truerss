@@ -1,6 +1,7 @@
 package truerss.system.actors
 
 import akka.actor._
+import truerss.api.{InternalServerErrorResponse, ModelResponse}
 import truerss.controllers
 import truerss.models.Feed
 import truerss.system.{db, network, util}
@@ -11,7 +12,6 @@ class GetFeedActor(override val dbRef: ActorRef, sourcesRef: ActorRef)
   import db._
   import network._
   import util.FeedContentUpdate
-  import controllers.{InternalServerErrorResponse, ModelResponse}
 
   var feed: Feed = null
 

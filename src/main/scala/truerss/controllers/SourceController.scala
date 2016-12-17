@@ -4,6 +4,7 @@ import akka.pattern.ask
 import com.github.fntzr.spray.routing.ext.BaseController
 import spray.http._
 import spray.routing.{HttpService, Route}
+import truerss.api._
 import truerss.models.{ApiJsonProtocol, Source, SourceHelper}
 import truerss.system.{db, util}
 import truerss.util.OpmlParser
