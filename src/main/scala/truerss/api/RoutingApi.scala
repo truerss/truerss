@@ -1,7 +1,7 @@
 package truerss.api
 
 import akka.actor.ActorRef
-import akka.http.scaladsl.model.ContentTypes
+import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
 import akka.http.scaladsl.model.headers.HttpCookie
 import akka.http.scaladsl.server.Directives._
 import truerss.models.{ApiJsonProtocol, SourceW}
@@ -33,7 +33,10 @@ trait RoutingApi { self: HttpHelper =>
   val route = pathEndOrSingleSlash {
     setCookie(HttpCookie("port", "8080")) {
       complete {
+        HttpEntity(
+          ContentTypes.`text/html(UTF-8)`,
           Source.fromInputStream(getClass.getResourceAsStream(s"/$fileName")).mkString
+        )
       }
     }
   } ~ pathPrefix("api" / "v1") {
@@ -48,7 +51,7 @@ trait RoutingApi { self: HttpHelper =>
           sendAndWait(DeleteSource(sourceId))
         } ~ (put & pathPrefix(LongNumber)) { sourceId =>
           create[SourceW](x => UpdateSource(sourceId, x.toSource))
-        } ~ (put & pathPrefix("markAll")) {
+        } ~ (put & pathPrefix("markall")) {
            sendAndWait(MarkAll)
         } ~ (put & pathPrefix("mark" / LongNumber)) { sourceId =>
            sendAndWait(Mark(sourceId))

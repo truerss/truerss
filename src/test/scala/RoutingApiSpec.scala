@@ -91,7 +91,7 @@ class RoutingApiSpec extends RouteTest
     }
 
     "mark all" in {
-      r(Put(s"$sourcesUrl/markAll"), MarkAll)
+      r(Put(s"$sourcesUrl/markall"), MarkAll)
     }
 
     "mark source as read" in {
