@@ -10,6 +10,8 @@ import truerss.system.ApiMessage
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
+import scala.util.{Success => S, Failure => F}
+
 /**
   * Created by mike on 17.12.16.
   */
@@ -27,8 +29,8 @@ trait HttpHelper {
   implicit val timeout = Timeout(30 seconds) // default
   implicit val ec: ExecutionContext
 
-  def finish(status: StatusCode, msg: String): RouteResult = {
-    val enitity = status match {
+  def response(status: StatusCode, msg: String) = {
+    val entity = status match {
       case StatusCodes.OK =>
         HttpEntity.apply(ContentTypes.`application/json`, msg)
 
@@ -36,14 +38,13 @@ trait HttpHelper {
     }
     HttpResponse(
       status = status,
-      entity = enitity
+      entity = entity
     )
+  }
 
+  def finish(status: StatusCode, msg: String): RouteResult = {
     RouteResult.Complete(
-      HttpResponse(
-        status = status,
-        entity = enitity
-      )
+      response(status, msg)
     )
   }
 
@@ -64,11 +65,15 @@ trait HttpHelper {
     }
 
     onComplete(f) {
-      case scala.util.Success(Complete(response)) =>
-        complete("done")
+      case S(Complete(response)) =>
+        complete(response)
 
-      case _ =>
-        complete("failed")
+      case S(Rejected(rejections)) =>
+        complete(response(InternalServerError, "Rejected"))
+
+
+      case F(fail) =>
+        complete(response(InternalServerError, "Failed"))
 
     }
   }
