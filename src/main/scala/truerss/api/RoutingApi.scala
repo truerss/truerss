@@ -2,18 +2,27 @@ package truerss.api
 
 import akka.actor.ActorRef
 import akka.http.scaladsl.server.Directives._
+import truerss.controllers.HttpHelper
+import truerss.system.{db, util}
+
+import scala.concurrent.ExecutionContext
 
 
-class RoutingApiImpl(override val service: ActorRef) extends RoutingApi
+class RoutingApiImpl(override val service: ActorRef)(
+                    implicit override val ec: ExecutionContext
+)
+  extends RoutingApi with HttpHelper
 
-trait RoutingApi {
+trait RoutingApi { self: HttpHelper =>
 
-  def service: ActorRef
+  import db._
+  import util._
+
   // TODO add root
   val route = pathPrefix("api" / "v1") {
     pathPrefix("sources") {
       (get & pathPrefix("all")) {
-        complete("get")
+        sendAndWait(GetAll)
       } ~ (get & pathPrefix(LongNumber)) { sourceId =>
         complete(s"show $sourceId")
       } ~ (post & pathEndOrSingleSlash) {

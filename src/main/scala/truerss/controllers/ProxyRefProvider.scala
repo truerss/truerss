@@ -13,6 +13,7 @@ import truerss.system.ApiMessage
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
 import scala.concurrent.duration._
 import scala.language.postfixOps
+import scala.util.Failure
 
 trait ProxyRefProvider {
   val proxyRef: akka.actor.ActorRef
@@ -39,55 +40,7 @@ trait ResponseHelper { self : ProxyRefProvider with ActorRefExt =>
 
 }
 
-trait HttpHelper {
 
-  import ApiJsonProtocol._
-  import akka.http.scaladsl.model._
-  import StatusCodes._
-  import akka.http.scaladsl.server.RouteResult
-  import spray.json._
-
-  val service: ActorRef // proxy service
-  implicit val timeout = Timeout(30 seconds) // default
-  implicit val ec: ExecutionContext
-
-  def finish(status: StatusCode, msg: String) = {
-    val enitity = status match {
-      case StatusCodes.OK =>
-        HttpEntity.apply(ContentTypes.`application/json`, msg)
-
-      case _ => HttpEntity.apply(ContentTypes.`application/json`, s"""{"error": "$msg"}""")
-    }
-    HttpResponse(
-      status = status,
-      entity = enitity
-    )
-
-    RouteResult.Complete(
-      HttpResponse(
-        status = status,
-        entity = enitity
-      )
-    )
-  }
-
-  def sendAndWait(message: ApiMessage) = {
-    service.ask(message).mapTo[Response].map {
-      case ModelsResponse(xs, c) =>
-        if (c > 0) {
-          //HttpHeaders.RawHeader("XCount", s"$c"))
-          finish(OK, xs.toJson.toString)
-        } else {
-          finish(OK, xs.toJson.toString)
-        }
-      case ModelResponse(x) => finish(OK, x.toJson.toString)
-      case OkResponse(x) => finish(OK, x.toString)
-      case NotFoundResponse(msg) => finish(NotFound, msg)
-      case BadRequestResponse(msg) => finish(BadRequest, msg)
-      case InternalServerErrorResponse(msg) => finish(InternalServerError, msg)
-    }
-  }
-}
 
 
 
