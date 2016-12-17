@@ -1,4 +1,4 @@
-/*
+
 import java.net.ServerSocket
 
 import akka.actor._
@@ -8,10 +8,9 @@ import akka.util.Timeout
 import java.net.URL
 import com.github.truerss.base.ContentTypeParam
 import com.github.truerss.base.Errors.UnexpectedError
+import com.github.truerss.base.Errors.ParsingError
 import com.typesafe.config.ConfigFactory
-import org.scalatest.{BeforeAndAfterAll, FunSpec, Matchers}
-import spray.can.Http
-import spray.testkit.ScalatestRouteTest
+import org.specs2.mutable.Specification
 
 import truerss.plugins.DefaultSiteReader
 
@@ -20,89 +19,115 @@ import scala.concurrent.duration._
 
 
 
-class DefaultReaderTest extends FunSpec with Matchers
-with ScalatestRouteTest with BeforeAndAfterAll {
+class DefaultReaderTest extends Specification {
 
   implicit val timeout = Timeout(10 seconds)
-  import com.github.truerss.base.Errors.ParsingError
-  override def beforeAll() = {}
 
-  val rssServer = system.actorOf(Props[Server])
-  val host = "localhost"
-  val port = Await.result((IO(Http) ?
-    Http.Bind(rssServer, interface = host, port = 0))
-    .mapTo[akka.io.Tcp.Bound], timeout.duration).localAddress.getPort
 
-  val s = new ServerSocket(0)
-  val freePort = s.getLocalPort
-  s.close()
 
-  println(s"\n port = ${port}; free port = ${freePort}")
-
-  val url = s"http://$host:$port"
+  val url = s"http://localhost:10000"
   val okRss = s"$url/ok-rss"
   val badRss = s"${url}/bad-rss"
-  val failUrl = s"http://$host:$freePort"
+  val failUrl = s"http://localhost:10001"
   val content1Url = s"$url/content1"
   val content2Url = s"$url/content2"
 
   val defaultReader = new DefaultSiteReader(ConfigFactory.empty)
 
-  describe("matchUrl") {
-    it("match any url") {
-      defaultReader.matchUrl(new URL(url)) should be(true)
-      defaultReader.matchUrl(new URL("https://www.youtube.com")) should be(true)
-      defaultReader.matchUrl(new URL("https://news.ycombinator.com/")) should be(true)
+  "matchUrl" should {
+    "match any url" in {
+      defaultReader.matchUrl(new URL(url)) must beTrue
+      defaultReader.matchUrl(new URL("https://www.youtube.com")) must beTrue
+      defaultReader.matchUrl(new URL("https://news.ycombinator.com/")) must beTrue
     }
   }
 
-  describe("newEntries") {
-    it("return new entries when parse valid rss or atom") {
-      val result = defaultReader.newEntries(okRss)
-      result.isRight should be(true)
-      val entries = result.right.get
-      entries should have size 3
-      val need = Seq(
-        "Brains Sweep Themselves Clean of Toxins During Sleep (2013)",
-        "Memory Efficient Hard Real-Time Garbage Collection [pdf]",
-        "The US digital service"
-      ).map { title =>
-        if (title.length > 42) {
-          title.substring(0, 42)
-        } else {
-          title
-        }
-      }
-      entries.map(_.title) should contain allOf (
-        need.head, need(1), need(2)
-      )
+//  "newEntries" should {
+//    "return new entries when parse valid rss or atom" in {
+//      val result = defaultReader.newEntries(okRss)
+//      result.isRight should be(true)
+//      val entries = result.right.get
+//      entries should have size 3
+//      val need = Seq(
+//        "Brains Sweep Themselves Clean of Toxins During Sleep (2013)",
+//        "Memory Efficient Hard Real-Time Garbage Collection [pdf]",
+//        "The US digital service"
+//      ).map { title =>
+//        if (title.length > 42) {
+//          title.substring(0, 42)
+//        } else {
+//          title
+//        }
+//      }
+//      entries.map(_.title) should contain allOf (
+//        need.head, need(1), need(2)
+//      )
+//    }
+//
+//    "return error when parse failed" in {
+//      val result = defaultReader.newEntries(badRss)
+//      result.isLeft should be(true)
+//      result.left.get should be(UnexpectedError(
+//        "Content is not allowed in prolog.")
+//      )
+//    }
+//
+//    "return error when connection failed" in {
+//      val result = defaultReader.newEntries(failUrl)
+//      result.isLeft should be(true)
+//    }
+//  }
+//
+  "Content" should {
+    "extract content" in {
+      val result = defaultReader.extractContent(content1Url)
+      result.isRight should beTrue
+      result.right.get.get must contain("The US digital service")
     }
-
-    it("return error when parse failed") {
-      val result = defaultReader.newEntries(badRss)
-      result.isLeft should be(true)
-      result.left.get should be(UnexpectedError(
-        "Content is not allowed in prolog.")
-      )
-    }
-
-    it("return error when connection failed") {
-      val result = defaultReader.newEntries(failUrl)
-      result.isLeft should be(true)
-    }
-  }
-
-  describe("Content") {
-    it("extract content") {
-      val result = defaultReader.content(ContentTypeParam.UrlRequest(new URL(content1Url)))
-      result.isRight should be(true)
-      result.right.get.get should include("The US digital service")
-    }
-  }
-
-  override def afterAll() = {
-    system.terminate()
   }
 
 }
-*/
+
+trait HtmlFixtures {
+  val rss = <rss version="2.0">
+    <channel>
+      <title>Hacker News</title>
+      <link>https://news.ycombinator.com/</link>
+      <description>Links for the intellectually curious, ranked by readers.</description>
+      <item>
+        <title>Brains Sweep Themselves Clean of Toxins During Sleep (2013)</title>
+        <link>http://www.npr.org/sections/health-shots/2013/10/18/236211811/brains-sweep-themselves-clean-of-toxins-during-sleep</link>
+        <pubDate>Fri, 14 Aug 2015 18:21:06 +0000</pubDate>
+        <comments>https://news.ycombinator.com/item?id=10061833</comments>
+        <description>
+          <![CDATA[<a href="https://news.ycombinator.com/item?id=10061833">Comments</a>]]>
+        </description>
+      </item>
+      <item>
+        <title>Memory Efficient Hard Real-Time Garbage Collection [pdf]</title>
+        <link>http://liu.diva-portal.org/smash/get/diva2:20899/FULLTEXT01.pdf</link>
+        <pubDate>Sat, 15 Aug 2015 05:35:24 +0000</pubDate>
+        <comments>https://news.ycombinator.com/item?id=10064445</comments>
+        <description>
+          <![CDATA[<a href="https://news.ycombinator.com/item?id=10064445">Comments</a>]]>
+        </description>
+      </item>
+      <item>
+        <title>The US digital service</title>
+        <link>http://blog.samaltman.com/the-us-digital-service</link>
+        <pubDate>Fri, 14 Aug 2015 16:00:49 +0000</pubDate>
+        <comments>https://news.ycombinator.com/item?id=10060858</comments>
+        <description>
+          <![CDATA[<a href="https://news.ycombinator.com/item?id=10060858">Comments</a>]]>
+        </description>
+      </item>
+    </channel>
+  </rss>
+
+  val content = <div>
+    <article>
+      The US digital service
+    </article>
+  </div>
+}
+
