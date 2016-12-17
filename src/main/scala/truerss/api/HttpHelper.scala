@@ -76,7 +76,8 @@ trait HttpHelper {
       )
     } else {
       HttpEntity.apply(
-        content
+        contentType = cnt,
+        content.getBytes(utf8)
       )
     }
 
@@ -107,7 +108,7 @@ trait HttpHelper {
 
       case JsResponse(content) =>
         flush(ContentTypes.`text/plain(UTF-8)`, content)
-        
+
       case NotFoundResponse(msg) => finish(NotFound, msg)
       case BadRequestResponse(msg) => finish(BadRequest, msg)
       case InternalServerErrorResponse(msg) => finish(InternalServerError, msg)

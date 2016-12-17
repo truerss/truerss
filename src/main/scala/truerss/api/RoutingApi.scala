@@ -1,6 +1,7 @@
 package truerss.api
 
 import akka.actor.ActorRef
+import akka.http.scaladsl.model.ContentTypes
 import akka.http.scaladsl.model.headers.HttpCookie
 import akka.http.scaladsl.server.Directives._
 import truerss.models.{ApiJsonProtocol, SourceW}
@@ -8,6 +9,7 @@ import truerss.system.{db, global, plugins, util}
 
 import scala.concurrent.ExecutionContext
 import scala.util.Try
+import scala.io.Source
 
 
 class RoutingApiImpl(override val service: ActorRef)(
@@ -24,11 +26,15 @@ trait RoutingApi { self: HttpHelper =>
   import spray.json._
   import ApiJsonProtocol._
 
+  val fileName = "index.html"
+
   // TODO add root
   // TODO port
   val route = pathEndOrSingleSlash {
     setCookie(HttpCookie("port", "8080")) {
-
+      complete {
+          Source.fromInputStream(getClass.getResourceAsStream(s"/$fileName")).mkString
+      }
     }
   } ~ pathPrefix("api" / "v1") {
       pathPrefix("sources") {
@@ -100,11 +106,45 @@ trait RoutingApi { self: HttpHelper =>
           }
         }
       }
-  }
+  } ~ pathPrefix("about") {
+    complete {
+      about
+    }
+  } ~ pathPrefix("css") {
+    getFromResourceDirectory("css")
+  } ~
+    pathPrefix("js") {
+      getFromResourceDirectory("javascript")
+    } ~
+    pathPrefix("fonts") {
+      getFromResourceDirectory("fonts")
+    } ~
+    pathPrefix("templates") {
+      getFromResourceDirectory("templates")
+    }
 
   private def ttry(possibleInt: String, recover: Int) =
     Try(possibleInt.toInt).getOrElse(recover)
 
+
+  def about =
+    """
+      <h1>About</h1>
+        <p>
+          TrueRss is open source feed reader with customizable plugin system
+          for any content (atom, rss, youtube channels...).
+          More info <a href='http://truerss.net'>truerss official site</a>
+          Download plugins: <a href='https://github.com/truerss?utf8=%E2%9C%93&query=plugin'>plugins</a>
+        </p>
+        <ul>
+          <li><code>left-arrow</code> - next post</li>
+          <li><code>right-arrow</code> - previous post</li>
+          <li><code>shift+n</code> - next source</li>
+          <li><code>shift+p</code> - previous source</li>
+          <li><code>shift+f</code> - mark\\unmark as favorite</li>
+          <li><code>shift+m</code> - mark as read</li>
+        </ul>
+    """.stripMargin
 
   /*
   def fromFile = {
