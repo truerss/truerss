@@ -6,7 +6,7 @@ import akka.http.scaladsl.Http
 import akka.pattern.gracefulStop
 import akka.stream.ActorMaterializer
 import slick.jdbc.JdbcBackend.DatabaseDef
-import truerss.api.{RoutingApiImpl, RoutingService, WSApi}
+import truerss.api.{RoutingApiImpl, WSApi}
 import truerss.config.TrueRSSConfig
 import truerss.db.{DbActor, SupportedDb}
 import truerss.models.CurrentDriver
@@ -52,17 +52,12 @@ class SystemActor(config: TrueRSSConfig,
       config.appPlugins, dbRef, sourcesRef, self
     ), "service-router")
 
-  val api = context.actorOf(Props(classOf[RoutingService],
-    proxyRef, config.wsPort,
-    config.appPlugins.js.toVector,
-    config.appPlugins.css.toVector), "api")
-
   val socketApi = context.actorOf(Props(classOf[WSApi], config.wsPort), "ws-api")
 
   Http().bindAndHandle(new RoutingApiImpl(proxyRef).route, config.host, config.port)
 
   def stopChildren = Future.sequence(Vector(
-    dbRef, sourcesRef, proxyRef, api, socketApi
+    dbRef, sourcesRef, proxyRef, socketApi
   ).map(gracefulStop(_, 10 seconds)))
 
   def receive = {

@@ -1,4 +1,4 @@
-
+/*
 import akka.actor.Actor
 
 import scala.concurrent.duration.Duration
@@ -77,4 +77,4 @@ class Server extends Actor with BaseServer {
   val receive = runRoute(route)
 }
 
-
+*/

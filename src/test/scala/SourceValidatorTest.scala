@@ -1,4 +1,4 @@
-
+/*
 import truerss.models.Source
 import truerss.util.SourceValidator
 import org.scalatest.{Matchers, FunSpec}
@@ -51,3 +51,4 @@ class SourceValidatorTest extends FunSpec with Matchers {
 
   }
 }
+*/
