@@ -24,9 +24,9 @@ class GetFeedActor(override val dbRef: ActorRef, sourcesRef: ActorRef)
         case Some(f) =>
           feed = f
           feed.content match {
-            case Some(content) =>
+            case Some(_) =>
               originalSender ! ModelResponse(feed)
-              context.stop(self)
+              finish
 
             case None =>
               feed.id.foreach { feedId =>
@@ -41,14 +41,15 @@ class GetFeedActor(override val dbRef: ActorRef, sourcesRef: ActorRef)
 
     case response: NetworkResult =>
       val r = response match {
-        case ExtractedEntries(sourceId, xs) =>
+        case ExtractedEntries(_, _) =>
           InternalServerErrorResponse("Unexpected message")
-        case ExtractContentForEntry(sourceId, feedId, content) =>
+        case ExtractContentForEntry(_, feedId, content) =>
           content match {
             case Some(cnt) =>
               stream.publish(FeedContentUpdate(feedId, cnt))
               ModelResponse(feed.copy(content = Some(cnt)))
-            case None => ModelResponse(feed)
+            case None =>
+              ModelResponse(feed)
           }
         case ExtractError(error) =>
           log.error(s"error on extract from ${feed.sourceId} -> ${feed.url}: $error")
