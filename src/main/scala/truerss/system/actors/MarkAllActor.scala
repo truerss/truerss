@@ -15,7 +15,7 @@ class MarkAllActor(override val dbRef: ActorRef) extends CommonActor {
 
     case ResponseDone(id) =>
       originalSender ! OkResponse(s"$id")
-      context.stop(self)
+      finish
   }
 
 }

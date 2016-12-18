@@ -20,7 +20,7 @@ class DeleteSourceActor(override val dbRef: ActorRef, sourcesRef: ActorRef) exte
         stream.publish(SourceDeleted(source)) // => ws
         ok
       }.getOrElse(sourceNotFound)
-      context.stop(self)
+      finish
   }
 }
 

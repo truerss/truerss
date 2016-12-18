@@ -33,6 +33,7 @@ class OpmlActor(override val dbRef: ActorRef) extends CommonActor {
          |</body>
          |</opml>
        """.stripMargin)
+      finish
   }
 
   private def e(x: String) = Utility.escape(x)

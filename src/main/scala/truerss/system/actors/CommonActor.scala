@@ -14,7 +14,7 @@ trait CommonActor extends
 
   import context.dispatcher
 
-  context.system.scheduler.scheduleOnce(10 seconds) {
+  val scheduler = context.system.scheduler.scheduleOnce(10 seconds) {
     self ! CommonActor.Suicide
   }
 
@@ -25,6 +25,11 @@ trait CommonActor extends
   }
 
   def defaultHandler: Receive
+
+  def finish = {
+    scheduler.cancel()
+    context.stop(self)
+  }
 
   override def receive = defaultHandler orElse handleSuicide
 

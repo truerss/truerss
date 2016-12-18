@@ -16,7 +16,7 @@ class NumerableActor(override val dbRef: ActorRef) extends CommonActor {
     case ResponseMaybeSource(maybeSource) =>
       originalSender ! maybeSource.map(ModelResponse(_))
         .getOrElse(sourceNotFound)
-      context.stop(self)
+      finish
   }
 }
 

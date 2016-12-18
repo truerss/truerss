@@ -16,7 +16,7 @@ class UnreadActor(override val dbRef: ActorRef) extends CommonActor {
 
     case ResponseFeeds(xs) =>
       originalSender ! ModelsResponse(xs)
-      context.stop(self)
+      finish
 
   }
 

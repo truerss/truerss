@@ -27,7 +27,7 @@ class GetAllActor(override val dbRef: ActorRef) extends CommonActor {
       )
 
       originalSender ! response
-      context.stop(self)
+      finish
 
   }
 

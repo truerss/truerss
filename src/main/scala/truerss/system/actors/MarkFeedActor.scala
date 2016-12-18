@@ -19,7 +19,7 @@ class MarkFeedActor(override val dbRef: ActorRef) extends CommonActor {
         stream.publish(PublishEvent(feed))
         ModelResponse(feed)
       }.getOrElse(feedNotFound)
-      context.stop(self)
+      finish
   }
 
 }

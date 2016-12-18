@@ -15,7 +15,7 @@ class MarkMessagesActor(override val dbRef: ActorRef) extends CommonActor {
 
     case ResponseMaybeFeed(maybeFeed) =>
       originalSender ! optionFeedResponse(maybeFeed)
-      context.stop(self)
+      finish
   }
 
 }

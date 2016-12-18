@@ -36,7 +36,7 @@ class GetFeedActor(override val dbRef: ActorRef, sourcesRef: ActorRef)
 
         case None =>
           originalSender ! feedNotFound
-          context.stop(self)
+          finish
       }
 
     case response: NetworkResult =>
@@ -59,7 +59,7 @@ class GetFeedActor(override val dbRef: ActorRef, sourcesRef: ActorRef)
           InternalServerErrorResponse(s"source $sourceId not found")
       }
       originalSender ! r
-      context.stop(self)
+      finish
 
   }
 
