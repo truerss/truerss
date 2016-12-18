@@ -10,84 +10,90 @@ import com.github.truerss.base.ContentTypeParam.UrlRequest
 import com.github.truerss.base.Errors.UnexpectedError
 import com.github.truerss.base.Errors.ParsingError
 import com.typesafe.config.ConfigFactory
+import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
+import org.specs2.specification.Scope
 import truerss.plugins.DefaultSiteReader
+import truerss.util.Request
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import scalaj.http.HttpResponse
 
 
 
-class DefaultReaderTest extends Specification {
+class DefaultReaderTest extends Specification with Mockito {
 
   implicit val timeout = Timeout(10 seconds)
 
-
-
-  val url = s"http://localhost:10000"
+  val url = s"http://example.com"
   val okRss = s"$url/ok-rss"
-  val badRss = s"${url}/bad-rss"
-  val failUrl = s"http://localhost:10001"
+  val badRss = s"$url/bad-rss"
+  val failUrl = s"http://faile-example.com"
   val content1Url = s"$url/content1"
   val content2Url = s"$url/content2"
 
-  val defaultReader = new DefaultSiteReader(ConfigFactory.empty)
+
 
   "matchUrl" should {
-    "match any url" in {
+    "match any url" in new ReaderScope(HtmlFixtures.content) {
       defaultReader.matchUrl(new URL(url)) must beTrue
       defaultReader.matchUrl(new URL("https://www.youtube.com")) must beTrue
       defaultReader.matchUrl(new URL("https://news.ycombinator.com/")) must beTrue
     }
   }
 
-//  "newEntries" should {
-//    "return new entries when parse valid rss or atom" in {
-//      val result = defaultReader.newEntries(okRss)
-//      result.isRight should be(true)
-//      val entries = result.right.get
-//      entries should have size 3
-//      val need = Seq(
-//        "Brains Sweep Themselves Clean of Toxins During Sleep (2013)",
-//        "Memory Efficient Hard Real-Time Garbage Collection [pdf]",
-//        "The US digital service"
-//      ).map { title =>
-//        if (title.length > 42) {
-//          title.substring(0, 42)
-//        } else {
-//          title
-//        }
-//      }
-//      entries.map(_.title) should contain allOf (
-//        need.head, need(1), need(2)
-//      )
-//    }
-//
-//    "return error when parse failed" in {
-//      val result = defaultReader.newEntries(badRss)
-//      result.isLeft should be(true)
-//      result.left.get should be(UnexpectedError(
-//        "Content is not allowed in prolog.")
-//      )
-//    }
-//
-//    "return error when connection failed" in {
-//      val result = defaultReader.newEntries(failUrl)
-//      result.isLeft should be(true)
-//    }
-//  }
-//
-  "Content" should {
-    "extract content" in {
-      val result = defaultReader.content(UrlRequest(new URL(content1Url)))
-      result.isRight should beTrue
-      result.right.get.get must contain("The US digital service")
+  "newEntries" should {
+    "return new entries when parse valid rss or atom" in new ReaderScope(HtmlFixtures.rss.toString) {
+      val result = defaultReader.newEntries(okRss)
+      result.isRight must beTrue
+      val entries = result.right.get
+      entries must have size 3
+      val need = Seq(
+        "Brains Sweep Themselves Clean of Toxins During Sleep (2013)",
+        "Memory Efficient Hard Real-Time Garbage Collection [pdf]",
+        "The US digital service"
+      )
+
+      entries.map(_.title) must contain(allOf(need : _*))
     }
+
+    "return error when parse failed" in new ReaderScope("<foo>") {
+      val result = defaultReader.newEntries(badRss)
+      println(result)
+      result.isLeft must beTrue
+      result.left.get must haveClass[UnexpectedError]
+    }
+
+    "return error when connection failed" in new ReaderScope("foo", 503) {
+      val result = defaultReader.newEntries(failUrl)
+      result.isLeft must beTrue
+    }
+  }
+
+  "Content" should {
+    "extract content" in new ReaderScope(HtmlFixtures.content) {
+      val result = defaultReader.content(UrlRequest(new URL(content1Url)))
+      result.isRight must beTrue
+      result.right.get.get must contain(HtmlFixtures.text)
+    }
+  }
+
+  class ReaderScope(body: String, code: Int = 200) extends Scope {
+    class MyTestReader extends DefaultSiteReader(ConfigFactory.empty) {
+      override def getResponse(url: String) = new HttpResponse[String](
+        body = body,
+        code = code,
+        headers = Map.empty
+      )
+    }
+
+    val defaultReader = new MyTestReader
   }
 
 }
 
-trait HtmlFixtures {
+object HtmlFixtures {
   val rss = <rss version="2.0">
     <channel>
       <title>Hacker News</title>
@@ -123,10 +129,12 @@ trait HtmlFixtures {
     </channel>
   </rss>
 
-  val content = <div>
+  val text = "The US digital service"
+
+  val content = s"""<div>
     <article>
-      The US digital service
+      $text
     </article>
-  </div>
+  </div>"""
 }
 

@@ -7,20 +7,21 @@ import com.github.truerss.base.ContentTypeParam.{HtmlRequest, UrlRequest}
 import com.github.truerss.base._
 import com.typesafe.config.Config
 import org.jsoup.Jsoup
+import org.apache.logging.log4j.LogManager
 
 import scala.collection.JavaConverters._
 import scala.util.control.Exception._
 
 import truerss.util.syntax.{\/, ext}
+import truerss.util.Request
 
 class DefaultSiteReader(config: Config)
-  extends BaseSitePlugin(config) {
+  extends BaseSitePlugin(config) with Request {
   import ext._
-  import org.apache.logging.log4j.LogManager
+
   private final val logger = LogManager.getLogger("DefaultSiteReader")
 
   import Errors._
-  import truerss.util.Request._
 
   implicit def exception2error(x: Throwable) = x match {
     case x: RuntimeException => ConnectionError(x.getMessage).left
