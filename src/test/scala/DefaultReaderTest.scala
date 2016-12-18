@@ -1,22 +1,15 @@
 
-import java.net.{ServerSocket, URI, URL}
+import java.net.URL
 
-import akka.actor._
-import akka.io.IO
-import akka.pattern._
 import akka.util.Timeout
-import com.github.truerss.base.ContentTypeParam
 import com.github.truerss.base.ContentTypeParam.UrlRequest
 import com.github.truerss.base.Errors.UnexpectedError
-import com.github.truerss.base.Errors.ParsingError
 import com.typesafe.config.ConfigFactory
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import truerss.plugins.DefaultSiteReader
-import truerss.util.Request
 
-import scala.concurrent.Await
 import scala.concurrent.duration._
 import scalaj.http.HttpResponse
 

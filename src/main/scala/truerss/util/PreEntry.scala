@@ -11,10 +11,13 @@ case class PreEntry(
    publishedDate: Date,
    description: Option[String]
 ) {
+
+  import PreEntry.maxLength
+
   def toEntry: Entry = {
     val length = title.map(_.length).map{ length =>
-      if (length > 250) {
-        250
+      if (length > maxLength) {
+        maxLength
       } else {
         length
       }
@@ -29,4 +32,8 @@ case class PreEntry(
       content = None
     )
   }
+}
+
+object PreEntry {
+  val maxLength = 250
 }
