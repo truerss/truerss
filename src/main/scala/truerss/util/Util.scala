@@ -1,12 +1,11 @@
 package truerss.util
 
-import java.time.{LocalDateTime, ZoneId, LocalDate}
+import java.time.{LocalDateTime, ZoneId}
 import java.util.Date
 
 import com.github.truerss.base.Entry
-import truerss.controllers.{ModelResponse, NotFoundResponse, OkResponse}
-import truerss.models.{Neutral, Enable, Feed}
-import truerss.system.db.Numerable
+import truerss.api.{ModelResponse, NotFoundResponse, Ok}
+import truerss.models.{Enable, Feed, Neutral}
 
 
 object Util {
@@ -58,9 +57,9 @@ object Util {
   }
 
   trait ResponseHelpers {
-    val ok = OkResponse("ok")
-    val sourceNotFound = NotFoundResponse(s"Source not found")
-    val feedNotFound = NotFoundResponse(s"Feed not found")
+    val ok = Ok("ok")
+    val sourceNotFound = NotFoundResponse("Source not found")
+    val feedNotFound = NotFoundResponse("Feed not found")
     def optionFeedResponse[T <: Jsonize](x: Option[T]) = x match {
       case Some(m) => ModelResponse(m)
       case None => feedNotFound

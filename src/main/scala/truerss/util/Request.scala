@@ -1,6 +1,6 @@
 package truerss.util
 
-final object Request {
+trait Request {
 
   import scalaj.http._
 
@@ -41,3 +41,6 @@ final object Request {
   }
 
 }
+
+object Request extends Request
+

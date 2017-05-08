@@ -6,21 +6,23 @@ import com.github.truerss.ContentExtractor
 import com.github.truerss.base.ContentTypeParam.{HtmlRequest, UrlRequest}
 import com.github.truerss.base._
 import com.typesafe.config.Config
-import org.jsoup.Jsoup
 
-import scala.collection.JavaConversions._
+import org.jsoup.Jsoup
+import org.slf4j.LoggerFactory
+
+import scala.collection.JavaConverters._
 import scala.util.control.Exception._
 
 import truerss.util.syntax.{\/, ext}
+import truerss.util.Request
 
 class DefaultSiteReader(config: Config)
-  extends BaseSitePlugin(config) {
+  extends BaseSitePlugin(config) with Request {
   import ext._
-  import org.apache.logging.log4j.LogManager
-  private final val logger = LogManager.getLogger("DefaultSiteReader")
+
+  private final val logger = LoggerFactory.getLogger(getClass)
 
   import Errors._
-  import truerss.util.Request._
 
   implicit def exception2error(x: Throwable) = x match {
     case x: RuntimeException => ConnectionError(x.getMessage).left
@@ -120,11 +122,11 @@ class DefaultSiteReader(config: Config)
 
       val need = doc.select(result.selector)
 
-      need.select("img").foreach { img =>
+      need.select("img").asScala.foreach { img =>
         Option(img.absUrl("src")).map(img.attr("src", _)).getOrElse(img)
       }
 
-      need.select("a").foreach { a =>
+      need.select("a").asScala.foreach { a =>
         val absUrl = a.attr("abs:href")
         if (absUrl.isEmpty) {
           a.attr("href", s"$base${a.attr("href")}")
@@ -133,7 +135,7 @@ class DefaultSiteReader(config: Config)
         }
       }
 
-      need.select("form, input, meta, style, script").foreach(_.remove)
+      need.select("form, input, meta, style, script").asScala.foreach(_.remove)
 
       need.html().some.right
     }

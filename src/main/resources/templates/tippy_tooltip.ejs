@@ -1,0 +1,7 @@
+<ul class="uk-list">
+  <% for (i = 0; i < feeds.length; i++) { %>
+      <li><a href="<%= feeds[i].href() %>">
+          <%= feeds[i].title() %>
+      <a/></li>
+  <% } %>
+</ul>

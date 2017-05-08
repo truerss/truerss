@@ -19,7 +19,7 @@ SourcesController =
     source = Sources.takeFirst (s) -> s.normalized() == normalized
     if source
       ajax.get_unread source.id(), (feeds) ->
-        source.reset('feed')
+        source.reset('feeds')
         feeds = feeds.map (x) ->
           pd = moment(x['publishedDate'])
           x['publishedDate'] = pd
@@ -60,16 +60,36 @@ SourcesController =
       view.render("uk-hidden").zoom("td input").remove_class()
       view.render("uk-hidden").zoom("span.errors").remove_class()
 
-      source.bind view,
-        "span.source-name": {from: "name"}
-        "span.source-url": {from: "url"}
-        "span.source-interval": {from: "interval"}
-        "span.errors": {from: "errors.url.url_validator"}
+      to_view_transformer = Sirius.Transformer.draw({
+        name: {
+          to: 'span.source-name'
+        },
+        'url': {
+          to: 'span.source-url'
+        },
+        'interval': {
+          to: 'span.source-interval'
+        },
+        'errors.url.url_validator': {
+          to: 'span.errors'
+        }
+      })
 
-      view.bind source,
-        "input[name='name']" : {to: "name"}
-        "input[name='url']" : {to: "url"}
-        "input[name='interval']": {to: "interval"}
+      source.bind(view, to_view_transformer)
+
+      to_model_transformer = Sirius.Transformer.draw({
+        "input[name='name']": {
+          to: 'name'
+        },
+        "input[name='url']": {
+          to: 'url'
+        },
+        "input[name='interval']": {
+          to: 'interval'
+        }
+      })
+
+      view.bind(source, to_model_transformer)
 
       view.on "input[type='button']", "click", (e) ->
         ajax.update_source source.id(), source.ajaxify(),
@@ -128,3 +148,14 @@ SourcesController =
 
   download: (e) ->
     window.open("/api/v1/sources/opml")
+
+  fetch_unread: (e, source) ->
+    ajax.get_unread source.id(), (feeds) ->
+      feeds = feeds.map (x) ->
+        pd = moment(x['publishedDate'])
+        x['publishedDate'] = pd
+        new Feed(x)
+
+      source.reset('feeds')
+      source.count(feeds.length)
+      feeds.forEach (f) -> source.add_feed(f)

@@ -5,7 +5,6 @@ class AjaxService
     @sources_api = "/api/v1/sources"
     @feeds_api = "/api/v1/feeds"
     @plugin_api = "/api/v1/plugins"
-    @system_api = "/api/v1/system"
     @k = () ->
 
   plugins_all: (success, error) ->
@@ -27,7 +26,7 @@ class AjaxService
     @_get("#{@sources_api}/latest/#{count}", success, error)
 
   source_create: (params, success, error) ->
-    @_post("#{@sources_api}/create", params, success, error)
+    @_post("#{@sources_api}", params, success, error)
 
   refresh_all: () ->
     @_put("#{@sources_api}/refresh", @k , @k)
@@ -43,15 +42,6 @@ class AjaxService
 
   update_source: (id, params, success, error) ->
     @_put("#{@sources_api}/#{id}", params, success, error)
-
-  restart_system: (success) ->
-    @_get("#{@system_api}/restart", success, @k)
-
-  stop_system: (success) ->
-    @_get("#{@system_api}/stop", success, @k)
-
-  exit_app: (success) ->
-    @_get("#{@system_api}/exit", success, @k)
 
   favorites_feed: (success, error) ->
     @_get("#{@feeds_api}/favorites", success, error)
@@ -200,9 +190,9 @@ ControllerExt =
     document.cookie = cn + '=; Path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;'
 
   render_source_feeds_and_redirect_to_first: (source) ->
-    result = Templates.feeds_template.render({feeds: source.feed()})
+    result = Templates.feeds_template.render({feeds: source.feeds()})
     Templates.feeds_view.render(result).html()
-    if source.feed().length > 0
-      redirect(source.feed()[0].href())
+    if source.feeds().length > 0
+      redirect(source.feeds()[0].href())
 
 

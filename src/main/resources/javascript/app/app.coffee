@@ -44,6 +44,7 @@ $ ->
 
   routes =
     "application:run" : controller: MainController, action: "start"
+    "sources:fetch": controller: SourcesController, action: "fetch_unread"
     "ws:new": controller: WSController, action: "fresh"
     "ws:create": controller: WSController, action: "create"
     "ws:deleted": controller: WSController, action: "deleted"
@@ -67,9 +68,6 @@ $ ->
     "click a[href='#delete-source']": controller: SourcesController, action: "remove", data: "data-source-id"
     "click a[href='#edit-source']": controller: SourcesController, action: "edit", data: "data-source-id"
     "click a[href='#mark-source-as-read']": controller: SourcesController, action: "mark"
-    "click a[href='#restart-system']": controller: SystemController, action: "restart"
-    "click a[href='#stop-system']": controller: SystemController, action: "stop"
-    "click a[href='#exit-app']": controller: SystemController, action: "exit"
     "click #truerss-next": controller: FeedsController, action: "next", data: "data-feed-id", guard: "prev_next_guard"
     "click #truerss-prev": controller: FeedsController, action: "prev", data: "data-feed-id", guard: "prev_next_guard"
     "keyup body": controller: FeedsController, action: "move", guard: "check_key"
@@ -77,6 +75,7 @@ $ ->
     "click #truerss-markall": controller: SourcesController, action: "mark_all"
     "click span.source-count": controller: SourcesController, action: "mark_by_click_on_count_button", data: "data-source-id"
     "input #search": controller: SourcesController, action: "filter"
+    "mouseenter .tippy-count": controller: FeedsController, action: 'draw_tooltip', data: "data-source-id"
 
   app = Sirius.Application.run
     route: routes
@@ -84,4 +83,4 @@ $ ->
     mix_logger_into_controller: true
     controller_wrapper: ControllerExt
     log: false
-    log_filters: ['Redirect']
+    log_filters: 'all'

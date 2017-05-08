@@ -20,7 +20,7 @@ Sirius.View.register_strategy('remove_class',
     $(element).removeClass(result)
 )
 
-Sirius.View.register_strategy('hide',
+Sirius.View.register_strategy('toggle',
   transform: (oldvalue, newvalue) -> newvalue
   render: (adapter, element, result, attribute) ->
     klass = "count-hidden"

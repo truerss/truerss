@@ -1,18 +1,13 @@
 package truerss.api
 
 import akka.actor._
-import akka.event.{LoggingAdapter, EventStream}
-
+import akka.event.{EventStream, LoggingAdapter}
 import java.net.InetSocketAddress
 
 import org.java_websocket.WebSocket
 import org.java_websocket.handshake.ClientHandshake
 import org.java_websocket.server.WebSocketServer
-
-import truerss.controllers.WSController
-import truerss.system.ws._
-import truerss.system.util.SourceDeleted
-import truerss.system.util.Notify
+import truerss.models.Notify
 
 class WSApi(val port: Int) extends Actor with ActorLogging {
 
@@ -39,10 +34,7 @@ WebSocketServer(new InetSocketAddress(port)) {
   override def onOpen(ws: WebSocket, clientHandshake: ClientHandshake): Unit = {
     log.info(s"ws connection open")
     val socketActor = ctx.actorOf(Props(classOf[WSController], ws))
-    stream.subscribe(socketActor, classOf[NewFeeds])
-    stream.subscribe(socketActor, classOf[SourceAdded])
-    stream.subscribe(socketActor, classOf[SourceDeleted])
-    stream.subscribe(socketActor, classOf[SourceUpdated])
+    stream.subscribe(socketActor, classOf[WSController.WSMessage])
     stream.subscribe(socketActor, classOf[Notify])
     connectionMap(ws) = socketActor
   }
@@ -68,4 +60,10 @@ WebSocketServer(new InetSocketAddress(port)) {
     ctx.stop(actor)
   }
 
+}
+
+object WSApi {
+  def props(port: Int) = {
+    Props(classOf[WSApi], port)
+  }
 }

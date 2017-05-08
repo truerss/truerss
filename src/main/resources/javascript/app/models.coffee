@@ -1,9 +1,8 @@
 
 class Source extends Sirius.BaseModel
   @attrs: ["id", "url", "name", {"interval" : 1}, "state", "normalized",
-    "lastUpdate", "count"]
+    "lastUpdate", "count", {"feeds": []}]
 
-  @has_many: ["feed"]
   @skip : true
   @validate:
     url: url_validator : true
@@ -25,14 +24,21 @@ class Source extends Sirius.BaseModel
 
   compare: (other) -> @id() == other.id()
 
+  add_feed: (feed) ->
+    tmp = @feeds()
+    tmp.push(feed)
+    @feeds(tmp)
+
+  unread_feeds: () ->
+    @feeds().filter (f) -> !f.read()
+
+
 
 class Feed extends Sirius.BaseModel
   @attrs: ["id", "sourceId", "url",
            "title", "author", "publishedDate",
            "description", "content", "normalized",
            "favorite", "read", "delete"]
-
-  @belongs_to: [{model: "source",  back: "id", compose: (model, back) -> "#{model}Id"}]
 
   @skip: true
 
@@ -81,34 +87,40 @@ Sources.subscribe "add", (source) ->
   Templates.source_list_view.render(html).prepend()
   source_view = new Sirius.View("#source-#{source.id()}")
 
-  source.bind(source_view,
-    "a.source-url":
-      [{
-        from: "normalized"
-        to: "href"
-        transform: (x) ->
-          "/show/#{x}"},
-      {
-        from: "name"
-        to: "text"
-      }]
+  transformer = Sirius.Transformer.draw({
+    "normalized": {
+      to: 'a.source-url'
+      attr: 'href'
+      via: (new_value, selector, view, attribute) ->
+        view.zoom(selector).render("/show/#{new_value}").swap(attribute)
+    },
+    "name": {
+      to: 'a.source-url'
+    },
+    "count": {
+      to: 'span.source-count'
+      via: (new_value, selector, view, attribute) ->
+        x = parseInt(new_value, 10)
+        count = if isNaN(x) or x <= 0
+            "0"
+          else
+            "#{x}"
+        view.zoom(selector).render(count).toggle()
+    }
+  })
 
+  source.bind(source_view, transformer)
 
-    "span.source-count":
-      from: "count"
-      transform: (x) ->
-        if isNaN(parseInt(x, 10)) || parseInt(x, 10) <= 0
-          "0"
-        else
-          "#{x}"
-      strategy: "hide"
-  )
 
   return
+
+Sources.subscribe "add", (source) ->
+  Sirius.Application.get_adapter().and_then (adapter) ->
+    if source.count() > 0
+      adapter.fire(document, "sources:fetch", source)
 
 Sources.subscribe "remove", (source) ->
   # TODO unbind
   jQuery("#source-#{source.id()}").remove()
-
 
 

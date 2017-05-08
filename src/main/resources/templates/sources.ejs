@@ -9,8 +9,9 @@
       <% } %>
     </span>
 
-    <span class="uk-badge uk-float-right uk-margin-small-right
-        uk-badge-notification uk-text-right source-count" data-source-id="<%= source.id() %>">
+    <span title="lol" id="source-count-<%=source.id()%>" class="uk-badge uk-float-right uk-margin-small-right
+        uk-badge-notification uk-text-right source-count tippy-count"
+        data-source-id="<%= source.id() %>">
         <%= source.count() %></span>
     <% if (source.withPlugin()) { %>
           <% if (source.is_disable()) { %>

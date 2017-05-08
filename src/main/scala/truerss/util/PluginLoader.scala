@@ -41,7 +41,7 @@ case class ApplicationPlugins(
 
 object PluginLoader {
 
-  import scala.collection.JavaConversions._
+  import scala.collection.JavaConverters._
 
   val contentPluginName = "com.github.truerss.base.BaseContentPlugin"
   val feedPluginName = "com.github.truerss.base.BaseFeedPlugin"
@@ -70,11 +70,11 @@ object PluginLoader {
     jars.foreach { file =>
       val jar = new JarFile(file.getAbsolutePath)
 
-      val js = jar.entries().filter(x => x.getName.endsWith(".js")).map(_.getName)
+      val js = jar.entries().asScala.filter(x => x.getName.endsWith(".js")).map(_.getName)
 
-      val css = jar.entries().filter(x => x.getName.endsWith(".css")).map(_.getName)
+      val css = jar.entries().asScala.filter(x => x.getName.endsWith(".css")).map(_.getName)
 
-      jar.entries().filter(_.getName.contains(".class"))
+      jar.entries().asScala.filter(_.getName.contains(".class"))
       .filterNot(_.getName.contains("$")).foreach { entry =>
         val cc = entry.getName.split("""/""")
           .mkString(".").replaceAll(""".class""", "")

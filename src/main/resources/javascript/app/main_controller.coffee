@@ -31,13 +31,22 @@ MainController =
 
   _bind_modal: () ->
     source = new Source()
-    Templates.modal_view.bind source,
+
+    to_model_transformer = Sirius.Transformer.draw({
       "input[name='title']" : to: "name"
       "input[name='url']" : to: "url"
       "input[name='interval']" : to : "interval"
+    })
 
-    source.bind Templates.modal_view,
-      "span.source-url-error" : from: "errors.url.url_validator"
+    Templates.modal_view.bind(source, to_model_transformer)
+
+    to_view_transformer = Sirius.Transformer.draw({
+      "errors.url.url_validator": {
+        to: 'span.source-url-error'
+      }
+    })
+
+    source.bind(Templates.modal_view, to_view_transformer)
 
     modal = UIkit.modal("#add-modal")
     # TODO use binding
@@ -52,7 +61,7 @@ MainController =
             modal.hide()
             clear_input()
           (err) ->
-            source.set_error("url.url_validator", err.responseText)
+            source.set_error("url.url_validator", err.responseJSON['error'])
 
     Templates.modal_view.on 'button.close-modal', 'click', (e) ->
       modal.hide()
@@ -80,7 +89,8 @@ MainController =
       ajax.load_ejs("favorites")
       ajax.load_ejs("plugins")
       ajax.load_ejs("main")
-    ).done (sources, list, feeds_list, all_sources, feeds, favorites, plugins, main) =>
+      ajax.load_ejs("tippy_tooltip")
+    ).done (sources, list, feeds_list, all_sources, feeds, favorites, plugins, main, tippy_tooltip) =>
       # TODO use async loading in controllers
       Templates.source_list = new EJS(sources[0])
       Templates.list = new EJS(list[0])
@@ -90,6 +100,7 @@ MainController =
       Templates.favorites_template = new EJS(favorites[0])
       Templates.plugins_template = new EJS(plugins[0])
       Templates.feed_template = new EJS(main[0])
+      Templates.tippy_template = new EJS(tippy_tooltip[0])
 
       @_load_js_and_css(ajax)
       port = read_cookie("port")

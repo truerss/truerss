@@ -1,31 +1,35 @@
-import java.io.FileWriter
-
 import sbt.Keys._
 import sbt._
-
-import scala.io.Source
 
 object Tasks {
   import sys.process._
 
+  val cdnjs = "https://cdnjs.cloudflare.com/ajax/libs"
+
+  val momentJsVersion = "2.17.1"
+  //https://cdnjs.cloudflare.com/ajax/libs/uikit/3.0.0-beta.2/css/uikit.css
+  val uiKitVersion = "2.27.2" // 2.22.0
+
   val jsLibs = Seq(
     "https://code.jquery.com/jquery-2.1.4.min.js",
     "https://github.com/mde/ejs/releases/download/v2.3.4/ejs.min.js",
-    "https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.6/moment.min.js",
-    "https://cdnjs.cloudflare.com/ajax/libs/uikit/2.22.0/js/components/notify.min.js",
+    s"https://cdnjs.cloudflare.com/ajax/libs/moment.js/$momentJsVersion/moment.min.js",
     "https://raw.githubusercontent.com/fntz/sirius/master/sirius.min.js",
     "https://raw.githubusercontent.com/fntz/sirius/master/jquery_adapter.min.js",
-    "https://cdnjs.cloudflare.com/ajax/libs/uikit/2.22.0/js/uikit.min.js",
-    "https://cdnjs.cloudflare.com/ajax/libs/uikit/2.22.0/js/components/upload.min.js"
+    s"$cdnjs/uikit/$uiKitVersion/js/components/notify.min.js",
+    s"$cdnjs/uikit/$uiKitVersion/js/uikit.min.js",
+    s"$cdnjs/uikit/$uiKitVersion/js/components/upload.min.js",
+    "https://raw.githubusercontent.com/atomiks/tippyjs/master/dist/tippy.min.js"
   )
 
   val cssLibs = Seq(
-    "https://cdnjs.cloudflare.com/ajax/libs/uikit/2.22.0/css/components/form-file.min.css",
-    "https://cdnjs.cloudflare.com/ajax/libs/uikit/2.22.0/css/components/notify.min.css",
-    "https://cdnjs.cloudflare.com/ajax/libs/uikit/2.22.0/css/components/placeholder.min.css",
-    "https://cdnjs.cloudflare.com/ajax/libs/uikit/2.22.0/css/components/upload.min.css",
-    "https://cdnjs.cloudflare.com/ajax/libs/uikit/2.22.0/css/components/search.min.css",
-    "https://cdnjs.cloudflare.com/ajax/libs/uikit/2.22.0/css/uikit.almost-flat.min.css"
+    s"$cdnjs/uikit/$uiKitVersion/css/components/form-file.min.css",
+    s"$cdnjs/uikit/$uiKitVersion/css/components/notify.min.css",
+    s"$cdnjs/uikit/$uiKitVersion/css/components/placeholder.min.css",
+    s"$cdnjs/uikit/$uiKitVersion/css/components/upload.min.css",
+    s"$cdnjs/uikit/$uiKitVersion/css/components/search.min.css",
+    s"$cdnjs/uikit/$uiKitVersion/css/uikit.almost-flat.min.css",
+    "https://raw.githubusercontent.com/atomiks/tippyjs/master/dist/tippy.css"
   )
 
   val fonts = Seq(
@@ -80,7 +84,7 @@ object Tasks {
     val path = s"$pwd/src/main/resources/javascript/app"
 
     val files = "ext" :: "feeds_controller" :: "ws_controller" :: "contoller_ext" ::
-      "main_controller" :: "models" :: "sources_controller" :: "system_controller" ::
+      "main_controller" :: "models" :: "sources_controller" ::
       "templates" :: "app" :: Nil
 
     val rfiles = files.map { f => s"$path/$f.coffee" }.mkString(" ")

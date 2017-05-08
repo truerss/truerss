@@ -7,7 +7,7 @@ FeedsController =
     if source
       # FIXME is it necessary?
       ajax.get_feeds source.id(), (feeds) ->
-        source.reset('feed')
+        source.reset('feeds')
         feeds = feeds.map (f) ->
           feed = new Feed(f)
           source.add_feed(feed)
@@ -44,7 +44,7 @@ FeedsController =
     if !sources.is_empty()
       source = Sources.takeFirst (s) -> s.id() == sources.get()
       if source && !posts.is_empty()
-        feed = source.feed().filter (f) -> f.id() == posts.get()
+        feed = source.feeds().filter (f) -> f.id() == posts.get()
         if feed && feed.length > 0
           feed[0].favorite(favorite)
 
@@ -92,10 +92,10 @@ FeedsController =
     if source
       name = decodeURI(feed_name)
       finder = (source, name) ->
-        source.feed().filter (feed) -> feed.normalized() == name
+        source.feeds().filter (feed) -> feed.normalized() == name
       feeds = if !posts.is_empty()
         cf = posts.get()
-        xs = source.feed().filter (feed) -> feed.id() == parseInt(cf)
+        xs = source.feeds().filter (feed) -> feed.id() == parseInt(cf)
         if xs.length == 0
           finder(source, name)
         else
@@ -125,7 +125,7 @@ FeedsController =
     source_id = sources.get()
     source = Sources.takeFirst (s) -> s.id() == source_id
     if source
-      arr = source.feed()
+      arr = source.feeds()
       if arr.length > 0
         index = 0
         for f in arr
@@ -144,7 +144,7 @@ FeedsController =
     source_id = sources.get()
     source = Sources.takeFirst (s) -> s.id() == source_id
     if source
-      arr = source.feed()
+      arr = source.feeds()
       if arr.length > 0
         index = 0
         for f in arr
@@ -233,7 +233,7 @@ FeedsController =
           current_feed_id = posts.get()
           source = Sources.takeFirst (s) -> s.id() == current_source_id
           if source
-            feed = source.feed().filter (f) ->
+            feed = source.feeds().filter (f) ->
               f.id() == current_feed_id
 
             if feed && feed.length > 0
@@ -247,6 +247,33 @@ FeedsController =
       else
         # ignore
 
+  draw_tooltip: (e, source_id) ->
+    # seems tippy does not work with uikit
+    ew = $('.uk-offcanvas-bar-show').width()
+    id = e.target.id
+
+    if id
+
+      span = document.getElementById(id)
+      source_id = parseInt(source_id)
+      source = Sources.takeFirst (s) -> s.id() == source_id
+      # because tippy does not have properly flow
+      tippy = new Tippy(".tippy-count", {
+        position: 'right'
+        distance: -1 * ew + 10
+        arrow: true
+        hideDelay: 2500
+        theme: 'light'
+        interactive: false
+      })
+
+      result = Templates.tippy_template
+        .render({feeds: source.unread_feeds().slice(0, 25)})
+      span.title = result
+
+      popper = tippy.getPopperElement(span)
+
+      tippy.update(popper)
 
 
 
