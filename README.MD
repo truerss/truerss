@@ -1,5 +1,5 @@
 
-# TrueRSS version 0.0.2
+# TrueRSS version 0.0.3
 
 # [Demo](http://demo.truerss.net/)
 
