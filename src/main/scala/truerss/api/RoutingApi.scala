@@ -1,7 +1,7 @@
 package truerss.api
 
 import akka.actor.ActorRef
-import akka.http.scaladsl.model.headers.RawHeader
+import akka.http.scaladsl.model.headers.{HttpCookie, RawHeader}
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
@@ -32,11 +32,13 @@ trait RoutingApi { self: HttpHelper =>
   val fileName = "index.html"
 
   val route = pathEndOrSingleSlash {
-    complete {
-      HttpEntity(
-        ContentTypes.`text/html(UTF-8)`,
-        Source.fromInputStream(getClass.getResourceAsStream(s"/$fileName")).mkString
-      )
+    setCookie(HttpCookie("port", "8081")) {
+      complete {
+        HttpEntity(
+          ContentTypes.`text/html(UTF-8)`,
+          Source.fromInputStream(getClass.getResourceAsStream(s"/$fileName")).mkString
+        )
+      }
     }
   } ~ pathPrefix("api" / "v1") {
       pathPrefix("sources") {
