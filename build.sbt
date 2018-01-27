@@ -4,13 +4,13 @@ import sbt.Package.ManifestAttributes
 import Libs._
 import Tasks._
 
-val setting = Revolver.settings ++ Seq(
+val setup = Seq(
   resolvers += "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases",
   resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
   resolvers += "JCenter" at "http://jcenter.bintray.com/",
   resolvers += "karussell_releases" at "https://github.com/karussell/mvnrepo",
   resolvers += Resolver.bintrayRepo("truerss", "maven"),
-  scalaVersion := "2.12.2",
+  scalaVersion := "2.12.4",
   scalacOptions ++= Seq(
     "-deprecation",
     "-encoding", "UTF-8",
@@ -20,21 +20,18 @@ val setting = Revolver.settings ++ Seq(
     "-language:postfixOps",
     "-language:reflectiveCalls",
     "-unchecked",
-    "-Xcheckinit",
     "-Xverify",
     "-Xfuture"
   ),
   javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
 )
 
-lazy val mainProject = Project(
-  id = "truerss",
-  base = file("."),
-  settings = setting ++ Seq(installTask, buildCoffeeTask) ++ Seq(
-    (compile in Compile) <<= (compile in Compile).dependsOn(buildCoffee),
+lazy val mainProject = Project("truerss", file(".")).settings(
+  setup ++ Seq(installTask, buildCoffeeTask) ++ Seq(
+    (compile in Compile) := (compile in Compile).dependsOn(buildCoffee).value,
     organization := "net.truerss",
     name := "truerss",
-    version := "0.0.3",
+    version := "0.0.3.1",
     parallelExecution in Test := false,
     assemblyJarName in assembly := s"truerss-${version.value}.jar",
     mainClass in assembly := Some("truerss.Boot"),
@@ -52,11 +49,11 @@ lazy val mainProject = Project(
         else
           MergeStrategy.first
       case x =>
+        println("@"*100 + s"----> ${x}")
         MergeStrategy.first
     },
     test in assembly := {},
     fork in compile := true,
-    ivyScala := ivyScala.value map { _.copy(overrideScalaVersion = true) },
     publishArtifact in Test := false,
     licenses += ("MIT", url("http://opensource.org/licenses/MIT")),
     packageOptions := Seq(ManifestAttributes(("Built-By", s"${new Date()}"))),
