@@ -1,5 +1,7 @@
 import sbt.Keys._
 import sbt._
+import java.nio.file.{Files, Paths}
+import java.nio.charset.StandardCharsets
 
 object Tasks {
   import sys.process._
@@ -89,9 +91,14 @@ object Tasks {
 
     val rfiles = files.map { f => s"$path/$f.coffee" }.mkString(" ")
 
-    val result = new File(s"$c_to/truerss.js")
+    val fileName = s"$c_to/truerss.js"
 
-    s"cat $rfiles" #| "coffee -c -b --stdio" #> result !
+    val content = s"cat $rfiles" #| "coffee -c -b --stdio"
+
+    val result = content.lineStream.mkString("\n")
+
+    Files.write(Paths.get(fileName), result.getBytes(StandardCharsets.UTF_8))
+
 
     println("Done")
   }

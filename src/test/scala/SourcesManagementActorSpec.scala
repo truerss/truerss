@@ -5,20 +5,21 @@ import org.specs2.mutable.SpecificationLike
 import org.specs2.specification.{AfterAll, Scope}
 import truerss.api.{BadRequestResponse, ModelResponse, WSController}
 import truerss.db.{DbLayer, SourceDao}
-import truerss.models.{Neutral, Source}
+import truerss.models.Source
 import truerss.services.SourcesActor
 import truerss.services.actors.SourcesManagementActor
 import truerss.services.actors.SourcesManagementActor.AddSource
 import truerss.util.ApplicationPlugins
 
 import scala.concurrent.Future
+import scala.concurrent.duration._
 
 class SourcesManagementActorSpec extends TestKit(ActorSystem("addSourceSpec"))
  with SpecificationLike with AfterAll with Mockito {
 
   sequential
 
-  import truerss.util.Util._
+  val duration = 10 seconds
 
   val name1 = "name1"
   val name2 = "name2"
@@ -44,7 +45,7 @@ class SourcesManagementActorSpec extends TestKit(ActorSystem("addSourceSpec"))
     }
 
     "produce error when url and name is not valid" in new TestScope(1, 1, source2) {
-      service.expectNoMsg()
+      service.expectNoMessage(duration)
       me.expectMsgClass(classOf[BadRequestResponse])
     }
   }
