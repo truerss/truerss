@@ -49,7 +49,6 @@ lazy val mainProject = Project("truerss", file(".")).settings(
         else
           MergeStrategy.first
       case x =>
-        println("@"*100 + s"----> ${x}")
         MergeStrategy.first
     },
     test in assembly := {},

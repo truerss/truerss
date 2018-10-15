@@ -3,24 +3,24 @@ import sbt._
 object Libs {
   object versions {
     val scalaVersion = "2.12.4"
-    val scalajVersion = "2.3.0"
+    val scalajVersion = "2.4.1"
     val h2Version = "1.3.173"
     val postgresqlVersion = "9.1-901-1.jdbc4"
     val mysqlVersion = "5.1.36"
     val sqliteVersion = "3.8.7"
-    val commonValidatorVersion = "1.4.0"
+    val commonValidatorVersion = "1.6"
     val ceVersion = "0.0.3"
     val sprayJsonVersion = "1.3.2"
-    val akkaVersion  = "2.5.9"
+    val akkaVersion  = "2.5.17"
     val slickVersion = "3.2.0"
     val configVersion = "1.3.0"
-    val scoptVersion = "3.5.0"
+    val scoptVersion = "3.7.0"
     val hikariCPVersion = "2.4.7"
     val jwsVersion = "1.3.0"
     val logbackVersion = "1.1.2"
     val baseVersion = "0.0.6"
     val jsoupVersion = "1.8.3"
-    val akkaHttpVersion = "10.0.11"
+    val akkaHttpVersion = "10.1.5"
   }
 
   import versions._
