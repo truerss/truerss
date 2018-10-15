@@ -30,4 +30,6 @@ case class SourceViewDto(id: Long,
                      state: SourceState,
                      normalized: String,
                      lastUpdate: Date,
-                     count: Int = 0)
+                     count: Int = 0) {
+  def recount(x: Int): SourceViewDto = copy(count = x)
+}

@@ -5,7 +5,7 @@ import java.util.Date
 import com.github.truerss.base.PluginInfo
 import truerss.util.{ApplicationPlugins, Jsonize}
 import play.api.libs.json._
-import truerss.dto.{NewSourceDto, SourceDto, UpdateSourceDto}
+import truerss.dto.{NewSourceDto, SourceDto, SourceViewDto, UpdateSourceDto}
 
 object JsonFormats {
 
@@ -61,6 +61,7 @@ object JsonFormats {
   implicit lazy val updateSourceDtoFormat = Json.format[UpdateSourceDto]
   implicit lazy val sourceDtoFormat = Json.format[SourceDto]
   implicit lazy val sourceFormat = Json.format[Source]
+  implicit lazy val sourceViewDtoFormat = Json.format[SourceViewDto]
 
   implicit lazy val feedFormat = Json.format[Feed]
   implicit lazy val wsMessageFormat = Json.format[WSMessage]

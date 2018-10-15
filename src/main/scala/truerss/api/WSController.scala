@@ -3,6 +3,7 @@ package truerss.api
 import akka.actor.{Actor, ActorLogging}
 import org.java_websocket.WebSocket
 import play.api.libs.json._
+import truerss.dto.SourceViewDto
 import truerss.models._
 
 class WSController(ws: WebSocket) extends Actor with ActorLogging {
@@ -28,8 +29,8 @@ class WSController(ws: WebSocket) extends Actor with ActorLogging {
 
 object WSController {
   sealed trait WSMessage
-  case class SourceAdded(source: Source) extends WSMessage
-  case class SourceUpdated(source: Source) extends WSMessage
+  case class SourceAdded(source: SourceViewDto) extends WSMessage
+  case class SourceUpdated(source: SourceViewDto) extends WSMessage
   case class NewFeeds(xs: Vector[Feed]) extends WSMessage
-  case class SourceDeleted(source: Source) extends WSMessage
+  case class SourceDeleted(source: SourceViewDto) extends WSMessage
 }

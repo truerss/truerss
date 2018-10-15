@@ -11,6 +11,7 @@ import com.github.truerss.base._
 import com.typesafe.config.ConfigFactory
 import org.slf4j.LoggerFactory
 import truerss.db.DbLayer
+import truerss.dto.SourceViewDto
 import truerss.models._
 import truerss.plugins.DefaultSiteReader
 import truerss.util.{ApplicationPlugins, TrueRSSConfig}
@@ -195,11 +196,11 @@ object SourcesActor {
   case object Tick extends SourcesMessage
   case object Updated extends SourcesMessage
   case class UpdateMe(who: ActorRef) extends SourcesMessage
-  case class SourceDeleted(source: Source) extends SourcesMessage
+  case class SourceDeleted(source: SourceViewDto) extends SourcesMessage
   case object Update extends SourcesMessage
   case class UpdateOne(num: Long) extends SourcesMessage
-  case class NewSource(source: Source) extends SourcesMessage
-  case class ReloadSource(source: Source) extends SourcesMessage
+  case class NewSource(source: SourceViewDto) extends SourcesMessage
+  case class ReloadSource(source: SourceViewDto) extends SourcesMessage
 
   // not message, just tmp class with all sources
   case class Sources(xs: Seq[Source])

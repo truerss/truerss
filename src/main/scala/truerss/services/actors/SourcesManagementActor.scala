@@ -5,8 +5,8 @@ import akka.pattern.pipe
 import truerss.api._
 import truerss.db.DbLayer
 import truerss.dto.{NewSourceDto, UpdateSourceDto}
-import truerss.services.SourcesActor
-import truerss.util.{ApplicationPlugins, SourceValidator, Util}
+import truerss.services.{SourcesActor, SourcesService}
+import truerss.util.ApplicationPlugins
 
 import scala.concurrent.Future
 
@@ -15,95 +15,51 @@ import scala.concurrent.Future
   */
 class SourcesManagementActor(dbLayer: DbLayer, appPlugins: ApplicationPlugins) extends CommonActor {
 
-  import DtoModelImplicits._
   import SourcesManagementActor._
-  import Util._
   import context.dispatcher
+
+  val sourcesService = new SourcesService(dbLayer, appPlugins)
 
   override def defaultHandler: Receive = {
     case GetAll =>
-      val result = for {
-        feedsBySource <- dbLayer.feedDao.feedBySourceCount(false)
-          .map(_.toVector.toMap)
-        sources <- dbLayer.sourceDao.all.map(_.toVector)
-      } yield {
-        sources.map { s =>
-          s.recount(feedsBySource.getOrElse(s.id.get, 0))
-        }
-      }
-
-      result.map(ModelsResponse(_)) pipeTo sender
+      sourcesService.getAll.map(SourcesResponse) pipeTo sender
 
     case GetSource(sourceId) =>
-      val result = dbLayer.sourceDao.findOne(sourceId).map {
-        case Some(source) =>
-          ModelResponse(source)
-        case None =>
-          sourceNotFound
-      }
-      result pipeTo sender
-
+      sourcesService.getSource(sourceId).map(SourceResponse) pipeTo sender
 
     case Mark(sourceId) =>
-      val result = dbLayer.sourceDao.findOne(sourceId).map { source =>
-        dbLayer.feedDao.markBySource(sourceId)
-        source
-      }.map { _ => ok }
-
-      result pipeTo sender
-
+      sourcesService.markAsRead(sourceId).map(_ => ok) pipeTo sender
 
     case DeleteSource(sourceId) =>
-      val result = dbLayer.sourceDao.findOne(sourceId).map {
-        case Some(source) =>
-          dbLayer.sourceDao.delete(sourceId)
-          dbLayer.feedDao.deleteFeedsBySource(sourceId)
-          stream.publish(WSController.SourceDeleted(source))
-          stream.publish(SourcesActor.SourceDeleted(source))
+      sourcesService.delete(sourceId).map {
+        case Some(x) =>
+          stream.publish(WSController.SourceDeleted(x))
+          stream.publish(SourcesActor.SourceDeleted(x))
           ok
-        case None =>
-          sourceNotFound
-      }
-
-      result pipeTo sender
+        case _ => sourceNotFound
+      } pipeTo sender
 
     case AddSource(dto) =>
-      val result = SourceValidator.validateSource(dto, dbLayer).flatMap {
-        case Right(_) =>
-          val source = dto.toSource
-          val state = appPlugins.getState(source.url)
-          val newSource = source.withState(state)
-          dbLayer.sourceDao.insert(newSource).map { id =>
-            stream.publish(WSController.SourceAdded(newSource.withId(id)))
-            stream.publish(SourcesActor.NewSource(newSource.withId(id)))
-            ModelResponse(newSource.withId(id))
-          }
-
+      sourcesService.addSource(dto).map {
         case Left(errors) =>
-          Future.successful(BadRequestResponse(errors.mkString(", ")))
-      }
+          BadRequestResponse(errors.mkString(", "))
 
-      result pipeTo sender
+        case Right(x) =>
+          stream.publish(WSController.SourceAdded(x))
+          stream.publish(SourcesActor.NewSource(x))
+          SourceResponse(Some(x))
+      } pipeTo sender
 
     case UpdateSource(sourceId, dto) =>
-      val result = SourceValidator
-        .validateSource(dto, dbLayer).flatMap {
-        case Right(_) =>
-          val source = dto.toSource.withId(sourceId)
-          val state = appPlugins.getState(source.url)
-          val updatedSource = source.withState(state).withId(sourceId)
-          dbLayer.sourceDao.updateSource(updatedSource).map { _ =>
-            stream.publish(WSController.SourceUpdated(updatedSource))
-            stream.publish(SourcesActor.ReloadSource(updatedSource))
-            ModelResponse(updatedSource)
-          }
-
+      sourcesService.updateSource(sourceId, dto).map {
         case Left(errors) =>
           Future.successful(BadRequestResponse(errors.mkString(", ")))
-      }
 
-      result pipeTo sender
-
+        case Right(x) =>
+          stream.publish(WSController.SourceUpdated(x))
+          stream.publish(SourcesActor.ReloadSource(x))
+          SourceResponse(Some(x))
+      } pipeTo sender
 
   }
 }

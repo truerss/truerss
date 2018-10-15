@@ -1,8 +1,12 @@
 package truerss.api
 
+import truerss.dto.SourceViewDto
 import truerss.util.Jsonize
 
 sealed trait Response
+case class SourcesResponse(xs: Vector[SourceViewDto])
+case class SourceResponse(x: Option[SourceViewDto])
+
 case class ModelsResponse[T <: Jsonize](xs: Vector[T], count: Int = -1) extends Response
 case class Ok(msg: String) extends Response
 case class ModelResponse[T <: Jsonize](x: T) extends Response
