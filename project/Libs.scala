@@ -10,17 +10,18 @@ object Libs {
     val sqliteVersion = "3.8.7"
     val commonValidatorVersion = "1.6"
     val ceVersion = "0.0.3"
-    val sprayJsonVersion = "1.3.2"
+    val sprayJsonVersion = "1.3.4"
     val akkaVersion  = "2.5.17"
-    val slickVersion = "3.2.0"
+    val slickVersion = "3.2.3"
     val configVersion = "1.3.0"
     val scoptVersion = "3.7.0"
     val hikariCPVersion = "2.4.7"
-    val jwsVersion = "1.3.0"
+    val jwsVersion = "1.3.9"
     val logbackVersion = "1.1.2"
     val baseVersion = "0.0.6"
     val jsoupVersion = "1.8.3"
     val akkaHttpVersion = "10.1.5"
+    val specsVersion = "4.3.5"
   }
 
   import versions._
@@ -74,10 +75,11 @@ object Libs {
   )
 
   val tests = Seq(
-    "org.specs2" %% "specs2-core" % "3.8.6" % "test",
-    "org.specs2" %% "specs2-mock" % "3.8.6" % "test",
+    "org.specs2" %% "specs2-core" % specsVersion % "test",
+    "org.specs2" %% "specs2-mock" % specsVersion % "test",
 
     "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion % "test",
+    "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion % "test",
     "com.typesafe.akka" %% "akka-testkit" % akkaVersion % "test"
   )
 

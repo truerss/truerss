@@ -26,10 +26,13 @@ class WSApi(val port: Int) extends Actor with ActorLogging {
 case class SocketServer(port: Int,
                         ctx: ActorContext,
                         stream: EventStream,
-                        log: LoggingAdapter) extends
-WebSocketServer(new InetSocketAddress(port)) {
+                        log: LoggingAdapter) extends WebSocketServer(new InetSocketAddress(port)) {
 
   val connectionMap = scala.collection.mutable.Map[WebSocket, ActorRef]()
+
+  override def onStart(): Unit = {
+    log.info("socket server started")
+  }
 
   override def onOpen(ws: WebSocket, clientHandshake: ClientHandshake): Unit = {
     log.info(s"ws connection open")
