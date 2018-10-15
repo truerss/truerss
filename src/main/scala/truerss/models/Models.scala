@@ -2,17 +2,23 @@ package truerss.models
 
 import java.util.Date
 
-import slick.jdbc.JdbcProfile
-import slick.sql.SqlProfile.ColumnOption._
 import truerss.util.Util._
 import truerss.util.Jsonize
 
 import scala.language.postfixOps
 
-sealed trait SourceState
-case object Neutral extends SourceState
-case object Enable extends SourceState
-case object Disable extends SourceState
+sealed trait SourceState {
+  val number: Int
+}
+case object Neutral extends SourceState {
+  override val number: Int = 0
+}
+case object Enable extends SourceState {
+  override val number: Int = 1
+}
+case object Disable extends SourceState {
+  override val number: Int = 2
+}
 
 case class SourceW(id: Option[Long],
               url: String,

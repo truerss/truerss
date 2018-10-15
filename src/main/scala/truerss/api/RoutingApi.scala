@@ -5,7 +5,7 @@ import akka.http.scaladsl.model.headers.{HttpCookie, RawHeader}
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
-import truerss.models.{ApiJsonProtocol, SourceW}
+import truerss.models.{JsonFormats, SourceW}
 import truerss.services.actors.OpmlActor
 
 import scala.concurrent.ExecutionContext
@@ -21,13 +21,13 @@ class RoutingApiImpl(override val service: ActorRef)(
 
 trait RoutingApi { self: HttpHelper =>
 
-  import ApiJsonProtocol._
+  import JsonFormats._
   import RoutingApi._
   import truerss.services.SourcesActor._
   import truerss.services.actors.FeedsManagementActor._
   import truerss.services.actors.PluginManagementActor._
   import truerss.services.actors.SourcesManagementActor._
-  import truerss.services.actors.OpmlActor._
+  import OpmlActor._
 
   val fileName = "index.html"
 

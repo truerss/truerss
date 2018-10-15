@@ -1,7 +1,7 @@
 import sbt._
 
 object Libs {
-  object versions {
+  object Versions {
     val scalaVersion = "2.12.4"
     val scalajVersion = "2.4.1"
     val h2Version = "1.3.173"
@@ -10,7 +10,6 @@ object Libs {
     val sqliteVersion = "3.8.7"
     val commonValidatorVersion = "1.6"
     val ceVersion = "0.0.3"
-    val sprayJsonVersion = "1.3.4"
     val akkaVersion  = "2.5.17"
     val slickVersion = "3.2.3"
     val configVersion = "1.3.0"
@@ -22,9 +21,10 @@ object Libs {
     val jsoupVersion = "1.8.3"
     val akkaHttpVersion = "10.1.5"
     val specsVersion = "4.3.5"
+    val playJsonVersion = "2.6.10"
   }
 
-  import versions._
+  import Versions._
 
   val db = Seq(
     "com.h2database" % "h2" % h2Version,
@@ -36,7 +36,7 @@ object Libs {
     "com.typesafe.slick" %% "slick-hikaricp" %  slickVersion
   )
 
-  val sprayJson = "io.spray" %% "spray-json" % sprayJsonVersion
+  val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
 
   val scalaLib = "org.scala-lang" % "scala-library" % scalaVersion
 
@@ -84,6 +84,6 @@ object Libs {
   )
 
   val deps = db ++ akka ++ truerss ++ logs ++
-    Seq(jsoup, sprayJson) ++ utils ++ tests
+    Seq(jsoup, playJson) ++ utils ++ tests
 
 }

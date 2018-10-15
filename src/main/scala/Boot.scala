@@ -5,6 +5,7 @@ import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import truerss.api.{RoutingApiImpl, WSApi}
 import truerss.db._
+import truerss.db.drivers.SupportedDb
 import truerss.services.MainActor
 import truerss.util.TrueRSSConfig
 

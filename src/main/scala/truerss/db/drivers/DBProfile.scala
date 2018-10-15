@@ -1,4 +1,4 @@
-package truerss.db
+package truerss.db.drivers
 
 import java.nio.file.Paths
 import java.util.Properties
@@ -6,12 +6,11 @@ import java.util.Properties
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 import slick.jdbc._
 import slick.jdbc.meta.MTable
-
-import scala.concurrent.{Await, ExecutionContext}
-import scala.concurrent.duration._
+import truerss.db._
 import truerss.util.DbConfig
 
-
+import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContext}
 
 sealed trait SupportedDb
 case object H2 extends SupportedDb

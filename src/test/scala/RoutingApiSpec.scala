@@ -7,7 +7,7 @@ import akka.testkit.TestProbe
 import org.specs2.mutable.SpecificationLike
 import org.specs2.specification.AllExpectations
 import truerss.api.RoutingApiImpl
-import truerss.models.ApiJsonProtocol
+import truerss.models.JsonFormats
 
 import scala.reflect.ClassTag
 import scala.concurrent.duration._
@@ -22,8 +22,8 @@ class RoutingApiSpec extends RouteTest
   import truerss.services.actors.PluginManagementActor._
   import truerss.services.actors.SourcesManagementActor._
   import truerss.services.actors.OpmlActor._
-  import spray.json._
-  import ApiJsonProtocol._
+  import play.api.libs.json._
+  import JsonFormats._
 
   override def failTest(msg: String): Nothing = {
     println(s"test failed $msg")
@@ -80,16 +80,16 @@ class RoutingApiSpec extends RouteTest
 
     "create source" in {
       val s = Gen.genSource(None)
-      r1[AddSource](Post(s"$sourcesUrl", s.toJson.toString()))
+      r1[AddSource](Post(s"$sourcesUrl", J(s)))
     }
-
+  
     "delete source" in {
       r(Delete(s"$sourcesUrl/123"), DeleteSource(123))
     }
 
     "update source" in {
       val s = Gen.genSource(None)
-      r1[UpdateSource](Put(s"$sourcesUrl/123", s.toJson.toString()))
+      r1[UpdateSource](Put(s"$sourcesUrl/123", J(s)))
     }
 
     "mark all" in {

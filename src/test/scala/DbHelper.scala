@@ -1,5 +1,5 @@
 import slick.jdbc.JdbcBackend
-import truerss.db.{CurrentDriver, DBProfile, H2}
+import truerss.db.drivers.{CurrentDriver, DBProfile, H2}
 
 trait DbHelper {
 

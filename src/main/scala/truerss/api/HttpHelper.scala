@@ -6,7 +6,9 @@ import akka.actor.ActorRef
 import akka.pattern.ask
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
-import truerss.models.ApiJsonProtocol
+import truerss.models.JsonFormats
+
+import play.api.libs.json._
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
@@ -18,13 +20,14 @@ import scala.util.{Try, Failure => F, Success => S}
   */
 trait HttpHelper {
 
-  import ApiJsonProtocol._
+  import JsonFormats.{sourceFormat => _, _}
+  import JsonizeJ._
   import akka.http.scaladsl.model.{ContentType => C, _}
   import StatusCodes._
   import akka.http.scaladsl.server.Directives._
   import akka.http.scaladsl.server._
   import RouteResult._
-  import spray.json._
+
 
   val service: ActorRef // proxy service
   implicit val timeout = Timeout(30 seconds) // default
@@ -52,13 +55,13 @@ trait HttpHelper {
     )
   }
 
-  def safeParse[T : JsonReader : ClassTag](json: String): Try[T] = {
+  def safeParse[T : Reads : ClassTag](json: String): Try[T] = {
     Try {
-      JsonParser(json).convertTo[T]
+      Json.parse(json).as[T]
     }
   }
 
-  def create[T : JsonReader : ClassTag](f: T => Any) = {
+  def create[T : Reads : ClassTag](f: T => Any) = {
     entity(as[String]) { json =>
       safeParse[T](json) match {
         case S(dto) =>
@@ -108,11 +111,11 @@ trait HttpHelper {
       case ModelsResponse(xs, c) =>
         if (c > 0) {
           //HttpHeaders.RawHeader("XCount", s"$c"))
-          finish(OK, xs.toJson.toString)
+          finish(OK, Json.stringify(Json.toJson(xs)))
         } else {
-          finish(OK, xs.toJson.toString)
+          finish(OK, Json.stringify(Json.toJson(xs)))
         }
-      case ModelResponse(x) => finish(OK, x.toJson.toString)
+      case ModelResponse(x) => finish(OK, Json.stringify(Json.toJson(x)))
       case Ok(x) => finish(OK, x.toString)
       case OpmlResponse(content) =>
         flush(ContentTypes.`application/octet-stream`, content)
