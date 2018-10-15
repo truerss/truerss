@@ -5,6 +5,7 @@ import akka.http.scaladsl.model.headers.{HttpCookie, RawHeader}
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
+import truerss.dto.{NewSourceDto, UpdateSourceDto}
 import truerss.models.{JsonFormats, SourceW}
 import truerss.services.actors.OpmlActor
 
@@ -47,11 +48,11 @@ trait RoutingApi { self: HttpHelper =>
         } ~ (get & pathPrefix(LongNumber)) { sourceId =>
           sendAndWait(GetSource(sourceId))
         } ~ (post & pathEndOrSingleSlash) {
-          create[SourceW](x => AddSource(x.toSource))
+          create[NewSourceDto](x => AddSource(x))
         } ~ (delete & pathPrefix(LongNumber)) { sourceId =>
           sendAndWait(DeleteSource(sourceId))
         } ~ (put & pathPrefix(LongNumber)) { sourceId =>
-          create[SourceW](x => UpdateSource(sourceId, x.toSource))
+          create[UpdateSourceDto](x => UpdateSource(sourceId, x))
         } ~ (put & pathPrefix("markall")) {
            sendAndWait(MarkAll)
         } ~ (put & pathPrefix("mark" / LongNumber)) { sourceId =>

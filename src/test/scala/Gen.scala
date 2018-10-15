@@ -1,9 +1,12 @@
 
-import java.util.{Random, Date, UUID}
+import java.util.{Date, Random, UUID}
 
 import truerss.models
 import truerss.models.Neutral
 import java.time.LocalDateTime
+
+import truerss.dto.{NewSourceDto, UpdateSourceDto}
+import truerss.services.actors.SourcesManagementActor.UpdateSource
 
 object Gen {
   import models.{Feed, Source}
@@ -38,6 +41,24 @@ object Gen {
   def genInt = new Random().nextInt(11) + 1
 
   def tOf = if (genInt / 2 == 0) true else false
+
+  def genNewSource: NewSourceDto = {
+    val name = genName
+    NewSourceDto(
+      url = genUrl,
+      name = name,
+      interval = genInt
+    )
+  }
+
+  def genUpdSource(id: Long): UpdateSourceDto = {
+    UpdateSourceDto(
+      id = id,
+      url = genUrl,
+      name = genName,
+      interval = genInt
+    )
+  }
 
   def genSource(id: Option[Long] = None) = {
     val name = genName

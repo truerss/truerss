@@ -4,10 +4,9 @@ import akka.actor.Props
 import akka.pattern.pipe
 import truerss.api._
 import truerss.db.DbLayer
-import truerss.models.Source
+import truerss.dto.{NewSourceDto, UpdateSourceDto}
 import truerss.services.SourcesActor
-import truerss.services.SourcesActor.SourceDeleted
-import truerss.util.{ApplicationPlugins, SourceValidator}
+import truerss.util.{ApplicationPlugins, SourceValidator, Util}
 
 import scala.concurrent.Future
 
@@ -16,9 +15,10 @@ import scala.concurrent.Future
   */
 class SourcesManagementActor(dbLayer: DbLayer, appPlugins: ApplicationPlugins) extends CommonActor {
 
-  import context.dispatcher
+  import DtoModelImplicits._
   import SourcesManagementActor._
-  import truerss.util.Util._
+  import Util._
+  import context.dispatcher
 
   override def defaultHandler: Receive = {
     case GetAll =>
@@ -67,9 +67,10 @@ class SourcesManagementActor(dbLayer: DbLayer, appPlugins: ApplicationPlugins) e
 
       result pipeTo sender
 
-    case AddSource(source) =>
-      val result = SourceValidator.validateSource(source, dbLayer).flatMap {
+    case AddSource(dto) =>
+      val result = SourceValidator.validateSource(dto, dbLayer).flatMap {
         case Right(_) =>
+          val source = dto.toSource
           val state = appPlugins.getState(source.url)
           val newSource = source.withState(state)
           dbLayer.sourceDao.insert(newSource).map { id =>
@@ -84,10 +85,11 @@ class SourcesManagementActor(dbLayer: DbLayer, appPlugins: ApplicationPlugins) e
 
       result pipeTo sender
 
-    case UpdateSource(sourceId, source) =>
+    case UpdateSource(sourceId, dto) =>
       val result = SourceValidator
-        .validateSource(source.withId(sourceId), dbLayer).flatMap {
+        .validateSource(dto, dbLayer).flatMap {
         case Right(_) =>
+          val source = dto.toSource.withId(sourceId)
           val state = appPlugins.getState(source.url)
           val updatedSource = source.withState(state).withId(sourceId)
           dbLayer.sourceDao.updateSource(updatedSource).map { _ =>
@@ -116,8 +118,8 @@ object SourcesManagementActor {
   case object GetAll extends SourcesMessage
   case class GetSource(sourceId: Long) extends SourcesMessage
   case class DeleteSource(sourceId: Long) extends SourcesMessage
-  case class AddSource(source: Source) extends SourcesMessage
-  case class UpdateSource(sourceId: Long, source: Source) extends SourcesMessage
+  case class AddSource(source: NewSourceDto) extends SourcesMessage
+  case class UpdateSource(sourceId: Long, source: UpdateSourceDto) extends SourcesMessage
   case class Mark(sourceId: Long) extends SourcesMessage
 
 }

@@ -3,6 +3,7 @@ package truerss.services.actors
 import akka.actor.Props
 import truerss.api.{BadRequestResponse, ModelResponse}
 import truerss.db.DbLayer
+import truerss.dto.NewSourceDto
 import truerss.models.{Notify, Source}
 
 import scala.concurrent.duration._
@@ -41,6 +42,6 @@ object AddSourcesActor {
   }
 
   sealed trait AddSourcesActorMessage
-  case class AddSources(xs: Iterable[Source]) extends AddSourcesActorMessage
+  case class AddSources(xs: Iterable[NewSourceDto]) extends AddSourcesActorMessage
 
 }

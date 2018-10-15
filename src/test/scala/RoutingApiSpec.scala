@@ -82,7 +82,7 @@ class RoutingApiSpec extends RouteTest
       val s = Gen.genSource(None)
       r1[AddSource](Post(s"$sourcesUrl", J(s)))
     }
-  
+
     "delete source" in {
       r(Delete(s"$sourcesUrl/123"), DeleteSource(123))
     }

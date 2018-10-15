@@ -1,7 +1,6 @@
 
-import truerss.models.Source
-import truerss.util.SourceValidator
 import org.specs2.mutable.Specification
+import truerss.util.SourceValidator
 
 class SourceValidatorTest extends Specification {
 
@@ -9,7 +8,7 @@ class SourceValidatorTest extends Specification {
 
   "SourceValidator" should {
     "error when interval < 0" in {
-      val source = genSource().copy(interval = 0)
+      val source = genNewSource.copy(interval = 0)
       val result = SourceValidator.validate(source)
       result.isLeft must beTrue
       result match {
@@ -20,7 +19,7 @@ class SourceValidatorTest extends Specification {
     }
 
     "error when not valid url" in {
-      val source = genSource().copy(url = "abc")
+      val source = genNewSource.copy(url = "abc")
       val result = SourceValidator.validate(source)
       result.isLeft must beTrue
       result match {
@@ -30,7 +29,7 @@ class SourceValidatorTest extends Specification {
     }
 
     "error when not valid url and interval" in {
-      val source = genSource().copy(url = "abc", interval = 0)
+      val source = genNewSource.copy(url = "abc", interval = 0)
       val result = SourceValidator.validate(source)
       result.isLeft should beTrue
       result match {
@@ -41,7 +40,7 @@ class SourceValidatorTest extends Specification {
     }
 
     "when valid" in {
-      val source = genSource()
+      val source = genNewSource
       val result = SourceValidator.validate(source)
       result.isRight must beTrue
       result match {

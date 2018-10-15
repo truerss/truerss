@@ -4,30 +4,26 @@ import java.util.Date
 
 import truerss.models.SourceState
 
+sealed trait SourceDto {
+  def url: String
+  def name: String
+  def interval: Int
+
+  def getId: Option[Long] = None
+}
+
 case class NewSourceDto(url: String,
                         name: String,
-                        interval: Int)
+                        interval: Int) extends SourceDto
 
 case class UpdateSourceDto(id: Long,
                            url: String,
                            name: String,
-                           interval: Int)
+                           interval: Int) extends SourceDto {
+  override def getId: Option[Long] = Some(id)
+}
 
-/*
-def toSource = {
-    Source(
-      id = id,
-      url = url,
-      name = name,
-      interval = interval,
-      state = Neutral,
-      normalized = name.normalize,
-      lastUpdate = new Date()
-    )
-  }
- */
-
-case class SourceDto(id: Option[Long],
+case class SourceViewDto(id: Long,
                      url: String,
                      name: String,
                      interval: Int,

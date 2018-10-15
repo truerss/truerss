@@ -2,6 +2,8 @@ package truerss.models
 
 import java.util.Date
 
+import truerss.dto.NewSourceDto
+import truerss.services.SourcesActor.NewSource
 import truerss.util.Util._
 import truerss.util.Jsonize
 
@@ -57,15 +59,11 @@ case class Source(id: Option[Long],
 }
 
 object SourceHelper {
-  def from(url: String, name: String, interval: Int): Source = {
-    Source(
-      id = None,
+  def from(url: String, name: String, interval: Int): NewSourceDto = {
+    NewSourceDto(
       url = url,
       name = name,
-      interval = interval,
-      state = Neutral,
-      normalized = name,
-      lastUpdate = new Date()
+      interval = interval
     )
   }
 }

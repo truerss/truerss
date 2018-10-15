@@ -5,9 +5,9 @@ import org.specs2.mutable.SpecificationLike
 import org.specs2.specification.{AfterAll, Scope}
 import truerss.api.{BadRequestResponse, ModelResponse, WSController}
 import truerss.db.{DbLayer, SourceDao}
-import truerss.models.Source
+import truerss.dto.NewSourceDto
 import truerss.services.SourcesActor
-import truerss.services.actors.SourcesManagementActor
+import truerss.services.actors.{DtoModelImplicits, SourcesManagementActor}
 import truerss.services.actors.SourcesManagementActor.AddSource
 import truerss.util.ApplicationPlugins
 
@@ -19,6 +19,8 @@ class SourcesManagementActorSpec extends TestKit(ActorSystem("addSourceSpec"))
 
   sequential
 
+  import DtoModelImplicits._
+
   val duration = 10 seconds
 
   val name1 = "name1"
@@ -26,10 +28,10 @@ class SourcesManagementActorSpec extends TestKit(ActorSystem("addSourceSpec"))
   val url1 = "http://example1.com"
   val url2 = "http://example2.com"
 
-  val source1 = Gen.genSource(None).copy(
+  val source1Dto = Gen.genNewSource.copy(
     name = name1, url = url1
   )
-  val source2 = Gen.genSource(None).copy(
+  val source2Dto = Gen.genNewSource.copy(
     name = name2, url = url2
   )
 
@@ -37,26 +39,28 @@ class SourcesManagementActorSpec extends TestKit(ActorSystem("addSourceSpec"))
 
 
   "sources management actor" should {
-    "add new source" in new TestScope(0, 0, source1) {
+    "add new source" in new TestScope(0, 0, source1Dto) {
+      val source1 = source1Dto.toSource
       service.expectMsg(WSController.SourceAdded(source1.withId(id)))
       service.expectMsg(SourcesActor.NewSource(source1.withId(id)))
 
       me.expectMsg(ModelResponse(source1.withId(id)))
     }
 
-    "produce error when url and name is not valid" in new TestScope(1, 1, source2) {
+    "produce error when url and name is not valid" in new TestScope(1, 1, source2Dto) {
       service.expectNoMessage(duration)
       me.expectMsgClass(classOf[BadRequestResponse])
     }
   }
 
-  class TestScope(nameCount: Int, urlCount: Int, source: Source) extends Scope {
+  class TestScope(nameCount: Int, urlCount: Int, dto: NewSourceDto) extends Scope {
     val id = 1L
     val db = mock[DbLayer]
     val mockedSourceDao = mock[SourceDao]
     db.sourceDao returns mockedSourceDao
-    mockedSourceDao.findByName(source.name, None) returns Future.successful(nameCount)
-    mockedSourceDao.findByUrl(source.url, None) returns Future.successful(urlCount)
+    mockedSourceDao.findByName(dto.name, None) returns Future.successful(nameCount)
+    mockedSourceDao.findByUrl(dto.url, None) returns Future.successful(urlCount)
+    val source = dto.toSource
     mockedSourceDao.insert(source) returns Future.successful(id)
 
     val ref = TestActorRef(new SourcesManagementActor(db, plugins))
@@ -65,7 +69,7 @@ class SourcesManagementActorSpec extends TestKit(ActorSystem("addSourceSpec"))
     system.eventStream.subscribe(service.ref, classOf[WSController.SourceAdded])
     system.eventStream.subscribe(service.ref, classOf[SourcesActor.NewSource])
 
-    val msg = AddSource(source)
+    val msg = AddSource(dto)
 
     ref.tell(msg, me.ref)
   }

@@ -2,7 +2,7 @@ package truerss.util
 
 import org.apache.commons.validator.routines.UrlValidator
 import truerss.db.DbLayer
-import truerss.models.Source
+import truerss.dto.SourceDto
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -11,18 +11,18 @@ object SourceValidator {
   import syntax.ext._
   private val urlValidator = new UrlValidator()
 
-  type R = Either[String, Source]
-  type RL = Either[List[String], Source]
+  type R = Either[String, SourceDto]
+  type RL = Either[List[String], SourceDto]
 
-  def validateSource(source: Source,
+  def validateSource(source: SourceDto,
                      dbLayer: DbLayer)(
                       implicit ec: ExecutionContext
                     ): Future[RL] = {
     validate(source) match {
       case Right(_) =>
         for {
-          urlIsUniq <- dbLayer.sourceDao.findByUrl(source.url, source.id)
-          nameIsUniq <- dbLayer.sourceDao.findByName(source.name, source.id)
+          urlIsUniq <- dbLayer.sourceDao.findByUrl(source.url, source.getId)
+          nameIsUniq <- dbLayer.sourceDao.findByName(source.name, source.getId)
         } yield {
           (urlIsUniq, nameIsUniq) match {
             case (0, 0) =>
@@ -43,7 +43,7 @@ object SourceValidator {
   }
 
 
-  def validate(source: Source): RL = {
+  def validate(source: SourceDto): RL = {
     (validateInterval(source), validateUrl(source)) match {
       case (Right(_), Right(_)) => source.right
       case (Left(err), Right(_)) => l(err)
@@ -52,12 +52,12 @@ object SourceValidator {
     }
   }
 
-  private def urlError(source: Source) = s"Url '${source.url}' already present in db"
-  private def nameError(source: Source) = s"Name '${source.name}' is not unique"
+  private def urlError(source: SourceDto) = s"Url '${source.url}' already present in db"
+  private def nameError(source: SourceDto) = s"Name '${source.name}' is not unique"
 
   private def l[T](x: T*) = List(x : _*).left
 
-  private def validateInterval(source: Source): R = {
+  private def validateInterval(source: SourceDto): R = {
     if (source.interval > 0) {
       source.right
     } else {
@@ -65,7 +65,7 @@ object SourceValidator {
     }
   }
 
-  private def validateUrl(source: Source): R = {
+  private def validateUrl(source: SourceDto): R = {
     if (urlValidator.isValid(source.url)) {
       source.right
     } else {
