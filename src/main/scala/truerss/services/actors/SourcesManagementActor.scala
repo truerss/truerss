@@ -51,7 +51,7 @@ class SourcesManagementActor(sourcesService: SourcesService) extends CommonActor
     case UpdateSource(sourceId, dto) =>
       sourcesService.updateSource(sourceId, dto).map {
         case Left(errors) =>
-          Future.successful(BadRequestResponse(errors.mkString(", ")))
+          BadRequestResponse(errors.mkString(", "))
 
         case Right(x) =>
           stream.publish(WSController.SourceUpdated(x))
