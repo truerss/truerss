@@ -1,3 +1,5 @@
+package net.truerss.services
+
 import akka.actor.ActorSystem
 import akka.testkit.{TestActorRef, TestKit, TestProbe}
 import org.specs2.mock.Mockito
@@ -7,8 +9,8 @@ import truerss.api.{BadRequestResponse, ModelResponse, WSController}
 import truerss.db.{DbLayer, SourceDao}
 import truerss.dto.NewSourceDto
 import truerss.services.SourcesActor
-import truerss.services.actors.{DtoModelImplicits, SourcesManagementActor}
 import truerss.services.actors.SourcesManagementActor.AddSource
+import truerss.services.actors.{DtoModelImplicits, SourcesManagementActor}
 import truerss.util.ApplicationPlugins
 
 import scala.concurrent.Future
@@ -18,7 +20,7 @@ class SourcesManagementActorSpec extends TestKit(ActorSystem("addSourceSpec"))
  with SpecificationLike with AfterAll with Mockito {
 
   sequential
-
+/*
   import DtoModelImplicits._
 
   val duration = 10 seconds
@@ -74,8 +76,9 @@ class SourcesManagementActorSpec extends TestKit(ActorSystem("addSourceSpec"))
     ref.tell(msg, me.ref)
   }
 
-
+*/
   override def afterAll(): Unit = {
     system.terminate()
   }
+
 }

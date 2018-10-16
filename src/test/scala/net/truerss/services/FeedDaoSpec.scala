@@ -1,15 +1,17 @@
+package net.truerss.services
+
 
 import java.util.Date
 
 import com.github.truerss.base.Entry
+import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mutable.Specification
 import org.specs2.specification.{BeforeAfterAll, Scope}
-import org.specs2.concurrent.ExecutionEnv
 import truerss.db.{FeedDao, SourceDao}
 import truerss.models.{Feed, Source}
 
-import scala.concurrent.duration._
 import scala.concurrent.Await
+import scala.concurrent.duration._
 
 class FeedDaoSpec(implicit ee: ExecutionEnv)
   extends Specification with DbHelper with BeforeAfterAll {

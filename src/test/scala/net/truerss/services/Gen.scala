@@ -1,12 +1,11 @@
+package net.truerss.services
 
+import java.time.LocalDateTime
 import java.util.{Date, Random, UUID}
 
+import truerss.dto.{NewSourceDto, SourceViewDto, UpdateSourceDto}
 import truerss.models
 import truerss.models.Neutral
-import java.time.LocalDateTime
-
-import truerss.dto.{NewSourceDto, UpdateSourceDto}
-import truerss.services.actors.SourcesManagementActor.UpdateSource
 
 object Gen {
   import models.{Feed, Source}
@@ -71,6 +70,19 @@ object Gen {
       state = Neutral,
       normalized = name.normalize,
       lastUpdate = z.plusDays(1).toDate
+    )
+  }
+
+  def genView: SourceViewDto = {
+    val n = genName
+    SourceViewDto(
+      id = genInt.toLong,
+      url = genUrl,
+      name = n,
+      interval = genInt,
+      state = Neutral,
+      normalized = n.normalize,
+      lastUpdate = LocalDateTime.now().toDate
     )
   }
 

@@ -1,14 +1,16 @@
+package net.truerss.services
+
 
 import java.util.Date
 
+import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mutable.Specification
 import org.specs2.specification.BeforeAfterAll
-import org.specs2.concurrent.ExecutionEnv
 import truerss.db.SourceDao
 import truerss.models.{Enable, Source, SourceState}
 
-import scala.concurrent.duration._
 import scala.concurrent.Await
+import scala.concurrent.duration._
 
 class SourceDaoSpec(implicit ee: ExecutionEnv) extends Specification with DbHelper with BeforeAfterAll {
 

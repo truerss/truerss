@@ -1,3 +1,5 @@
+package net.truerss.services
+
 
 import java.io.File
 
@@ -9,21 +11,20 @@ import org.specs2.specification.AllExpectations
 import truerss.api.RoutingApiImpl
 import truerss.models.JsonFormats
 
-import scala.reflect.ClassTag
 import scala.concurrent.duration._
+import scala.reflect.ClassTag
 
 class RoutingApiSpec extends RouteTest
   with SpecificationLike
   with AllExpectations
   with TestFrameworkInterface {
 
+  import JsonFormats._
   import truerss.services.SourcesActor._
   import truerss.services.actors.FeedsManagementActor._
+  import truerss.services.actors.OpmlActor._
   import truerss.services.actors.PluginManagementActor._
   import truerss.services.actors.SourcesManagementActor._
-  import truerss.services.actors.OpmlActor._
-  import play.api.libs.json._
-  import JsonFormats._
 
   override def failTest(msg: String): Nothing = {
     println(s"test failed $msg")

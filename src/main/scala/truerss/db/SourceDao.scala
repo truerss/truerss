@@ -35,6 +35,13 @@ class SourceDao(val db: DatabaseDef)(implicit
     }
   }
 
+  def insertMany(xs: Iterable[Source]): Unit = {
+    db.run {
+//      sources.forceInsertAll(xs)
+      sources ++= xs
+    }
+  }
+
   def findByUrl(url: String, id: Option[Long]): Future[Int] = {
     db.run {
       id

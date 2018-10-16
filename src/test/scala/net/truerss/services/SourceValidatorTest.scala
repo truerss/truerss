@@ -1,3 +1,5 @@
+package net.truerss.services
+
 
 import org.specs2.mutable.Specification
 import truerss.util.SourceValidator

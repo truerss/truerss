@@ -26,6 +26,7 @@ class SourcesActor(config: SourcesActor.SourcesSettings,
 
   import SourcesActor._
   import context.dispatcher
+  import truerss.services.actors.DtoModelImplicits._
 
   implicit val timeout = Timeout(30 seconds)
   val stream = context.system.eventStream
@@ -57,7 +58,7 @@ class SourcesActor(config: SourcesActor.SourcesSettings,
   }
 
   override def preStart(): Unit = {
-    dbLayer.sourceDao.all.map(Sources) pipeTo self
+    dbLayer.sourceDao.all.map(xs => Sources(xs.map(_.toView))) pipeTo self
   }
 
 
@@ -113,22 +114,21 @@ class SourcesActor(config: SourcesActor.SourcesSettings,
 
     case SourceDeleted(source) =>
       log.info(s"Stop ${source.name} actor")
-      sourceNetwork.get(source.id.get).foreach{ ref =>
+      sourceNetwork.get(source.id).foreach{ ref =>
         queue.filter(_ == ref).foreach(queue -= _)
         context.stop(ref)
       }
-      sourceNetwork -= source.id.get
+      sourceNetwork -= source.id
 
     case msg: SourceActor.ExtractContent =>
       sourceNetwork.get(msg.sourceId).foreach(_ forward msg)
 
     case ReloadSource(source) =>
-      source.id.map { id =>
-        sourceNetwork.get(id).foreach(ref => context.stop(ref))
-        sourceNetwork -= id
+      val id = source.id
+      sourceNetwork.get(id).foreach(ref => context.stop(ref))
+      sourceNetwork -= id
 
-        startSourceActor(source)
-      }
+      startSourceActor(source)
 
     case x => log.warning(s"Unhandled message $x")
   }
@@ -136,12 +136,12 @@ class SourcesActor(config: SourcesActor.SourcesSettings,
   def receive = uninitialized
 
 
-  private def startSourceActor(source: Source) = {
+  private def startSourceActor(source: SourceViewDto) = {
     getSourceReader(plugins, source)(stream).map { feedReader =>
-      log.info(s"Start source actor for ${source.normalized} -> ${source.id.get} with state ${source.state}")
+      log.info(s"Start source actor for ${source.normalized} -> ${source.id} with state ${source.state}")
       val ref = context.actorOf(Props(classOf[SourceActor],
         source, feedReader, contentReaders))
-      sourceNetwork += source.id.get -> ref
+      sourceNetwork += source.id -> ref
     }
   }
 }
@@ -159,7 +159,7 @@ object SourcesActor {
   }
 
   def getSourceReader(plugins: ApplicationPlugins,
-                      source: Source)(stream: EventStream) = {
+                      source: SourceViewDto)(stream: EventStream) = {
     val url = new URL(source.url)
     source.state match {
       case Neutral =>
@@ -171,10 +171,10 @@ object SourcesActor {
 
         (feedReader, contentReader) match {
           case (None, None) =>
-            logger.warn(s"Disable ${source.id.get} -> ${source.name} Source. " +
+            logger.warn(s"Disable ${source.id} -> ${source.name} Source. " +
               s"Plugin not found")
 
-            stream.publish(DbHelperActor.SetState(source.id.get, Disable))
+            stream.publish(DbHelperActor.SetState(source.id, Disable))
 
             None
           case (f, c) =>
@@ -203,7 +203,7 @@ object SourcesActor {
   case class ReloadSource(source: SourceViewDto) extends SourcesMessage
 
   // not message, just tmp class with all sources
-  case class Sources(xs: Seq[Source])
+  case class Sources(xs: Seq[SourceViewDto])
 
   // config
   case class SourcesSettings(

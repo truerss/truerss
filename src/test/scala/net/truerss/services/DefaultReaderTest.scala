@@ -1,3 +1,5 @@
+package net.truerss.services
+
 
 import java.net.URL
 
@@ -8,10 +10,10 @@ import com.typesafe.config.ConfigFactory
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
+import scalaj.http.HttpResponse
 import truerss.plugins.DefaultSiteReader
 
 import scala.concurrent.duration._
-import scalaj.http.HttpResponse
 
 
 

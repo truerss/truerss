@@ -13,12 +13,10 @@ import scala.concurrent.Future
 /**
   * Created by mike on 4.5.17.
   */
-class SourcesManagementActor(dbLayer: DbLayer, appPlugins: ApplicationPlugins) extends CommonActor {
+class SourcesManagementActor(sourcesService: SourcesService) extends CommonActor {
 
   import SourcesManagementActor._
   import context.dispatcher
-
-  val sourcesService = new SourcesService(dbLayer, appPlugins)
 
   override def defaultHandler: Receive = {
     case GetAll =>
