@@ -42,7 +42,7 @@ class MainActor(config: TrueRSSConfig,
     ApiActor.props(config.appPlugins, sourcesRef, dbLayer), "api-service-router")
 
   val publishActor = context.actorOf(Props(
-    classOf[PublishPluginActor], config.appPlugins.publishPlugin),
+    classOf[PublishPluginActor], config.appPlugins.publishPlugins),
     "publish-plugin-actor")
 
   stream.subscribe(publishActor, classOf[PublishPluginActor.PublishEvent])

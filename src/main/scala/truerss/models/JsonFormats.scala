@@ -5,7 +5,7 @@ import java.util.Date
 import com.github.truerss.base.PluginInfo
 import truerss.util.{ApplicationPlugins, Jsonize}
 import play.api.libs.json._
-import truerss.dto.{NewSourceDto, SourceDto, SourceViewDto, UpdateSourceDto}
+import truerss.dto._
 
 object JsonFormats {
 
@@ -84,12 +84,15 @@ object JsonFormats {
         Seq(
           "feed" -> JsArray(o.feedPlugins.map(pluginInfoFormat.writes)),
           "content" -> JsArray(o.contentPlugins.map(pluginInfoFormat.writes)),
-          "publish" -> JsArray(o.publishPlugin.map(pluginInfoFormat.writes)),
-          "site" -> JsArray(o.sitePlugin.map(pluginInfoFormat.writes))
+          "publish" -> JsArray(o.publishPlugins.map(pluginInfoFormat.writes)),
+          "site" -> JsArray(o.sitePlugins.map(pluginInfoFormat.writes))
         )
       )
     }
   }
+
+  implicit lazy val pluginDtoFormat = Json.format[PluginDto]
+  implicit lazy val pluginsViewDto = Json.format[PluginsViewDto]
 
   implicit val notifyLevelWrites: Writes[Notify] = new Writes[Notify] {
     override def writes(o: Notify): JsValue = {

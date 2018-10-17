@@ -1,26 +1,26 @@
 package truerss.services.actors
 
 import akka.actor.Props
-
-import truerss.api.{CssResponse, JsResponse, ModelResponse}
+import truerss.api.{AppPluginsResponse, CssResponse, JsResponse}
+import truerss.services.ApplicationPluginsService
 import truerss.util.ApplicationPlugins
 
 /**
   * Created by mike on 4.5.17.
   */
-class PluginManagementActor(appPlugins: ApplicationPlugins) extends CommonActor {
+class PluginManagementActor(appPluginService: ApplicationPluginsService) extends CommonActor {
 
   import PluginManagementActor._
 
   override def defaultHandler: Receive = {
     case GetJs =>
-      sender ! JsResponse(appPlugins.js.mkString)
+      sender ! JsResponse(appPluginService.js.mkString)
 
     case GetCss =>
-      sender ! CssResponse(appPlugins.css.mkString)
+      sender ! CssResponse(appPluginService.css.mkString)
 
     case GetPluginList =>
-      sender ! ModelResponse(appPlugins)
+      sender ! AppPluginsResponse(appPluginService.view)
   }
 }
 

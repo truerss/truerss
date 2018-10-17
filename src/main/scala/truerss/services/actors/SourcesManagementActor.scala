@@ -8,8 +8,6 @@ import truerss.dto.{NewSourceDto, UpdateSourceDto}
 import truerss.services.{SourcesActor, SourcesService}
 import truerss.util.ApplicationPlugins
 
-import scala.concurrent.Future
-
 /**
   * Created by mike on 4.5.17.
   */

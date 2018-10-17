@@ -145,12 +145,8 @@ class SourcesManagementActorTest
     stream.subscribe(streamRef.ref, classOf[SourcesActor.ReloadSource])
     val service = mock[SourcesService]
 
-    def spawn(x: SourcesService) = {
-      TestActorRef(new S(x))
-    }
-
     def pass(msg: Any)(pf: PartialFunction[Any, Unit]) = {
-      spawn(service).tell(msg, me.ref)
+      TestActorRef(new S(service)).tell(msg, me.ref)
       me.expectMsgPF()(pf)
     }
   }

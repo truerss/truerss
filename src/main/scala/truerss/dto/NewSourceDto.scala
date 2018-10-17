@@ -33,3 +33,17 @@ case class SourceViewDto(id: Long,
                      count: Int = 0) {
   def recount(x: Int): SourceViewDto = copy(count = x)
 }
+
+case class PluginDto(author: String,
+                     about: String,
+                     version: String,
+                     pluginName: String
+                    )
+
+// TODO rename on ui
+case class PluginsViewDto(
+                           feed: Vector[PluginDto] = Vector.empty,
+                           content: Vector[PluginDto] = Vector.empty,
+                           publish: Vector[PluginDto] = Vector.empty,
+                           site: Vector[PluginDto] = Vector.empty
+                         )

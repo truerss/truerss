@@ -11,28 +11,28 @@ import scala.collection.mutable.ArrayBuffer
 import scala.language.existentials
 
 case class ApplicationPlugins(
-  feedPlugins: ArrayBuffer[BaseFeedPlugin] = ArrayBuffer.empty,
-  contentPlugins: ArrayBuffer[BaseContentPlugin] = ArrayBuffer.empty,
-  publishPlugin: ArrayBuffer[BasePublishPlugin] = ArrayBuffer.empty,
-  sitePlugin: ArrayBuffer[BaseSitePlugin] = ArrayBuffer.empty,
-  css: ArrayBuffer[String] = ArrayBuffer.empty, // content of js files
-  js: ArrayBuffer[String] = ArrayBuffer.empty
+                               feedPlugins: ArrayBuffer[BaseFeedPlugin] = ArrayBuffer.empty,
+                               contentPlugins: ArrayBuffer[BaseContentPlugin] = ArrayBuffer.empty,
+                               publishPlugins: ArrayBuffer[BasePublishPlugin] = ArrayBuffer.empty,
+                               sitePlugins: ArrayBuffer[BaseSitePlugin] = ArrayBuffer.empty,
+                               css: ArrayBuffer[String] = ArrayBuffer.empty, // content of js files
+                               js: ArrayBuffer[String] = ArrayBuffer.empty
 ) extends Jsonize {
   def matchUrl(url: URL): Boolean = {
     feedPlugins.exists(_.matchUrl(url)) ||
     contentPlugins.exists(_.matchUrl(url)) ||
-    sitePlugin.exists(_.matchUrl(url))
+    sitePlugins.exists(_.matchUrl(url))
   }
 
-  def getFeedReader(url: URL) = {
+  def getFeedReader(url: URL): Option[BasePlugin with PluginInfo] = {
     (feedPlugins.filter(_.matchUrl(url)) ++
-      sitePlugin.filter(_.matchUrl(url)))
+      sitePlugins.filter(_.matchUrl(url)))
       .sortBy(_.priority).reverse.headOption
   }
 
-  def getContentReader(url: URL) = {
+  def getContentReader(url: URL): Option[BasePlugin with PluginInfo] = {
     (contentPlugins.filter(_.matchUrl(url)) ++
-      sitePlugin.filter(_.matchUrl(url)))
+      sitePlugins.filter(_.matchUrl(url)))
       .sortBy(_.priority).reverse.headOption
   }
 
@@ -104,7 +104,7 @@ object PluginLoader {
                 val constructor = clz.getConstructor(classOf[Config])
                 val instance = constructor.newInstance(pluginConfig)
                   .asInstanceOf[BasePublishPlugin]
-                appPlugins.publishPlugin += instance
+                appPlugins.publishPlugins += instance
                 read(instance, js).map(appPlugins.js += _)
                 read(instance, css).map(appPlugins.css += _)
 
@@ -112,7 +112,7 @@ object PluginLoader {
                 val constructor = clz.getConstructor(classOf[Config])
                 val instance = constructor.newInstance(pluginConfig)
                   .asInstanceOf[BaseSitePlugin]
-                appPlugins.sitePlugin += instance
+                appPlugins.sitePlugins += instance
                 read(instance, js).map(appPlugins.js += _)
                 read(instance, css).map(appPlugins.css += _)
 
