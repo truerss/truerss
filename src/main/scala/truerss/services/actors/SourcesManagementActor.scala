@@ -3,10 +3,8 @@ package truerss.services.actors
 import akka.actor.Props
 import akka.pattern.pipe
 import truerss.api._
-import truerss.db.DbLayer
 import truerss.dto.{NewSourceDto, UpdateSourceDto}
 import truerss.services.{SourcesActor, SourcesService}
-import truerss.util.ApplicationPlugins
 
 /**
   * Created by mike on 4.5.17.
@@ -62,8 +60,8 @@ class SourcesManagementActor(sourcesService: SourcesService) extends CommonActor
 
 object SourcesManagementActor {
 
-  def props(dbLayer: DbLayer, appPlugins: ApplicationPlugins) = {
-    Props(classOf[SourcesManagementActor], dbLayer, appPlugins)
+  def props(sourcesService: SourcesService) = {
+    Props(classOf[SourcesManagementActor], sourcesService)
   }
 
   sealed trait SourcesMessage

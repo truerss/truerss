@@ -15,20 +15,26 @@ class ApiActor(appPlugins: ApplicationPlugins,
 
   import Util._
 
+  import context.dispatcher // TODO
+
   val stream = context.system.eventStream
+
+  val sourcesService = new SourcesService(dbLayer, appPlugins)
+  val applicationPluginsService = new ApplicationPluginsService(appPlugins)
+  val opmlService = new OpmlService(sourcesService)
 
   def create(props: Props) =
     context.actorOf(props.withDispatcher("dispatchers.truerss-dispatcher"))
 
   def receive = LoggingReceive {
     case msg: SourcesManagementActor.SourcesMessage =>
-      create(SourcesManagementActor.props(dbLayer, appPlugins)) forward msg
+      create(SourcesManagementActor.props(sourcesService)) forward msg
 
     case msg: FeedsManagementActor.FeedsMessage =>
       create(FeedsManagementActor.props(dbLayer)) forward msg
 
     case msg: OpmlActor.OpmlActorMessage =>
-      create(OpmlActor.props(dbLayer)) forward msg
+      create(OpmlActor.props(opmlService)) forward msg
 
     case msg: AddSourcesActor.AddSourcesActorMessage =>
       create(AddSourcesActor.props(dbLayer)) forward msg

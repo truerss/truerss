@@ -21,7 +21,7 @@ class SourceServiceTest(implicit ee: ExecutionEnv)
   val service = new SourcesService(dbLayer, plugins)
 
   "SourceService" should {
-    "getAll" in {
+    "getAll && opml" in {
       val source1 = Gen.genSource()
       val source2 = Gen.genSource()
       val sx = Iterable(source1, source2)
@@ -32,6 +32,8 @@ class SourceServiceTest(implicit ee: ExecutionEnv)
         xs.size ==== 2
         xs.map(_.name) must contain(allOf(sx.map(_.name).toSeq : _*))
       }.await
+
+      service.getAllForOpml.map(_.size ==== 2).await
     }
 
     "get source by id" in {

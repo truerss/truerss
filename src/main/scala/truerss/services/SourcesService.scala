@@ -12,6 +12,10 @@ class SourcesService(dbLayer: DbLayer, appPlugins: ApplicationPlugins)(implicit 
   import DtoModelImplicits._
   import Util._
 
+  def getAllForOpml: Future[Vector[SourceViewDto]] = {
+    dbLayer.sourceDao.all.map { xs => xs.map(_.toView).toVector }
+  }
+
   def getAll: Future[Vector[SourceViewDto]] = {
     val result = for {
       feedsBySource <- dbLayer.feedDao.feedBySourceCount(false)

@@ -33,9 +33,11 @@ class FullDbHelper(dbName: String) extends SpecificationLike with BeforeAfterAll
   val initTime = 10 seconds
 
   private lazy val dbProfile = DBProfile.create(H2)
+
   private lazy val db = JdbcBackend.Database
     .forURL(s"jdbc:h2:mem:$dbName;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1",
       driver = dbProfile.driver)
+
   private implicit lazy val driver = CurrentDriver(dbProfile.profile)
 
   lazy val dbLayer: DbLayer = new DbLayer(db, driver)(ExecutionContext.fromExecutor(Executors.newFixedThreadPool(1)))
