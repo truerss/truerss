@@ -19,7 +19,7 @@ class RoutingApiSpec extends RouteTest
   with TestFrameworkInterface {
 
   import JsonFormats._
-  import truerss.services.actors.sync.SourcesActor._
+  import truerss.services.actors.sync.SourcesKeeperActor._
   import truerss.services.actors.management.FeedsManagementActor._
   import truerss.services.actors.management.OpmlActor._
   import truerss.services.actors.management.PluginManagementActor._

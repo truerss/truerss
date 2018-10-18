@@ -6,7 +6,7 @@ import truerss.api._
 import truerss.dto.{NewSourceDto, UpdateSourceDto}
 import truerss.models.Notify
 import truerss.services.SourcesService
-import truerss.services.actors.sync.SourcesActor
+import truerss.services.actors.sync.SourcesKeeperActor
 
 /**
   * Created by mike on 4.5.17.
@@ -30,7 +30,7 @@ class SourcesManagementActor(sourcesService: SourcesService) extends CommonActor
       sourcesService.delete(sourceId).map {
         case Some(x) =>
           stream.publish(WSController.SourceDeleted(x))
-          stream.publish(SourcesActor.SourceDeleted(x))
+          stream.publish(SourcesKeeperActor.SourceDeleted(x))
           ok
         case _ => sourceNotFound
       } pipeTo sender
@@ -42,7 +42,7 @@ class SourcesManagementActor(sourcesService: SourcesService) extends CommonActor
 
         case Right(x) =>
           stream.publish(WSController.SourceAdded(x))
-          stream.publish(SourcesActor.NewSource(x))
+          stream.publish(SourcesKeeperActor.NewSource(x))
           SourceResponse(Some(x))
       } pipeTo sender
 
@@ -53,7 +53,7 @@ class SourcesManagementActor(sourcesService: SourcesService) extends CommonActor
 
         case Right(x) =>
           stream.publish(WSController.SourceUpdated(x))
-          stream.publish(SourcesActor.ReloadSource(x))
+          stream.publish(SourcesKeeperActor.ReloadSource(x))
           SourceResponse(Some(x))
       } pipeTo sender
 
@@ -66,7 +66,7 @@ class SourcesManagementActor(sourcesService: SourcesService) extends CommonActor
           case Right(source) =>
             log.info(s"New sources was created: ${source.url}")
             stream.publish(WSController.SourceAdded(source))
-            stream.publish(SourcesActor.NewSource(source))
+            stream.publish(SourcesKeeperActor.NewSource(source))
         }
       }
 

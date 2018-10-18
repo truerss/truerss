@@ -6,7 +6,7 @@ import akka.event.EventStream
 import truerss.db.DbLayer
 import truerss.models.{Notify, NotifyLevels}
 import truerss.services.actors.management._
-import truerss.services.actors.sync.{SourceActor, SourcesActor}
+import truerss.services.actors.sync.{SourceActor, SourcesKeeperActor}
 import truerss.util.TrueRSSConfig
 import truerss.util.Util.ResponseHelpers
 
@@ -46,10 +46,10 @@ class MainActor(config: TrueRSSConfig,
     DbHelperActor.props(dbLayer),
     "db-helper-actor")
 
-  val sourcesRef = context.actorOf(SourcesActor.props(
-    SourcesActor.SourcesSettings(config),
+  val sourcesRef = context.actorOf(SourcesKeeperActor.props(
+    SourcesKeeperActor.SourcesSettings(config),
     applicationPluginsService,
-    dbLayer
+    sourcesService
   ), "sources-root-actor")
 
   val publishActor = context.actorOf(Props(
@@ -58,8 +58,8 @@ class MainActor(config: TrueRSSConfig,
 
   stream.subscribe(publishActor, classOf[PublishPluginActor.PublishEvent])
   stream.subscribe(dbHelperActorRef, classOf[DbHelperActor.DbHelperActorMessage])
-  stream.subscribe(sourcesRef, classOf[SourcesActor.NewSource])
-  stream.subscribe(sourcesRef, classOf[SourcesActor.ReloadSource])
+  stream.subscribe(sourcesRef, classOf[SourcesKeeperActor.NewSource])
+  stream.subscribe(sourcesRef, classOf[SourcesKeeperActor.ReloadSource])
 
 
   def receive = {
@@ -79,7 +79,7 @@ class MainActor(config: TrueRSSConfig,
       sourcesRef forward msg
 
       // todo remove
-    case msg: SourcesActor.SourcesMessage =>
+    case msg: SourcesKeeperActor.SourcesMessage =>
       stream.publish(msg)
       sender ! ResponseHelpers.ok
   }

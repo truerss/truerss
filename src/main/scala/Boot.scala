@@ -6,7 +6,6 @@ import akka.stream.ActorMaterializer
 import truerss.api.{RoutingApiImpl, WSApi}
 import truerss.db.drivers.SupportedDb
 import truerss.services._
-import truerss.services.actors.sync.SourcesActor
 import truerss.util.TrueRSSConfig
 
 import scala.language.postfixOps

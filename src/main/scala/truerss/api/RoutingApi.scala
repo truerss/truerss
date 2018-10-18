@@ -8,7 +8,7 @@ import akka.stream.ActorMaterializer
 import truerss.dto.{NewSourceDto, UpdateSourceDto}
 import truerss.models.{JsonFormats, SourceW}
 import truerss.services.actors.management._
-import truerss.services.actors.sync.SourcesActor
+import truerss.services.actors.sync.SourcesKeeperActor
 
 import scala.concurrent.ExecutionContext
 import scala.io.Source
@@ -25,7 +25,7 @@ trait RoutingApi { self: HttpHelper =>
 
   import JsonFormats._
   import RoutingApi._
-  import SourcesActor._
+  import SourcesKeeperActor._
   import FeedsManagementActor._
   import PluginManagementActor._
   import SourcesManagementActor._

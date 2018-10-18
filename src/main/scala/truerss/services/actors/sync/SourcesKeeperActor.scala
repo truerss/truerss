@@ -14,22 +14,20 @@ import truerss.db.DbLayer
 import truerss.dto.SourceViewDto
 import truerss.models._
 import truerss.plugins.DefaultSiteReader
-import truerss.services.actors.management.DtoModelImplicits
-import truerss.services.{ApplicationPluginsService, DbHelperActor}
+import truerss.services.{ApplicationPluginsService, SourcesService}
 import truerss.util.{ApplicationPlugins, TrueRSSConfig}
 
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.duration._
 
 
-class SourcesActor(config: SourcesActor.SourcesSettings,
-                   appPluginService: ApplicationPluginsService,
-                   dbLayer: DbLayer
+class SourcesKeeperActor(config: SourcesKeeperActor.SourcesSettings,
+                         appPluginService: ApplicationPluginsService,
+                         sourcesService: SourcesService
                   ) extends Actor with ActorLogging {
 
-  import SourcesActor._
+  import SourcesKeeperActor._
   import context.dispatcher
-  import DtoModelImplicits._
 
   implicit val timeout = Timeout(30 seconds)
   val stream = context.system.eventStream
@@ -42,9 +40,6 @@ class SourcesActor(config: SourcesActor.SourcesSettings,
 
   private type CR = BaseContentReader with UrlMatcher with Priority with PluginInfo
 
-  val plugins = config.appPlugins
-  val contentReaders: Vector[CR] =
-    plugins.contentPlugins.toVector ++ Vector(defaultPlugin)
   val queue = ArrayBuffer[ActorRef]()
 
   val maxUpdateCount = config.parallelFeedUpdate
@@ -61,7 +56,7 @@ class SourcesActor(config: SourcesActor.SourcesSettings,
   }
 
   override def preStart(): Unit = {
-    dbLayer.sourceDao.all.map(xs => Sources(xs.map(_.toView))) pipeTo self
+    sourcesService.getAllForOpml.map(Sources) pipeTo self
   }
 
 
@@ -140,16 +135,16 @@ class SourcesActor(config: SourcesActor.SourcesSettings,
 
 
   private def startSourceActor(source: SourceViewDto) = {
-    getSourceReader(plugins, source)(stream).map { feedReader =>
+    appPluginService.getSourceReader(source).map { feedReader =>
       log.info(s"Start source actor for ${source.normalized} -> ${source.id} with state ${source.state}")
       val ref = context.actorOf(Props(classOf[SourceActor],
-        source, feedReader, contentReaders))
+        source, feedReader, appPluginService.contentReaders))
       sourceNetwork += source.id -> ref
     }
   }
 }
 
-object SourcesActor {
+object SourcesKeeperActor {
 
   val defaultPlugin = new DefaultSiteReader(ConfigFactory.empty())
 
@@ -157,42 +152,9 @@ object SourcesActor {
 
   def props(config: SourcesSettings,
             appPluginService: ApplicationPluginsService,
-            dbLayer: DbLayer
-           ) = {
-    Props(classOf[SourcesActor], config, appPluginService, dbLayer)
-  }
-
-  def getSourceReader(plugins: ApplicationPlugins,
-                      source: SourceViewDto)(stream: EventStream) = {
-    val url = new URL(source.url)
-    source.state match {
-      case Neutral =>
-        Some(defaultPlugin)
-      case Enable =>
-        val feedReader = plugins.getFeedReader(url)
-
-        val contentReader = plugins.getContentReader(url)
-
-        (feedReader, contentReader) match {
-          case (None, None) =>
-            logger.warn(s"Disable ${source.id} -> ${source.name} Source. " +
-              s"Plugin not found")
-
-            stream.publish(DbHelperActor.SetState(source.id, Disable))
-
-            None
-          case (f, c) =>
-            val f0 = f.getOrElse(defaultPlugin)
-            val c0 = c.getOrElse(defaultPlugin)
-            logger.info(s"${source.name} need plugin." +
-              s" Detect feed plugin: ${f0.pluginName}, " +
-              s" content plugin: ${c0.pluginName}")
-            Some(f0)
-        }
-
-      case Disable => None
-
-    }
+            sourcesService: SourcesService
+           ): Props = {
+    Props(classOf[SourcesKeeperActor], config, appPluginService, sourcesService)
   }
 
   sealed trait SourcesMessage

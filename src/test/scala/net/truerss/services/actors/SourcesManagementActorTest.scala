@@ -10,7 +10,7 @@ import truerss.api._
 import truerss.models.{Notify, NotifyLevels}
 import truerss.services.actors.management.{SourcesManagementActor => S}
 import truerss.services.SourcesService
-import truerss.services.actors.sync.SourcesActor
+import truerss.services.actors.sync.SourcesKeeperActor
 
 import scala.concurrent.duration._
 
@@ -65,7 +65,7 @@ class SourcesManagementActorTest
         pass(S.DeleteSource(v.id)) {
           case msg: Ok =>
             streamRef.expectMsgClass(classOf[WSController.SourceDeleted])
-            streamRef.expectMsgClass(classOf[SourcesActor.SourceDeleted])
+            streamRef.expectMsgClass(classOf[SourcesKeeperActor.SourceDeleted])
             msg.msg ==== "ok"
         }
       }
@@ -87,7 +87,7 @@ class SourcesManagementActorTest
         pass(S.AddSource(n)) {
           case msg: SourceResponse =>
             streamRef.expectMsgClass(classOf[WSController.SourceAdded])
-            streamRef.expectMsgClass(classOf[SourcesActor.NewSource])
+            streamRef.expectMsgClass(classOf[SourcesKeeperActor.NewSource])
             msg.x must beSome(v)
         }
       }
@@ -112,7 +112,7 @@ class SourcesManagementActorTest
         pass(S.UpdateSource(id, u)) {
           case msg: SourceResponse =>
             streamRef.expectMsgClass(classOf[WSController.SourceUpdated])
-            streamRef.expectMsgClass(classOf[SourcesActor.ReloadSource])
+            streamRef.expectMsgClass(classOf[SourcesKeeperActor.ReloadSource])
             msg.x must beSome(v)
         }
       }
@@ -142,7 +142,7 @@ class SourcesManagementActorTest
       val pf: PartialFunction[Any, Unit] = {
         case _: WSController.SourceAdded =>
           success
-        case _: SourcesActor.NewSource =>
+        case _: SourcesKeeperActor.NewSource =>
           success
         case msg: Notify =>
           msg.level ==== NotifyLevels.Danger
@@ -160,11 +160,11 @@ class SourcesManagementActorTest
     val stream = system.eventStream
     val streamRef = TestProbe()
     stream.subscribe(streamRef.ref, classOf[WSController.SourceDeleted])
-    stream.subscribe(streamRef.ref, classOf[SourcesActor.SourceDeleted])
+    stream.subscribe(streamRef.ref, classOf[SourcesKeeperActor.SourceDeleted])
     stream.subscribe(streamRef.ref, classOf[WSController.SourceAdded])
-    stream.subscribe(streamRef.ref, classOf[SourcesActor.NewSource])
+    stream.subscribe(streamRef.ref, classOf[SourcesKeeperActor.NewSource])
     stream.subscribe(streamRef.ref, classOf[WSController.SourceUpdated])
-    stream.subscribe(streamRef.ref, classOf[SourcesActor.ReloadSource])
+    stream.subscribe(streamRef.ref, classOf[SourcesKeeperActor.ReloadSource])
     stream.subscribe(streamRef.ref, classOf[Notify])
     val service = mock[SourcesService]
 
