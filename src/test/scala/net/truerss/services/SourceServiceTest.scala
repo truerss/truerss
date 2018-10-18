@@ -4,7 +4,7 @@ import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mutable.SpecificationLike
 import truerss.dto.UpdateSourceDto
 import truerss.services.SourcesService
-import truerss.services.actors.DtoModelImplicits
+import truerss.services.actors.management.DtoModelImplicits
 import truerss.util.ApplicationPlugins
 
 class SourceServiceTest(implicit ee: ExecutionEnv)

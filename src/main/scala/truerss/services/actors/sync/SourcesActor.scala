@@ -1,4 +1,4 @@
-package truerss.services
+package truerss.services.actors.sync
 
 import java.net.URL
 
@@ -14,6 +14,8 @@ import truerss.db.DbLayer
 import truerss.dto.SourceViewDto
 import truerss.models._
 import truerss.plugins.DefaultSiteReader
+import truerss.services.actors.management.DtoModelImplicits
+import truerss.services.{ApplicationPluginsService, DbHelperActor}
 import truerss.util.{ApplicationPlugins, TrueRSSConfig}
 
 import scala.collection.mutable.ArrayBuffer
@@ -21,12 +23,13 @@ import scala.concurrent.duration._
 
 
 class SourcesActor(config: SourcesActor.SourcesSettings,
+                   appPluginService: ApplicationPluginsService,
                    dbLayer: DbLayer
                   ) extends Actor with ActorLogging {
 
   import SourcesActor._
   import context.dispatcher
-  import truerss.services.actors.DtoModelImplicits._
+  import DtoModelImplicits._
 
   implicit val timeout = Timeout(30 seconds)
   val stream = context.system.eventStream
@@ -37,10 +40,10 @@ class SourcesActor(config: SourcesActor.SourcesSettings,
       Resume
   }
 
+  private type CR = BaseContentReader with UrlMatcher with Priority with PluginInfo
 
   val plugins = config.appPlugins
-  val contentReaders: Vector[BaseContentReader with UrlMatcher
-    with Priority with PluginInfo] =
+  val contentReaders: Vector[CR] =
     plugins.contentPlugins.toVector ++ Vector(defaultPlugin)
   val queue = ArrayBuffer[ActorRef]()
 
@@ -153,9 +156,10 @@ object SourcesActor {
   protected val logger = LoggerFactory.getLogger(getClass)
 
   def props(config: SourcesSettings,
+            appPluginService: ApplicationPluginsService,
             dbLayer: DbLayer
            ) = {
-    Props(classOf[SourcesActor], config, dbLayer)
+    Props(classOf[SourcesActor], config, appPluginService, dbLayer)
   }
 
   def getSourceReader(plugins: ApplicationPlugins,

@@ -1,13 +1,13 @@
-package truerss.services.actors
+package truerss.services.actors.management
 
 import akka.actor._
 import akka.event.LoggingReceive
 import akka.pattern._
 import truerss.api.{InternalServerErrorResponse, ModelResponse}
 import truerss.db.DbLayer
-import truerss.services.DbHelperActor.FeedContentUpdate
 import truerss.models.Feed
-import truerss.services.SourceActor
+import truerss.services.DbHelperActor.FeedContentUpdate
+import truerss.services.actors.sync.SourceActor
 
 class GetFeedActor(dbLayer: DbLayer, service: ActorRef)
   extends CommonActor {

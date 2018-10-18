@@ -1,4 +1,4 @@
-package truerss.services.actors
+package truerss.services.actors.management
 
 import akka.actor.Props
 import truerss.api.{AppPluginsResponse, CssResponse, JsResponse}

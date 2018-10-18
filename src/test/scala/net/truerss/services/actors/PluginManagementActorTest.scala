@@ -8,7 +8,7 @@ import org.specs2.specification.Scope
 import truerss.api.{AppPluginsResponse, CssResponse, JsResponse}
 import truerss.dto.PluginsViewDto
 import truerss.services.ApplicationPluginsService
-import truerss.services.actors.PluginManagementActor
+import truerss.services.actors.management.PluginManagementActor
 
 class PluginManagementActorTest extends TestKit(ActorSystem("PluginManagementActor"))
   with SpecificationLike with Mockito {

@@ -7,7 +7,7 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.SpecificationLike
 import org.specs2.specification.Scope
 import truerss.api._
-import truerss.services.actors.FeedsManagementActor
+import truerss.services.actors.management.FeedsManagementActor
 import truerss.services.{FeedsService, PublishPluginActor}
 
 import scala.concurrent.duration._

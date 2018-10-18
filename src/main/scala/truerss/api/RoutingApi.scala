@@ -7,7 +7,8 @@ import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
 import truerss.dto.{NewSourceDto, UpdateSourceDto}
 import truerss.models.{JsonFormats, SourceW}
-import truerss.services.actors.OpmlActor
+import truerss.services.actors.management._
+import truerss.services.actors.sync.SourcesActor
 
 import scala.concurrent.ExecutionContext
 import scala.io.Source
@@ -24,10 +25,10 @@ trait RoutingApi { self: HttpHelper =>
 
   import JsonFormats._
   import RoutingApi._
-  import truerss.services.SourcesActor._
-  import truerss.services.actors.FeedsManagementActor._
-  import truerss.services.actors.PluginManagementActor._
-  import truerss.services.actors.SourcesManagementActor._
+  import SourcesActor._
+  import FeedsManagementActor._
+  import PluginManagementActor._
+  import SourcesManagementActor._
   import OpmlActor._
 
   val fileName = "index.html"

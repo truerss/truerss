@@ -1,4 +1,4 @@
-package truerss.services
+package truerss.services.actors.sync
 
 import java.net.URL
 import java.util.Date
@@ -8,7 +8,7 @@ import com.github.truerss.base._
 import org.jsoup.Jsoup
 import truerss.models.{Notify, NotifyLevels, Source}
 import truerss.services.DbHelperActor.{AddFeeds, SourceLastUpdate}
-import truerss.services.SourcesActor._
+import truerss.services.actors.sync.SourcesActor.{Update, UpdateMe, Updated}
 
 import scala.concurrent.duration._
 import scala.util.control.Exception._

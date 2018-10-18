@@ -1,11 +1,12 @@
-package truerss.services.actors
+package truerss.services.actors.management
 
 import akka.actor.Props
 import akka.pattern.pipe
 import truerss.api._
 import truerss.dto.{NewSourceDto, UpdateSourceDto}
 import truerss.models.Notify
-import truerss.services.{SourcesActor, SourcesService}
+import truerss.services.SourcesService
+import truerss.services.actors.sync.SourcesActor
 
 /**
   * Created by mike on 4.5.17.

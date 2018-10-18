@@ -5,7 +5,8 @@ import akka.actor.{Actor, ActorLogging, ActorRef, OneForOneStrategy, Props}
 import akka.event.EventStream
 import truerss.db.DbLayer
 import truerss.models.{Notify, NotifyLevels}
-import truerss.services.actors.{FeedsManagementActor, OpmlActor, PluginManagementActor, SourcesManagementActor}
+import truerss.services.actors.management._
+import truerss.services.actors.sync.{SourceActor, SourcesActor}
 import truerss.util.TrueRSSConfig
 import truerss.util.Util.ResponseHelpers
 
@@ -29,25 +30,25 @@ class MainActor(config: TrueRSSConfig,
         Resume
   }
 
-  val stream: EventStream = context.system.eventStream
+  private val stream: EventStream = context.system.eventStream
 
-  val sourcesService = new SourcesService(dbLayer, config.appPlugins)
-  val applicationPluginsService = new ApplicationPluginsService(config.appPlugins)
-  val opmlService = new OpmlService(sourcesService)
-  val feedsService = new FeedsService(dbLayer)
+  private val sourcesService = new SourcesService(dbLayer, config.appPlugins)
+  private val applicationPluginsService = new ApplicationPluginsService(config.appPlugins)
+  private val opmlService = new OpmlService(sourcesService)
+  private val feedsService = new FeedsService(dbLayer)
 
-  val sourcesManagementActor = create(SourcesManagementActor.props(sourcesService))
-  val feedsManagementActor = create(FeedsManagementActor.props(feedsService))
-  val opmlActor = create(OpmlActor.props(opmlService))
-  val pluginManagementActor = create(PluginManagementActor.props(config.appPlugins))
+  private val sourcesManagementActor = create(SourcesManagementActor.props(sourcesService))
+  private val feedsManagementActor = create(FeedsManagementActor.props(feedsService))
+  private val opmlActor = create(OpmlActor.props(opmlService))
+  private val pluginManagementActor = create(PluginManagementActor.props(config.appPlugins))
 
   val dbHelperActorRef = context.actorOf(
     DbHelperActor.props(dbLayer),
     "db-helper-actor")
 
-  // todo remove from this place
   val sourcesRef = context.actorOf(SourcesActor.props(
     SourcesActor.SourcesSettings(config),
+    applicationPluginsService,
     dbLayer
   ), "sources-root-actor")
 
@@ -57,6 +58,9 @@ class MainActor(config: TrueRSSConfig,
 
   stream.subscribe(publishActor, classOf[PublishPluginActor.PublishEvent])
   stream.subscribe(dbHelperActorRef, classOf[DbHelperActor.DbHelperActorMessage])
+  stream.subscribe(sourcesRef, classOf[SourcesActor.NewSource])
+  stream.subscribe(sourcesRef, classOf[SourcesActor.ReloadSource])
+
 
   def receive = {
     case msg: SourcesManagementActor.SourcesMessage =>

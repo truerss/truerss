@@ -1,13 +1,14 @@
-package truerss.services.actors
+package truerss.services.actors.management
 
 import java.util.Date
 
-import truerss.db.FeedDao
 import truerss.dto.{FeedDto, NewSourceDto, SourceViewDto, UpdateSourceDto}
 import truerss.models.{Feed, Neutral, Source}
-import truerss.util.Util._
+import truerss.util.Util
 
 object DtoModelImplicits {
+
+  import Util._
 
   implicit class NewSourceDtoExt(val x: NewSourceDto) extends AnyVal {
     def toSource: Source = {

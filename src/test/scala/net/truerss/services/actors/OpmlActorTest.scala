@@ -9,7 +9,7 @@ import org.specs2.specification.Scope
 import truerss.api.{BadRequestResponse, Ok}
 import truerss.models.Notify
 import truerss.services.OpmlService
-import truerss.services.actors.{OpmlActor, SourcesManagementActor}
+import truerss.services.actors.management.{OpmlActor, SourcesManagementActor}
 import truerss.util.Outline
 
 import scala.concurrent.Future

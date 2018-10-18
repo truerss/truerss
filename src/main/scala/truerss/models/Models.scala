@@ -3,7 +3,6 @@ package truerss.models
 import java.util.Date
 
 import truerss.dto.NewSourceDto
-import truerss.services.SourcesActor.NewSource
 import truerss.util.Util._
 import truerss.util.Jsonize
 
@@ -39,8 +38,6 @@ case class SourceW(id: Option[Long],
     )
   }
 }
-
-
 
 case class Source(id: Option[Long],
                   url: String,

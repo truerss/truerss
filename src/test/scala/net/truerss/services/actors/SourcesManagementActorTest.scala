@@ -8,8 +8,9 @@ import org.specs2.mutable.SpecificationLike
 import org.specs2.specification.Scope
 import truerss.api._
 import truerss.models.{Notify, NotifyLevels}
-import truerss.services.actors.{SourcesManagementActor => S}
-import truerss.services.{SourcesActor, SourcesService}
+import truerss.services.actors.management.{SourcesManagementActor => S}
+import truerss.services.SourcesService
+import truerss.services.actors.sync.SourcesActor
 
 import scala.concurrent.duration._
 

@@ -1,6 +1,5 @@
 package net.truerss.services
 
-
 import java.io.File
 
 import akka.http.scaladsl.model.{ContentTypes, HttpRequest, Multipart, StatusCodes}
@@ -20,11 +19,11 @@ class RoutingApiSpec extends RouteTest
   with TestFrameworkInterface {
 
   import JsonFormats._
-  import truerss.services.SourcesActor._
-  import truerss.services.actors.FeedsManagementActor._
-  import truerss.services.actors.OpmlActor._
-  import truerss.services.actors.PluginManagementActor._
-  import truerss.services.actors.SourcesManagementActor._
+  import truerss.services.actors.sync.SourcesActor._
+  import truerss.services.actors.management.FeedsManagementActor._
+  import truerss.services.actors.management.OpmlActor._
+  import truerss.services.actors.management.PluginManagementActor._
+  import truerss.services.actors.management.SourcesManagementActor._
 
   override def failTest(msg: String): Nothing = {
     println(s"test failed $msg")
