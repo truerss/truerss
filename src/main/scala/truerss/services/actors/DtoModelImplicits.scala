@@ -2,8 +2,9 @@ package truerss.services.actors
 
 import java.util.Date
 
-import truerss.dto.{NewSourceDto, SourceViewDto, UpdateSourceDto}
-import truerss.models.{Neutral, Source}
+import truerss.db.FeedDao
+import truerss.dto.{FeedDto, NewSourceDto, SourceViewDto, UpdateSourceDto}
+import truerss.models.{Feed, Neutral, Source}
 import truerss.util.Util._
 
 object DtoModelImplicits {
@@ -47,6 +48,25 @@ object DtoModelImplicits {
         normalized = x.normalized,
         lastUpdate = x.lastUpdate,
         count = x.count
+      )
+    }
+  }
+
+  implicit class FeedExt(val x: Feed) extends AnyVal {
+    def toDto: FeedDto = {
+      FeedDto(
+        id = x.id.getOrElse(0L),
+        sourceId = x.sourceId,
+        url = x.url,
+        title = x.title,
+        author = x.author,
+        publishedDate = x.publishedDate,
+        description = x.description,
+        content = x.content,
+        normalized = x.normalized,
+        favorite = x.favorite,
+        read = x.read,
+        delete = x.delete
       )
     }
   }

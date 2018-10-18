@@ -3,7 +3,7 @@ package net.truerss.services
 import java.time.LocalDateTime
 import java.util.{Date, Random, UUID}
 
-import truerss.dto.{NewSourceDto, SourceViewDto, UpdateSourceDto}
+import truerss.dto.{FeedDto, NewSourceDto, SourceViewDto, UpdateSourceDto}
 import truerss.models
 import truerss.models.Neutral
 
@@ -103,6 +103,20 @@ object Gen {
       favorite = tOf,
       read = tOf,
       delete = false
+    )
+  }
+
+  def genFeedDto: FeedDto = {
+    FeedDto(
+      id = 1,
+      sourceId = 1,
+      url = genUrl,
+      title = Gen.genName,
+      author = Gen.genName,
+      publishedDate = new Date(),
+      description = None,
+      content = None,
+      normalized = Gen.genName
     )
   }
 

@@ -13,17 +13,6 @@ object Util {
     def normalize = s.replaceAll("[^\\p{L}\\p{Nd}]+", "-")
   }
 
-  implicit class FeedExt(feed: Feed) {
-    def toEntry: Entry = Entry(
-      url = feed.url,
-      title = feed.title,
-      author = feed.author,
-      publishedDate = feed.publishedDate,
-      description = feed.description,
-      content = feed.content
-    )
-  }
-
   implicit class EntryExt(entry: Entry) {
     def toFeed(sourceId: Long): Feed = Feed(
       id = None,

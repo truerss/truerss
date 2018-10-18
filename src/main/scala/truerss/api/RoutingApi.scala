@@ -59,7 +59,7 @@ trait RoutingApi { self: HttpHelper =>
            sendAndWait(Mark(sourceId))
         } ~ (get & pathPrefix("unread" / LongNumber)) { sourceId =>
            sendAndWait(Unread(sourceId))
-        } ~ (get & pathPrefix("latest" / LongNumber)) { count =>
+        } ~ (get & pathPrefix("latest" / IntNumber)) { count =>
            sendAndWait(Latest(count))
         } ~ (get & pathPrefix("feeds" / LongNumber)) { sourceId =>
           parameters('from ? "0", 'limit ? "100") { (from, limit) =>

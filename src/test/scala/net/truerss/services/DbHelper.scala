@@ -44,11 +44,13 @@ class FullDbHelper(dbName: String) extends SpecificationLike with BeforeAfterAll
 
   import driver.profile.api._
 
+  val x = db.run {
+    (driver.query.sources.schema ++ driver.query.feeds.schema).create
+  }
+  Await.result(x, initTime)
+
   override def beforeAll = {
-    val x = db.run {
-      (driver.query.sources.schema ++ driver.query.feeds.schema).create
-    }
-    Await.result(x, initTime)
+
   }
 
   override def afterAll = {
@@ -63,6 +65,15 @@ class FullDbHelper(dbName: String) extends SpecificationLike with BeforeAfterAll
 
   def a[T](x: Future[T]): T = {
     Await.result(x, callTime)
+  }
+
+  def sleep(x: Int) = {
+    println(s"-------> wait: $x seconds")
+    Thread.sleep(x * 1000)
+  }
+
+  def w = {
+    sleep(3)
   }
 
 }

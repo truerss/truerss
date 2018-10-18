@@ -10,12 +10,11 @@ import truerss.api._
 import truerss.services.actors.{SourcesManagementActor => S}
 import truerss.services.{SourcesActor, SourcesService}
 
-import scala.concurrent.Future
 import scala.concurrent.duration._
 
 class SourcesManagementActorTest
   extends TestKit(ActorSystem("SourcesManagementActor"))
-  with SpecificationLike with Mockito {
+  with SpecificationLike with Mockito with ActorTestHelper {
 
   sequential
 
@@ -129,8 +128,6 @@ class SourcesManagementActorTest
       }
     }
   }
-
-  private def f[T](x: T): Future[T] = Future.successful(x)
 
   private class MyTest extends Scope {
     val v = Gen.genView

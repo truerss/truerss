@@ -1,11 +1,14 @@
 package truerss.api
 
-import truerss.dto.{PluginsViewDto, SourceViewDto}
+import truerss.dto.{FeedDto, PluginsViewDto, SourceViewDto}
 import truerss.util.Jsonize
 
 sealed trait Response
 case class SourcesResponse(xs: Vector[SourceViewDto])
 case class SourceResponse(x: Option[SourceViewDto])
+case class FeedResponse(x: FeedDto)
+case class FeedsResponse(xs: Vector[FeedDto])
+case class FeedsPageResponse(xs: Vector[FeedDto], total: Int)
 
 case class AppPluginsResponse(view: PluginsViewDto)
 

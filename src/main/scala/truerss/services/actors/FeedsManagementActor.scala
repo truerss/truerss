@@ -2,95 +2,66 @@ package truerss.services.actors
 
 import akka.actor.Props
 import akka.pattern.pipe
-import truerss.api.{ModelResponse, ModelsResponse}
-import truerss.db.DbLayer
-import truerss.models.Feed
-import truerss.services.PublishPluginActor
+import truerss.api._
+import truerss.dto.FeedDto
+import truerss.services.{FeedsService, PublishPluginActor}
 import truerss.util.Util.ResponseHelpers
 
 /**
   * Created by mike on 4.5.17.
   */
-class FeedsManagementActor(dbLayer: DbLayer) extends CommonActor {
+class FeedsManagementActor(feedsService: FeedsService) extends CommonActor {
 
   import FeedsManagementActor._
   import context.dispatcher
 
   override def defaultHandler: Receive = {
     case MarkAll =>
-      val result = dbLayer.feedDao.markAll
-        .map(_.toLong).map { _ => ok }
-      result pipeTo sender
+      feedsService.markAllAsRead.map { _ => ok } pipeTo sender
 
     case MarkFeed(feedId) =>
-      val result = dbLayer.feedDao.findOne(feedId).map { feed =>
-        dbLayer.feedDao.modifyFav(feedId, fav = true)
-        feed.map(_.mark(true))
-      }.map {
+      feedsService.addToFavorites(feedId).map {
         case Some(feed) =>
           stream.publish(PublishPluginActor.PublishEvent(feed))
-          ModelResponse(feed)
+          FeedResponse(feed)
         case None =>
           feedNotFound
-      }
-      result pipeTo sender
+      } pipeTo sender
 
     case UnmarkFeed(feedId) =>
-      val result = dbLayer.feedDao.findOne(feedId).map { feed =>
-        dbLayer.feedDao.modifyFav(feedId, fav = false)
-        feed.map(_.mark(false))
-      }.map(feedHandler)
-
-      result pipeTo sender
-
+      feedsService.removeFromFavorites(feedId).map(feedHandler) pipeTo sender
 
     case MarkAsReadFeed(feedId) =>
-      val result = dbLayer.feedDao.findOne(feedId).map { feed =>
-        dbLayer.feedDao.modifyRead(feedId, true)
-        feed.map(f => f.copy(read = true))
-      }.map(feedHandler)
-
-      result pipeTo sender
+      feedsService.markAsRead(feedId).map(feedHandler) pipeTo sender
 
     case MarkAsUnreadFeed(feedId) =>
-      val result = dbLayer.feedDao.findOne(feedId).map { feed =>
-        dbLayer.feedDao.modifyRead(feedId, false)
-        feed.map(f => f.copy(read = false))
-      }
-      result pipeTo sender
+      feedsService.markAsUnread(feedId).map(feedHandler) pipeTo sender
 
     case Unread(sourceId) =>
-      val result = dbLayer.feedDao.findUnread(sourceId)
-        .map(_.toVector)
-        .map(ModelsResponse(_))
-
-      result pipeTo sender
+      feedsService.findUnread(sourceId).map(FeedsResponse) pipeTo sender
 
     case ExtractFeedsForSource(sourceId, from, limit) =>
-      val result = for {
-        feeds <- dbLayer.feedDao.pageForSource(sourceId, from, limit)
-          .map(_.toVector)
-        total <- dbLayer.feedDao.feedCountBySourceId(sourceId)
-      } yield {
-        ModelsResponse(feeds, total)
-      }
-
-      result pipeTo sender
+      feedsService.findBySource(sourceId, from, limit).map { tmp =>
+        FeedsPageResponse(tmp._1, tmp._2)
+      } pipeTo sender
 
     case Latest(count) =>
-      val result = dbLayer.feedDao.lastN(count)
-        .map(_.toVector).map(ModelsResponse(_))
-
-      result pipeTo sender
+      feedsService.latest(count).map(FeedsResponse) pipeTo sender
 
     case Favorites =>
-      val result = dbLayer.feedDao.favorites
-        .map(_.toVector).map(ModelsResponse(_))
-      result pipeTo sender
+      feedsService.favorites.map(FeedsResponse) pipeTo sender
 
     case msg: GetFeed =>
-      context.actorOf(GetFeedActor.props(dbLayer, context.parent)) forward msg
+      // todo
+//      context.actorOf(GetFeedActor.props(dbLayer, context.parent)) forward msg
 
+  }
+
+  private def feedHandler(feed: Option[FeedDto]) = {
+    feed match {
+      case Some(f) => FeedResponse(f)
+      case None => ResponseHelpers.feedNotFound
+    }
   }
 
 
@@ -98,16 +69,11 @@ class FeedsManagementActor(dbLayer: DbLayer) extends CommonActor {
 
 object FeedsManagementActor {
 
-  def props(dbLayer: DbLayer) = {
-    Props(classOf[FeedsManagementActor], dbLayer)
+  def props(feedsService: FeedsService) = {
+    Props(classOf[FeedsManagementActor], feedsService)
   }
 
-  def feedHandler(feed: Option[Feed]) = {
-    feed match {
-      case Some(f) => ModelResponse(f)
-      case None => ResponseHelpers.feedNotFound
-    }
-  }
+
 
   sealed trait FeedsMessage
   case object MarkAll extends FeedsMessage
@@ -118,7 +84,7 @@ object FeedsManagementActor {
   case class UnmarkFeed(num: Long) extends FeedsMessage
   case class MarkAsReadFeed(num: Long) extends FeedsMessage
   case class MarkAsUnreadFeed(num: Long) extends FeedsMessage
-  case class Latest(count: Long) extends FeedsMessage
+  case class Latest(count: Int) extends FeedsMessage
   case class ExtractFeedsForSource(sourceId: Long,
                                    from: Int = 0,
                                    limit: Int = 100) extends FeedsMessage

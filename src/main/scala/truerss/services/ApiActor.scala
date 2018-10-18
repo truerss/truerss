@@ -22,6 +22,7 @@ class ApiActor(appPlugins: ApplicationPlugins,
   val sourcesService = new SourcesService(dbLayer, appPlugins)
   val applicationPluginsService = new ApplicationPluginsService(appPlugins)
   val opmlService = new OpmlService(sourcesService)
+  val feedsService = new FeedsService(dbLayer)
 
   def create(props: Props) =
     context.actorOf(props.withDispatcher("dispatchers.truerss-dispatcher"))
@@ -31,7 +32,7 @@ class ApiActor(appPlugins: ApplicationPlugins,
       create(SourcesManagementActor.props(sourcesService)) forward msg
 
     case msg: FeedsManagementActor.FeedsMessage =>
-      create(FeedsManagementActor.props(dbLayer)) forward msg
+      create(FeedsManagementActor.props(feedsService)) forward msg
 
     case msg: OpmlActor.OpmlActorMessage =>
       create(OpmlActor.props(opmlService)) forward msg

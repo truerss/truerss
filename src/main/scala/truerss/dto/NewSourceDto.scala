@@ -47,3 +47,18 @@ case class PluginsViewDto(
                            publish: Vector[PluginDto] = Vector.empty,
                            site: Vector[PluginDto] = Vector.empty
                          )
+
+case class FeedDto(
+                   id: Long,
+                   sourceId: Long,
+                   url: String,
+                   title: String,
+                   author: String,
+                   publishedDate: Date,
+                   description: Option[String],
+                   content: Option[String],
+                   normalized: String,
+                   favorite: Boolean = false,
+                   read: Boolean = false,
+                   delete: Boolean = false
+                )
