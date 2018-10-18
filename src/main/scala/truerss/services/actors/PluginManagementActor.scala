@@ -12,7 +12,7 @@ class PluginManagementActor(appPluginService: ApplicationPluginsService) extends
 
   import PluginManagementActor._
 
-  override def defaultHandler: Receive = {
+  override def receive: Receive = {
     case GetJs =>
       sender ! JsResponse(appPluginService.js.mkString)
 

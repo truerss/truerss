@@ -7,6 +7,7 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.SpecificationLike
 import org.specs2.specification.Scope
 import truerss.api._
+import truerss.models.{Notify, NotifyLevels}
 import truerss.services.actors.{SourcesManagementActor => S}
 import truerss.services.{SourcesActor, SourcesService}
 
@@ -127,6 +128,29 @@ class SourcesManagementActorTest
         }
       }
     }
+
+    "add source: valid/not valid" in new MyTest {
+      val error = "boom"
+      val n = Gen.genNewSource
+      val i = Gen.genNewSource
+      service.addSource(n).returns(f(Right(v)))
+      service.addSource(i).returns(f(Left(List(error))))
+      val msg = S.AddSources(Iterable(n, i))
+      val testRef = TestActorRef(new S(service)).tell(msg, me.ref)
+
+      val pf: PartialFunction[Any, Unit] = {
+        case _: WSController.SourceAdded =>
+          success
+        case _: SourcesActor.NewSource =>
+          success
+        case msg: Notify =>
+          msg.level ==== NotifyLevels.Danger
+      }
+
+      streamRef.expectMsgPF()(pf)
+      streamRef.expectMsgPF()(pf)
+      streamRef.expectMsgPF()(pf)
+    }
   }
 
   private class MyTest extends Scope {
@@ -140,6 +164,7 @@ class SourcesManagementActorTest
     stream.subscribe(streamRef.ref, classOf[SourcesActor.NewSource])
     stream.subscribe(streamRef.ref, classOf[WSController.SourceUpdated])
     stream.subscribe(streamRef.ref, classOf[SourcesActor.ReloadSource])
+    stream.subscribe(streamRef.ref, classOf[Notify])
     val service = mock[SourcesService]
 
     def pass(msg: Any)(pf: PartialFunction[Any, Unit]) = {

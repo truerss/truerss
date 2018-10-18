@@ -13,7 +13,7 @@ class OpmlActor(opmlService: OpmlService) extends CommonActor {
   import OpmlActor._
   import context.dispatcher
 
-  override def defaultHandler: Receive = {
+  override def receive: Receive = {
     case GetOpml =>
       opmlService.build.map(Ok) pipeTo sender
 
@@ -31,7 +31,7 @@ class OpmlActor(opmlService: OpmlService) extends CommonActor {
             val result = xs.map { x =>
               SourceHelper.from(x.link, x.title, interval)
             }
-            stream.publish(AddSourcesActor.AddSources(result))
+            stream.publish(SourcesManagementActor.AddSources(result))
             Ok("I'll try")
           }
         )

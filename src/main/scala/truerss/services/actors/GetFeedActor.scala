@@ -16,9 +16,11 @@ class GetFeedActor(dbLayer: DbLayer, service: ActorRef)
   import GetFeedActor._
   import context.dispatcher
 
+  private var originalSender = context.system.deadLetters
+
   var feed: Feed = null
 
-  def defaultHandler = LoggingReceive {
+  def receive = LoggingReceive {
     case GetFeed(feedId) =>
       originalSender = sender
 

@@ -5,7 +5,6 @@ import akka.actor.{Actor, ActorLogging, OneForOneStrategy, Props}
 import akka.event.EventStream
 import truerss.db.DbLayer
 import truerss.models.{Notify, NotifyLevels}
-import truerss.services.actors.{AddSourcesActor, SourcesManagementActor}
 import truerss.util.TrueRSSConfig
 
 import scala.concurrent.duration._
@@ -49,8 +48,6 @@ class MainActor(config: TrueRSSConfig,
   stream.subscribe(dbHelperActorRef, classOf[DbHelperActor.DbHelperActorMessage])
   stream.subscribe(sourcesRef, classOf[SourcesActor.NewSource])
   stream.subscribe(sourcesRef, classOf[SourcesActor.ReloadSource])
-  stream.subscribe(apiActorRef, classOf[AddSourcesActor.AddSources])
-
 
   def receive = {
     case x => apiActorRef forward x

@@ -9,7 +9,7 @@ import org.specs2.specification.Scope
 import truerss.api.{BadRequestResponse, Ok}
 import truerss.models.Notify
 import truerss.services.OpmlService
-import truerss.services.actors.{AddSourcesActor, OpmlActor}
+import truerss.services.actors.{OpmlActor, SourcesManagementActor}
 import truerss.util.Outline
 
 import scala.concurrent.Future
@@ -39,8 +39,8 @@ class OpmlActorTest extends TestKit(ActorSystem("OpmlActor"))
       pass(OpmlActor.CreateOpmlFromFile("test")) {
         case msg: Ok =>
           streamRef.expectMsgPF() {
-            case sources: AddSourcesActor.AddSources =>
-              sources.xs must have size 1
+            case SourcesManagementActor.AddSources(sources) =>
+              sources must have size 1
           }
       }
     }
@@ -61,7 +61,7 @@ class OpmlActorTest extends TestKit(ActorSystem("OpmlActor"))
     val me = TestProbe()
     val streamRef = TestProbe()
     system.eventStream.subscribe(streamRef.ref, classOf[Notify])
-    system.eventStream.subscribe(streamRef.ref, classOf[AddSourcesActor.AddSources])
+    system.eventStream.subscribe(streamRef.ref, classOf[SourcesManagementActor.AddSources])
 
     val service = mock[OpmlService]
 

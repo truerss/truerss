@@ -4,6 +4,7 @@ import akka.actor.Props
 import akka.pattern.pipe
 import truerss.api._
 import truerss.dto.{NewSourceDto, UpdateSourceDto}
+import truerss.models.Notify
 import truerss.services.{SourcesActor, SourcesService}
 
 /**
@@ -14,7 +15,7 @@ class SourcesManagementActor(sourcesService: SourcesService) extends CommonActor
   import SourcesManagementActor._
   import context.dispatcher
 
-  override def defaultHandler: Receive = {
+  override def receive: Receive = {
     case GetAll =>
       sourcesService.getAll.map(SourcesResponse) pipeTo sender
 
@@ -55,6 +56,19 @@ class SourcesManagementActor(sourcesService: SourcesService) extends CommonActor
           SourceResponse(Some(x))
       } pipeTo sender
 
+    case AddSources(xs) =>
+      xs.foreach { x =>
+        sourcesService.addSource(x).map {
+          case Left(errors) =>
+            errors.foreach { e => stream.publish(Notify.danger(e)) }
+
+          case Right(source) =>
+            log.info(s"New sources was created: ${source.url}")
+            stream.publish(WSController.SourceAdded(source))
+            stream.publish(SourcesActor.NewSource(source))
+        }
+      }
+
   }
 }
 
@@ -71,5 +85,6 @@ object SourcesManagementActor {
   case class AddSource(source: NewSourceDto) extends SourcesMessage
   case class UpdateSource(sourceId: Long, source: UpdateSourceDto) extends SourcesMessage
   case class Mark(sourceId: Long) extends SourcesMessage
+  case class AddSources(sources: Iterable[NewSourceDto]) extends SourcesMessage
 
 }

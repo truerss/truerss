@@ -24,21 +24,22 @@ class ApiActor(appPlugins: ApplicationPlugins,
   val opmlService = new OpmlService(sourcesService)
   val feedsService = new FeedsService(dbLayer)
 
+  val sourcesManagementActor = create(SourcesManagementActor.props(sourcesService))
+  val feedsManagementActor = create(FeedsManagementActor.props(feedsService))
+  val opmlActor = create(OpmlActor.props(opmlService))
+
   def create(props: Props) =
     context.actorOf(props.withDispatcher("dispatchers.truerss-dispatcher"))
 
   def receive = LoggingReceive {
     case msg: SourcesManagementActor.SourcesMessage =>
-      create(SourcesManagementActor.props(sourcesService)) forward msg
+      sourcesManagementActor forward msg
 
     case msg: FeedsManagementActor.FeedsMessage =>
-      create(FeedsManagementActor.props(feedsService)) forward msg
+      feedsManagementActor forward msg
 
     case msg: OpmlActor.OpmlActorMessage =>
-      create(OpmlActor.props(opmlService)) forward msg
-
-    case msg: AddSourcesActor.AddSourcesActorMessage =>
-      create(AddSourcesActor.props(dbLayer)) forward msg
+      opmlActor forward msg
 
     case msg: PluginManagementActor.PluginManagementMessage =>
       create(PluginManagementActor.props(appPlugins)) forward msg

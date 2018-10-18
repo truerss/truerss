@@ -15,7 +15,7 @@ class FeedsManagementActor(feedsService: FeedsService) extends CommonActor {
   import FeedsManagementActor._
   import context.dispatcher
 
-  override def defaultHandler: Receive = {
+  override def receive: Receive = {
     case MarkAll =>
       feedsService.markAllAsRead.map { _ => ok } pipeTo sender
 
