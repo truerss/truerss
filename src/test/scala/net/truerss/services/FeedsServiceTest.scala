@@ -6,7 +6,9 @@ import org.specs2.specification.Scope
 import truerss.services.FeedsService
 
 class FeedsServiceTest(implicit ee: ExecutionEnv)
-  extends FullDbHelper("feeds_service_test") with SpecificationLike {
+  extends FullDbHelper with SpecificationLike {
+
+  override val dbName = "feeds_service_test"
 
   sequential
 

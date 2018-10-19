@@ -1,44 +1,28 @@
 package net.truerss.services
 
-
 import java.util.Date
 
 import com.github.truerss.base.Entry
 import org.specs2.concurrent.ExecutionEnv
-import org.specs2.mutable.Specification
+import org.specs2.mutable.SpecificationLike
 import org.specs2.specification.{BeforeAfterAll, Scope}
-import truerss.db.{FeedDao, SourceDao}
 import truerss.models.{Feed, Source}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class FeedDaoSpec(implicit ee: ExecutionEnv)
-  extends Specification with DbHelper with BeforeAfterAll {
+class FeedDaoTest(implicit ee: ExecutionEnv)
+  extends FullDbHelper with SpecificationLike with BeforeAfterAll {
+
+  override val dbName = "fee_dao_spec"
 
   sequential
 
   implicit val duration = 3 seconds
 
-  override val dbName = "feedDaoSpec"
 
-  import driver.profile.api._
-
-  override def beforeAll = {
-    val x = db.run {
-      (driver.query.sources.schema ++ driver.query.feeds.schema).create
-    }
-    Await.result(x, 10 seconds)
-  }
-
-  override def afterAll = {
-    db.run {
-      (driver.query.sources.schema ++ driver.query.feeds.schema).drop
-    }
-  }
-
-  val feedDao = new FeedDao(db)
-  val sourceDao = new SourceDao(db)
+  val feedDao = dbLayer.feedDao
+  val sourceDao = dbLayer.sourceDao
 
   section("feedDao")
   "feed dao" should {

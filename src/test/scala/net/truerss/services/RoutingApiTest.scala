@@ -13,7 +13,7 @@ import truerss.models.JsonFormats
 import scala.concurrent.duration._
 import scala.reflect.ClassTag
 
-class RoutingApiSpec extends RouteTest
+class RoutingApiTest extends RouteTest
   with SpecificationLike
   with AllExpectations
   with TestFrameworkInterface {
@@ -79,8 +79,8 @@ class RoutingApiSpec extends RouteTest
     }
 
     "create source" in {
-      val s = Gen.genSource(None)
-      r1[AddSource](Post(s"$sourcesUrl", J(s)))
+      val s = Gen.genNewSource
+      r1[AddSource](Post(s"$sourcesUrl", newSourceDtoFormat.writes(s).toString))
     }
 
     "delete source" in {
@@ -88,8 +88,8 @@ class RoutingApiSpec extends RouteTest
     }
 
     "update source" in {
-      val s = Gen.genSource(None)
-      r1[UpdateSource](Put(s"$sourcesUrl/123", J(s)))
+      val s = Gen.genUpdSource(1L)
+      r1[UpdateSource](Put(s"$sourcesUrl/123", updateSourceDtoFormat.writes(s).toString()))
     }
 
     "mark all" in {
@@ -124,7 +124,7 @@ class RoutingApiSpec extends RouteTest
     }
 
     "import new sources" in {
-      val uri = this.getClass.getResource("1.txt").toURI
+      val uri = getClass.getResource("/1.txt").toURI
 
       val formData = Multipart.FormData(
         Multipart.FormData.BodyPart.fromPath(

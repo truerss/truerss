@@ -1,40 +1,24 @@
 package net.truerss.services
 
-
 import java.util.Date
 
 import org.specs2.concurrent.ExecutionEnv
-import org.specs2.mutable.Specification
+import org.specs2.mutable.SpecificationLike
 import org.specs2.specification.BeforeAfterAll
-import truerss.db.SourceDao
-import truerss.models.{Enable, Source, SourceState}
+import truerss.models.{Enable, SourceState}
 
-import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class SourceDaoSpec(implicit ee: ExecutionEnv) extends Specification with DbHelper with BeforeAfterAll {
+class SourceDaoTest(implicit ee: ExecutionEnv) extends FullDbHelper
+  with SpecificationLike with BeforeAfterAll {
+
+  override val dbName = "source_dao_spec"
 
   sequential
 
   implicit val duration = 3 seconds
 
-  override val dbName = "sourceDaoSpec"
-
-  import driver.profile.api._
-
-  override def beforeAll = {
-    db.run {
-      (driver.query.sources.schema ++ driver.query.feeds.schema).create
-    }
-  }
-
-  override def afterAll = {
-    db.run {
-      (driver.query.sources.schema ++ driver.query.feeds.schema).drop
-    }
-  }
-
-  val sourceDao = new SourceDao(db)
+  val sourceDao = dbLayer.sourceDao
 
   section("dao")
   "source dao" should {
@@ -56,7 +40,7 @@ class SourceDaoSpec(implicit ee: ExecutionEnv) extends Specification with DbHelp
     }
 
     "delete source" in {
-      val id = insert()
+      val id = a(sourceDao.insert(Gen.genSource()))
 
       sourceDao.delete(id) must be_==(1).await
 
@@ -81,7 +65,7 @@ class SourceDaoSpec(implicit ee: ExecutionEnv) extends Specification with DbHelp
     }
 
     "update last date" in {
-      val id = insert()
+      val id = a(sourceDao.insert(Gen.genSource()))
       val date = new Date()
 
       sourceDao.updateLastUpdateDate(id, date) must be_==(1).await
@@ -93,7 +77,7 @@ class SourceDaoSpec(implicit ee: ExecutionEnv) extends Specification with DbHelp
     }
 
     "update state" in {
-      val id = insert()
+      val id = a(sourceDao.insert(Gen.genSource()))
       val state: SourceState = Enable
 
       sourceDao.updateState(id, state) must be_==(1).await
@@ -127,10 +111,6 @@ class SourceDaoSpec(implicit ee: ExecutionEnv) extends Specification with DbHelp
       sourceDao.findByName(source.name, None) must be_==(2).await
     }
 
-  }
-
-  def insert(source: Source = Gen.genSource()): Long = {
-    Await.result(sourceDao.insert(source), duration)
   }
 
 }

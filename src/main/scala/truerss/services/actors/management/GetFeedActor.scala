@@ -8,6 +8,7 @@ import truerss.db.DbLayer
 import truerss.models.Feed
 import truerss.services.DbHelperActor.FeedContentUpdate
 import truerss.services.actors.sync.SourceActor
+import truerss.util.Util.ResponseHelpers
 
 class GetFeedActor(dbLayer: DbLayer, service: ActorRef)
   extends CommonActor {
@@ -15,6 +16,7 @@ class GetFeedActor(dbLayer: DbLayer, service: ActorRef)
   import FeedsManagementActor.GetFeed
   import GetFeedActor._
   import context.dispatcher
+  import ResponseHelpers._
 
   private var originalSender = context.system.deadLetters
 

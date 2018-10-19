@@ -1,10 +1,9 @@
 package truerss.services.actors.management
 
 import akka.actor._
-import truerss.util.Util.ResponseHelpers
 
 trait CommonActor extends
-  Actor with ActorLogging with ResponseHelpers {
+  Actor with ActorLogging {
 
   val stream = context.system.eventStream
 

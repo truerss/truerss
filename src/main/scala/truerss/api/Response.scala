@@ -1,21 +1,19 @@
 package truerss.api
 
 import truerss.dto.{FeedDto, PluginsViewDto, SourceViewDto}
-import truerss.util.Jsonize
 
 sealed trait Response
-case class SourcesResponse(xs: Vector[SourceViewDto])
-case class SourceResponse(x: Option[SourceViewDto])
-case class FeedResponse(x: FeedDto)
-case class FeedsResponse(xs: Vector[FeedDto])
-case class FeedsPageResponse(xs: Vector[FeedDto], total: Int)
+case class SourcesResponse(xs: Vector[SourceViewDto]) extends Response
+case class SourceResponse(x: Option[SourceViewDto]) extends Response
+case class FeedResponse(x: FeedDto) extends Response
+case class FeedsResponse(xs: Vector[FeedDto]) extends Response
+case class FeedsPageResponse(xs: Vector[FeedDto], total: Int) extends Response
+case class AppPluginsResponse(view: PluginsViewDto) extends Response
 
-case class AppPluginsResponse(view: PluginsViewDto)
+//
 
-case class ModelsResponse[T <: Jsonize](xs: Vector[T], count: Int = -1) extends Response
 case class Ok(msg: String) extends Response
-case class ModelResponse[T <: Jsonize](x: T) extends Response
-case class OpmlResponse(content: String) extends Response
+case class ModelResponse[T](x: T) // todo remove
 case class CssResponse(content: String) extends Response
 case class JsResponse(content: String) extends Response
 case class NotFoundResponse(msg: String) extends Response

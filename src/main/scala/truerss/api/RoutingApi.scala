@@ -6,7 +6,7 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
 import truerss.dto.{NewSourceDto, UpdateSourceDto}
-import truerss.models.{JsonFormats, SourceW}
+import truerss.models.JsonFormats
 import truerss.services.actors.management._
 import truerss.services.actors.sync.SourcesKeeperActor
 
@@ -15,13 +15,11 @@ import scala.io.Source
 import scala.util.Try
 
 
-class RoutingApiImpl(override val service: ActorRef)(
+class RoutingApiImpl(val service: ActorRef)(
                     implicit override val ec: ExecutionContext,
-                    override val materializer: ActorMaterializer
+                    val materializer: ActorMaterializer
 )
-  extends RoutingApi with HttpHelper
-
-trait RoutingApi { self: HttpHelper =>
+  extends HttpHelper {
 
   import JsonFormats._
   import RoutingApi._
@@ -43,65 +41,65 @@ trait RoutingApi { self: HttpHelper =>
       }
     }
   } ~ pathPrefix("api" / "v1") {
-      pathPrefix("sources") {
-        (get & pathPrefix("all")) {
-          sendAndWait(GetAll)
-        } ~ (get & pathPrefix(LongNumber)) { sourceId =>
-          sendAndWait(GetSource(sourceId))
-        } ~ (post & pathEndOrSingleSlash) {
-          create[NewSourceDto](x => AddSource(x))
-        } ~ (delete & pathPrefix(LongNumber)) { sourceId =>
-          sendAndWait(DeleteSource(sourceId))
-        } ~ (put & pathPrefix(LongNumber)) { sourceId =>
-          create[UpdateSourceDto](x => UpdateSource(sourceId, x))
-        } ~ (put & pathPrefix("markall")) {
-           sendAndWait(MarkAll)
-        } ~ (put & pathPrefix("mark" / LongNumber)) { sourceId =>
-           sendAndWait(Mark(sourceId))
-        } ~ (get & pathPrefix("unread" / LongNumber)) { sourceId =>
-           sendAndWait(Unread(sourceId))
-        } ~ (get & pathPrefix("latest" / IntNumber)) { count =>
-           sendAndWait(Latest(count))
-        } ~ (get & pathPrefix("feeds" / LongNumber)) { sourceId =>
-          parameters('from ? "0", 'limit ? "100") { (from, limit) =>
-            sendAndWait(ExtractFeedsForSource(sourceId, safeToInt(from, 0), safeToInt(limit, 100)))
-          }
-        } ~ (put & pathPrefix("refresh" / LongNumber)) { sourceId =>
-          sendAndWait(UpdateOne(sourceId))
-        } ~ (put & pathPrefix("refresh")) {
-          sendAndWait(Update)
-        } ~ (post & pathPrefix("import")) {
-          fromFile
-        } ~ (get & pathPrefix("opml")) {
-          sendAndWait(GetOpml)
+    pathPrefix("sources") {
+      (get & pathPrefix("all")) {
+        sendAndWait(GetAll)
+      } ~ (get & pathPrefix(LongNumber)) { sourceId =>
+        sendAndWait(GetSource(sourceId))
+      } ~ (post & pathEndOrSingleSlash) {
+        create[NewSourceDto](x => AddSource(x))
+      } ~ (delete & pathPrefix(LongNumber)) { sourceId =>
+        sendAndWait(DeleteSource(sourceId))
+      } ~ (put & pathPrefix(LongNumber)) { sourceId =>
+        create[UpdateSourceDto](x => UpdateSource(sourceId, x))
+      } ~ (put & pathPrefix("markall")) {
+        sendAndWait(MarkAll)
+      } ~ (put & pathPrefix("mark" / LongNumber)) { sourceId =>
+        sendAndWait(Mark(sourceId))
+      } ~ (get & pathPrefix("unread" / LongNumber)) { sourceId =>
+        sendAndWait(Unread(sourceId))
+      } ~ (get & pathPrefix("latest" / IntNumber)) { count =>
+        sendAndWait(Latest(count))
+      } ~ (get & pathPrefix("feeds" / LongNumber)) { sourceId =>
+        parameters('from ? "0", 'limit ? "100") { (from, limit) =>
+          sendAndWait(ExtractFeedsForSource(sourceId, safeToInt(from, 0), safeToInt(limit, 100)))
         }
-      } ~ pathPrefix("feeds") {
-        (get & pathPrefix("favorites")) {
-          sendAndWait(Favorites)
-        } ~ (get & pathPrefix(LongNumber)) { feedId =>
-          sendAndWait(GetFeed(feedId))
-        } ~ put {
-          pathPrefix("mark" / LongNumber) { feedId =>
-            sendAndWait(MarkFeed(feedId))
-          } ~ pathPrefix("unmark" / LongNumber) { feedId =>
-            sendAndWait(UnmarkFeed(feedId))
-          } ~ pathPrefix("read" / LongNumber) { feedId =>
-            sendAndWait(MarkAsReadFeed(feedId))
-          } ~ pathPrefix("unread" / LongNumber) { feedId =>
-            sendAndWait(MarkAsUnreadFeed(feedId))
-          }
-        }
-      } ~ pathPrefix("plugins") {
-        get {
-          pathPrefix("all") {
-            sendAndWait(GetPluginList)
-          } ~ pathPrefix("js") {
-            sendAndWait(GetJs)
-          } ~ pathPrefix("css") {
-            sendAndWait(GetCss)
-          }
+      } ~ (put & pathPrefix("refresh" / LongNumber)) { sourceId =>
+        sendAndWait(UpdateOne(sourceId))
+      } ~ (put & pathPrefix("refresh")) {
+        sendAndWait(Update)
+      } ~ (post & pathPrefix("import")) {
+        fromFile
+      } ~ (get & pathPrefix("opml")) {
+        sendAndWait(GetOpml)
+      }
+    } ~ pathPrefix("feeds") {
+      (get & pathPrefix("favorites")) {
+        sendAndWait(Favorites)
+      } ~ (get & pathPrefix(LongNumber)) { feedId =>
+        sendAndWait(GetFeed(feedId))
+      } ~ put {
+        pathPrefix("mark" / LongNumber) { feedId =>
+          sendAndWait(MarkFeed(feedId))
+        } ~ pathPrefix("unmark" / LongNumber) { feedId =>
+          sendAndWait(UnmarkFeed(feedId))
+        } ~ pathPrefix("read" / LongNumber) { feedId =>
+          sendAndWait(MarkAsReadFeed(feedId))
+        } ~ pathPrefix("unread" / LongNumber) { feedId =>
+          sendAndWait(MarkAsUnreadFeed(feedId))
         }
       }
+    } ~ pathPrefix("plugins") {
+      get {
+        pathPrefix("all") {
+          sendAndWait(GetPluginList)
+        } ~ pathPrefix("js") {
+          sendAndWait(GetJs)
+        } ~ pathPrefix("css") {
+          sendAndWait(GetCss)
+        }
+      }
+    }
   } ~ pathPrefix("about") {
     complete {
       about
@@ -118,14 +116,14 @@ trait RoutingApi { self: HttpHelper =>
     pathPrefix("templates") {
       getFromResourceDirectory("templates")
     } ~ pathPrefix("show" / Segments) { segments =>
-      respondWithHeader(makeRedirect(s"/show/${segments.mkString("/")}")) {
-        redirect("/", StatusCodes.Found)
-      }
-    } ~ pathPrefix(Segment) { segment =>
-      respondWithHeader(makeRedirect(segment)) {
-        redirect("/", StatusCodes.Found)
-      }
+    respondWithHeader(makeRedirect(s"/show/${segments.mkString("/")}")) {
+      redirect("/", StatusCodes.Found)
     }
+  } ~ pathPrefix(Segment) { segment =>
+    respondWithHeader(makeRedirect(segment)) {
+      redirect("/", StatusCodes.Found)
+    }
+  }
 
 
   def fromFile = {
@@ -141,8 +139,6 @@ trait RoutingApi { self: HttpHelper =>
       andWait(r)
     }
   }
-
-
 
 }
 

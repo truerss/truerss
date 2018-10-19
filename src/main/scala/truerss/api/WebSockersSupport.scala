@@ -9,7 +9,7 @@ import org.java_websocket.handshake.ClientHandshake
 import org.java_websocket.server.WebSocketServer
 import truerss.models.Notify
 
-class WSApi(val port: Int) extends Actor with ActorLogging {
+class WebSockersSupport(val port: Int) extends Actor with ActorLogging {
 
   log.info("WS Api start...")
 
@@ -36,8 +36,8 @@ case class SocketServer(port: Int,
 
   override def onOpen(ws: WebSocket, clientHandshake: ClientHandshake): Unit = {
     log.info(s"ws connection open")
-    val socketActor = ctx.actorOf(Props(classOf[WSController], ws))
-    stream.subscribe(socketActor, classOf[WSController.WSMessage])
+    val socketActor = ctx.actorOf(Props(classOf[WebSockerController], ws))
+    stream.subscribe(socketActor, classOf[WebSockerController.WSMessage])
     stream.subscribe(socketActor, classOf[Notify])
     connectionMap(ws) = socketActor
   }
@@ -65,8 +65,8 @@ case class SocketServer(port: Int,
 
 }
 
-object WSApi {
+object WebSockersSupport {
   def props(port: Int) = {
-    Props(classOf[WSApi], port)
+    Props(classOf[WebSockersSupport], port)
   }
 }

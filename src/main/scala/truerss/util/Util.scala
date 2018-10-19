@@ -45,17 +45,11 @@ object Util {
     }
   }
 
-  trait ResponseHelpers {
+  object ResponseHelpers {
     val ok = Ok("ok")
     val sourceNotFound = NotFoundResponse("Source not found")
     val feedNotFound = NotFoundResponse("Feed not found")
-    def optionFeedResponse[T <: Jsonize](x: Option[T]) = x match {
-      case Some(m) => ModelResponse(m)
-      case None => feedNotFound
-    }
   }
-
-  object ResponseHelpers extends ResponseHelpers
 
 
 }

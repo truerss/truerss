@@ -17,25 +17,12 @@ case class ApplicationPlugins(
                                sitePlugins: ArrayBuffer[BaseSitePlugin] = ArrayBuffer.empty,
                                css: ArrayBuffer[String] = ArrayBuffer.empty, // content of js files
                                js: ArrayBuffer[String] = ArrayBuffer.empty
-) extends Jsonize {
+) {
   def matchUrl(url: URL): Boolean = {
     feedPlugins.exists(_.matchUrl(url)) ||
     contentPlugins.exists(_.matchUrl(url)) ||
     sitePlugins.exists(_.matchUrl(url))
   }
-
-  def getFeedReader(url: URL): Option[BasePlugin with PluginInfo] = {
-    (feedPlugins.filter(_.matchUrl(url)) ++
-      sitePlugins.filter(_.matchUrl(url)))
-      .sortBy(_.priority).reverse.headOption
-  }
-
-  def getContentReader(url: URL): Option[BasePlugin with PluginInfo] = {
-    (contentPlugins.filter(_.matchUrl(url)) ++
-      sitePlugins.filter(_.matchUrl(url)))
-      .sortBy(_.priority).reverse.headOption
-  }
-
 
 }
 

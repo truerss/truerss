@@ -13,6 +13,7 @@ import truerss.util.Util.ResponseHelpers
 class FeedsManagementActor(feedsService: FeedsService) extends CommonActor {
 
   import FeedsManagementActor._
+  import ResponseHelpers._
   import context.dispatcher
 
   override def receive: Receive = {

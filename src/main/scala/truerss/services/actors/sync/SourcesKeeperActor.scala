@@ -1,21 +1,14 @@
 package truerss.services.actors.sync
 
-import java.net.URL
-
 import akka.actor.SupervisorStrategy.Resume
 import akka.actor._
-import akka.event.EventStream
 import akka.pattern.pipe
 import akka.util.Timeout
-import com.github.truerss.base._
-import com.typesafe.config.ConfigFactory
 import org.slf4j.LoggerFactory
-import truerss.db.DbLayer
 import truerss.dto.SourceViewDto
 import truerss.models._
-import truerss.plugins.DefaultSiteReader
 import truerss.services.{ApplicationPluginsService, SourcesService}
-import truerss.util.{ApplicationPlugins, TrueRSSConfig}
+import truerss.util.TrueRSSConfig
 
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.duration._
@@ -37,8 +30,6 @@ class SourcesKeeperActor(config: SourcesKeeperActor.SourcesSettings,
       log.warning(s"exception in source actor: $x")
       Resume
   }
-
-  private type CR = BaseContentReader with UrlMatcher with Priority with PluginInfo
 
   val queue = ArrayBuffer[ActorRef]()
 
@@ -72,7 +63,6 @@ class SourcesKeeperActor(config: SourcesKeeperActor.SourcesSettings,
 
     case any =>
       log.warning(s"Oops, something went wrong, when load sources from db: $any")
-      // todo
   }
 
 
@@ -146,8 +136,6 @@ class SourcesKeeperActor(config: SourcesKeeperActor.SourcesSettings,
 
 object SourcesKeeperActor {
 
-  val defaultPlugin = new DefaultSiteReader(ConfigFactory.empty())
-
   protected val logger = LoggerFactory.getLogger(getClass)
 
   def props(config: SourcesSettings,
@@ -173,13 +161,11 @@ object SourcesKeeperActor {
 
   // config
   case class SourcesSettings(
-                            appPlugins: ApplicationPlugins,
                             parallelFeedUpdate: Int
                             )
   object SourcesSettings {
     def apply(config: TrueRSSConfig): SourcesSettings = {
       SourcesSettings(
-        appPlugins = config.appPlugins,
         parallelFeedUpdate = config.parallelFeedUpdate
       )
     }

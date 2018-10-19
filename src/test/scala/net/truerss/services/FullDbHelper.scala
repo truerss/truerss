@@ -12,20 +12,8 @@ import truerss.models.Source
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration._
 
-trait DbHelper {
-
-  val dbName: String = "test1"
-
-  val dbProfile = DBProfile.create(H2)
-  val db = JdbcBackend.Database
-    .forURL(s"jdbc:h2:mem:$dbName;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1",
-      driver = dbProfile.driver)
-  implicit val driver = CurrentDriver(dbProfile.profile)
-
-}
-
-class FullDbHelper(dbName: String) extends SpecificationLike with BeforeAfterAll {
-  require(dbName.trim.nonEmpty)
+trait FullDbHelper extends SpecificationLike with BeforeAfterAll {
+  val dbName: String
 
   println(s"-------------> start db helper with db: $dbName")
 

@@ -3,7 +3,7 @@ package truerss
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
-import truerss.api.{RoutingApiImpl, WSApi}
+import truerss.api.{RoutingApiImpl, WebSockersSupport}
 import truerss.db.drivers.SupportedDb
 import truerss.services._
 import truerss.util.TrueRSSConfig
@@ -39,7 +39,7 @@ object Boot extends App {
         actualConfig.port
       )
 
-      val socketApi = system.actorOf(WSApi.props(actualConfig.wsPort), "ws-api")
+      val socketApi = system.actorOf(WebSockersSupport.props(actualConfig.wsPort), "ws-api")
 
 
     case None =>

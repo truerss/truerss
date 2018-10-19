@@ -8,7 +8,9 @@ import truerss.services.actors.management.DtoModelImplicits
 import truerss.util.ApplicationPlugins
 
 class SourceServiceTest(implicit ee: ExecutionEnv)
-  extends FullDbHelper("source_service_test") with SpecificationLike {
+  extends FullDbHelper with SpecificationLike {
+
+  override val dbName: String = "source_service_test"
 
   import DtoModelImplicits._
 
@@ -53,6 +55,8 @@ class SourceServiceTest(implicit ee: ExecutionEnv)
       val feedId = a(dbLayer.feedDao.insert(feed))
 
       service.markAsRead(id).map(_ must beSome).await
+
+      w
 
       dbLayer.feedDao.findOne(feedId).map { x =>
         x must beSome

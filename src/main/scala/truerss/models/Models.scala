@@ -4,7 +4,6 @@ import java.util.Date
 
 import truerss.dto.NewSourceDto
 import truerss.util.Util._
-import truerss.util.Jsonize
 
 import scala.language.postfixOps
 
@@ -21,24 +20,6 @@ case object Disable extends SourceState {
   override val number: Int = 2
 }
 
-case class SourceW(id: Option[Long],
-              url: String,
-              name: String,
-              interval: Int
-             ) {
-  def toSource = {
-    Source(
-      id = id,
-      url = url,
-      name = name,
-      interval = interval,
-      state = Neutral,
-      normalized = name.normalize,
-      lastUpdate = new Date()
-    )
-  }
-}
-
 case class Source(id: Option[Long],
                   url: String,
                   name: String,
@@ -46,7 +27,7 @@ case class Source(id: Option[Long],
                   state: SourceState,
                   normalized: String,
                   lastUpdate: Date,
-                  count: Int = 0) extends Jsonize {
+                  count: Int = 0) {
 
   def normalize: Source = copy(normalized = name.normalize)
   def recount(x: Int): Source = copy(count = x)
@@ -76,7 +57,7 @@ case class Feed(id: Option[Long],
                 normalized: String,
                 favorite: Boolean = false,
                 read: Boolean = false,
-                delete: Boolean = false) extends Jsonize {
+                delete: Boolean = false) {
   def mark(flag: Boolean): Feed = copy(favorite = flag)
 }
 

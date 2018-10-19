@@ -7,6 +7,7 @@ import truerss.dto.{NewSourceDto, UpdateSourceDto}
 import truerss.models.Notify
 import truerss.services.SourcesService
 import truerss.services.actors.sync.SourcesKeeperActor
+import truerss.util.Util.ResponseHelpers
 
 /**
   * Created by mike on 4.5.17.
@@ -14,6 +15,7 @@ import truerss.services.actors.sync.SourcesKeeperActor
 class SourcesManagementActor(sourcesService: SourcesService) extends CommonActor {
 
   import SourcesManagementActor._
+  import ResponseHelpers._
   import context.dispatcher
 
   override def receive: Receive = {
@@ -29,7 +31,7 @@ class SourcesManagementActor(sourcesService: SourcesService) extends CommonActor
     case DeleteSource(sourceId) =>
       sourcesService.delete(sourceId).map {
         case Some(x) =>
-          stream.publish(WSController.SourceDeleted(x))
+          stream.publish(WebSockerController.SourceDeleted(x))
           stream.publish(SourcesKeeperActor.SourceDeleted(x))
           ok
         case _ => sourceNotFound
@@ -41,7 +43,7 @@ class SourcesManagementActor(sourcesService: SourcesService) extends CommonActor
           BadRequestResponse(errors.mkString(", "))
 
         case Right(x) =>
-          stream.publish(WSController.SourceAdded(x))
+          stream.publish(WebSockerController.SourceAdded(x))
           stream.publish(SourcesKeeperActor.NewSource(x))
           SourceResponse(Some(x))
       } pipeTo sender
@@ -52,7 +54,7 @@ class SourcesManagementActor(sourcesService: SourcesService) extends CommonActor
           BadRequestResponse(errors.mkString(", "))
 
         case Right(x) =>
-          stream.publish(WSController.SourceUpdated(x))
+          stream.publish(WebSockerController.SourceUpdated(x))
           stream.publish(SourcesKeeperActor.ReloadSource(x))
           SourceResponse(Some(x))
       } pipeTo sender
@@ -65,7 +67,7 @@ class SourcesManagementActor(sourcesService: SourcesService) extends CommonActor
 
           case Right(source) =>
             log.info(s"New sources was created: ${source.url}")
-            stream.publish(WSController.SourceAdded(source))
+            stream.publish(WebSockerController.SourceAdded(source))
             stream.publish(SourcesKeeperActor.NewSource(source))
         }
       }

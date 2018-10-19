@@ -20,8 +20,7 @@ import scala.util.{Try, Failure => F, Success => S}
   */
 trait HttpHelper {
 
-  import JsonFormats.{sourceFormat => _, _}
-  import JsonizeJ._
+  import JsonFormats._
   import akka.http.scaladsl.model.{ContentType => C, _}
   import StatusCodes._
   import akka.http.scaladsl.server.Directives._
@@ -106,19 +105,20 @@ trait HttpHelper {
   }
 
 
+  private def ok[T: Writes](x: T) : RouteResult = {
+    finish(OK, Json.stringify(Json.toJson(x)))
+  }
+
   private def responseHandler(x: Response) = {
     x match {
-      case ModelsResponse(xs, c) =>
-        if (c > 0) {
-          //HttpHeaders.RawHeader("XCount", s"$c"))
-          finish(OK, Json.stringify(Json.toJson(xs)))
-        } else {
-          finish(OK, Json.stringify(Json.toJson(xs)))
-        }
-      case ModelResponse(x) => finish(OK, Json.stringify(Json.toJson(x)))
+      case SourcesResponse(xs) => ok(xs)
+      case SourceResponse(x) => ok(x)
+      case FeedResponse(x) => ok(x)
+      case FeedsResponse(xs) => ok(xs)
+      case FeedsPageResponse(xs, total) => ok(xs)
+      case AppPluginsResponse(view) => ok(view)
+
       case Ok(x) => finish(OK, x.toString)
-      case OpmlResponse(content) =>
-        flush(ContentTypes.`application/octet-stream`, content)
 
       case CssResponse(content) =>
         flush(ContentTypes.`text/plain(UTF-8)`, content)

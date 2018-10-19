@@ -2,8 +2,6 @@ package truerss.models
 
 import java.util.Date
 
-import com.github.truerss.base.PluginInfo
-import truerss.util.{ApplicationPlugins, Jsonize}
 import play.api.libs.json._
 import truerss.dto._
 
@@ -57,42 +55,15 @@ object JsonFormats {
   }
 
   implicit lazy val newSourceDtoFormat = Json.format[NewSourceDto]
-  implicit lazy val sourceWFormat = Json.format[SourceW]
   implicit lazy val updateSourceDtoFormat = Json.format[UpdateSourceDto]
   implicit lazy val sourceDtoFormat = Json.format[SourceDto]
-  implicit lazy val sourceFormat = Json.format[Source]
   implicit lazy val sourceViewDtoFormat = Json.format[SourceViewDto]
 
-  implicit lazy val feedFormat = Json.format[Feed]
   implicit lazy val wsMessageFormat = Json.format[WSMessage]
-
-  implicit lazy val appPluginsWrites: Writes[ApplicationPlugins] = new Writes[ApplicationPlugins] {
-    private val pluginInfoFormat: Writes[PluginInfo] = new Writes[PluginInfo] {
-      override def writes(o: PluginInfo): JsValue = {
-        JsObject(
-          Seq(
-            "author" -> o.author.j,
-            "about" -> o.about.j,
-            "version" -> o.version.j,
-            "pluginName" -> o.pluginName.j
-          )
-        )
-      }
-    }
-    override def writes(o: ApplicationPlugins): JsValue = {
-      JsObject(
-        Seq(
-          "feed" -> JsArray(o.feedPlugins.map(pluginInfoFormat.writes)),
-          "content" -> JsArray(o.contentPlugins.map(pluginInfoFormat.writes)),
-          "publish" -> JsArray(o.publishPlugins.map(pluginInfoFormat.writes)),
-          "site" -> JsArray(o.sitePlugins.map(pluginInfoFormat.writes))
-        )
-      )
-    }
-  }
 
   implicit lazy val pluginDtoFormat = Json.format[PluginDto]
   implicit lazy val pluginsViewDto = Json.format[PluginsViewDto]
+  implicit lazy val feedDtoFormat = Json.format[FeedDto]
 
   implicit val notifyLevelWrites: Writes[Notify] = new Writes[Notify] {
     override def writes(o: Notify): JsValue = {
@@ -104,27 +75,6 @@ object JsonFormats {
       )
     }
   }
-
-  object JsonizeJ {
-    implicit val jsonizeWrites: Writes[Jsonize] = new Writes[Jsonize] {
-      override def writes(o: Jsonize): JsValue = {
-        o match {
-          case x: Source => sourceFormat.writes(x)
-          case x: Feed => feedFormat.writes(x)
-          case x: ApplicationPlugins => appPluginsWrites.writes(x)
-        }
-      }
-    }
-  }
-
-
-  /*
-
-  implicit def jsonizeVectorWriter: JsonWriter[Vector[Jsonize]] = new JsonWriter[Vector[Jsonize]] {
-    override def write(xs: Vector[Jsonize]) = JsArray(xs.map(_.toJson))
-  }
-
-   */
 
 
 }
