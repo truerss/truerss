@@ -10,9 +10,7 @@ import truerss.models._
 import truerss.services.{ApplicationPluginsService, SourcesService}
 import truerss.util.TrueRSSConfig
 
-import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.duration._
-
 
 class SourcesKeeperActor(config: SourcesKeeperActor.SourcesSettings,
                          appPluginService: ApplicationPluginsService,
@@ -23,7 +21,9 @@ class SourcesKeeperActor(config: SourcesKeeperActor.SourcesSettings,
   import context.dispatcher
 
   implicit val timeout = Timeout(30 seconds)
+
   val stream = context.system.eventStream
+  val ticket = new Ticker[ActorRef](config.parallelFeedUpdate)
 
   override val supervisorStrategy = OneForOneStrategy() {
     case x: Throwable =>
@@ -31,17 +31,10 @@ class SourcesKeeperActor(config: SourcesKeeperActor.SourcesSettings,
       Resume
   }
 
-  val queue = ArrayBuffer[ActorRef]()
-
-  val maxUpdateCount = config.parallelFeedUpdate
-  val sourceNetwork = scala.collection.mutable.Map[Long, ActorRef]()
-
-  var inProgress = 0
-
-  log.info(s"Feed parallelism: $maxUpdateCount")
+  log.info(s"Feed parallelism: ${config.parallelFeedUpdate}")
 
   def nextTick = {
-    if (queue.nonEmpty) {
+    if (ticket.nonEmpty) {
       context.system.scheduler.scheduleOnce(15 seconds, self, Tick)
     }
   }
@@ -49,7 +42,6 @@ class SourcesKeeperActor(config: SourcesKeeperActor.SourcesSettings,
   override def preStart(): Unit = {
     sourcesService.getAllForOpml.map(Sources) pipeTo self
   }
-
 
   def uninitialized: Receive = {
     case Sources(xs) =>
@@ -75,61 +67,56 @@ class SourcesKeeperActor(config: SourcesKeeperActor.SourcesSettings,
       context.children.foreach{ _ ! Update }
 
     case UpdateMe(ref) =>
-      if (inProgress >= maxUpdateCount) {
-        queue += ref
-        nextTick
-      } else {
-        inProgress += 1
-        ref ! Update
+      ticket.push(ref) match {
+        case Some(_) =>
+          ref ! Update
+
+        case None =>
+          nextTick
       }
 
     case Updated =>
-      inProgress -= 1
+      ticket.down()
 
     case Tick =>
-      if (inProgress >= maxUpdateCount) {
-        nextTick
-      } else {
-        queue.slice(0, maxUpdateCount).foreach { ref =>
-          queue -= ref
-          inProgress += 1
-          ref ! Update
-        }
+      ticket.pop() match {
+        case Some(xs) =>
+          xs.foreach(_ ! Update)
+
+        case None =>
+          nextTick
       }
 
     case UpdateOne(num) =>
-      sourceNetwork.get(num).foreach(_ ! Update)
+      ticket.getOne(num).foreach(_ ! Update)
 
     case SourceDeleted(source) =>
       log.info(s"Stop ${source.name} actor")
-      sourceNetwork.get(source.id).foreach{ ref =>
-        queue.filter(_ == ref).foreach(queue -= _)
+      ticket.deleteOne(source.id).foreach { ref =>
         context.stop(ref)
       }
-      sourceNetwork -= source.id
 
     case msg: SourceActor.ExtractContent =>
-      sourceNetwork.get(msg.sourceId).foreach(_ forward msg)
+      ticket.getOne(msg.sourceId).foreach(_ forward msg)
 
     case ReloadSource(source) =>
-      val id = source.id
-      sourceNetwork.get(id).foreach(ref => context.stop(ref))
-      sourceNetwork -= id
-
+      ticket.deleteOne(source.id).foreach { ref =>
+        context.stop(ref)
+      }
       startSourceActor(source)
 
     case x => log.warning(s"Unhandled message $x")
   }
 
-  def receive = uninitialized
+  def receive: Receive = uninitialized
 
 
   private def startSourceActor(source: SourceViewDto) = {
-    appPluginService.getSourceReader(source).map { feedReader =>
+    appPluginService.getSourceReader(source).foreach { feedReader =>
       log.info(s"Start source actor for ${source.normalized} -> ${source.id} with state ${source.state}")
       val ref = context.actorOf(Props(classOf[SourceActor],
         source, feedReader, appPluginService.contentReaders))
-      sourceNetwork += source.id -> ref
+      ticket.addOne(source.id, ref)
     }
   }
 }
