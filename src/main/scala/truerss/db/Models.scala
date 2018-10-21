@@ -55,5 +55,5 @@ case class Feed(id: Option[Long],
   def mark(flag: Boolean): Feed = copy(favorite = flag)
 }
 
-
+case class Version(id: Long, fact: String, when: Date)
 

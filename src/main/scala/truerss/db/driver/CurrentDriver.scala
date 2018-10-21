@@ -57,6 +57,10 @@ case class CurrentDriver(profile: JdbcProfile) {
 
     def count = column[Int]("count", O.Default(0)) // ignored
 
+    def byNameIndex = index("idx_name", name)
+
+    def byUrlIndex = index("idx_url", url)
+
     def * = (id.?, url, name, interval, state,
       normalized, lastUpdate, count) <> (Source.tupled, Source.unapply)
 
@@ -90,14 +94,37 @@ case class CurrentDriver(profile: JdbcProfile) {
 
     def delete = column[Boolean]("delete", O.Default(false))
 
+    def bySourceIndex = index("idx_source", sourceId)
+
+    def byTitleIndex = index("idx_title", title)
+
+    def byReadIndex = index("idx_read", read)
+
+    def bySourceAndReadIndex = index("idx_source_read", (sourceId, read))
+
+    def byFavoriteIndex = index("idx_favorites", favorite)
+
+    def bySourceAndFavorite = index("idx_source_favorite", (sourceId, favorite))
+
     def * = (id.?, sourceId, url, title, author, publishedDate, description.?, content.?, normalized, favorite, read, delete) <> (Feed.tupled, Feed.unapply)
 
     def source = foreignKey("source_fk", sourceId, query.sources)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
   }
 
+  class Versions(tag: Tag) extends Table[Version](tag, "versions") {
+    import DateSupport._
+
+    def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
+    def fact = column[String]("fact", SqlType("TEXT"))
+    def when = column[Date]("when", O.Default(new Date))
+
+    override def * = (id, fact, when) <> (Version.tupled, Version.unapply)
+  }
+
   object query {
     lazy val sources = TableQuery[Sources]
     lazy val feeds = TableQuery[Feeds]
+    lazy val versions = TableQuery[Versions]
   }
 
 }

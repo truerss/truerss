@@ -1,11 +1,13 @@
 package truerss.db.driver
 
+import java.util.Date
 import java.nio.file.Paths
 import java.util.Properties
 
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 import slick.jdbc._
 import slick.jdbc.meta.MTable
+import slick.migration.api._
 import truerss.db._
 import truerss.util.DbConfig
 
@@ -72,9 +74,10 @@ object SupportedDb {
     import driver.profile.api._
 
     val tables = Await.result(db.run(MTable.getTables), waitTime)
-      .toList.map(_.name).map(_.name)
 
-    if (!tables.contains("sources")) {
+    val tableNames = tables.toList.map(_.name).map(_.name)
+
+    if (!tableNames.contains("sources")) {
       Await.result(
         db.run {
           (driver.query.sources.schema ++ driver.query.feeds.schema).create
@@ -83,8 +86,67 @@ object SupportedDb {
       )
     }
 
+    if (!tableNames.contains("versions")) {
+      // no versions
+      Await.result(db.run { driver.query.versions.schema.create }, waitTime)
+    }
+
+    runMigrations(db, dbProfile, driver)
+
+
     DbLayer(db, driver)(ec)
   }
+
+  def runMigrations(db: JdbcBackend.DatabaseDef, dbProfile: DBProfile, driver: CurrentDriver) = {
+    import driver.profile.api._
+    val versions = Await.result(db.run(driver.query.versions.result), waitTime).toVector
+
+    val v1 = Migration.addIndexes(dbProfile, driver)
+    val all = Vector(
+      v1
+    )
+    val allVersions = versions.map(_.id)
+
+    val need = all.filterNot { x => allVersions.contains(x.version) }
+
+    Console.out.println(s"detect: ${versions.size} migrations, need to run: ${need.size}")
+
+    need.foreach { m =>
+      Console.out.println(s"run: ${m.version} -> ${m.description}")
+      Await.result(db.run(m.changes()), waitTime)
+      val version = Version(m.version, m.description, new Date())
+      val f = db.run {
+        (driver.query.versions returning driver.query.versions.map(_.id)) += version
+      }
+      Await.result(f, waitTime)
+    }
+
+    Console.out.println("completed...")
+  }
+
+  case class Migration(version: Long, description: String, changes: ReversibleMigrationSeq)
+
+  object Migration {
+    def addIndexes(dbProfile: DBProfile, driver: CurrentDriver): Migration = {
+      implicit val dialect = GenericDialect.apply(dbProfile.profile)
+
+      val sq = TableMigration(driver.query.sources)
+        .addIndexes(_.byUrlIndex)
+        .addIndexes(_.byNameIndex)
+
+      val fq = TableMigration(driver.query.feeds)
+        .addIndexes(_.bySourceIndex)
+        .addIndexes(_.byFavoriteIndex)
+        .addIndexes(_.byReadIndex)
+        .addIndexes(_.bySourceAndFavorite)
+        .addIndexes(_.byTitleIndex)
+        .addIndexes(_.bySourceAndReadIndex)
+
+      Migration(1L, "add indexes", sq & fq)
+    }
+  }
+
+
 }
 
 trait DBProfile {

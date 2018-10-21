@@ -33,7 +33,8 @@ object Libs {
     "org.xerial" % "sqlite-jdbc" % sqliteVersion,
     "com.zaxxer" % "HikariCP" % hikariCPVersion,
     "com.typesafe.slick" %% "slick" %  slickVersion,
-    "com.typesafe.slick" %% "slick-hikaricp" %  slickVersion
+    "com.typesafe.slick" %% "slick-hikaricp" %  slickVersion,
+    "io.github.nafg" %% "slick-migration-api" % "0.4.2"
   )
 
   val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
