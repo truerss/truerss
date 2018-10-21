@@ -4,7 +4,7 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import truerss.api.{RoutingApiImpl, WebSockersSupport}
-import truerss.db.drivers.SupportedDb
+import truerss.db.driver.SupportedDb
 import truerss.services._
 import truerss.util.TrueRSSConfig
 

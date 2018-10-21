@@ -1,4 +1,4 @@
-package truerss.db.drivers
+package truerss.db.driver
 
 import java.nio.file.Paths
 import java.util.Properties
@@ -19,6 +19,9 @@ case object Sqlite extends SupportedDb
 case object Mysql extends SupportedDb
 
 object SupportedDb {
+
+  private val waitTime = 10 seconds
+
   def load(dbConf: DbConfig, isUserConf: Boolean)(
           implicit ec: ExecutionContext
   ): DbLayer = {
@@ -68,7 +71,7 @@ object SupportedDb {
 
     import driver.profile.api._
 
-    val tables = Await.result(db.run(MTable.getTables), 10 seconds)
+    val tables = Await.result(db.run(MTable.getTables), waitTime)
       .toList.map(_.name).map(_.name)
 
     if (!tables.contains("sources")) {
@@ -76,7 +79,7 @@ object SupportedDb {
         db.run {
           (driver.query.sources.schema ++ driver.query.feeds.schema).create
         },
-        10 seconds
+        waitTime
       )
     }
 

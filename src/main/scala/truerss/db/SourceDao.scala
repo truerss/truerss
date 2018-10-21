@@ -3,7 +3,7 @@ package truerss.db
 import java.util.Date
 
 import slick.jdbc.JdbcBackend.DatabaseDef
-import truerss.db.drivers.CurrentDriver
+import truerss.db.driver.CurrentDriver
 
 import scala.concurrent.{ExecutionContext, Future}
 

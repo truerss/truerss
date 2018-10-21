@@ -6,7 +6,7 @@ import org.specs2.mutable.SpecificationLike
 import org.specs2.specification.BeforeAfterAll
 import slick.jdbc.JdbcBackend
 import truerss.db.DbLayer
-import truerss.db.drivers.{CurrentDriver, DBProfile, H2}
+import truerss.db.driver.{CurrentDriver, DBProfile, H2}
 import truerss.db.Source
 
 import scala.concurrent.{Await, ExecutionContext, Future}

@@ -1,4 +1,4 @@
-package truerss.db.drivers
+package truerss.db.driver
 
 import java.util.Date
 

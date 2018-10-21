@@ -1,7 +1,7 @@
 package truerss.db
 
 import slick.jdbc.JdbcBackend
-import truerss.db.drivers.CurrentDriver
+import truerss.db.driver.CurrentDriver
 
 import scala.concurrent.ExecutionContext
 
