@@ -4,7 +4,7 @@ import akka.actor.SupervisorStrategy._
 import akka.actor.{Actor, ActorLogging, ActorRef, OneForOneStrategy, Props}
 import akka.event.EventStream
 import truerss.db.DbLayer
-import truerss.models.{Notify, NotifyLevels}
+import truerss.dto.{Notify, NotifyLevels}
 import truerss.services.actors.management._
 import truerss.services.actors.sync.{SourceActor, SourcesKeeperActor}
 import truerss.util.TrueRSSConfig

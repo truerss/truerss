@@ -6,7 +6,7 @@ import com.github.truerss.base.Entry
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mutable.SpecificationLike
 import org.specs2.specification.{BeforeAfterAll, Scope}
-import truerss.models.{Feed, Source}
+import truerss.db.{Feed, Source}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._

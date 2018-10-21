@@ -7,8 +7,7 @@ import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
 import akka.testkit.TestProbe
 import org.specs2.mutable.SpecificationLike
 import org.specs2.specification.AllExpectations
-import truerss.api.RoutingApiImpl
-import truerss.models.JsonFormats
+import truerss.api.{JsonFormats, RoutingApiImpl}
 
 import scala.concurrent.duration._
 import scala.reflect.ClassTag

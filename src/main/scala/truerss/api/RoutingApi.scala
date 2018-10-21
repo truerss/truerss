@@ -6,7 +6,6 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
 import truerss.dto.{NewSourceDto, UpdateSourceDto}
-import truerss.models.JsonFormats
 import truerss.services.actors.management._
 import truerss.services.actors.sync.SourcesKeeperActor
 

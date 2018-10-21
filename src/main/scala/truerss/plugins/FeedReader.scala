@@ -3,7 +3,8 @@ package truerss.plugins
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-import truerss.util.{PreEntry, Util}
+import truerss.dto.EntryDto
+import truerss.util.Util
 
 import scala.util.Try
 import scala.xml.{Elem, Node}
@@ -16,7 +17,7 @@ trait FeedParser {
     if (x.isEmpty) { None }
     else { Some(x.text) }
   }
-  def parse(x: Elem): Iterable[PreEntry]
+  def parse(x: Elem): Iterable[EntryDto]
 
   def getDate(x: String)(implicit format: DateTimeFormatter) = {
     Try(LocalDateTime.parse(x.toCharArray, format)).toOption.map(_.toDate)
@@ -43,9 +44,9 @@ case object RSSParser extends FeedParser {
 
   implicit val format = DateTimeFormatter.RFC_1123_DATE_TIME
 
-  override def parse(x: Elem): Iterable[PreEntry] = {
+  override def parse(x: Elem): Iterable[EntryDto] = {
     (x \\ _item).map { implicit item =>
-      PreEntry(
+      EntryDto(
         title = from(_title),
         url = from(_link),
         description = from(_description),
@@ -89,7 +90,7 @@ case object AtomParser extends FeedParser {
 
   implicit val format = DateTimeFormatter.ISO_DATE_TIME
 
-  override def parse(x: Elem): Iterable[PreEntry] = {
+  override def parse(x: Elem): Iterable[EntryDto] = {
     // global author
     val xs = x \ _author
     val g = if (xs.nonEmpty) {
@@ -99,7 +100,7 @@ case object AtomParser extends FeedParser {
     }
 
     (x \ _entry).map { implicit entry =>
-      PreEntry(
+      EntryDto(
         url = getLinks(entry),
         title = from(_title),
         author = getAuthors(entry).orElse(g),

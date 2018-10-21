@@ -1,9 +1,10 @@
 package truerss.services
 
 import truerss.db.DbLayer
+import truerss.db.validation.SourceValidator
 import truerss.dto.{NewSourceDto, SourceViewDto, UpdateSourceDto}
 import truerss.services.actors.management.DtoModelImplicits
-import truerss.util.{ApplicationPlugins, SourceValidator, Util}
+import truerss.util.{ApplicationPlugins, Util}
 
 import scala.concurrent.{ExecutionContext, Future}
 

@@ -4,11 +4,9 @@ import java.time.LocalDateTime
 import java.util.{Date, Random, UUID}
 
 import truerss.dto.{FeedDto, NewSourceDto, SourceViewDto, UpdateSourceDto}
-import truerss.models
-import truerss.models.Neutral
+import truerss.db.{Feed, Source, SourceStates}
 
 object Gen {
-  import models.{Feed, Source}
   import truerss.util.Util._
 
   def genId = UUID.randomUUID().toString
@@ -69,7 +67,7 @@ object Gen {
       url = genUrl,
       name = name,
       interval = genInt,
-      state = Neutral,
+      state = SourceStates.Neutral,
       normalized = name.normalize,
       lastUpdate = z.plusDays(1).toDate
     )
@@ -82,7 +80,7 @@ object Gen {
       url = genUrl,
       name = n,
       interval = genInt,
-      state = Neutral,
+      state = SourceStates.Neutral,
       normalized = n.normalize,
       lastUpdate = LocalDateTime.now().toDate
     )

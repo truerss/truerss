@@ -5,7 +5,7 @@ import java.net.URL
 import com.github.truerss.base._
 import com.typesafe.config.ConfigFactory
 import truerss.dto.{PluginDto, PluginsViewDto, SourceViewDto}
-import truerss.models.{Disable, Enable, Neutral}
+import truerss.db.SourceStates
 import truerss.plugins.DefaultSiteReader
 import truerss.util.ApplicationPlugins
 
@@ -54,9 +54,9 @@ class ApplicationPluginsService(appPlugins: ApplicationPlugins) {
   def getSourceReader(source: SourceViewDto) = {
     val url = new URL(source.url)
     source.state match {
-      case Neutral =>
+      case SourceStates.Neutral =>
         Some(defaultPlugin)
-      case Enable =>
+      case SourceStates.Enable =>
         val feedReader = getFeedReader(url)
 
         val contentReader = getContentReader(url)
@@ -78,7 +78,7 @@ class ApplicationPluginsService(appPlugins: ApplicationPlugins) {
             Some(f0)
         }
 
-      case Disable => None
+      case SourceStates.Disable => None
 
     }
   }

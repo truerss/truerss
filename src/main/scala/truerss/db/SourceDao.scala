@@ -4,7 +4,6 @@ import java.util.Date
 
 import slick.jdbc.JdbcBackend.DatabaseDef
 import truerss.db.drivers.CurrentDriver
-import truerss.models.{Source, SourceState}
 
 import scala.concurrent.{ExecutionContext, Future}
 

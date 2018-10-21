@@ -6,7 +6,8 @@ import java.util.Date
 import akka.actor.{Actor, ActorLogging}
 import com.github.truerss.base._
 import org.jsoup.Jsoup
-import truerss.models.{Notify, NotifyLevels, Source}
+import truerss.db.Source
+import truerss.dto.{Notify, NotifyLevels}
 import truerss.services.DbHelperActor.{AddFeeds, SourceLastUpdate}
 import truerss.services.actors.sync.SourcesKeeperActor.{Update, UpdateMe, Updated}
 

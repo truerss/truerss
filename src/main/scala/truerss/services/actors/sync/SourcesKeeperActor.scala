@@ -5,8 +5,8 @@ import akka.actor._
 import akka.pattern.pipe
 import akka.util.Timeout
 import org.slf4j.LoggerFactory
+import truerss.db.SourceStates
 import truerss.dto.SourceViewDto
-import truerss.models._
 import truerss.services.{ApplicationPluginsService, SourcesService}
 import truerss.util.TrueRSSConfig
 
@@ -47,7 +47,7 @@ class SourcesKeeperActor(config: SourcesKeeperActor.SourcesSettings,
     case Sources(xs) =>
       log.info("Start actor per source")
       xs.filter(_.state match {
-        case Disable => false
+        case SourceStates.Disable => false
         case _ => true
       }).foreach(startSourceActor)
 

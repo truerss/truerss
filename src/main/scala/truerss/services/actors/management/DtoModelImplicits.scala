@@ -3,7 +3,7 @@ package truerss.services.actors.management
 import java.util.Date
 
 import truerss.dto.{FeedDto, NewSourceDto, SourceViewDto, UpdateSourceDto}
-import truerss.models.{Feed, Neutral, Source}
+import truerss.db.{Feed, SourceStates, Source}
 import truerss.util.Util
 
 object DtoModelImplicits {
@@ -17,7 +17,7 @@ object DtoModelImplicits {
         url = x.url,
         name = x.name,
         interval = x.interval,
-        state = Neutral,
+        state = SourceStates.Neutral,
         normalized = x.name.normalize,
         lastUpdate = new Date()
       )
@@ -31,7 +31,7 @@ object DtoModelImplicits {
         url = x.url,
         name = x.name,
         interval = x.interval,
-        state = Neutral,
+        state = SourceStates.Neutral,
         normalized = x.name.normalize,
         lastUpdate = new Date()
       )

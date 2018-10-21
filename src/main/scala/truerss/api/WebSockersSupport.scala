@@ -7,7 +7,7 @@ import java.net.InetSocketAddress
 import org.java_websocket.WebSocket
 import org.java_websocket.handshake.ClientHandshake
 import org.java_websocket.server.WebSocketServer
-import truerss.models.Notify
+import truerss.dto.Notify
 
 class WebSockersSupport(val port: Int) extends Actor with ActorLogging {
 

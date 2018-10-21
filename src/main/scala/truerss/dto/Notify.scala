@@ -1,4 +1,4 @@
-package truerss.models
+package truerss.dto
 
 case class Notify(level: NotifyLevels.Level, message: String)
 

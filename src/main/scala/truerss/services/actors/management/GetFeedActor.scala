@@ -5,7 +5,7 @@ import akka.event.LoggingReceive
 import akka.pattern._
 import truerss.api.{InternalServerErrorResponse, ModelResponse}
 import truerss.db.DbLayer
-import truerss.models.Feed
+import truerss.db.Feed
 import truerss.services.DbHelperActor.FeedContentUpdate
 import truerss.services.actors.sync.SourceActor
 import truerss.util.Util.ResponseHelpers

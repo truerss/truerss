@@ -6,7 +6,7 @@ import com.github.truerss.base.Entry
 import truerss.api.WebSockerController
 import truerss.services.actors.management.DtoModelImplicits
 import truerss.db.DbLayer
-import truerss.models._
+import truerss.db._
 
 class DbHelperActor(dbLayer: DbLayer)
   extends Actor with ActorLogging {

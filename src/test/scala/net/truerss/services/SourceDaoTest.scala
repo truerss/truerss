@@ -5,7 +5,7 @@ import java.util.Date
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mutable.SpecificationLike
 import org.specs2.specification.BeforeAfterAll
-import truerss.models.{Enable, SourceState}
+import truerss.db.{SourceStates, SourceState}
 
 import scala.concurrent.duration._
 
@@ -78,7 +78,7 @@ class SourceDaoTest(implicit ee: ExecutionEnv) extends FullDbHelper
 
     "update state" in {
       val id = a(sourceDao.insert(Gen.genSource()))
-      val state: SourceState = Enable
+      val state: SourceState = SourceStates.Enable
 
       sourceDao.updateState(id, state) must be_==(1).await
 

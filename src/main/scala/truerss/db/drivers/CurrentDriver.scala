@@ -4,7 +4,7 @@ import java.util.Date
 
 import slick.jdbc.JdbcProfile
 import slick.sql.SqlProfile.ColumnOption.{NotNull, Nullable, SqlType}
-import truerss.models._
+import truerss.db._
 
 /**
   * Created by mike on 6.5.17.
@@ -23,14 +23,14 @@ case class CurrentDriver(profile: JdbcProfile) {
   object StateSupport {
     implicit val sourceStateMapper = MappedColumnType.base[SourceState, Byte](
       state => state match {
-        case Neutral => 0
-        case Enable => 1
-        case Disable => 2
+        case SourceStates.Neutral => 0
+        case SourceStates.Enable => 1
+        case SourceStates.Disable => 2
       },
       b => b match {
-        case 0 => Neutral
-        case 1 => Enable
-        case 2 => Disable
+        case 0 => SourceStates.Neutral
+        case 1 => SourceStates.Enable
+        case 2 => SourceStates.Disable
       }
     )
   }

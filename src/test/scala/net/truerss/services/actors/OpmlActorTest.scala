@@ -7,7 +7,7 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.SpecificationLike
 import org.specs2.specification.Scope
 import truerss.api.{BadRequestResponse, Ok}
-import truerss.models.Notify
+import truerss.dto.Notify
 import truerss.services.OpmlService
 import truerss.services.actors.management.{OpmlActor, SourcesManagementActor}
 import truerss.util.Outline

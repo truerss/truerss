@@ -1,10 +1,10 @@
-package truerss.util
+package truerss.dto
 
 import java.util.Date
 
 import com.github.truerss.base.Entry
 
-case class PreEntry(
+case class EntryDto(
    url: Option[String],
    title: Option[String],
    author: Option[String],
@@ -12,7 +12,7 @@ case class PreEntry(
    description: Option[String]
 ) {
 
-  import PreEntry.maxLength
+  import EntryDto.maxLength
 
   def toEntry: Entry = {
     val length = title.map(_.length).map{ length =>
@@ -34,6 +34,6 @@ case class PreEntry(
   }
 }
 
-object PreEntry {
+object EntryDto {
   val maxLength = 250
 }

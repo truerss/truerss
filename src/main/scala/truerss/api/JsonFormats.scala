@@ -1,9 +1,10 @@
-package truerss.models
+package truerss.api
 
 import java.util.Date
 
 import play.api.libs.json._
-import truerss.dto._
+import truerss.db._
+import truerss.dto.{Notify, _}
 
 object JsonFormats {
 
@@ -32,14 +33,14 @@ object JsonFormats {
   implicit object StateFormat extends Format[SourceState] {
     override def reads(json: JsValue): JsResult[SourceState] = {
       json match {
-        case JsNumber(value) if value == Neutral.number =>
-          JsSuccess(Neutral)
+        case JsNumber(value) if value == SourceStates.Neutral.number =>
+          JsSuccess(SourceStates.Neutral)
 
-        case JsNumber(value) if value == Enable.number =>
-          JsSuccess(Enable)
+        case JsNumber(value) if value == SourceStates.Enable.number =>
+          JsSuccess(SourceStates.Enable)
 
-        case JsNumber(value) if value == Disable.number =>
-          JsSuccess(Disable)
+        case JsNumber(value) if value == SourceStates.Disable.number =>
+          JsSuccess(SourceStates.Disable)
 
         case JsNumber(value) =>
           JsError("Invalid state")

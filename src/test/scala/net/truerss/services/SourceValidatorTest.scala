@@ -2,7 +2,7 @@ package net.truerss.services
 
 
 import org.specs2.mutable.Specification
-import truerss.util.SourceValidator
+import truerss.db.validation.SourceValidator
 
 class SourceValidatorTest extends Specification {
 

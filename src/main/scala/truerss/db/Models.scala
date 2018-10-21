@@ -1,4 +1,4 @@
-package truerss.models
+package truerss.db
 
 import java.util.Date
 
@@ -10,14 +10,17 @@ import scala.language.postfixOps
 sealed trait SourceState {
   val number: Int
 }
-case object Neutral extends SourceState {
-  override val number: Int = 0
-}
-case object Enable extends SourceState {
-  override val number: Int = 1
-}
-case object Disable extends SourceState {
-  override val number: Int = 2
+
+object SourceStates {
+  case object Neutral extends SourceState {
+    override val number: Int = 0
+  }
+  case object Enable extends SourceState {
+    override val number: Int = 1
+  }
+  case object Disable extends SourceState {
+    override val number: Int = 2
+  }
 }
 
 case class Source(id: Option[Long],
@@ -36,15 +39,6 @@ case class Source(id: Option[Long],
 
 }
 
-object SourceHelper {
-  def from(url: String, name: String, interval: Int): NewSourceDto = {
-    NewSourceDto(
-      url = url,
-      name = name,
-      interval = interval
-    )
-  }
-}
 
 case class Feed(id: Option[Long],
                 sourceId: Long,
@@ -61,5 +55,5 @@ case class Feed(id: Option[Long],
   def mark(flag: Boolean): Feed = copy(favorite = flag)
 }
 
-case class WSMessage(messageType: String, body: String)
+
 

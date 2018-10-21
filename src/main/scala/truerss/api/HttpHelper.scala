@@ -6,7 +6,6 @@ import akka.actor.ActorRef
 import akka.pattern.ask
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
-import truerss.models.JsonFormats
 
 import play.api.libs.json._
 

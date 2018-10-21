@@ -2,7 +2,8 @@ package truerss.dto
 
 import java.util.Date
 
-import truerss.models.SourceState
+import truerss.db.SourceState
+
 
 sealed trait SourceDto {
   def url: String

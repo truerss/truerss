@@ -3,7 +3,7 @@ package truerss.services.actors.management
 import akka.actor._
 import akka.pattern.pipe
 import truerss.api.{BadRequestResponse, Ok}
-import truerss.models.{Notify, SourceHelper}
+import truerss.dto.{NewSourceDto, Notify}
 import truerss.services.OpmlService
 
 import scala.concurrent.Future
@@ -29,7 +29,7 @@ class OpmlActor(opmlService: OpmlService) extends CommonActor {
           xs => {
             log.info(s"Materialize ${xs.size} outlines from given file")
             val result = xs.map { x =>
-              SourceHelper.from(x.link, x.title, interval)
+              from(x.link, x.title, interval)
             }
             stream.publish(SourcesManagementActor.AddSources(result))
             Ok("I'll try")
@@ -51,5 +51,13 @@ object OpmlActor {
   sealed trait OpmlActorMessage
   case object GetOpml extends OpmlActorMessage
   case class CreateOpmlFromFile(text: String) extends OpmlActorMessage
+
+  def from(url: String, name: String, interval: Int): NewSourceDto = {
+    NewSourceDto(
+      url = url,
+      name = name,
+      interval = interval
+    )
+  }
 
 }
