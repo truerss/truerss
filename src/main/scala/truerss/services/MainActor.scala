@@ -40,7 +40,7 @@ class MainActor(config: TrueRSSConfig,
   private val sourcesManagementActor = create(SourcesManagementActor.props(sourcesService))
   private val feedsManagementActor = create(FeedsManagementActor.props(feedsService))
   private val opmlActor = create(OpmlActor.props(opmlService))
-  private val pluginManagementActor = create(PluginManagementActor.props(config.appPlugins))
+  private val pluginManagementActor = create(PluginManagementActor.props(applicationPluginsService))
 
   val dbHelperActorRef = context.actorOf(
     DbHelperActor.props(dbLayer),

@@ -114,8 +114,8 @@ class SourcesKeeperActor(config: SourcesKeeperActor.SourcesSettings,
   private def startSourceActor(source: SourceViewDto) = {
     appPluginService.getSourceReader(source).foreach { feedReader =>
       log.info(s"Start source actor for ${source.normalized} -> ${source.id} with state ${source.state}")
-      val ref = context.actorOf(Props(classOf[SourceActor],
-        source, feedReader, appPluginService.contentReaders))
+      val props = SourceActor.props(source, feedReader, appPluginService.contentReaders)
+      val ref = context.actorOf(props)
       ticket.addOne(source.id, ref)
     }
   }

@@ -51,7 +51,7 @@ class ApplicationPluginsService(appPlugins: ApplicationPlugins) {
     )
   }
 
-  def getSourceReader(source: SourceViewDto) = {
+  def getSourceReader(source: SourceViewDto): Option[BaseFeedReader] = {
     val url = new URL(source.url)
     source.state match {
       case SourceStates.Neutral =>
@@ -75,7 +75,7 @@ class ApplicationPluginsService(appPlugins: ApplicationPlugins) {
 //            logger.info(s"${source.name} need plugin." +
 //              s" Detect feed plugin: ${f0.pluginName}, " +
 //              s" content plugin: ${c0.pluginName}")
-            Some(f0)
+            Some(f0.asInstanceOf[BaseFeedReader])
         }
 
       case SourceStates.Disable => None

@@ -3,18 +3,17 @@ package truerss.services.actors.sync
 import java.net.URL
 import java.util.Date
 
-import akka.actor.{Actor, ActorLogging}
+import akka.actor.{Actor, ActorLogging, Props}
 import com.github.truerss.base._
 import org.jsoup.Jsoup
-import truerss.db.Source
-import truerss.dto.{Notify, NotifyLevels}
+import truerss.dto.{Notify, NotifyLevels, SourceViewDto}
 import truerss.services.DbHelperActor.{AddFeeds, SourceLastUpdate}
 import truerss.services.actors.sync.SourcesKeeperActor.{Update, UpdateMe, Updated}
 
 import scala.concurrent.duration._
 import scala.util.control.Exception._
 
-class SourceActor(source: Source, feedReader: BaseFeedReader,
+class SourceActor(source: SourceViewDto, feedReader: BaseFeedReader,
                    contentReaders: Vector[aliases.WithContent])
   extends Actor with ActorLogging {
 
@@ -40,10 +39,10 @@ class SourceActor(source: Source, feedReader: BaseFeedReader,
   def receive = {
     case Update =>
       log.info(s"Update ${source.normalized}")
-      stream.publish(SourceLastUpdate(source.id.get))
+      stream.publish(SourceLastUpdate(source.id))
       feedReader.newEntries(source.url) match {
         case Right(xs) =>
-          stream.publish(AddFeeds(source.id.get, xs))
+          stream.publish(AddFeeds(source.id, xs))
         case Left(error) =>
           log.warning(s"Error when update source $error")
           stream.publish(Notify(NotifyLevels.Danger, error.error))
@@ -84,6 +83,11 @@ class SourceActor(source: Source, feedReader: BaseFeedReader,
 
 object SourceActor {
   import truerss.util.Request._
+
+  def props(source: SourceViewDto, feedReader: BaseFeedReader,
+            contentReaders: Vector[aliases.WithContent]) = {
+    Props(classOf[SourceActor], source, feedReader, contentReaders)
+  }
 
   case class ExtractContent(sourceId: Long, feedId: Long, url: String)
 

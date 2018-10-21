@@ -25,8 +25,8 @@ class PluginManagementActor(appPluginService: ApplicationPluginsService) extends
 }
 
 object PluginManagementActor {
-  def props(appPlugins: ApplicationPlugins) = {
-    Props(classOf[PluginManagementActor], appPlugins)
+  def props(appPluginService: ApplicationPluginsService) = {
+    Props(classOf[PluginManagementActor], appPluginService)
   }
 
   sealed trait PluginManagementMessage
