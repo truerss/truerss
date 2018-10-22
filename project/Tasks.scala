@@ -21,7 +21,7 @@ object Tasks {
     s"$cdnjs/uikit/$uiKitVersion/js/components/notify.min.js",
     s"$cdnjs/uikit/$uiKitVersion/js/uikit.min.js",
     s"$cdnjs/uikit/$uiKitVersion/js/components/upload.min.js",
-    "https://raw.githubusercontent.com/atomiks/tippyjs/master/dist/tippy.min.js"
+    "https://cdnjs.cloudflare.com/ajax/libs/tippy.js/3.0.6/tippy.standalone.min.js"
   )
 
   val cssLibs = Seq(
@@ -31,15 +31,15 @@ object Tasks {
     s"$cdnjs/uikit/$uiKitVersion/css/components/upload.min.css",
     s"$cdnjs/uikit/$uiKitVersion/css/components/search.min.css",
     s"$cdnjs/uikit/$uiKitVersion/css/uikit.almost-flat.min.css",
-    "https://raw.githubusercontent.com/atomiks/tippyjs/master/dist/tippy.css"
+    "https://cdnjs.cloudflare.com/ajax/libs/tippy.js/3.0.6/tippy.css"
   )
 
   val fonts = Seq(
-    "https://github.com/FortAwesome/Font-Awesome/raw/master/fonts/FontAwesome.otf",
-    "https://github.com/FortAwesome/Font-Awesome/raw/master/fonts/fontawesome-webfont.eot",
-    "https://github.com/FortAwesome/Font-Awesome/raw/master/fonts/fontawesome-webfont.ttf",
-    "https://github.com/FortAwesome/Font-Awesome/raw/master/fonts/fontawesome-webfont.woff",
-    "https://github.com/FortAwesome/Font-Awesome/raw/master/fonts/fontawesome-webfont.woff2"
+    "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/fonts/FontAwesome.otf",
+    "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/fonts/fontawesome-webfont.eot",
+    "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/fonts/fontawesome-webfont.ttf",
+    "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/fonts/fontawesome-webfont.ttf",
+    "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/fonts/fontawesome-webfont.woff2"
   )
 
   def download(url: String, dir: String): Unit = {
