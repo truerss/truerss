@@ -3,14 +3,16 @@ package truerss.services
 import akka.actor.{Actor, ActorLogging, Props}
 import akka.event.EventStream
 import com.github.truerss.base.Entry
-import truerss.api.WSController.NewFeeds
+import truerss.api.WebSockerController
+import truerss.services.actors.management.DtoModelImplicits
 import truerss.db.DbLayer
-import truerss.models._
+import truerss.db._
 
 class DbHelperActor(dbLayer: DbLayer)
   extends Actor with ActorLogging {
 
   import DbHelperActor._
+  import DtoModelImplicits._
   import context.dispatcher
 
   val stream: EventStream = context.system.eventStream
@@ -25,7 +27,8 @@ class DbHelperActor(dbLayer: DbLayer)
     case AddFeeds(sourceId, xs) =>
       dbLayer.feedDao.mergeFeeds(sourceId, xs)
         .map(_.toVector)
-        .map(NewFeeds)
+        .map(xs => xs.map(_.toDto))
+        .map(WebSockerController.NewFeeds)
         .foreach(stream.publish)
 
     case FeedContentUpdate(feedId, content) =>

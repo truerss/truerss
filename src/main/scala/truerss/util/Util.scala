@@ -5,23 +5,12 @@ import java.util.Date
 
 import com.github.truerss.base.Entry
 import truerss.api.{ModelResponse, NotFoundResponse, Ok}
-import truerss.models.{Enable, Feed, Neutral}
+import truerss.db.{Feed, SourceStates}
 
 
 object Util {
   implicit class StringExt(s: String) {
     def normalize = s.replaceAll("[^\\p{L}\\p{Nd}]+", "-")
-  }
-
-  implicit class FeedExt(feed: Feed) {
-    def toEntry: Entry = Entry(
-      url = feed.url,
-      title = feed.title,
-      author = feed.author,
-      publishedDate = feed.publishedDate,
-      description = feed.description,
-      content = feed.content
-    )
   }
 
   implicit class EntryExt(entry: Entry) {
@@ -50,23 +39,17 @@ object Util {
   // ?
   implicit class ApplicationPluginsExt(a: ApplicationPlugins) {
     def getState(url: String) = if (a.matchUrl(new java.net.URL(url))) {
-      Enable
+      SourceStates.Enable
     } else {
-      Neutral
+      SourceStates.Neutral
     }
   }
 
-  trait ResponseHelpers {
+  object ResponseHelpers {
     val ok = Ok("ok")
     val sourceNotFound = NotFoundResponse("Source not found")
     val feedNotFound = NotFoundResponse("Feed not found")
-    def optionFeedResponse[T <: Jsonize](x: Option[T]) = x match {
-      case Some(m) => ModelResponse(m)
-      case None => feedNotFound
-    }
   }
-
-  object ResponseHelpers extends ResponseHelpers
 
 
 }

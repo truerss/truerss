@@ -3,7 +3,7 @@ package truerss.db
 import java.util.Date
 
 import slick.jdbc.JdbcBackend.DatabaseDef
-import truerss.models.{Source, SourceState}
+import truerss.db.driver.CurrentDriver
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -31,6 +31,13 @@ class SourceDao(val db: DatabaseDef)(implicit
   def insert(source: Source): Future[Long] = {
     db.run {
       (sources returning sources.map(_.id)) += source
+    }
+  }
+
+  def insertMany(xs: Iterable[Source]): Unit = {
+    db.run {
+//      sources.forceInsertAll(xs)
+      sources ++= xs
     }
   }
 

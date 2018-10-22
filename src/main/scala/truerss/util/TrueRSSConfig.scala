@@ -29,7 +29,18 @@ case class DbConfig(
                      dbPassword: String
                    )
 object DbConfig {
-  val need = Vector("backend", "port", "host", "dbname", "username", "password")
+
+  private object Fields {
+    val fBackend = "backend"
+    val fPort = "port"
+    val fHost = "host"
+    val fDbName = "dbname"
+    val fUserName = "username"
+    val fPassword = "password"
+  }
+  import Fields._
+
+  val need = Vector(fBackend, fPort, fHost, fDbName, fUserName, fPassword)
 
   def load(dbConf: Config) = {
     val given = dbConf.entrySet().asScala.map(_.getKey).toVector
@@ -45,12 +56,12 @@ object DbConfig {
       sys.exit(1)
     }
 
-    val dbBackend = dbConf.getString("backend")
-    val dbHost = dbConf.getString("host")
-    val dbPort = dbConf.getString("port")
-    val dbName = dbConf.getString("dbname")
-    val dbUsername = dbConf.getString("username")
-    val dbPassword = dbConf.getString("password")
+    val dbBackend = dbConf.getString(fBackend)
+    val dbHost = dbConf.getString(fHost)
+    val dbPort = dbConf.getString(fPort)
+    val dbName = dbConf.getString(fDbName)
+    val dbUsername = dbConf.getString(fUserName)
+    val dbPassword = dbConf.getString(fPassword)
 
     DbConfig(
       dbBackend = dbBackend,
@@ -65,10 +76,18 @@ object DbConfig {
 
 
 object TrueRSSConfig {
-  val db = "db"
-  val plugins = "plugins"
-  val root = "truerss"
-  val updateParallelism = "update-parallelism"
+  private object Fields {
+    val fDbb = "db"
+    val fPlugins = "plugins"
+    val fRoot = "truerss"
+    val fUpdateParallelism = "update-parallelism"
+
+    val fPort = "port"
+    val fHost = "host"
+    val fWsPort = "wsPort"
+  }
+
+  import Fields._
 
   val parser = new OptionParser[TrueRSSConfig]("truerss") {
     head("truerss", "0.0.1")
@@ -113,22 +132,22 @@ object TrueRSSConfig {
           .fromInputStream(getClass.getClassLoader.getResourceAsStream(defaultConfigName)).mkString)
       )
 
-    val appConfig = conf.getConfig(TrueRSSConfig.root)
+    val appConfig = conf.getConfig(fRoot)
 
-    val pluginConf = appConfig.getConfig(TrueRSSConfig.plugins)
+    val pluginConf = appConfig.getConfig(fPlugins)
     val parallelFeed = catching(classOf[ConfigException]) either
-      appConfig.getInt(TrueRSSConfig.updateParallelism) fold(e => 10, pf => pf)
+      appConfig.getInt(fUpdateParallelism) fold(e => 10, pf => pf)
 
     val port = catching(classOf[ConfigException]) either
-      appConfig.getInt("port") fold(_ => trueRSSConfig.port, identity)
+      appConfig.getInt(fPort) fold(_ => trueRSSConfig.port, identity)
     val host = catching(classOf[ConfigException]) either
-      appConfig.getString("host") fold(_ => trueRSSConfig.host, identity)
+      appConfig.getString(fHost) fold(_ => trueRSSConfig.host, identity)
     val wsPort = catching(classOf[ConfigException]) either
-      appConfig.getInt("wsPort") fold(_ => trueRSSConfig.wsPort, identity)
+      appConfig.getInt(fWsPort) fold(_ => trueRSSConfig.wsPort, identity)
 
     val appPlugins = PluginLoader.load(pluginDir, pluginConf)
 
-    val dbConf = appConfig.getConfig(TrueRSSConfig.db)
+    val dbConf = appConfig.getConfig(fDbb)
     val dbConfig = DbConfig.load(dbConf)
 
     (trueRSSConfig.copy(

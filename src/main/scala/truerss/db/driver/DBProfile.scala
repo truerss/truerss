@@ -1,0 +1,201 @@
+package truerss.db.driver
+
+import java.util.Date
+import java.nio.file.Paths
+import java.util.Properties
+
+import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
+import slick.jdbc._
+import slick.jdbc.meta.MTable
+import slick.migration.api._
+import truerss.db._
+import truerss.util.DbConfig
+
+import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContext}
+
+sealed trait SupportedDb
+case object H2 extends SupportedDb
+case object Postgresql extends SupportedDb
+case object Sqlite extends SupportedDb
+case object Mysql extends SupportedDb
+
+object SupportedDb {
+
+  private val waitTime = 10 seconds
+
+  def load(dbConf: DbConfig, isUserConf: Boolean)(
+          implicit ec: ExecutionContext
+  ): DbLayer = {
+    val backend: Option[SupportedDb] = DBProfile.get(dbConf.dbBackend)//Some(H2)
+
+    if (backend.isEmpty) {
+      Console.err.println(s"Unsupported database backend: ${dbConf.dbBackend}")
+      sys.exit(1)
+    }
+
+    val dbProfile = DBProfile.create(backend.get)
+
+    val db = backend.get match {
+      case Sqlite =>
+        val url = if (isUserConf) {
+          s"jdbc:${dbConf.dbBackend}:/${dbConf.dbName}"
+        } else {
+          s"jdbc:${dbConf.dbBackend}:/${Paths.get("").toAbsolutePath}/${dbConf.dbName}"
+        }
+        JdbcBackend.Database.forURL(url, driver=dbProfile.driver)
+      case H2 =>
+        val url = "jdbc:h2:mem:test;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1"
+        JdbcBackend.Database.forURL(url, driver = dbProfile.driver)
+      case Postgresql | Mysql =>
+        val props = new Properties()
+        props.setProperty("dataSourceClassName", dbProfile.sourceClassName)
+        props.setProperty("dataSource.user", dbConf.dbUsername)
+        props.setProperty("dataSource.password", dbConf.dbPassword)
+        props.setProperty("dataSource.databaseName", dbConf.dbName)
+        props.setProperty("dataSource.serverName", dbConf.dbHost)
+        props.setProperty("dataSource.portNumber", dbConf.dbPort)
+        val hc = new HikariConfig(props)
+        hc.setConnectionTestQuery("SELECT 1;")
+        hc.setMaximumPoolSize(10)
+        hc.setInitializationFailFast(true)
+        try {
+          val ds = new HikariDataSource(hc)
+          JdbcBackend.Database.forDataSource(ds, None)
+        } catch {
+          case x: Exception =>
+            Console.err.println(s"Database Initialization error. Check parameters for db: $x")
+            sys.exit(1)
+        }
+    }
+
+    val driver = CurrentDriver(dbProfile.profile)
+
+    import driver.profile.api._
+
+    val tables = Await.result(db.run(MTable.getTables), waitTime)
+
+    val tableNames = tables.toList.map(_.name).map(_.name)
+
+    if (!tableNames.contains("sources")) {
+      Await.result(
+        db.run {
+          (driver.query.sources.schema ++ driver.query.feeds.schema).create
+        },
+        waitTime
+      )
+    }
+
+    if (!tableNames.contains("versions")) {
+      // no versions
+      Await.result(db.run { driver.query.versions.schema.create }, waitTime)
+    }
+
+    runMigrations(db, dbProfile, driver)
+
+
+    DbLayer(db, driver)(ec)
+  }
+
+  def runMigrations(db: JdbcBackend.DatabaseDef, dbProfile: DBProfile, driver: CurrentDriver) = {
+    import driver.profile.api._
+    val versions = Await.result(db.run(driver.query.versions.result), waitTime).toVector
+
+    val v1 = Migration.addIndexes(dbProfile, driver)
+    val all = Vector(
+      v1
+    )
+    val allVersions = versions.map(_.id)
+
+    val need = all.filterNot { x => allVersions.contains(x.version) }
+
+    Console.out.println(s"detect: ${versions.size} migrations, need to run: ${need.size}")
+
+    need.foreach { m =>
+      Console.out.println(s"run: ${m.version} -> ${m.description}")
+      Await.result(db.run(m.changes()), waitTime)
+      val version = Version(m.version, m.description, new Date())
+      val f = db.run {
+        (driver.query.versions returning driver.query.versions.map(_.id)) += version
+      }
+      Await.result(f, waitTime)
+    }
+
+    Console.out.println("completed...")
+  }
+
+  case class Migration(version: Long, description: String, changes: ReversibleMigrationSeq)
+
+  object Migration {
+    def addIndexes(dbProfile: DBProfile, driver: CurrentDriver): Migration = {
+      implicit val dialect = GenericDialect.apply(dbProfile.profile)
+
+      val sq = TableMigration(driver.query.sources)
+        .addIndexes(_.byUrlIndex)
+        .addIndexes(_.byNameIndex)
+
+      val fq = TableMigration(driver.query.feeds)
+        .addIndexes(_.bySourceIndex)
+        .addIndexes(_.byFavoriteIndex)
+        .addIndexes(_.byReadIndex)
+        .addIndexes(_.bySourceAndFavorite)
+        .addIndexes(_.byTitleIndex)
+        .addIndexes(_.bySourceAndReadIndex)
+
+      Migration(1L, "add indexes", sq & fq)
+    }
+  }
+
+
+}
+
+trait DBProfile {
+  val isSqlite: Boolean = false
+  val profile: JdbcProfile
+  val driver: String
+  val sourceClassName: String
+}
+
+object DBProfile {
+
+  def get(x: String): Option[SupportedDb] = {
+    x.toLowerCase match {
+      case "h2" => Some(H2)
+      case "postgresql" => Some(Postgresql)
+      case "sqlite" => Some(Sqlite)
+      case "mysql" => Some(Mysql)
+      case _ => None
+    }
+  }
+
+  def create(db: SupportedDb) = {
+    db match {
+      case H2 => new DBProfile {
+        override val driver = "org.h2.Driver"
+        override val profile: JdbcProfile = H2Profile
+        override val sourceClassName = "org.h2.jdbcx.JdbcDataSource"
+      }
+
+      case Postgresql => new DBProfile {
+        override val driver: String = "org.postgresql.Driver"
+        override val profile: JdbcProfile = PostgresProfile
+        override val sourceClassName: String = "org.postgresql.ds.PGSimpleDataSource"
+      }
+
+      case Sqlite => new DBProfile {
+        override val profile: JdbcProfile = SQLiteProfile
+        override val driver = "org.sqlite.JDBC"
+        override val isSqlite: Boolean = true
+        override val sourceClassName = ""
+      }
+
+      case Mysql => new DBProfile {
+        override val driver: String = "com.mysql.jdbc.Driver"
+        override val profile: JdbcProfile = MySQLProfile
+        override val sourceClassName: String = "com.mysql.jdbc.jdbc2.optional.MysqlDataSource"
+      }
+    }
+  }
+}
+
+

@@ -31,7 +31,7 @@ lazy val mainProject = Project("truerss", file(".")).settings(
     (compile in Compile) := (compile in Compile).dependsOn(buildCoffee).value,
     organization := "net.truerss",
     name := "truerss",
-    version := "0.0.3.1",
+    version := "0.0.3.3-pre",
     parallelExecution in Test := false,
     assemblyJarName in assembly := s"truerss-${version.value}.jar",
     mainClass in assembly := Some("truerss.Boot"),
@@ -49,7 +49,6 @@ lazy val mainProject = Project("truerss", file(".")).settings(
         else
           MergeStrategy.first
       case x =>
-        println("@"*100 + s"----> ${x}")
         MergeStrategy.first
     },
     test in assembly := {},

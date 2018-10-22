@@ -1,29 +1,30 @@
 import sbt._
 
 object Libs {
-  object versions {
+  object Versions {
     val scalaVersion = "2.12.4"
-    val scalajVersion = "2.3.0"
+    val scalajVersion = "2.4.1"
     val h2Version = "1.3.173"
     val postgresqlVersion = "9.1-901-1.jdbc4"
     val mysqlVersion = "5.1.36"
     val sqliteVersion = "3.8.7"
-    val commonValidatorVersion = "1.4.0"
+    val commonValidatorVersion = "1.6"
     val ceVersion = "0.0.3"
-    val sprayJsonVersion = "1.3.2"
-    val akkaVersion  = "2.5.9"
-    val slickVersion = "3.2.0"
+    val akkaVersion  = "2.5.17"
+    val slickVersion = "3.2.3"
     val configVersion = "1.3.0"
-    val scoptVersion = "3.5.0"
+    val scoptVersion = "3.7.0"
     val hikariCPVersion = "2.4.7"
-    val jwsVersion = "1.3.0"
+    val jwsVersion = "1.3.9"
     val logbackVersion = "1.1.2"
     val baseVersion = "0.0.6"
     val jsoupVersion = "1.8.3"
-    val akkaHttpVersion = "10.0.11"
+    val akkaHttpVersion = "10.1.5"
+    val specsVersion = "4.3.5"
+    val playJsonVersion = "2.6.10"
   }
 
-  import versions._
+  import Versions._
 
   val db = Seq(
     "com.h2database" % "h2" % h2Version,
@@ -32,10 +33,11 @@ object Libs {
     "org.xerial" % "sqlite-jdbc" % sqliteVersion,
     "com.zaxxer" % "HikariCP" % hikariCPVersion,
     "com.typesafe.slick" %% "slick" %  slickVersion,
-    "com.typesafe.slick" %% "slick-hikaricp" %  slickVersion
+    "com.typesafe.slick" %% "slick-hikaricp" %  slickVersion,
+    "io.github.nafg" %% "slick-migration-api" % "0.4.2"
   )
 
-  val sprayJson = "io.spray" %% "spray-json" % sprayJsonVersion
+  val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
 
   val scalaLib = "org.scala-lang" % "scala-library" % scalaVersion
 
@@ -74,14 +76,15 @@ object Libs {
   )
 
   val tests = Seq(
-    "org.specs2" %% "specs2-core" % "3.8.6" % "test",
-    "org.specs2" %% "specs2-mock" % "3.8.6" % "test",
+    "org.specs2" %% "specs2-core" % specsVersion % "test",
+    "org.specs2" %% "specs2-mock" % specsVersion % "test",
 
     "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion % "test",
+    "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion % "test",
     "com.typesafe.akka" %% "akka-testkit" % akkaVersion % "test"
   )
 
   val deps = db ++ akka ++ truerss ++ logs ++
-    Seq(jsoup, sprayJson) ++ utils ++ tests
+    Seq(jsoup, playJson) ++ utils ++ tests
 
 }

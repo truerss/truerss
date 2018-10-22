@@ -2,7 +2,7 @@ package truerss.db
 
 import com.github.truerss.base.Entry
 import slick.jdbc.JdbcBackend.DatabaseDef
-import truerss.models.Feed
+import truerss.db.driver.CurrentDriver
 
 import scala.concurrent.{ExecutionContext, Future}
 

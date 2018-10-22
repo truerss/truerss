@@ -1,12 +1,10 @@
 package truerss.services
 
 import akka.actor.{Actor, ActorLogging}
-import com.github.truerss.base.{BasePublishPlugin, PublishActions}
+import com.github.truerss.base.{BasePublishPlugin, Entry, PublishActions}
+import truerss.dto.FeedDto
 
 import scala.collection.mutable.ArrayBuffer
-
-import truerss.models.Feed
-import truerss.util.Util
 
 
 
@@ -14,7 +12,6 @@ class PublishPluginActor(plugins: ArrayBuffer[BasePublishPlugin])
   extends Actor with ActorLogging {
 
   import PublishActions.Favorite
-  import Util._
   import PublishPluginActor._
 
   def receive = {
@@ -28,5 +25,19 @@ class PublishPluginActor(plugins: ArrayBuffer[BasePublishPlugin])
 }
 
 object PublishPluginActor {
-  case class PublishEvent(feed: Feed)
+  case class PublishEvent(feed: FeedDto)
+
+  implicit class FeedDtoExt(val x: FeedDto) extends AnyVal {
+    def toEntry: Entry = {
+      Entry(
+        url = x.url,
+        title = x.title,
+        author = x.author,
+        publishedDate = x.publishedDate,
+        description = x.description,
+        content = x.content
+      )
+    }
+  }
+
 }

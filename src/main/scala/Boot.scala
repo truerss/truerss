@@ -3,9 +3,9 @@ package truerss
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
-import truerss.api.{RoutingApiImpl, WSApi}
-import truerss.db._
-import truerss.services.MainActor
+import truerss.api.{RoutingApiImpl, WebSockersSupport}
+import truerss.db.driver.SupportedDb
+import truerss.services._
 import truerss.util.TrueRSSConfig
 
 import scala.language.postfixOps
@@ -23,6 +23,8 @@ object Boot extends App {
       import system.dispatcher
       implicit val materializer = ActorMaterializer()
 
+      val stream = system.eventStream
+
       val dbEc = system.dispatchers.lookup("dispatchers.db-dispatcher")
 
       val dbLayer = SupportedDb.load(dbConf, isUserConf)(dbEc)
@@ -37,7 +39,7 @@ object Boot extends App {
         actualConfig.port
       )
 
-      val socketApi = system.actorOf(WSApi.props(actualConfig.wsPort), "ws-api")
+      val socketApi = system.actorOf(WebSockersSupport.props(actualConfig.wsPort), "ws-api")
 
 
     case None =>
