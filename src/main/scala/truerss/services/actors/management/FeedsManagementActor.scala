@@ -53,8 +53,7 @@ class FeedsManagementActor(feedsService: FeedsService) extends CommonActor {
       feedsService.favorites.map(FeedsResponse) pipeTo sender
 
     case msg: GetFeed =>
-      // todo
-//      context.actorOf(GetFeedActor.props(dbLayer, context.parent)) forward msg
+      context.actorOf(GetFeedActor.props(feedsService, context.parent)) forward msg
 
   }
 

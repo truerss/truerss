@@ -3,14 +3,16 @@ package truerss.services.actors.management
 import akka.actor._
 import akka.event.LoggingReceive
 import akka.pattern._
-import truerss.api.{InternalServerErrorResponse, ModelResponse}
+import truerss.api.{FeedResponse, InternalServerErrorResponse, ModelResponse}
 import truerss.db.DbLayer
 import truerss.db.Feed
+import truerss.dto.FeedDto
 import truerss.services.DbHelperActor.FeedContentUpdate
+import truerss.services.FeedsService
 import truerss.services.actors.sync.SourceActor
 import truerss.util.Util.ResponseHelpers
 
-class GetFeedActor(dbLayer: DbLayer, service: ActorRef)
+class GetFeedActor(feedsService: FeedsService, service: ActorRef)
   extends CommonActor {
 
   import FeedsManagementActor.GetFeed
@@ -20,13 +22,13 @@ class GetFeedActor(dbLayer: DbLayer, service: ActorRef)
 
   private var originalSender = context.system.deadLetters
 
-  var feed: Feed = null
+  var feed: FeedDto = null
 
   def receive = LoggingReceive {
     case GetFeed(feedId) =>
       originalSender = sender
 
-      val result = dbLayer.feedDao.findOne(feedId).map {
+      val result = feedsService.findOne(feedId).map {
         case Some(f) => FeedPresent(f)
         case None =>
           NoEntity
@@ -38,11 +40,11 @@ class GetFeedActor(dbLayer: DbLayer, service: ActorRef)
       originalSender ! feedNotFound
 
     case FeedPresent(f) if f.content.isDefined =>
-      originalSender ! ModelResponse(f)
+      originalSender ! FeedResponse(f)
 
     case FeedPresent(f) =>
       feed = f
-      service ! SourceActor.ExtractContent(f.sourceId, f.id.get, f.url)
+      service ! SourceActor.ExtractContent(f.sourceId, f.id, f.url)
 
     case response: SourceActor.NetworkResult =>
       val r = response match {
@@ -52,9 +54,9 @@ class GetFeedActor(dbLayer: DbLayer, service: ActorRef)
           content match {
             case Some(cnt) =>
               stream.publish(FeedContentUpdate(feedId, cnt))
-              ModelResponse(feed.copy(content = Some(cnt)))
+              FeedResponse(feed.copy(content = Some(cnt)))
             case None =>
-              ModelResponse(feed)
+              FeedResponse(feed)
           }
         case SourceActor.ExtractError(error) =>
           log.warning(s"error on extract from ${feed.sourceId} -> ${feed.url}: $error")
@@ -75,10 +77,10 @@ class GetFeedActor(dbLayer: DbLayer, service: ActorRef)
 }
 
 object GetFeedActor {
-  def props(dbLayer: DbLayer, service: ActorRef) =
-    Props(classOf[GetFeedActor], dbLayer, service)
+  def props(feedsService: FeedsService, service: ActorRef) =
+    Props(classOf[GetFeedActor], feedsService, service)
 
-  case class FeedPresent(feed: Feed)
+  case class FeedPresent(feed: FeedDto)
   case object NoEntity
 
 }

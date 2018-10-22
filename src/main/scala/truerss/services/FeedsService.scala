@@ -11,6 +11,10 @@ class FeedsService(dbLayer: DbLayer)(implicit val ec: ExecutionContext) {
 
   import DtoModelImplicits._
 
+  def findOne(feedId: Long): Future[Option[FeedDto]] = {
+    dbLayer.feedDao.findOne(feedId).map { x => x.map(_.toDto) }
+  }
+
   def markAllAsRead: Future[Int] = {
     dbLayer.feedDao.markAll
   }
