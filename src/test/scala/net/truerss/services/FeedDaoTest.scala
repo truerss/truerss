@@ -14,7 +14,7 @@ import scala.concurrent.duration._
 class FeedDaoTest(implicit ee: ExecutionEnv)
   extends FullDbHelper with SpecificationLike with BeforeAfterAll {
 
-  override val dbName = "fee_dao_spec"
+  override def dbName = "fee_dao_spec"
 
   sequential
 
@@ -123,6 +123,8 @@ class FeedDaoTest(implicit ee: ExecutionEnv)
 
       feedDao.mergeFeeds(id, entry :: newEntry :: Nil)
         .map(xs => xs.size) must be_==(2).await
+
+      w
 
       feedDao.findOne(ids.head)
         .map(x => x.map(_.description)) must beSome(entry.description).await

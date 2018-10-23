@@ -1,32 +1,33 @@
 package net.truerss.services
 
+import java.io.File
 import java.util.concurrent.Executors
 
 import org.specs2.mutable.SpecificationLike
 import org.specs2.specification.BeforeAfterAll
 import slick.jdbc.JdbcBackend
 import truerss.db.DbLayer
-import truerss.db.driver.{CurrentDriver, DBProfile, H2}
+import truerss.db.driver.{CurrentDriver, DBProfile, Sqlite, TableNames}
 import truerss.db.Source
 
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration._
 
 trait FullDbHelper extends SpecificationLike with BeforeAfterAll {
-  val dbName: String
+  def dbName: String
 
   println(s"-------------> start db helper with db: $dbName")
 
   val callTime = 3 seconds
   val initTime = 10 seconds
 
-  private lazy val dbProfile = DBProfile.create(H2)
+  private lazy val dbProfile = DBProfile.create(Sqlite)
 
   private lazy val db = JdbcBackend.Database
-    .forURL(s"jdbc:h2:mem:$dbName;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1",
+    .forURL(s"jdbc:sqlite:./$dbName.tdb",
       driver = dbProfile.driver)
 
-  private implicit lazy val driver = CurrentDriver(dbProfile.profile)
+  private implicit lazy val driver = CurrentDriver(dbProfile.profile, TableNames.withPrefix(dbName))
 
   lazy val dbLayer: DbLayer = new DbLayer(db, driver)(ExecutionContext.fromExecutor(Executors.newFixedThreadPool(1)))
 
@@ -45,6 +46,7 @@ trait FullDbHelper extends SpecificationLike with BeforeAfterAll {
     db.run {
       (driver.query.sources.schema ++ driver.query.feeds.schema).drop
     }
+    new File(s"$dbName.tdb").delete()
   }
 
   def insert(x: Source): Long = {

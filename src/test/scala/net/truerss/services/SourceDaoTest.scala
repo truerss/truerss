@@ -12,7 +12,7 @@ import scala.concurrent.duration._
 class SourceDaoTest(implicit ee: ExecutionEnv) extends FullDbHelper
   with SpecificationLike with BeforeAfterAll {
 
-  override val dbName = "source_dao_spec"
+  override def dbName = "source_dao_spec"
 
   sequential
 

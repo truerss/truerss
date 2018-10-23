@@ -4,13 +4,14 @@ import akka.actor.Props
 import akka.pattern.pipe
 import truerss.api._
 import truerss.dto.FeedDto
-import truerss.services.{FeedsService, PublishPluginActor}
+import truerss.services.DbHelperActor.FeedContentUpdate
+import truerss.services.{ContentReaderService, FeedsService, PublishPluginActor}
 import truerss.util.Util.ResponseHelpers
 
 /**
   * Created by mike on 4.5.17.
   */
-class FeedsManagementActor(feedsService: FeedsService) extends CommonActor {
+class FeedsManagementActor(feedsService: FeedsService, contentReaderService: ContentReaderService) extends CommonActor {
 
   import FeedsManagementActor._
   import ResponseHelpers._
@@ -52,8 +53,34 @@ class FeedsManagementActor(feedsService: FeedsService) extends CommonActor {
     case Favorites =>
       feedsService.favorites.map(FeedsResponse) pipeTo sender
 
-    case msg: GetFeed =>
-      context.actorOf(GetFeedActor.props(feedsService, context.parent)) forward msg
+    case GetFeed(feedId) =>
+      feedsService.findOne(feedId).map {
+        case Some(feed) =>
+          feed.content match {
+            case Some(_) =>
+              FeedResponse(feed)
+
+            case None =>
+              contentReaderService.read(feed.url).fold(
+                error =>
+                  InternalServerErrorResponse(error),
+                value => {
+                  val x = value.map { content =>
+                    stream.publish(FeedContentUpdate(feedId, content))
+                    feed.copy(content = Some(content))
+                  }.getOrElse(feed)
+                  FeedResponse(x)
+                }
+              )
+          }
+
+        case None =>
+          feedNotFound
+      }.recover {
+        case ex: Throwable =>
+          log.warning(s"Failed to get content for feed=$feedId: $ex")
+          InternalServerErrorResponse("Something went wrong")
+      } pipeTo sender
 
   }
 
@@ -69,8 +96,8 @@ class FeedsManagementActor(feedsService: FeedsService) extends CommonActor {
 
 object FeedsManagementActor {
 
-  def props(feedsService: FeedsService) = {
-    Props(classOf[FeedsManagementActor], feedsService)
+  def props(feedsService: FeedsService, contentReaderService: ContentReaderService) = {
+    Props(classOf[FeedsManagementActor], feedsService, contentReaderService)
   }
 
 

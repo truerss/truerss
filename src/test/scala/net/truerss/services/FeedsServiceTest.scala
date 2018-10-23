@@ -8,7 +8,7 @@ import truerss.services.FeedsService
 class FeedsServiceTest(implicit ee: ExecutionEnv)
   extends FullDbHelper with SpecificationLike {
 
-  override val dbName = "feeds_service_test"
+  override def dbName = "feeds_service_test"
 
   sequential
 
