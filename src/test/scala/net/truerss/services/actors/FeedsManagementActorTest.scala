@@ -1,14 +1,15 @@
 package net.truerss.services.actors
 
-import akka.actor.{Actor, ActorSystem}
+import akka.actor.ActorSystem
 import akka.testkit.{TestActorRef, TestKit, TestProbe}
 import net.truerss.services.Gen
 import org.specs2.mock.Mockito
 import org.specs2.mutable.SpecificationLike
 import org.specs2.specification.Scope
 import truerss.api._
+import truerss.services.DbHelperActor.FeedContentUpdate
 import truerss.services.actors.management.FeedsManagementActor
-import truerss.services.{FeedsService, PublishPluginActor}
+import truerss.services.{ContentReaderService, FeedsService, PublishPluginActor}
 
 import scala.concurrent.duration._
 
@@ -106,6 +107,51 @@ class FeedsManagementActorTest extends TestKit(ActorSystem("FeedsManagementActor
           msg.xs must contain(allOf(feed))
       }
     }
+
+    "get feed" should {
+      "not found on non-existing feed" in new MyTest {
+        service.findOne(fId).returns(f(None))
+        pass(FeedsManagementActor.GetFeed(fId)) {
+          case msg: NotFoundResponse =>
+            success
+        }
+      }
+
+      "internal error when something went wrong with content reader" in new MyTest {
+        val error = "boom"
+        val fn = feed.copy(content = None)
+        service.findOne(fId).returns(f(Some(fn)))
+        contentReaderService.read(anyString).returns(Left(error))
+        pass(FeedsManagementActor.GetFeed(fId)) {
+          case msg: InternalServerErrorResponse =>
+            msg.msg ==== error
+        }
+      }
+
+      "ok, not call service when content already present" in new MyTest {
+        val c = "content"
+        val fn = feed.copy(content = Some(c))
+        service.findOne(fId).returns(f(Some(fn)))
+        there was no(contentReaderService).read(anyString)
+        pass(FeedsManagementActor.GetFeed(fId)) {
+          case msg: FeedResponse =>
+            streamRef.expectNoMessage(duration)
+            msg.x.content must beSome(c)
+        }
+      }
+
+      "call service when feed without content" in new MyTest {
+        val c = "content"
+        val fn = feed.copy(content = None)
+        service.findOne(fId).returns(f(Some(fn)))
+        contentReaderService.read(anyString).returns(Right(Some(c)))
+        pass(FeedsManagementActor.GetFeed(fId)) {
+          case msg: FeedResponse =>
+            streamRef.expectMsgClass(classOf[FeedContentUpdate])
+            msg.x.content must beSome(c)
+        }
+      }
+    }
   }
 
 
@@ -118,11 +164,15 @@ class FeedsManagementActorTest extends TestKit(ActorSystem("FeedsManagementActor
     val stream = system.eventStream
     val streamRef = TestProbe()
     stream.subscribe(streamRef.ref, classOf[PublishPluginActor.PublishEvent])
+    stream.subscribe(streamRef.ref, classOf[FeedContentUpdate])
     val service = mock[FeedsService]
+    val contentReaderService = mock[ContentReaderService]
 
     def pass(msg: Any)(pf: PartialFunction[Any, Unit]) = {
-      TestActorRef(new FeedsManagementActor(service)).tell(msg, me.ref)
-      me.expectMsgPF()(pf)
+      TestActorRef(new FeedsManagementActor(service, contentReaderService)).tell(msg, me.ref)
+      me.expectMsgPF()(pf orElse {
+        case _ => failure
+      })
     }
   }
 

@@ -1,6 +1,5 @@
 package truerss.services.actors.sync
 
-import java.net.URL
 import java.util.Date
 
 import akka.actor.{Actor, ActorLogging, Props}
@@ -11,10 +10,8 @@ import truerss.services.DbHelperActor.{AddFeeds, SourceLastUpdate}
 import truerss.services.actors.sync.SourcesKeeperActor.{Update, UpdateMe, Updated}
 
 import scala.concurrent.duration._
-import scala.util.control.Exception._
 
-class SourceActor(source: SourceViewDto, feedReader: BaseFeedReader,
-                   contentReaders: Vector[aliases.WithContent])
+class SourceActor(source: SourceViewDto, feedReader: BaseFeedReader)
   extends Actor with ActorLogging {
 
   import SourceActor._
@@ -48,34 +45,6 @@ class SourceActor(source: SourceViewDto, feedReader: BaseFeedReader,
           stream.publish(Notify(NotifyLevels.Danger, error.error))
       }
       context.parent ! Updated
-
-
-    case ExtractContent(sourceId, feedId, url) =>
-      val url0 = new URL(url)
-      val c = contentReaders
-        .filter(_.matchUrl(url0)).sortWith((a, b) => a.priority > b.priority).head
-      log.info(s"Read content from $url ~> (${source.name}) with ${c.pluginName}")
-
-      def pass(result: Either[Errors.Error, Option[String]]) = {
-        result match {
-          case Right(content) =>
-            sender ! ExtractContentForEntry(sourceId, feedId, content)
-          case Left(error) =>
-            sender ! ExtractError(error.error)
-        }
-      }
-
-      if (c.needUrl) {
-        pass(c.content(ContentTypeParam.UrlRequest(url0)))
-      } else {
-        catching(classOf[Exception]) either extractContent(url) fold(
-          err => {
-            sender ! ExtractError(err.getMessage)
-          },
-          html => pass(c.content(ContentTypeParam.HtmlRequest(html)))
-        )
-      }
-
   }
 
 
@@ -84,19 +53,9 @@ class SourceActor(source: SourceViewDto, feedReader: BaseFeedReader,
 object SourceActor {
   import truerss.util.Request._
 
-  def props(source: SourceViewDto, feedReader: BaseFeedReader,
-            contentReaders: Vector[aliases.WithContent]) = {
-    Props(classOf[SourceActor], source, feedReader, contentReaders)
+  def props(source: SourceViewDto, feedReader: BaseFeedReader) = {
+    Props(classOf[SourceActor], source, feedReader)
   }
-
-  case class ExtractContent(sourceId: Long, feedId: Long, url: String)
-
-  sealed trait NetworkResult
-
-  case class ExtractedEntries(sourceId: Long, entries: Vector[Entry]) extends NetworkResult
-  case class ExtractContentForEntry(sourceId: Long, feedId: Long, content: Option[String]) extends NetworkResult
-  case class ExtractError(message: String) extends NetworkResult
-  case class SourceNotFound(sourceId: Long) extends NetworkResult
 
   case class UpdateTime(
                          tickTime: FiniteDuration,

@@ -10,7 +10,7 @@ import truerss.util.ApplicationPlugins
 class SourceServiceTest(implicit ee: ExecutionEnv)
   extends FullDbHelper with SpecificationLike {
 
-  override val dbName: String = "source_service_test"
+  override def dbName: String = "source_service_test"
 
   import DtoModelImplicits._
 

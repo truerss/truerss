@@ -36,9 +36,10 @@ class MainActor(config: TrueRSSConfig,
   private val applicationPluginsService = new ApplicationPluginsService(config.appPlugins)
   private val opmlService = new OpmlService(sourcesService)
   private val feedsService = new FeedsService(dbLayer)
+  private val contentReaderService = new ContentReaderService(applicationPluginsService)
 
   private val sourcesManagementActor = create(SourcesManagementActor.props(sourcesService))
-  private val feedsManagementActor = create(FeedsManagementActor.props(feedsService))
+  private val feedsManagementActor = create(FeedsManagementActor.props(feedsService, contentReaderService))
   private val opmlActor = create(OpmlActor.props(opmlService))
   private val pluginManagementActor = create(PluginManagementActor.props(applicationPluginsService))
 
@@ -74,9 +75,6 @@ class MainActor(config: TrueRSSConfig,
 
     case msg: PluginManagementActor.PluginManagementMessage =>
       pluginManagementActor forward msg
-
-    case msg: SourceActor.ExtractContent =>
-      sourcesRef forward msg
 
       // todo remove
     case msg: SourcesKeeperActor.SourcesMessage =>

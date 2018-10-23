@@ -96,9 +96,6 @@ class SourcesKeeperActor(config: SourcesKeeperActor.SourcesSettings,
         context.stop(ref)
       }
 
-    case msg: SourceActor.ExtractContent =>
-      ticket.getOne(msg.sourceId).foreach(_ forward msg)
-
     case ReloadSource(source) =>
       ticket.deleteOne(source.id).foreach { ref =>
         context.stop(ref)
@@ -114,7 +111,7 @@ class SourcesKeeperActor(config: SourcesKeeperActor.SourcesSettings,
   private def startSourceActor(source: SourceViewDto) = {
     appPluginService.getSourceReader(source).foreach { feedReader =>
       log.info(s"Start source actor for ${source.normalized} -> ${source.id} with state ${source.state}")
-      val props = SourceActor.props(source, feedReader, appPluginService.contentReaders)
+      val props = SourceActor.props(source, feedReader)
       val ref = context.actorOf(props)
       ticket.addOne(source.id, ref)
     }

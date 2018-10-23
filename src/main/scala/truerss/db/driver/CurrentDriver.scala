@@ -9,7 +9,7 @@ import truerss.db._
 /**
   * Created by mike on 6.5.17.
   */
-case class CurrentDriver(profile: JdbcProfile) {
+case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
 
   import profile.api._
 
@@ -35,7 +35,7 @@ case class CurrentDriver(profile: JdbcProfile) {
     )
   }
 
-  class Sources(tag: Tag) extends Table[Source](tag, "sources") {
+  class Sources(tag: Tag) extends Table[Source](tag, tableNames.sources) {
 
     import DateSupport._
     import StateSupport._
@@ -66,7 +66,7 @@ case class CurrentDriver(profile: JdbcProfile) {
 
   }
 
-  class Feeds(tag: Tag) extends Table[Feed](tag, "feeds") {
+  class Feeds(tag: Tag) extends Table[Feed](tag, tableNames.feeds) {
 
     import DateSupport._
 
@@ -111,7 +111,7 @@ case class CurrentDriver(profile: JdbcProfile) {
     def source = foreignKey("source_fk", sourceId, query.sources)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
   }
 
-  class Versions(tag: Tag) extends Table[Version](tag, "versions") {
+  class Versions(tag: Tag) extends Table[Version](tag, tableNames.versions) {
     import DateSupport._
 
     def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
@@ -127,4 +127,21 @@ case class CurrentDriver(profile: JdbcProfile) {
     lazy val versions = TableQuery[Versions]
   }
 
+}
+
+case class TableNames(sources: String, feeds: String, versions: String)
+object TableNames {
+  val default = TableNames(
+    sources = "sources",
+    feeds = "feeds",
+    versions = "versions"
+  )
+
+  def withPrefix(prefix: String): TableNames = {
+    TableNames(
+      sources = s"${prefix}_sources",
+      feeds = s"${prefix}_feeds",
+      versions = s"${prefix}_versions"
+    )
+  }
 }

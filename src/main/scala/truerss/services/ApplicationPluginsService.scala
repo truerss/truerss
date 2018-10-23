@@ -42,6 +42,10 @@ class ApplicationPluginsService(appPlugins: ApplicationPlugins) {
       .sortBy(_.priority).reverse.headOption
   }
 
+  def getContentReaderOrDefault(url: URL): BasePlugin = {
+    getContentReader(url).getOrElse(defaultPlugin)
+  }
+
   def view: PluginsViewDto = {
     PluginsViewDto(
       feed = appPlugins.feedPlugins.map(baseToDto).toVector,
