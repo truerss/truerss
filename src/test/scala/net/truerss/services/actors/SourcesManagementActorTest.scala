@@ -7,7 +7,7 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.SpecificationLike
 import org.specs2.specification.Scope
 import truerss.api._
-import truerss.dto.{Notify, NotifyLevels}
+import truerss.dto.{Notify}
 import truerss.services.actors.management.{SourcesManagementActor => S}
 import truerss.services.SourcesService
 import truerss.services.actors.sync.SourcesKeeperActor
@@ -85,7 +85,6 @@ class SourcesManagementActorTest
         service.addSource(n).returns(f(Right(v)))
         pass(S.AddSource(n)) {
           case msg: SourceResponse =>
-            streamRef.expectMsgClass(classOf[WebSockerController.SourceAdded])
             streamRef.expectMsgClass(classOf[SourcesKeeperActor.NewSource])
             msg.x must beSome(v)
         }
@@ -110,7 +109,6 @@ class SourcesManagementActorTest
         service.updateSource(id, u).returns(f(Right(v)))
         pass(S.UpdateSource(id, u)) {
           case msg: SourceResponse =>
-            streamRef.expectMsgClass(classOf[WebSockerController.SourceUpdated])
             streamRef.expectMsgClass(classOf[SourcesKeeperActor.ReloadSource])
             msg.x must beSome(v)
         }
@@ -138,18 +136,17 @@ class SourcesManagementActorTest
       val msg = S.AddSources(Iterable(n, i))
       val testRef = TestActorRef(new S(service)).tell(msg, me.ref)
 
-      val pf: PartialFunction[Any, Unit] = {
-        case _: WebSockerController.SourceAdded =>
-          success
-        case _: SourcesKeeperActor.NewSource =>
-          success
-        case msg: Notify =>
-          msg.level ==== NotifyLevels.Danger
+      pass(S.AddSources(Iterable(n, i))) {
+        case msg: ImportResponse =>
+          streamRef.expectMsgClass(classOf[SourcesKeeperActor.NewSource])
+          msg.result must have size 2
+
+          msg.result.values.head must beRight
+
+          msg.result.values.last must beLeft
       }
 
-      streamRef.expectMsgPF()(pf)
-      streamRef.expectMsgPF()(pf)
-      streamRef.expectMsgPF()(pf)
+
     }
   }
 
@@ -159,7 +156,6 @@ class SourcesManagementActorTest
     val stream = system.eventStream
     val streamRef = TestProbe()
     stream.subscribe(streamRef.ref, classOf[SourcesKeeperActor.SourceDeleted])
-    stream.subscribe(streamRef.ref, classOf[WebSockerController.SourceAdded])
     stream.subscribe(streamRef.ref, classOf[SourcesKeeperActor.NewSource])
     stream.subscribe(streamRef.ref, classOf[SourcesKeeperActor.ReloadSource])
     stream.subscribe(streamRef.ref, classOf[Notify])

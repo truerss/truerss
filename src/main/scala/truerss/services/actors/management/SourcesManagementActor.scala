@@ -3,10 +3,12 @@ package truerss.services.actors.management
 import akka.actor.Props
 import akka.pattern.pipe
 import truerss.api._
-import truerss.dto.{NewSourceDto, Notify, UpdateSourceDto}
+import truerss.dto.{NewSourceDto, NewSourceFromFileWithErrors, Notify, UpdateSourceDto}
 import truerss.services.SourcesService
 import truerss.services.actors.sync.SourcesKeeperActor
 import truerss.util.Util.ResponseHelpers
+
+import scala.concurrent.Future
 
 /**
   * Created by mike on 4.5.17.
@@ -41,7 +43,6 @@ class SourcesManagementActor(sourcesService: SourcesService) extends CommonActor
           BadRequestResponse(errors.mkString(", "))
 
         case Right(x) =>
-          stream.publish(WebSockerController.SourceAdded(x))
           stream.publish(SourcesKeeperActor.NewSource(x))
           SourceResponse(Some(x))
       } pipeTo sender
@@ -57,17 +58,27 @@ class SourcesManagementActor(sourcesService: SourcesService) extends CommonActor
       } pipeTo sender
 
     case AddSources(xs) =>
-      xs.foreach { x =>
+      val fs = xs.zipWithIndex.map { case (x, index) =>
         sourcesService.addSource(x).map {
           case Left(errors) =>
-            errors.foreach { e => stream.publish(Notify.danger(e)) }
+            index -> Left(
+              NewSourceFromFileWithErrors(
+                url = x.url,
+                name = x.name,
+                errors = errors
+              )
+            )
 
           case Right(source) =>
             log.info(s"New sources was created: ${source.url}")
-            stream.publish(WebSockerController.SourceAdded(source))
             stream.publish(SourcesKeeperActor.NewSource(source))
+            index -> Right(source)
         }
       }
+
+      Future.sequence(fs).map { results =>
+        ImportResponse(results.toMap)
+      } pipeTo sender
 
   }
 }

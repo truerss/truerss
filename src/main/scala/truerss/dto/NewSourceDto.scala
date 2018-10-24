@@ -35,6 +35,8 @@ case class SourceViewDto(id: Long,
   def recount(x: Int): SourceViewDto = copy(count = x)
 }
 
+case class NewSourceFromFileWithErrors(url: String, name: String, errors: Iterable[String])
+
 case class PluginDto(author: String,
                      about: String,
                      version: String,

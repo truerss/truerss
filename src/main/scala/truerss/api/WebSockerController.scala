@@ -11,8 +11,6 @@ class WebSockerController(ws: WebSocket) extends Actor with ActorLogging {
   import WebSockerController._
 
   def receive = {
-    case SourceAdded(source) =>
-      ws.send(s"${J(WSMessage("create", J(source)))}")
     case NewFeeds(xs) =>
       ws.send(s"${J(WSMessage("new", J(xs)))}")
     case msg: Notify =>
@@ -24,6 +22,5 @@ class WebSockerController(ws: WebSocket) extends Actor with ActorLogging {
 
 object WebSockerController {
   sealed trait WSMessage
-  case class SourceAdded(source: SourceViewDto) extends WSMessage
   case class NewFeeds(xs: Vector[FeedDto]) extends WSMessage
 }
