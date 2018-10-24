@@ -49,6 +49,11 @@ SourcesController =
 
   remove: (e, id) ->
     ajax.remove_source id
+    source = Sources.find("id", id)
+    if source
+      Sources.remove(source)
+      jQuery("#all-sources tr.source-#{id}").remove()
+
 
   edit: (e, id) ->
     source = Sources.find('id', id)

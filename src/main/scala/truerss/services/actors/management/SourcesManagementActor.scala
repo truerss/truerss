@@ -30,7 +30,6 @@ class SourcesManagementActor(sourcesService: SourcesService) extends CommonActor
     case DeleteSource(sourceId) =>
       sourcesService.delete(sourceId).map {
         case Some(x) =>
-          stream.publish(WebSockerController.SourceDeleted(x))
           stream.publish(SourcesKeeperActor.SourceDeleted(x))
           ok
         case _ => sourceNotFound
@@ -53,7 +52,6 @@ class SourcesManagementActor(sourcesService: SourcesService) extends CommonActor
           BadRequestResponse(errors.mkString(", "))
 
         case Right(x) =>
-          stream.publish(WebSockerController.SourceUpdated(x))
           stream.publish(SourcesKeeperActor.ReloadSource(x))
           SourceResponse(Some(x))
       } pipeTo sender

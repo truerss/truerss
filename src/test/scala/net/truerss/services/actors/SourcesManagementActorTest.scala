@@ -64,7 +64,6 @@ class SourcesManagementActorTest
         service.delete(v.id).returns(f(Some(v)))
         pass(S.DeleteSource(v.id)) {
           case msg: Ok =>
-            streamRef.expectMsgClass(classOf[WebSockerController.SourceDeleted])
             streamRef.expectMsgClass(classOf[SourcesKeeperActor.SourceDeleted])
             msg.msg ==== "ok"
         }
@@ -159,11 +158,9 @@ class SourcesManagementActorTest
     val me = TestProbe()
     val stream = system.eventStream
     val streamRef = TestProbe()
-    stream.subscribe(streamRef.ref, classOf[WebSockerController.SourceDeleted])
     stream.subscribe(streamRef.ref, classOf[SourcesKeeperActor.SourceDeleted])
     stream.subscribe(streamRef.ref, classOf[WebSockerController.SourceAdded])
     stream.subscribe(streamRef.ref, classOf[SourcesKeeperActor.NewSource])
-    stream.subscribe(streamRef.ref, classOf[WebSockerController.SourceUpdated])
     stream.subscribe(streamRef.ref, classOf[SourcesKeeperActor.ReloadSource])
     stream.subscribe(streamRef.ref, classOf[Notify])
     val service = mock[SourcesService]
