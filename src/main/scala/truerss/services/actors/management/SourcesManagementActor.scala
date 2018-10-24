@@ -3,7 +3,7 @@ package truerss.services.actors.management
 import akka.actor.Props
 import akka.pattern.pipe
 import truerss.api._
-import truerss.dto.{NewSourceDto, NewSourceFromFileWithErrors, Notify, UpdateSourceDto}
+import truerss.dto.{NewSourceDto, NewSourceFromFileWithErrors, UpdateSourceDto}
 import truerss.services.SourcesService
 import truerss.services.actors.sync.SourcesKeeperActor
 import truerss.util.Util.ResponseHelpers
@@ -56,30 +56,6 @@ class SourcesManagementActor(sourcesService: SourcesService) extends CommonActor
           stream.publish(SourcesKeeperActor.ReloadSource(x))
           SourceResponse(Some(x))
       } pipeTo sender
-
-    case AddSources(xs) =>
-      val fs = xs.zipWithIndex.map { case (x, index) =>
-        sourcesService.addSource(x).map {
-          case Left(errors) =>
-            index -> Left(
-              NewSourceFromFileWithErrors(
-                url = x.url,
-                name = x.name,
-                errors = errors
-              )
-            )
-
-          case Right(source) =>
-            log.info(s"New sources was created: ${source.url}")
-            stream.publish(SourcesKeeperActor.NewSource(source))
-            index -> Right(source)
-        }
-      }
-
-      Future.sequence(fs).map { results =>
-        ImportResponse(results.toMap)
-      } pipeTo sender
-
   }
 }
 
@@ -96,6 +72,5 @@ object SourcesManagementActor {
   case class AddSource(source: NewSourceDto) extends SourcesMessage
   case class UpdateSource(sourceId: Long, source: UpdateSourceDto) extends SourcesMessage
   case class Mark(sourceId: Long) extends SourcesMessage
-  case class AddSources(sources: Iterable[NewSourceDto]) extends SourcesMessage
 
 }

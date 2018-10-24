@@ -2,7 +2,7 @@
 MainController =
 
   error_message: """
-    <h1>Error! Websocket and FormData not supported</h1>
+    <h1>Error! FormData not supported</h1>
     <p>
       Seems you have old browser.
       TrueRSS work with IE 10+, FF 33+,
@@ -10,24 +10,6 @@ MainController =
       Update browser please.
     </p>
   """
-
-  _init_ws: (logger, adapter, port) ->
-    protocol = if location.protocol is "https"
-      "wss"
-    else
-      "ws"
-
-    ws = new WebSocket("#{protocol}://#{location.hostname}:#{port}/")
-    ws.onopen = () ->
-      logger.info("ws open on port: #{port}")
-
-    ws.onmessage = (e) ->
-      message = JSON.parse(e.data)
-      logger.info("ws given message: #{message.messageType}")
-      adapter.fire(document, "ws:#{message.messageType}", message.body)
-
-    ws.onclose = () ->
-      logger.info("ws close")
 
   _bind_modal: () ->
     source = new Source()
@@ -57,7 +39,7 @@ MainController =
       if source.is_valid()
         ajax.source_create source.ajaxify(),
           (json) ->
-            # see WSController
+            Sources.add(new Source(JSON.parse(source)))
             modal.hide()
             clear_input()
           (err) ->
@@ -107,7 +89,7 @@ MainController =
       mb_redirect = read_cookie("redirect")
       default_count = 100
 
-      if !(!!window.WebSocket && !!window.FormData && !!history.pushState)
+      if !(!!window.FormData && !!history.pushState)
         UIkit.notify
           message : @error_message,
           status  : 'danger',
@@ -118,7 +100,6 @@ MainController =
         self = @
         ajax.sources_all (arr) ->
           Sirius.Application.get_adapter().and_then (adapter) ->
-            self._init_ws(logger, adapter, port)
 
           arr = arr.sort (a, b) -> parseInt(a.count) - parseInt(b.count)
 

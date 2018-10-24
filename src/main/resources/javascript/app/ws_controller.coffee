@@ -1,9 +1,5 @@
 
 WSController =
-  # new source
-  create: (e, source) ->
-    Sources.add(new Source(JSON.parse(source)))
-
   # new feeds
   fresh: (e, xs) ->
     feeds = JSON.parse(xs).map (x) -> new Feed(x)

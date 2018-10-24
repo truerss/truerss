@@ -24,6 +24,11 @@ $ ->
         bar.css("width", percent+"%").text(percent+"%");
     },
 
+    complete: function(json) {
+      // TODO add source response
+
+    }
+
     allcomplete: function(response) {
 
         bar.css("width", "100%").text("100%");
@@ -46,7 +51,6 @@ $ ->
     "application:run" : controller: MainController, action: "start"
     "sources:fetch": controller: SourcesController, action: "fetch_unread"
     "ws:new": controller: WSController, action: "fresh"
-    "ws:create": controller: WSController, action: "create"
     "ws:notify": controller: WSController, action: "notify"
     "/sources" : controller: SourcesController, action: "all"
     "/" : controller: MainController, action: "view"

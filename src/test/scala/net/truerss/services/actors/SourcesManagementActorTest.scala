@@ -127,27 +127,6 @@ class SourcesManagementActorTest
       }
     }
 
-    "add source: valid/not valid" in new MyTest {
-      val error = "boom"
-      val n = Gen.genNewSource
-      val i = Gen.genNewSource
-      service.addSource(n).returns(f(Right(v)))
-      service.addSource(i).returns(f(Left(List(error))))
-      val msg = S.AddSources(Iterable(n, i))
-      val testRef = TestActorRef(new S(service)).tell(msg, me.ref)
-
-      pass(S.AddSources(Iterable(n, i))) {
-        case msg: ImportResponse =>
-          streamRef.expectMsgClass(classOf[SourcesKeeperActor.NewSource])
-          msg.result must have size 2
-
-          msg.result.values.head must beRight
-
-          msg.result.values.last must beLeft
-      }
-
-
-    }
   }
 
   private class MyTest extends Scope {
