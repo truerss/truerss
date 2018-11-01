@@ -24,6 +24,34 @@ $ ->
         bar.css("width", percent+"%").text(percent+"%");
     },
 
+    complete: function(json) {
+      // TODO add source response
+      //{"0":{"id":2,"url":"test/rss","name":"123","interval":8,"state":0,"normalized":"123",
+      // "lastUpdate":"2018-11-01 20:54:53","count":0}}
+      var obj = JSON.parse(json);
+      var keys = Object.keys(obj);
+      for (var i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        var value = obj[key]; // => object
+        if (value["id"]) {
+          Sources.add(new Source(value));
+           // success flow
+        } else {
+          // notify
+          var error = value["errors"].join(", ")
+          UIkit.notify({
+            message : error,
+            status  : 'warning',
+            timeout : 3000,
+            pos     : 'top-right'
+          });
+        }
+      }
+
+
+      c(json)
+    },
+
     allcomplete: function(response) {
 
         bar.css("width", "100%").text("100%");
@@ -46,9 +74,6 @@ $ ->
     "application:run" : controller: MainController, action: "start"
     "sources:fetch": controller: SourcesController, action: "fetch_unread"
     "ws:new": controller: WSController, action: "fresh"
-    "ws:create": controller: WSController, action: "create"
-    "ws:deleted": controller: WSController, action: "deleted"
-    "ws:updated": controller: WSController, action: "updated"
     "ws:notify": controller: WSController, action: "notify"
     "/sources" : controller: SourcesController, action: "all"
     "/" : controller: MainController, action: "view"

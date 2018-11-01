@@ -3,10 +3,12 @@ package truerss.services.actors.management
 import akka.actor.Props
 import akka.pattern.pipe
 import truerss.api._
-import truerss.dto.{NewSourceDto, Notify, UpdateSourceDto}
+import truerss.dto.{NewSourceDto, NewSourceFromFileWithErrors, UpdateSourceDto}
 import truerss.services.SourcesService
 import truerss.services.actors.sync.SourcesKeeperActor
 import truerss.util.Util.ResponseHelpers
+
+import scala.concurrent.Future
 
 /**
   * Created by mike on 4.5.17.
@@ -30,7 +32,6 @@ class SourcesManagementActor(sourcesService: SourcesService) extends CommonActor
     case DeleteSource(sourceId) =>
       sourcesService.delete(sourceId).map {
         case Some(x) =>
-          stream.publish(WebSockerController.SourceDeleted(x))
           stream.publish(SourcesKeeperActor.SourceDeleted(x))
           ok
         case _ => sourceNotFound
@@ -42,7 +43,6 @@ class SourcesManagementActor(sourcesService: SourcesService) extends CommonActor
           BadRequestResponse(errors.mkString(", "))
 
         case Right(x) =>
-          stream.publish(WebSockerController.SourceAdded(x))
           stream.publish(SourcesKeeperActor.NewSource(x))
           SourceResponse(Some(x))
       } pipeTo sender
@@ -53,24 +53,9 @@ class SourcesManagementActor(sourcesService: SourcesService) extends CommonActor
           BadRequestResponse(errors.mkString(", "))
 
         case Right(x) =>
-          stream.publish(WebSockerController.SourceUpdated(x))
           stream.publish(SourcesKeeperActor.ReloadSource(x))
           SourceResponse(Some(x))
       } pipeTo sender
-
-    case AddSources(xs) =>
-      xs.foreach { x =>
-        sourcesService.addSource(x).map {
-          case Left(errors) =>
-            errors.foreach { e => stream.publish(Notify.danger(e)) }
-
-          case Right(source) =>
-            log.info(s"New sources was created: ${source.url}")
-            stream.publish(WebSockerController.SourceAdded(source))
-            stream.publish(SourcesKeeperActor.NewSource(source))
-        }
-      }
-
   }
 }
 
@@ -87,6 +72,5 @@ object SourcesManagementActor {
   case class AddSource(source: NewSourceDto) extends SourcesMessage
   case class UpdateSource(sourceId: Long, source: UpdateSourceDto) extends SourcesMessage
   case class Mark(sourceId: Long) extends SourcesMessage
-  case class AddSources(sources: Iterable[NewSourceDto]) extends SourcesMessage
 
 }

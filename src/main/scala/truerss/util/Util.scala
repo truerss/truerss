@@ -4,7 +4,7 @@ import java.time.{LocalDateTime, ZoneId}
 import java.util.Date
 
 import com.github.truerss.base.Entry
-import truerss.api.{ModelResponse, NotFoundResponse, Ok}
+import truerss.api.{NotFoundResponse, Ok}
 import truerss.db.{Feed, SourceStates}
 
 

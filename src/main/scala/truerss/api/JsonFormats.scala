@@ -66,6 +66,22 @@ object JsonFormats {
   implicit lazy val pluginsViewDto = Json.format[PluginsViewDto]
   implicit lazy val feedDtoFormat = Json.format[FeedDto]
 
+  implicit lazy val newSourceFromFile = Json.format[NewSourceFromFileWithErrors]
+
+  implicit lazy val sourceImportResult: Writes[Map[Int, Either[NewSourceFromFileWithErrors, SourceViewDto]]] = new Writes[Map[Int, Either[NewSourceFromFileWithErrors, SourceViewDto]]] {
+    override def writes(o: Map[Int, Either[NewSourceFromFileWithErrors, SourceViewDto]]): JsValue = {
+      val r = o.map { case (k, v) =>
+        val tmp = v match {
+          case Left(x) => newSourceFromFile.writes(x)
+          case Right(x) => sourceViewDtoFormat.writes(x)
+        }
+        k.toString -> tmp
+      }
+
+      JsObject(r)
+    }
+  }
+
   implicit val notifyLevelWrites: Writes[Notify] = new Writes[Notify] {
     override def writes(o: Notify): JsValue = {
       JsObject(
