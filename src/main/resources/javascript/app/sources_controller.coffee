@@ -56,6 +56,7 @@ SourcesController =
 
 
   edit: (e, id) ->
+    logger.info("update #{id} source")
     source = Sources.find('id', id)
     if source
       el = "table tr.source-#{source.id()}"
@@ -95,7 +96,6 @@ SourcesController =
       })
 
       view.bind(source, to_model_transformer)
-
       view.on "input[type='button']", "click", (e) ->
         ajax.update_source source.id(), source.ajaxify(),
           (s) ->

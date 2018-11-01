@@ -20,7 +20,7 @@ class Source extends Sirius.BaseModel
     "/by/#{@normalized()}"
 
   ajaxify: () ->
-    JSON.stringify({url: @url(), interval: parseInt(@interval()), name: @name()})
+    JSON.stringify({url: @url(), interval: parseInt(@interval()), name: @name(), id: @id()})
 
   compare: (other) -> @id() == other.id()
 

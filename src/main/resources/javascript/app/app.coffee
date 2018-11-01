@@ -26,8 +26,8 @@ $ ->
 
     complete: function(json) {
       // TODO add source response
-
-    }
+      c(json)
+    },
 
     allcomplete: function(response) {
 

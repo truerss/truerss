@@ -39,7 +39,7 @@ MainController =
       if source.is_valid()
         ajax.source_create source.ajaxify(),
           (json) ->
-            Sources.add(new Source(JSON.parse(source)))
+            Sources.add(new Source(json))
             modal.hide()
             clear_input()
           (err) ->
