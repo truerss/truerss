@@ -26,6 +26,31 @@ $ ->
 
     complete: function(json) {
       // TODO add source response
+      //{"0":{"id":2,"url":"test/rss","name":"123","interval":8,"state":0,"normalized":"123",
+      // "lastUpdate":"2018-11-01 20:54:53","count":0}}
+      var obj = JSON.parse(json);
+      var keys = Object.keys(obj);
+      c(keys)
+      for (var i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        var value = obj[key]; // => object
+        if (value["id"]) {
+          Sources.add(new Source(value));
+           // success flow
+        } else {
+          // notify
+          c(value)
+          var error = value["errors"].join(", ")
+          UIkit.notify({
+            message : error,
+            status  : 'warning',
+            timeout : 3000,
+            pos     : 'top-right'
+          });
+        }
+      }
+
+
       c(json)
     },
 
