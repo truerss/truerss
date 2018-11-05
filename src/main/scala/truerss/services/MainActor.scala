@@ -4,6 +4,7 @@ import akka.actor.SupervisorStrategy._
 import akka.actor.{Actor, ActorLogging, ActorRef, OneForOneStrategy, Props}
 import akka.event.EventStream
 import truerss.db.DbLayer
+import truerss.db.driver.GlobalSettings
 import truerss.dto.{Notify, NotifyLevels}
 import truerss.services.actors.management._
 import truerss.services.actors.sync.{SourceActor, SourcesKeeperActor}
@@ -37,11 +38,13 @@ class MainActor(config: TrueRSSConfig,
   private val opmlService = new OpmlService(sourcesService)
   private val feedsService = new FeedsService(dbLayer)
   private val contentReaderService = new ContentReaderService(applicationPluginsService)
+  private val globalSettingsService = new GlobalSettingsService(dbLayer)
 
   private val sourcesManagementActor = create(SourcesManagementActor.props(sourcesService))
   private val feedsManagementActor = create(FeedsManagementActor.props(feedsService, contentReaderService))
   private val opmlActor = create(OpmlActor.props(opmlService, sourcesService))
   private val pluginManagementActor = create(PluginManagementActor.props(applicationPluginsService))
+  private val globalSettingsActor = create(SettingsManagementActor.props(globalSettingsService))
 
   val dbHelperActorRef = context.actorOf(
     DbHelperActor.props(dbLayer),
@@ -75,6 +78,9 @@ class MainActor(config: TrueRSSConfig,
 
     case msg: PluginManagementActor.PluginManagementMessage =>
       pluginManagementActor forward msg
+
+    case msg: SettingsManagementActor.SettingsMessage =>
+      globalSettingsActor forward msg
 
       // todo remove
     case msg: SourcesKeeperActor.SourcesMessage =>

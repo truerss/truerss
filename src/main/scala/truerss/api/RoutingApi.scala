@@ -98,6 +98,12 @@ class RoutingApiImpl(val service: ActorRef)(
           sendAndWait(GetCss)
         }
       }
+    } ~ pathPrefix("settings") {
+      get {
+        pathPrefix("global") {
+          sendAndWait(SettingsManagementActor.GetSettings)
+        }
+      }
     }
   } ~ pathPrefix("about") {
     complete {

@@ -57,7 +57,6 @@ class SourcesKeeperActor(config: SourcesKeeperActor.SourcesSettings,
       log.warning(s"Oops, something went wrong, when load sources from db: $any")
   }
 
-
   def initialized: Receive = {
     case NewSource(source) =>
       startSourceActor(source)
@@ -107,14 +106,12 @@ class SourcesKeeperActor(config: SourcesKeeperActor.SourcesSettings,
 
   def receive: Receive = uninitialized
 
-
   private def startSourceActor(source: SourceViewDto) = {
-    appPluginService.getSourceReader(source).foreach { feedReader =>
-      log.info(s"Start source actor for ${source.normalized} -> ${source.id} with state ${source.state}")
-      val props = SourceActor.props(source, feedReader)
-      val ref = context.actorOf(props)
-      ticket.addOne(source.id, ref)
-    }
+    val feedReader = appPluginService.getSourceReader(source)
+    log.info(s"Start source actor for ${source.normalized} -> ${source.id}, state=${source.state}")
+    val props = SourceActor.props(source, feedReader)
+    val ref = context.actorOf(props)
+    ticket.addOne(source.id, ref)
   }
 }
 

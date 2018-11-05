@@ -8,6 +8,7 @@ import akka.testkit.TestProbe
 import org.specs2.mutable.SpecificationLike
 import org.specs2.specification.AllExpectations
 import truerss.api.{JsonFormats, RoutingApiImpl}
+import truerss.services.actors.management.SettingsManagementActor
 
 import scala.concurrent.duration._
 import scala.reflect.ClassTag
@@ -41,6 +42,7 @@ class RoutingApiTest extends RouteTest
   val feedsUrl = s"$baseUrl/feeds"
   val pluginsUrl = s"$baseUrl/plugins"
   val systemUrl = s"$baseUrl/system"
+  val settingsUrl = s"$baseUrl/settings"
 
   def checkRoute(x: HttpRequest, msg: Any) = {
     x ~> route
@@ -137,6 +139,10 @@ class RoutingApiTest extends RouteTest
 
     "get opml" in {
       r(Get(s"$sourcesUrl/opml"), GetOpml)
+    }
+
+    "get global settings" in {
+      r(Get(s"$settingsUrl/global"), SettingsManagementActor.GetSettings)
     }
 
   }

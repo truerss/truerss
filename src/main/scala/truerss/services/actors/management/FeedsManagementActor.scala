@@ -100,8 +100,6 @@ object FeedsManagementActor {
     Props(classOf[FeedsManagementActor], feedsService, contentReaderService)
   }
 
-
-
   sealed trait FeedsMessage
   case object MarkAll extends FeedsMessage
 

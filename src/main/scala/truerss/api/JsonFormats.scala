@@ -4,6 +4,7 @@ import java.util.Date
 
 import play.api.libs.json._
 import truerss.db._
+import truerss.db.driver.{SelectableValue, SettingValue}
 import truerss.dto.{Notify, _}
 
 object JsonFormats {
@@ -90,6 +91,48 @@ object JsonFormats {
           "message" -> o.message.j
         )
       )
+    }
+  }
+
+  implicit lazy val settingValueFormat: Format[SettingValue] = new Format[SettingValue] {
+    private val fType = "type"
+    private val fValues = "values"
+
+    override def writes(o: SettingValue): JsValue = {
+      o match {
+        case i @ SelectableValue(xs) =>
+          JsObject(
+            Seq(
+              fType -> JsString(i.name),
+              fValues -> JsArray(xs.map(x => JsString(x)).toSeq)
+            )
+          )
+      }
+    }
+
+    override def reads(json: JsValue): JsResult[SettingValue] = {
+      json match {
+        case JsObject(obj) =>
+          val tpe = obj.get(fType)
+          tpe match {
+            case Some(JsString(SelectableValue.fName)) =>
+              val values = obj.get(fValues)
+                .collect { case xs: JsArray => xs }
+                .map { arr => arr.value.collect { case JsString(value) => value } }
+                .getOrElse(Iterable.empty)
+              JsSuccess(
+                SelectableValue(
+                  values
+                )
+              )
+
+            case _ =>
+              JsError(s"Unexpected type: $tpe")
+          }
+
+        case _ =>
+          JsError("Object is required")
+      }
     }
   }
 

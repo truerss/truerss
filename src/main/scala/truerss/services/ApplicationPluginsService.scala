@@ -55,35 +55,27 @@ class ApplicationPluginsService(appPlugins: ApplicationPlugins) {
     )
   }
 
-  def getSourceReader(source: SourceViewDto): Option[BaseFeedReader] = {
+  def getSourceReader(source: SourceViewDto): BaseFeedReader = {
     val url = new URL(source.url)
     source.state match {
       case SourceStates.Neutral =>
-        Some(defaultPlugin)
+        defaultPlugin
       case SourceStates.Enable =>
         val feedReader = getFeedReader(url)
-
         val contentReader = getContentReader(url)
 
         (feedReader, contentReader) match {
           case (None, None) =>
-//            logger.warn(s"Disable ${source.id} -> ${source.name} Source. " +
-//              s"Plugin not found")
-
-            //stream.publish(DbHelperActor.SetState(source.id, Disable))
-
-            None
-          case (f, c) =>
+            defaultPlugin
+          case (f, _) =>
             val f0 = f.getOrElse(defaultPlugin)
-            val c0 = c.getOrElse(defaultPlugin)
-//            logger.info(s"${source.name} need plugin." +
-//              s" Detect feed plugin: ${f0.pluginName}, " +
-//              s" content plugin: ${c0.pluginName}")
-            Some(f0.asInstanceOf[BaseFeedReader])
+            f0.asInstanceOf[BaseFeedReader]
+          case _ =>
+            defaultPlugin
         }
 
-      case SourceStates.Disable => None
-
+      case SourceStates.Disable =>
+        defaultPlugin
     }
   }
 

@@ -4,6 +4,8 @@ import java.util.Date
 
 import slick.jdbc.JdbcProfile
 import slick.sql.SqlProfile.ColumnOption.{NotNull, Nullable, SqlType}
+import play.api.libs.json._
+import truerss.api.JsonFormats
 import truerss.db._
 
 /**
@@ -31,6 +33,15 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
         case 0 => SourceStates.Neutral
         case 1 => SourceStates.Enable
         case 2 => SourceStates.Disable
+      }
+    )
+  }
+
+  object SettingValueSupport {
+    implicit val inputValueMapper = MappedColumnType.base[SettingValue, String](
+      value => Json.stringify(JsonFormats.settingValueFormat.writes(value)),
+      from => {
+        JsonFormats.settingValueFormat.reads(Json.parse(from)).getOrElse(SelectableValue.empty)
       }
     )
   }
@@ -121,27 +132,46 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
     override def * = (id, fact, when) <> (Version.tupled, Version.unapply)
   }
 
+  class GlobalSettingsTable(tag: Tag) extends Table[GlobalSettings](tag, tableNames.globalSettings) {
+
+    import SettingValueSupport._
+
+    def key = column[String]("key", SqlType("TEXT"))
+    def value = column[SettingValue]("value")
+
+    def byKeyIndex = index("idx_key", key)
+
+    override def * = (key, value) <> (GlobalSettings.tupled, GlobalSettings.unapply)
+  }
+
   object query {
     lazy val sources = TableQuery[Sources]
     lazy val feeds = TableQuery[Feeds]
     lazy val versions = TableQuery[Versions]
+    lazy val globalSettings = TableQuery[GlobalSettingsTable]
   }
 
 }
 
-case class TableNames(sources: String, feeds: String, versions: String)
+case class TableNames(sources: String,
+                      feeds: String,
+                      versions: String,
+                      globalSettings: String
+                     )
 object TableNames {
   val default = TableNames(
     sources = "sources",
     feeds = "feeds",
-    versions = "versions"
+    versions = "versions",
+    globalSettings = "global_settings"
   )
 
   def withPrefix(prefix: String): TableNames = {
     TableNames(
       sources = s"${prefix}_sources",
       feeds = s"${prefix}_feeds",
-      versions = s"${prefix}_versions"
+      versions = s"${prefix}_versions",
+      globalSettings = s"${prefix}_global_settings"
     )
   }
 }
