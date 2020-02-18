@@ -4,7 +4,7 @@ import akka.actor.ActorRef
 import akka.http.scaladsl.model.headers.{HttpCookie, RawHeader}
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import truerss.dto.{NewSourceDto, UpdateSourceDto}
 import truerss.services.actors.management._
 import truerss.services.actors.sync.SourcesKeeperActor
@@ -14,9 +14,9 @@ import scala.io.Source
 import scala.util.Try
 
 
-class RoutingApiImpl(val service: ActorRef)(
+class RoutingApiImpl(val service: ActorRef, wsPort: Int)(
                     implicit override val ec: ExecutionContext,
-                    val materializer: ActorMaterializer
+                    val materializer: Materializer
 )
   extends HttpHelper {
 
@@ -31,7 +31,7 @@ class RoutingApiImpl(val service: ActorRef)(
   val fileName = "index.html"
 
   val route = pathEndOrSingleSlash {
-    setCookie(HttpCookie("port", "8081")) {
+    setCookie(HttpCookie("port", s"$wsPort")) {
       complete {
         HttpEntity(
           ContentTypes.`text/html(UTF-8)`,
@@ -148,8 +148,8 @@ object RoutingApi {
         <p>
           TrueRss is open source feed reader with customizable plugin system
           for any content (atom, rss, youtube channels...).
-          More info <a href='http://truerss.net'>truerss official site</a>
-          Download plugins: <a href='https://github.com/truerss?utf8=%E2%9C%93&query=plugin'>plugins</a>
+          More info <a href='https://github.com/truerss/truerss'>Github page</a>
+          Download plugins: <a href='https://github.com/truerss/plugins/releases'>plugins</a>
         </p>
         <ul>
           <li><code>left-arrow</code> - next post</li>
@@ -161,8 +161,9 @@ object RoutingApi {
         </ul>
     """.stripMargin
 
-  def safeToInt(possibleInt: String, recover: Int) =
+  def safeToInt(possibleInt: String, recover: Int) = {
     Try(possibleInt.toInt).getOrElse(recover)
+  }
 
   def makeRedirect(location: String) = {
     RawHeader("Redirect", location)

@@ -18,6 +18,8 @@ case class TrueRSSConfig(
   appPlugins: ApplicationPlugins = ApplicationPlugins()
 ) {
   require(port != wsPort)
+
+  val url = s"$host:$port"
 }
 
 case class DbConfig(
@@ -109,7 +111,7 @@ object TrueRSSConfig {
     val defaultConfigName = "default.conf"
 
     val (isUserConf, configFile) = if (!userConfigFile.exists()) {
-      Console.println(s"Config file $configFileName not exist in $appDir")
+      Console.println(s"Config file '$configFileName' was not found in '$appDir'")
       (false, new File(getClass.getClassLoader.getResource(defaultConfigName).getFile))
     } else {
       (true, userConfigFile)

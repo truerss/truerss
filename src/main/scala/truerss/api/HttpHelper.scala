@@ -4,7 +4,7 @@ import java.nio.charset.Charset
 
 import akka.actor.ActorRef
 import akka.pattern.ask
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import akka.util.Timeout
 
 import play.api.libs.json._
@@ -30,7 +30,7 @@ trait HttpHelper {
   val service: ActorRef // proxy service
   implicit val timeout = Timeout(30 seconds) // default
   implicit val ec: ExecutionContext
-  implicit val materializer: ActorMaterializer
+  implicit val materializer: Materializer
 
   val utf8 = Charset.forName("UTF-8")
 

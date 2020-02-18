@@ -26,7 +26,7 @@ class SourceActor(source: SourceViewDto, feedReader: BaseFeedReader)
   log.info(s"Next time update for ${source.name} -> ${updTime.tickTime}; " +
     s"Interval: ${updTime.interval}")
 
-  context.system.scheduler.schedule(
+  context.system.scheduler.scheduleWithFixedDelay(
     updTime.tickTime,
     updTime.interval,
     context.parent,
