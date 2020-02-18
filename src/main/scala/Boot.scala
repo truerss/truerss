@@ -19,11 +19,8 @@ object Boot extends App {
 
       val (actualConfig, dbConf, isUserConf) = TrueRSSConfig.loadConfiguration(trueRSSConfig)
 
-      implicit val system = ActorSystem("truerss")
+      implicit val system: ActorSystem = ActorSystem("truerss")
       import system.dispatcher
-      implicit val materializer = ActorMaterializer()
-
-      val stream = system.eventStream
 
       val dbEc = system.dispatchers.lookup("dispatchers.db-dispatcher")
 
@@ -34,13 +31,14 @@ object Boot extends App {
         "main-actor"
       )
 
-      Http().bindAndHandle(new RoutingApiImpl(mainActor).route,
+      Http().bindAndHandle(new RoutingApiImpl(mainActor, actualConfig.wsPort).route,
         actualConfig.host,
         actualConfig.port
-      )
+      ).foreach { _ =>
+        system.log.info(s"Http Server: ${actualConfig.url}")
+      }
 
-      val socketApi = system.actorOf(WebSockersSupport.props(actualConfig.wsPort), "ws-api")
-
+      system.actorOf(WebSockersSupport.props(actualConfig.wsPort), "ws-api")
 
     case None =>
       Console.err.println("Unknown argument")
