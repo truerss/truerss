@@ -7,39 +7,53 @@ import truerss.util.syntax
 
 import scala.concurrent.{ExecutionContext, Future}
 
-object SourceValidator {
+class SourceValidator()(implicit dbLayer: DbLayer, ec: ExecutionContext) {
 
   import syntax.ext._
-  private val urlValidator = new UrlValidator()
 
   type R = Either[String, SourceDto]
   type RL = Either[List[String], SourceDto]
 
-  def validateSource(source: SourceDto,
-                     dbLayer: DbLayer)(
-                      implicit ec: ExecutionContext
-                    ): Future[RL] = {
-    validate(source) match {
-      case Right(_) =>
-        for {
-          urlIsUniq <- dbLayer.sourceDao.findByUrl(source.url, source.getId)
-          nameIsUniq <- dbLayer.sourceDao.findByName(source.name, source.getId)
-        } yield {
-          (urlIsUniq, nameIsUniq) match {
-            case (0, 0) =>
-              source.right
+  private val urlValidator = new UrlValidator()
 
-            case (0, _) =>
-              l(nameError(source))
-            case (_, 0) =>
-              l(urlError(source))
-            case (_, _) =>
-              l(urlError(source), nameError(source))
-          }
-        }
+  protected val sourceUrlValidator = new SourceUrlValidator()
 
-      case Left(errors) =>
-        Future.successful(l(errors: _*))
+  def validateSource(source: SourceDto): Future[RL] = {
+    val vInterval = Future.successful(validateInterval(source))
+    val vUrl = Future.successful(validateUrl(source))
+    val vUrlIsUnique = urlIsUnique(source)
+    val vNameIsUnique = nameIsUnique(source)
+    val vIsRss = Future { sourceUrlValidator.validateUrl(source) }
+
+    Future.sequence(
+      Seq(vInterval, vUrl, vUrlIsUnique, vNameIsUnique, vIsRss)
+    ).map { results =>
+      val (errors, _) = results.partition(_.isLeft)
+      if (errors.nonEmpty) {
+        errors.map(_.swap).flatMap(_.toOption).toList.left
+      } else {
+        source.right
+      }
+    }
+  }
+
+  private def urlIsUnique(source: SourceDto)(implicit dbLayer: DbLayer, ec: ExecutionContext) = {
+    dbLayer.sourceDao.findByUrl(source.url, source.getId).map { x =>
+      if (x > 0) {
+        urlError(source).left
+      } else {
+        source.right
+      }
+    }
+  }
+
+  private def nameIsUnique(source: SourceDto)(implicit dbLayer: DbLayer, ec: ExecutionContext) = {
+    dbLayer.sourceDao.findByName(source.url, source.getId).map { x =>
+      if (x > 0) {
+        nameError(source).left
+      } else {
+        source.right
+      }
     }
   }
 

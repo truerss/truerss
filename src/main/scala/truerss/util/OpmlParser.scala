@@ -6,12 +6,13 @@ import scala.util.control.Exception._
 case class Outline(title: String, link: String)
 
 object OpmlParser {
+  import syntax._
+  import ext._
 
   val _outline = "outline"
   val _title = "title"
   val _xmlUrl = "xmlUrl"
-  import syntax._
-  import ext._
+
 
   def parse(s: String): String \/ Iterable[Outline] = {
     catching(classOf[Exception]) either load(s) fold(

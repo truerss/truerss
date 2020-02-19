@@ -24,20 +24,35 @@ trait Request {
 
 
   def getResponse(url: String): HttpResponse[String] = {
-    val response = scalaj.http.Http(url)
+    handle(defaultRequest(url))
+  }
+
+  def getRequestHeaders(url: String): Map[String, String] = {
+    handle(defaultRequest(url).method("Head"))
+      .headers.map { x => x._1 -> x._2.mkString }
+  }
+
+  private def handle(req: HttpRequest): HttpResponse[String] = {
+    val response = req.asString
+
+    if (response.is3xx) {
+      handle(defaultRequest(response.location.get))
+    } else {
+      response
+    }
+  }
+
+
+
+  private def defaultRequest(url: String): HttpRequest = {
+    scalaj.http.Http(url)
       .option(HttpOptions.connTimeout(connectionTimeout))
       .option(HttpOptions.readTimeout(readTimeout))
       .option(HttpOptions.allowUnsafeSSL)
       .option(HttpOptions.followRedirects(true))
       .header("Accept", "*/*")
       .compress(true)
-      .header("User-Agent", userAgent).asString
-
-    if (response.is3xx) {
-      getResponse(response.location.get)
-    } else {
-      response
-    }
+      .header("User-Agent", userAgent)
   }
 
 }
