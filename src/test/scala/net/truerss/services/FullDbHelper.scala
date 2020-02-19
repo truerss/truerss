@@ -19,7 +19,7 @@ trait FullDbHelper extends SpecificationLike with BeforeAfterAll {
   println(s"-------------> start db helper with db: $dbName")
 
   val callTime = 3 seconds
-  val initTime = 10 seconds
+  val initTime = 1 seconds
 
   private lazy val dbProfile = DBProfile.create(Sqlite)
 
@@ -46,7 +46,7 @@ trait FullDbHelper extends SpecificationLike with BeforeAfterAll {
     db.run {
       (driver.query.sources.schema ++ driver.query.feeds.schema).drop
     }
-    new File(s"$dbName.tdb").delete()
+    println(s"delete ===========> ${new File(s"./$dbName.tdb").delete()}")
   }
 
   def insert(x: Source): Long = {

@@ -6,8 +6,9 @@ import org.specs2.mutable.Specification
 import truerss.db.{DbLayer, SourceDao}
 import truerss.db.validation.{SourceUrlValidator, SourceValidator}
 import truerss.dto.SourceDto
+import truerss.util.ApplicationPlugins
 
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 
 class SourceValidatorTest(implicit ee: ExecutionEnv) extends Specification with Mockito {
@@ -15,7 +16,7 @@ class SourceValidatorTest(implicit ee: ExecutionEnv) extends Specification with 
   import Gen._
 
   implicit val dbLayer = mock[DbLayer]
-  private val sv = new SourceValidator
+  private val sv = new SourceValidator(new ApplicationPlugins)
   private val duration = 3 seconds
 
   "SourceValidator" should {
@@ -45,6 +46,7 @@ class SourceValidatorTest(implicit ee: ExecutionEnv) extends Specification with 
     }
 
     "all is not valid" in {
+      val boom = "boom!"
       val source = genNewSource.copy(url = "abc:)", interval = -1)
       val dbLayerM = mock[DbLayer]
       val sourceDaoM = mock[SourceDao]
@@ -52,14 +54,28 @@ class SourceValidatorTest(implicit ee: ExecutionEnv) extends Specification with 
       sourceDaoM.findByUrl(anyString, any[Option[Long]]) returns Future.successful(1)
       dbLayerM.sourceDao returns sourceDaoM
       val sourceUrlVMock = mock[SourceUrlValidator]
-      sourceUrlVMock.validateUrl(any[SourceDto]) returns Left("boom!")
-      val validator = new SourceValidator()(dbLayerM, ee.executionContext) {
-        override protected val sourceUrlValidator = sourceUrlVMock
+      sourceUrlVMock.validateUrl(any[SourceDto]) returns Left(boom)
+
+      def buildV(ps: ApplicationPlugins) = {
+        new SourceValidator(ps)(dbLayerM, ee.executionContext) {
+          override protected val sourceUrlValidator = sourceUrlVMock
+        }
       }
+
+      val validator = buildV(ApplicationPlugins())
       val result = Await.result(validator.validateSource(source), duration)
       result must beLeft
       val xs = result.swap.toOption.get
       xs must have size 5
+
+      val validator1 = buildV(new ApplicationPlugins {
+        override def matchUrl(url: String): Boolean = true
+      })
+      val result1 = Await.result(validator1.validateSource(source), duration)
+      result1 must beLeft
+      val xs1 = result1.swap.toOption.get
+      xs1 must have size 4
+      xs1 must not contain boom
     }
   }
 

@@ -62,6 +62,7 @@ MainController =
 
     Templates.modal_view.on 'button.close-modal', 'click', (e) ->
       modal.hide()
+
       clear_input()
 
   _load_js_and_css: (ajax) ->

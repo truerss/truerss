@@ -13,7 +13,7 @@ class SourcesService(dbLayer: DbLayer, appPlugins: ApplicationPlugins)(implicit 
   import DtoModelImplicits._
   import Util._
 
-  protected val sourceValidator = new SourceValidator()(dbLayer, ec)
+  protected val sourceValidator = new SourceValidator(appPlugins)(dbLayer, ec)
 
   def getAllForOpml: Future[Vector[SourceViewDto]] = {
     dbLayer.sourceDao.all.map { xs => xs.map(_.toView).toVector }

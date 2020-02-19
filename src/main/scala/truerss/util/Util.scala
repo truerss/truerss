@@ -38,7 +38,7 @@ object Util {
 
   // ?
   implicit class ApplicationPluginsExt(a: ApplicationPlugins) {
-    def getState(url: String) = if (a.matchUrl(new java.net.URL(url))) {
+    def getState(url: String) = if (a.matchUrl(url)) {
       SourceStates.Enable
     } else {
       SourceStates.Neutral

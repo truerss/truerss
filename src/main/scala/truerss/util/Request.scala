@@ -28,7 +28,7 @@ trait Request {
   }
 
   def getRequestHeaders(url: String): Map[String, String] = {
-    handle(defaultRequest(url).method("Head"))
+    handle(defaultRequest(url))
       .headers.map { x => x._1 -> x._2.mkString }
   }
 
