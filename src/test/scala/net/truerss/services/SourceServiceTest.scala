@@ -2,10 +2,13 @@ package net.truerss.services
 
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mutable.SpecificationLike
-import truerss.dto.UpdateSourceDto
+import truerss.db.validation.{SourceUrlValidator, SourceValidator}
+import truerss.dto.{SourceDto, UpdateSourceDto}
 import truerss.services.SourcesService
 import truerss.services.actors.management.DtoModelImplicits
 import truerss.util.ApplicationPlugins
+
+import scala.concurrent.duration._
 
 class SourceServiceTest(implicit ee: ExecutionEnv)
   extends FullDbHelper with SpecificationLike {
@@ -20,7 +23,15 @@ class SourceServiceTest(implicit ee: ExecutionEnv)
 
   val plugins = ApplicationPlugins()
 
-  val service = new SourcesService(dbLayer, plugins)
+  val service = new SourcesService(dbLayer, plugins) {
+    protected override val sourceValidator = new SourceValidator(plugins)(dbLayer, ee.executionContext) {
+      protected override val sourceUrlValidator = new SourceUrlValidator() {
+        override def validateUrl(dto: SourceDto): Either[String, SourceDto] = {
+          Right(dto)
+        }
+      }
+    }
+  }
 
   "SourceService" should {
     "getAll && opml" in {
@@ -41,6 +52,7 @@ class SourceServiceTest(implicit ee: ExecutionEnv)
     "get source by id" in {
       val source = Gen.genSource()
       val id = insert(source)
+      println(s"-------------------------------> ${id}")
       val result = a(service.getSource(id))
       result must beSome(source.withId(id).toView)
     }
@@ -71,10 +83,10 @@ class SourceServiceTest(implicit ee: ExecutionEnv)
 
       val feedId = a(dbLayer.feedDao.insert(feed))
 
-      service.delete(id).map(_ must beSome).await
+      service.delete(id).map(_ must beSome).await(3, 3 seconds)
 
       service.getSource(id).map(_ must beNone).await
-      dbLayer.feedDao.findBySource(id).map(_ must have size 0).await
+      dbLayer.feedDao.findBySource(feedId).map(_ must have size 0).await
     }
 
     "add source" in {

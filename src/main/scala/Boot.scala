@@ -2,7 +2,6 @@ package truerss
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.stream.ActorMaterializer
 import truerss.api.{RoutingApiImpl, WebSockersSupport}
 import truerss.db.driver.SupportedDb
 import truerss.services._

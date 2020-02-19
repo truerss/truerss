@@ -9,6 +9,7 @@ import com.typesafe.config.Config
 
 import scala.collection.mutable.ArrayBuffer
 import scala.language.existentials
+import scala.util.Try
 
 case class ApplicationPlugins(
                                feedPlugins: ArrayBuffer[BaseFeedPlugin] = ArrayBuffer.empty,
@@ -22,6 +23,10 @@ case class ApplicationPlugins(
     feedPlugins.exists(_.matchUrl(url)) ||
     contentPlugins.exists(_.matchUrl(url)) ||
     sitePlugins.exists(_.matchUrl(url))
+  }
+
+  def matchUrl(url: String): Boolean = {
+    Try(matchUrl(new java.net.URL(url))).toOption.getOrElse(false)
   }
 
 }
@@ -108,7 +113,7 @@ object PluginLoader {
 
           }
         } catch {
-          case x: java.lang.reflect.InvocationTargetException =>
+          case _: java.lang.reflect.InvocationTargetException =>
             Console.err.println("Error on plugin initialization")
             sys.exit(1)
         }

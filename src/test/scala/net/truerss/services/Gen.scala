@@ -37,7 +37,7 @@ object Gen {
 
   def genInt = new Random().nextInt(11) + 1
 
-  def genLong: Long = new Random().nextLong() + 1L
+  def genLong: Long = new Date().toInstant.toEpochMilli
 
   def tOf = if (genInt / 2 == 0) true else false
 
