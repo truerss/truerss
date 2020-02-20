@@ -86,7 +86,7 @@ object Tasks {
     val path = s"$pwd/src/main/resources/javascript/app"
 
     val files = "ext" :: "feeds_controller" :: "ws_controller" :: "contoller_ext" ::
-      "main_controller" :: "models" :: "sources_controller" ::
+      "main_controller" :: "models" :: "sources_controller" :: "settings_controller" ::
       "templates" :: "app" :: Nil
 
     val rfiles = files.map { f => s"$path/$f.coffee" }.mkString(" ")

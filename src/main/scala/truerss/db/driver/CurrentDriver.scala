@@ -141,7 +141,7 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
     override def * = (id, fact, when) <> (Version.tupled, Version.unapply)
   }
 
-  class GlobalSettingsTable(tag: Tag) extends Table[GlobalSettings](tag, tableNames.globalSettings) {
+  class GlobalSettingsTable(tag: Tag) extends Table[Settings](tag, tableNames.globalSettings) {
 
     import SettingKeySupport._
     import SettingValueSupport._
@@ -151,7 +151,7 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
 
     def byKeyIndex = index("idx_key", key)
 
-    override def * = (key, value) <> (GlobalSettings.tupled, GlobalSettings.unapply)
+    override def * = (key, value) <> (Settings.tupled, Settings.unapply)
   }
 
   object query {

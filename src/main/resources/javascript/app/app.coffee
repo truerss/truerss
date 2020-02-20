@@ -101,6 +101,7 @@ $ ->
     "click span.source-count": controller: SourcesController, action: "mark_by_click_on_count_button", data: "data-source-id"
     "input #search": controller: SourcesController, action: "filter"
     "mouseenter .tippy-count": controller: FeedsController, action: 'draw_tooltip', data: "data-source-id"
+    "/settings" : controller: SettingsController, action: "all"
 
   app = Sirius.Application.run
     route: routes

@@ -14,5 +14,5 @@ case class DbLayer(
                 implicit val ec: ExecutionContext) {
   val sourceDao = new SourceDao(db)(ec, driver)
   val feedDao = new FeedDao(db)(ec, driver)
-  val globalSettingsDao = new GlobalSettingsDao(db)(ec, driver)
+  val settingsDao = new SettingsDao(db)(ec, driver)
 }

@@ -4,7 +4,7 @@ import java.util.Date
 
 import play.api.libs.json._
 import truerss.db._
-import truerss.db.driver.{CheckBoxValue, SelectableValue, SettingKey, SettingValue, UnknownKey}
+import truerss.db.driver.{CheckBoxValue, Settings, ReadContent, SelectableValue, SettingKey, SettingValue, UnknownKey}
 import truerss.dto.{Notify, _}
 
 object JsonFormats {
@@ -102,8 +102,11 @@ object JsonFormats {
     override def reads(json: JsValue): JsResult[SettingKey] = {
       json match {
         case JsString(str) =>
-          val a = UnknownKey(str)
-          JsSuccess(a)
+          val key = str match {
+            case ReadContent.name => ReadContent
+            case x => UnknownKey(x)
+          }
+          JsSuccess(key)
         case x =>
           JsError(s"Unexpected type: $x")
       }
@@ -167,5 +170,6 @@ object JsonFormats {
     }
   }
 
+  implicit lazy val globalSettingsFormat: Format[Settings] = Json.format[Settings]
 
 }

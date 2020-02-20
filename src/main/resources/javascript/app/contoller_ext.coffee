@@ -5,6 +5,7 @@ class AjaxService
     @sources_api = "/api/v1/sources"
     @feeds_api = "/api/v1/feeds"
     @plugin_api = "/api/v1/plugins"
+    @settings_api = "/api/v1/settings"
     @k = () ->
 
   plugins_all: (success, error) ->
@@ -66,6 +67,9 @@ class AjaxService
 
   mark_all_as_read: () ->
     @_put("#{@sources_api}/markall", @k, @k)
+
+  get_settings: () ->
+    @_get("#{@settings_api}/current", @k)
 
   load_ejs: (url) ->
     jQuery.ajax

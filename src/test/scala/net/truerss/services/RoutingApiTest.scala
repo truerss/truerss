@@ -142,7 +142,7 @@ class RoutingApiTest extends RouteTest
     }
 
     "get global settings" in {
-      r(Get(s"$settingsUrl/global"), SettingsManagementActor.GetSettings)
+      r(Get(s"$settingsUrl/current"), SettingsManagementActor.GetSettings)
     }
 
   }

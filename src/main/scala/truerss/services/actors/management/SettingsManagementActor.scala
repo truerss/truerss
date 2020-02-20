@@ -2,6 +2,7 @@ package truerss.services.actors.management
 
 import akka.actor.Props
 import akka.pattern.pipe
+import truerss.api.SettingsResponse
 import truerss.services.GlobalSettingsService
 
 class SettingsManagementActor(globalSettingsService: GlobalSettingsService) extends CommonActor {
@@ -11,7 +12,7 @@ class SettingsManagementActor(globalSettingsService: GlobalSettingsService) exte
 
   def receive = {
     case GetSettings =>
-      globalSettingsService.getSettings pipeTo sender
+      globalSettingsService.getSettings.map(SettingsResponse) pipeTo sender
   }
 
 }

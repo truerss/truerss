@@ -100,7 +100,7 @@ class RoutingApiImpl(val service: ActorRef, wsPort: Int)(
       }
     } ~ pathPrefix("settings") {
       get {
-        pathPrefix("global") {
+        pathPrefix("current") {
           sendAndWait(SettingsManagementActor.GetSettings)
         }
       }
