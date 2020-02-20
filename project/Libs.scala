@@ -10,7 +10,7 @@ object Libs {
     val sqliteVersion = "3.8.7"
     val commonValidatorVersion = "1.6"
     val ceVersion = "0.0.3"
-    val akkaVersion  = "2.5.17"
+    val akkaVersion  = "2.6.3"
     val slickVersion = "3.2.3"
     val configVersion = "1.3.0"
     val scoptVersion = "3.7.0"
@@ -19,9 +19,9 @@ object Libs {
     val logbackVersion = "1.1.2"
     val baseVersion = "0.0.6"
     val jsoupVersion = "1.8.3"
-    val akkaHttpVersion = "10.1.5"
-    val specsVersion = "4.3.5"
-    val playJsonVersion = "2.6.10"
+    val akkaHttpVersion = "10.1.11"
+    val specsVersion = "4.8.3"
+    val playJsonVersion = "2.8.1"
   }
 
   import Versions._
@@ -47,7 +47,6 @@ object Libs {
   )
 
   val logs = Seq(
-    "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
     "ch.qos.logback" % "logback-classic" % logbackVersion
   )
 
@@ -56,9 +55,8 @@ object Libs {
   val akka = Seq(
     "com.typesafe.akka" %% "akka-actor" % akkaVersion,
     "com.typesafe.akka" %% "akka-stream" % akkaVersion,
-    "com.typesafe.akka" %% "akka-http-core" % akkaHttpVersion,
     "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
-    "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion,
+    "com.typesafe.akka" %% "akka-http-core" % akkaHttpVersion,
     "com.typesafe.akka" %% "akka-http" % akkaHttpVersion
   )
 

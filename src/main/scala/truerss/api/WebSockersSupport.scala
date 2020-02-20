@@ -31,7 +31,7 @@ case class SocketServer(port: Int,
   val connectionMap = scala.collection.mutable.Map[WebSocket, ActorRef]()
 
   override def onStart(): Unit = {
-    log.info("socket server started")
+    log.info(s"socket server started, port: $port")
   }
 
   override def onOpen(ws: WebSocket, clientHandshake: ClientHandshake): Unit = {

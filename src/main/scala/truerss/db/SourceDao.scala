@@ -34,9 +34,8 @@ class SourceDao(val db: DatabaseDef)(implicit
     }
   }
 
-  def insertMany(xs: Iterable[Source]): Unit = {
+  def insertMany(xs: Iterable[Source]) = {
     db.run {
-//      sources.forceInsertAll(xs)
       sources ++= xs
     }
   }

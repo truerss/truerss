@@ -5,9 +5,9 @@ import Libs._
 import Tasks._
 
 val setup = Seq(
-  resolvers += "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases",
+  resolvers += "Typesafe Releases" at "https://repo.typesafe.com/typesafe/releases",
   resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
-  resolvers += "JCenter" at "http://jcenter.bintray.com/",
+  resolvers += "JCenter" at "https://jcenter.bintray.com/",
   resolvers += "karussell_releases" at "https://github.com/karussell/mvnrepo",
   resolvers += Resolver.bintrayRepo("truerss", "maven"),
   scalaVersion := "2.12.4",
@@ -31,7 +31,7 @@ lazy val mainProject = Project("truerss", file(".")).settings(
     (compile in Compile) := (compile in Compile).dependsOn(buildCoffee).value,
     organization := "net.truerss",
     name := "truerss",
-    version := "0.0.3.4-pre.1",
+    version := "0.0.3.4-pre.3",
     parallelExecution in Test := false,
     assemblyJarName in assembly := s"truerss-${version.value}.jar",
     mainClass in assembly := Some("truerss.Boot"),

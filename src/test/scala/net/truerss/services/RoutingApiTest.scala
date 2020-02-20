@@ -32,7 +32,7 @@ class RoutingApiTest extends RouteTest
 
   val service = TestProbe()
 
-  val httpApi = new RoutingApiImpl(service.ref)
+  val httpApi = new RoutingApiImpl(service.ref, 8080)
   val route = httpApi.route
 
   val _ok = Unit ==== Unit

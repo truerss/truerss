@@ -41,7 +41,7 @@ class SourceDaoTest(implicit ee: ExecutionEnv) extends FullDbHelper
 
     "delete source" in {
       val id = a(sourceDao.insert(Gen.genSource()))
-
+      println(s"===> delete id:$id")
       sourceDao.delete(id) must be_==(1).await
 
       sourceDao.findOne(id) must beNone.await

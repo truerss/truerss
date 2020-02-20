@@ -13,6 +13,8 @@ class SourcesService(dbLayer: DbLayer, appPlugins: ApplicationPlugins)(implicit 
   import DtoModelImplicits._
   import Util._
 
+  protected val sourceValidator = new SourceValidator(appPlugins)(dbLayer, ec)
+
   def getAllForOpml: Future[Vector[SourceViewDto]] = {
     dbLayer.sourceDao.all.map { xs => xs.map(_.toView).toVector }
   }
@@ -59,7 +61,7 @@ class SourcesService(dbLayer: DbLayer, appPlugins: ApplicationPlugins)(implicit 
   }
 
   def addSource(dto: NewSourceDto): Future[Either[scala.List[String], SourceViewDto]] = {
-    SourceValidator.validateSource(dto, dbLayer).flatMap {
+    sourceValidator.validateSource(dto).flatMap {
       case Right(_) =>
         val source = dto.toSource
         val state = appPlugins.getState(source.url)
@@ -74,8 +76,7 @@ class SourcesService(dbLayer: DbLayer, appPlugins: ApplicationPlugins)(implicit 
   }
 
   def updateSource(sourceId: Long, dto: UpdateSourceDto): Future[Either[scala.List[String], SourceViewDto]] = {
-    SourceValidator
-      .validateSource(dto, dbLayer).flatMap {
+    sourceValidator.validateSource(dto).flatMap {
       case Right(_) =>
         val source = dto.toSource.withId(sourceId)
         val state = appPlugins.getState(source.url)

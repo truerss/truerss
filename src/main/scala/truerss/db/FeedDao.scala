@@ -152,7 +152,7 @@ class FeedDao(val db: DatabaseDef)(implicit
       val inDbMap = inDb.map(f => f.url -> f).toMap
       val (forceUpdateXs, updateXs) = xs.partition(_.forceUpdate)
       db.run {
-        val t = forceUpdateXs.map { entry =>
+        forceUpdateXs.map { entry =>
           val feed = entry.toFeed(sourceId)
           inDbMap.get(feed.url) match {
             case Some(_) =>
@@ -161,7 +161,6 @@ class FeedDao(val db: DatabaseDef)(implicit
               insert(feed)
           }
         }
-
 
         val updateXsMap = updateXs.map(_.toFeed(sourceId)).map(f => f.url -> f).toMap
         val inDbUrls = inDbMap.keySet

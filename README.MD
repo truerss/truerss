@@ -1,8 +1,6 @@
 
 # TrueRSS version 0.0.3
 
-# [Demo](http://demo.truerss.net/)
-
 # [screenshots](https://github.com/truerss/truerss/wiki/screenshots)
 
 # [group](https://groups.google.com/forum/#!forum/truerss)
