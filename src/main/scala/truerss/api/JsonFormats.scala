@@ -4,7 +4,7 @@ import java.util.Date
 
 import play.api.libs.json._
 import truerss.db._
-import truerss.db.driver.{SelectableValue, SettingValue}
+import truerss.db.driver.{CheckBoxValue, SelectableValue, SettingKey, SettingValue, UnknownKey}
 import truerss.dto.{Notify, _}
 
 object JsonFormats {
@@ -94,9 +94,26 @@ object JsonFormats {
     }
   }
 
+  implicit lazy val settingKeyFormat: Format[SettingKey] = new Format[SettingKey] {
+    override def writes(o: SettingKey): JsValue = {
+      JsString(o.name)
+    }
+
+    override def reads(json: JsValue): JsResult[SettingKey] = {
+      json match {
+        case JsString(str) =>
+          val a = UnknownKey(str)
+          JsSuccess(a)
+        case x =>
+          JsError(s"Unexpected type: $x")
+      }
+    }
+  }
+
   implicit lazy val settingValueFormat: Format[SettingValue] = new Format[SettingValue] {
     private val fType = "type"
     private val fValues = "values"
+    private val fValue = "value"
 
     override def writes(o: SettingValue): JsValue = {
       o match {
@@ -105,6 +122,13 @@ object JsonFormats {
             Seq(
               fType -> JsString(i.name),
               fValues -> JsArray(xs.map(x => JsString(x)).toSeq)
+            )
+          )
+        case i @ CheckBoxValue(currentState) =>
+          JsObject(
+            Seq(
+              fType -> JsString(i.name),
+              fValue -> JsBoolean(currentState)
             )
           )
       }
@@ -124,6 +148,13 @@ object JsonFormats {
                 SelectableValue(
                   values
                 )
+              )
+
+            case Some(JsString(CheckBoxValue.fName)) =>
+              val state = obj.get(fValue).collect { case JsBoolean(x) => x }
+                .getOrElse(false)
+              JsSuccess(
+                CheckBoxValue(state)
               )
 
             case _ =>

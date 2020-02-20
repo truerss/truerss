@@ -46,6 +46,15 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
     )
   }
 
+  object SettingKeySupport {
+    implicit val settingKeyMapper = MappedColumnType.base[SettingKey, String](
+      value => Json.stringify(JsonFormats.settingKeyFormat.writes(value)),
+      from => {
+        JsonFormats.settingKeyFormat.reads(Json.parse(from)).getOrElse(UnknownKey(from))
+      }
+    )
+  }
+
   class Sources(tag: Tag) extends Table[Source](tag, tableNames.sources) {
 
     import DateSupport._
@@ -134,9 +143,10 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
 
   class GlobalSettingsTable(tag: Tag) extends Table[GlobalSettings](tag, tableNames.globalSettings) {
 
+    import SettingKeySupport._
     import SettingValueSupport._
 
-    def key = column[String]("key", SqlType("TEXT"))
+    def key = column[SettingKey]("key")
     def value = column[SettingValue]("value")
 
     def byKeyIndex = index("idx_key", key)

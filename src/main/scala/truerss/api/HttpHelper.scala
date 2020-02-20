@@ -71,17 +71,10 @@ trait HttpHelper {
   }
 
   def flush(cnt: C, content: String) = {
-    val entity = if (cnt.binary) {
-      HttpEntity.apply(
-        cnt,
-        content.getBytes(utf8)
-      )
-    } else {
-      HttpEntity.apply(
-        contentType = cnt,
-        content.getBytes(utf8)
-      )
-    }
+    val entity = HttpEntity.apply(
+      contentType = cnt,
+      content.getBytes(utf8)
+    )
 
     RouteResult.Complete(
       HttpResponse(
