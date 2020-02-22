@@ -1,6 +1,5 @@
 package truerss.api
 
-import akka.actor.ActorRef
 import akka.http.scaladsl.model.Multipart
 import akka.stream.Materializer
 import akka.http.scaladsl.server.Directives._
@@ -17,7 +16,6 @@ class SourcesApi(sourcesManagement: SourcesManagement,
   implicit override val ec: ExecutionContext,
   val materializer: Materializer
 ) extends HttpHelper {
-  override val service: ActorRef = null
 
   import JsonFormats._
 

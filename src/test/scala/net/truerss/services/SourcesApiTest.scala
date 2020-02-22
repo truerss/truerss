@@ -5,7 +5,7 @@ import akka.http.scaladsl.model.{ContentTypes, Multipart, StatusCodes}
 import akka.http.scaladsl.server.Route
 import truerss.api.{BadRequestResponse, FeedsResponse, ImportResponse, JsonFormats, Ok, SourceResponse, SourcesApi, SourcesResponse}
 import truerss.services.management.{FeedsManagement, OpmlManagement, SourcesManagement}
-import truerss.services.actors.management.DtoModelImplicits
+import truerss.services.management.DtoModelImplicits
 import play.api.libs.json._
 import truerss.dto.FeedDto
 import truerss.util.Util.ResponseHelpers

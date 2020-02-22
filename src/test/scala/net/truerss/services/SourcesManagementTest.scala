@@ -7,7 +7,7 @@ import org.specs2.mutable.Specification
 import truerss.api.SourceResponse
 import truerss.services.{OpmlService, SourcesService}
 import truerss.services.management.SourcesManagement
-import truerss.services.actors.management.DtoModelImplicits
+import truerss.services.management.DtoModelImplicits
 import truerss.services.actors.sync.SourcesKeeperActor
 import truerss.util.Util.ResponseHelpers
 

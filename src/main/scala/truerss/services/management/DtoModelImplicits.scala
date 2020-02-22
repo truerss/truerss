@@ -1,4 +1,4 @@
-package truerss.services.actors.management
+package truerss.services.management
 
 import java.util.Date
 

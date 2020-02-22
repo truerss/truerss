@@ -2,8 +2,7 @@ package truerss.services.management
 
 import akka.event.EventStream
 import truerss.api.{BadRequestResponse, ImportResponse, Ok, Response}
-import truerss.dto.NewSourceFromFileWithErrors
-import truerss.services.actors.management.OpmlActor.{from, interval}
+import truerss.dto.{NewSourceDto, NewSourceFromFileWithErrors}
 import truerss.services.actors.sync.SourcesKeeperActor
 import truerss.services.{OpmlService, SourcesService}
 
@@ -16,6 +15,7 @@ class OpmlManagement(opmlService: OpmlService,
                     (implicit ec: ExecutionContext)
 {
 
+  import OpmlManagement._
   private val logger = org.slf4j.LoggerFactory.getLogger(getClass)
 
   type R = Future[Response]
@@ -61,4 +61,16 @@ class OpmlManagement(opmlService: OpmlService,
     }.flatMap(identity)
   }
 
+}
+
+object OpmlManagement {
+  val interval = 8
+
+  def from(url: String, name: String, interval: Int): NewSourceDto = {
+    NewSourceDto(
+      url = url,
+      name = name,
+      interval = interval
+    )
+  }
 }

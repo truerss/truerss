@@ -2,17 +2,15 @@ package truerss.api
 
 import java.nio.charset.Charset
 
-import akka.actor.ActorRef
-import akka.pattern.ask
 import akka.stream.Materializer
-import akka.util.Timeout
-
-import play.api.libs.json._
-
+import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server._
+import akka.http.scaladsl.model.{ContentType => C, _}
 import scala.concurrent.{ExecutionContext, Future}
-import scala.concurrent.duration._
 import scala.reflect.ClassTag
 import scala.util.{Try, Failure => F, Success => S}
+
+import play.api.libs.json._
 
 /**
   * Created by mike on 17.12.16.
@@ -20,15 +18,9 @@ import scala.util.{Try, Failure => F, Success => S}
 trait HttpHelper {
 
   import JsonFormats._
-  import akka.http.scaladsl.model.{ContentType => C, _}
   import StatusCodes._
-  import akka.http.scaladsl.server.Directives._
-  import akka.http.scaladsl.server._
   import RouteResult._
 
-
-  val service: ActorRef // proxy service
-  implicit val timeout = Timeout(30 seconds) // default
   implicit val ec: ExecutionContext
   implicit val materializer: Materializer
 
@@ -58,17 +50,6 @@ trait HttpHelper {
   def safeParse[T : Reads : ClassTag](json: String): Try[T] = {
     Try {
       Json.parse(json).as[T]
-    }
-  }
-
-  def create[T : Reads : ClassTag](f: T => Any) = {
-    entity(as[String]) { json =>
-      safeParse[T](json) match {
-        case S(dto) =>
-          sendAndWait(f(dto))
-        case F(x) =>
-          complete(response(BadRequest, s"Unable to parse request: $x"))
-      }
     }
   }
 
@@ -102,14 +83,6 @@ trait HttpHelper {
         entity = entity
       )
     )
-  }
-
-  def send(message: Any): Future[Response] = {
-    service.ask(message).mapTo[Response]
-  }
-
-  def sendAndWait(message: Any): Route = {
-    andWait(send(message))
   }
 
   def call(f: Response): Route = {

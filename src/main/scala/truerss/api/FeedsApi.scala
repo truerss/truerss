@@ -1,6 +1,5 @@
 package truerss.api
 
-import akka.actor.ActorRef
 import akka.stream.Materializer
 import akka.http.scaladsl.server.Directives._
 import truerss.services.management.FeedsManagement
@@ -12,7 +11,6 @@ class FeedsApi(val feedsManagement: FeedsManagement)
                 implicit override val ec: ExecutionContext,
                 val materializer: Materializer
               ) extends HttpHelper {
-  override val service: ActorRef = null
 
   val fm = feedsManagement
 
