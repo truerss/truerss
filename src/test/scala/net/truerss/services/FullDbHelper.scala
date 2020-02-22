@@ -19,7 +19,7 @@ trait FullDbHelper extends SpecificationLike with BeforeAfterAll {
   println(s"-------------> start db helper with db: $dbName")
 
   val callTime = 3 seconds
-  val initTime = 1 seconds
+  val initTime = 3 seconds
 
   private lazy val dbProfile = DBProfile.create(Sqlite)
 

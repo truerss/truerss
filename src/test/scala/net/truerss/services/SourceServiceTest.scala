@@ -5,7 +5,7 @@ import org.specs2.mutable.SpecificationLike
 import truerss.db.validation.{SourceUrlValidator, SourceValidator}
 import truerss.dto.{SourceDto, UpdateSourceDto}
 import truerss.services.SourcesService
-import truerss.services.actors.management.DtoModelImplicits
+import truerss.services.management.DtoModelImplicits
 import truerss.util.ApplicationPlugins
 
 import scala.concurrent.duration._
