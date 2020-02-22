@@ -13,6 +13,8 @@ import scala.concurrent.Future
 
 class FeedsManagementTest(implicit val ee: ExecutionEnv) extends Specification with Mockito {
 
+  sequential
+
   private val feedId = 1L
   private val feedId1 = 10L
   private val feedId2 = 100L

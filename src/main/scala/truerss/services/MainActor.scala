@@ -56,10 +56,8 @@ class MainActor(config: TrueRSSConfig,
 
 
   def receive = {
-      // todo remove
-    case msg: SourcesKeeperActor.SourcesMessage =>
-      stream.publish(msg)
-      sender ! ResponseHelpers.ok
+    case x =>
+      log.warning(s"Unhandled message: $x, from: $sender")
   }
 
   private def create(props: Props): ActorRef = {

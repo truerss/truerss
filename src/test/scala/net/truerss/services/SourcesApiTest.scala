@@ -12,6 +12,8 @@ import truerss.util.Util.ResponseHelpers
 
 class SourcesApiTest extends BaseApiTest {
 
+  sequential
+
   import JsonFormats._
   import DtoModelImplicits._
 

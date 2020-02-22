@@ -12,8 +12,11 @@ import truerss.services.actors.sync.SourcesKeeperActor
 import truerss.util.Util.ResponseHelpers
 
 import scala.concurrent.Future
+import scala.concurrent.duration._
 
 class SourcesManagementTest(implicit val ee: ExecutionEnv) extends Specification with Mockito {
+
+  sequential
 
   import DtoModelImplicits._
 
@@ -61,7 +64,7 @@ class SourcesManagementTest(implicit val ee: ExecutionEnv) extends Specification
     "force single" in {
       s.forceRefreshSource(sourceId) must be_==(ResponseHelpers.ok).await
 
-      there was one(es).publish(SourcesKeeperActor.UpdateOne(sourceId))
+      there was after(10.millis).one(es).publish(SourcesKeeperActor.UpdateOne(sourceId))
       there was no(sm)
     }
   }
