@@ -36,15 +36,15 @@ class SourcesManagementActorTest
         service.getSource(v.id).returns(f(Some(v)))
         pass(S.GetSource(v.id)) {
           case msg: SourceResponse =>
-            msg.x must beSome(v)
+            msg.x ==== v
         }
       }
 
       "not found" in new MyTest {
         service.getSource(v.id).returns(f(None))
         pass(S.GetSource(v.id)) {
-          case msg: SourceResponse =>
-            msg.x must beNone
+          case msg: NotFoundResponse =>
+            success
         }
       }
     }
@@ -86,7 +86,7 @@ class SourcesManagementActorTest
         pass(S.AddSource(n)) {
           case msg: SourceResponse =>
             streamRef.expectMsgClass(classOf[SourcesKeeperActor.NewSource])
-            msg.x must beSome(v)
+            msg.x ==== v
         }
       }
 
@@ -110,7 +110,7 @@ class SourcesManagementActorTest
         pass(S.UpdateSource(id, u)) {
           case msg: SourceResponse =>
             streamRef.expectMsgClass(classOf[SourcesKeeperActor.ReloadSource])
-            msg.x must beSome(v)
+            msg.x ==== v
         }
       }
 

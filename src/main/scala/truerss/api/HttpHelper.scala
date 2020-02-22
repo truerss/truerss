@@ -34,6 +34,8 @@ trait HttpHelper {
 
   val utf8 = Charset.forName("UTF-8")
 
+  val api = pathPrefix("api" / "v1")
+
   def response(status: StatusCode, msg: String) = {
     val entity = status match {
       case StatusCodes.OK =>
@@ -70,6 +72,17 @@ trait HttpHelper {
     }
   }
 
+  def create1[T : Reads : ClassTag](f: T => Future[Response]) = {
+    entity(as[String]) { json =>
+      safeParse[T](json) match {
+        case S(dto) =>
+          call(f(dto))
+        case F(x) =>
+          complete(response(BadRequest, s"Unable to parse request: $x"))
+      }
+    }
+  }
+
   def flush(cnt: C, content: String) = {
     val entity = if (cnt.binary) {
       HttpEntity.apply(
@@ -97,6 +110,14 @@ trait HttpHelper {
 
   def sendAndWait(message: Any): Route = {
     andWait(send(message))
+  }
+
+  def call(f: Response): Route = {
+    call(Future.successful(f))
+  }
+
+  def call(f: Future[Response]): Route = {
+    andWait(f)
   }
 
   def andWait(f: Future[Response]): Route = {

@@ -24,7 +24,7 @@ class SourcesManagementActor(sourcesService: SourcesService) extends CommonActor
       sourcesService.getAll.map(SourcesResponse) pipeTo sender
 
     case GetSource(sourceId) =>
-      sourcesService.getSource(sourceId).map(SourceResponse) pipeTo sender
+      sourcesService.getSource(sourceId).map( x => SourceResponse(x.get)) pipeTo sender
 
     case Mark(sourceId) =>
       sourcesService.markAsRead(sourceId).map(_ => ok) pipeTo sender
@@ -44,7 +44,7 @@ class SourcesManagementActor(sourcesService: SourcesService) extends CommonActor
 
         case Right(x) =>
           stream.publish(SourcesKeeperActor.NewSource(x))
-          SourceResponse(Some(x))
+          SourceResponse(x)
       } pipeTo sender
 
     case UpdateSource(sourceId, dto) =>
@@ -54,7 +54,7 @@ class SourcesManagementActor(sourcesService: SourcesService) extends CommonActor
 
         case Right(x) =>
           stream.publish(SourcesKeeperActor.ReloadSource(x))
-          SourceResponse(Some(x))
+          SourceResponse(x)
       } pipeTo sender
   }
 }
