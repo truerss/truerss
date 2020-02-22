@@ -89,8 +89,8 @@ object SupportedDb {
       Await.result(db.run { driver.query.versions.schema.create }, waitTime)
     }
 
-    if (!tableNames.contains(names.globalSettings)) {
-      Await.result(db.run { driver.query.globalSettings.schema.create }, waitTime)
+    if (!tableNames.contains(names.settings)) {
+      Await.result(db.run { driver.query.settings.schema.create }, waitTime)
     }
 
     runMigrations(db, dbProfile, driver)

@@ -9,10 +9,10 @@ class SettingsDao(val db: DatabaseDef)(implicit
                                        val ec: ExecutionContext,
                                        driver: CurrentDriver) {
   import driver.profile.api._
-  import driver.query.globalSettings
+  import driver.query.settings
 
   def getSettings: Future[Iterable[Settings]] = {
-    db.run(globalSettings.result)
+    db.run(settings.result)
   }
 
 

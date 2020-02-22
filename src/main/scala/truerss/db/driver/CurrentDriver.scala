@@ -141,7 +141,7 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
     override def * = (id, fact, when) <> (Version.tupled, Version.unapply)
   }
 
-  class GlobalSettingsTable(tag: Tag) extends Table[Settings](tag, tableNames.globalSettings) {
+  class SettingsTable(tag: Tag) extends Table[Settings](tag, tableNames.settings) {
 
     import SettingKeySupport._
     import SettingValueSupport._
@@ -158,7 +158,7 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
     lazy val sources = TableQuery[Sources]
     lazy val feeds = TableQuery[Feeds]
     lazy val versions = TableQuery[Versions]
-    lazy val globalSettings = TableQuery[GlobalSettingsTable]
+    lazy val settings = TableQuery[SettingsTable]
   }
 
 }
@@ -166,14 +166,14 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
 case class TableNames(sources: String,
                       feeds: String,
                       versions: String,
-                      globalSettings: String
+                      settings: String
                      )
 object TableNames {
   val default = TableNames(
     sources = "sources",
     feeds = "feeds",
     versions = "versions",
-    globalSettings = "global_settings"
+    settings = "settings"
   )
 
   def withPrefix(prefix: String): TableNames = {
@@ -181,7 +181,7 @@ object TableNames {
       sources = s"${prefix}_sources",
       feeds = s"${prefix}_feeds",
       versions = s"${prefix}_versions",
-      globalSettings = s"${prefix}_global_settings"
+      settings = s"${prefix}_settings"
     )
   }
 }

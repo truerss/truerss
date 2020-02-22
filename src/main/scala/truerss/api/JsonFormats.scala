@@ -4,8 +4,10 @@ import java.util.Date
 
 import play.api.libs.json._
 import truerss.db._
-import truerss.db.driver.{CheckBoxValue, Settings, ReadContent, SelectableValue, SettingKey, SettingValue, UnknownKey}
+import truerss.db.driver.{CheckBoxValue, ReadContent, SelectableValue, SettingKey, SettingValue, Settings, UnknownKey, UserSelectedValue, UserSettings}
 import truerss.dto.{Notify, _}
+
+import scala.reflect.ClassTag
 
 object JsonFormats {
 
@@ -171,5 +173,48 @@ object JsonFormats {
   }
 
   implicit lazy val globalSettingsFormat: Format[Settings] = Json.format[Settings]
+
+  implicit lazy val userSelectedValueFormat: Format[UserSelectedValue[_]] = ???
+//    new Format[UserSelectedValue[_]] {
+//    private final val fValue = "value"
+//    override def writes[T: ClassTag](o: UserSelectedValue[_]): JsValue = {
+//      val v = o.value match {
+//        case value: Boolean => JsBoolean(value)
+//        case value: Int => JsNumber(value)
+//        case value: String => JsString(value)
+//      }
+//      JsObject(Seq(fValue -> v))
+//    }
+//
+//    override def reads(json: JsValue): JsResult[UserSelectedValue[_]] = {
+//      json match {
+//        case JsObject(obj) =>
+//          obj.get(fValue) match {
+//            case Some(JsBoolean(bool)) =>
+//              JsSuccess(UserSelectedBoolValue(bool))
+//
+//            case Some(JsNumber(value)) =>
+//              JsSuccess(UserSelectedIntValue(value.toInt))
+//
+//            case _ =>
+//              JsError("Object must have 'value' field")
+//          }
+//        case _ =>
+//          JsError("Object is required")
+//      }
+//    }
+//  }
+
+//  implicit lazy val userSettingsFormat: Format[UserSettings] = new Format[UserSettings[_]] {
+//    override def reads(json: JsValue): JsResult[UserSettings] = {
+//      ???
+//    }
+//
+//    override def writes(o: UserSettings): JsValue = {
+////      JsObject(Seq("key" -> o.key.name)) ++ userSelectedValueFormat.writes(o.value).as[JsObject]
+//      ???
+//    }
+//
+//  }
 
 }
