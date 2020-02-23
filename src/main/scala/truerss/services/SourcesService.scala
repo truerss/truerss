@@ -3,14 +3,14 @@ package truerss.services
 import truerss.db.DbLayer
 import truerss.db.validation.SourceValidator
 import truerss.dto.{NewSourceDto, SourceViewDto, UpdateSourceDto}
-import truerss.services.management.DtoModelImplicits
+import truerss.services.management.FeedSourceDtoModelImplicits
 import truerss.util.{ApplicationPlugins, Util}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class SourcesService(dbLayer: DbLayer, appPlugins: ApplicationPlugins)(implicit ec: ExecutionContext) {
 
-  import DtoModelImplicits._
+  import FeedSourceDtoModelImplicits._
   import Util._
 
   protected val sourceValidator = new SourceValidator(appPlugins)(dbLayer, ec)

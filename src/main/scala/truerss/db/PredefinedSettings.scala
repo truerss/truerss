@@ -27,4 +27,4 @@ object CheckBoxValue {
   val empty = CheckBoxValue(false)
 }
 
-case class PredefinedSettings(key: String, value: SettingValue)
+case class PredefinedSettings(key: String, description: String, value: SettingValue)

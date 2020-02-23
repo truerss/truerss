@@ -4,7 +4,7 @@ import akka.actor.{Actor, ActorLogging, Props}
 import akka.event.EventStream
 import com.github.truerss.base.Entry
 import truerss.api.WebSockerController
-import truerss.services.management.DtoModelImplicits
+import truerss.services.management.FeedSourceDtoModelImplicits
 import truerss.db.DbLayer
 import truerss.db._
 
@@ -12,7 +12,7 @@ class DbHelperActor(dbLayer: DbLayer)
   extends Actor with ActorLogging {
 
   import DbHelperActor._
-  import DtoModelImplicits._
+  import FeedSourceDtoModelImplicits._
   import context.dispatcher
 
   val stream: EventStream = context.system.eventStream

@@ -6,7 +6,7 @@ import truerss.dto.{FeedDto, NewSourceDto, SourceViewDto, UpdateSourceDto}
 import truerss.db.{Feed, SourceStates, Source}
 import truerss.util.Util
 
-object DtoModelImplicits {
+object FeedSourceDtoModelImplicits {
 
   import Util._
 

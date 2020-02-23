@@ -7,7 +7,7 @@ import org.specs2.mutable.Specification
 import truerss.api.SourceResponse
 import truerss.services.{OpmlService, SourcesService}
 import truerss.services.management.SourcesManagement
-import truerss.services.management.DtoModelImplicits
+import truerss.services.management.FeedSourceDtoModelImplicits
 import truerss.services.actors.sync.SourcesKeeperActor
 import truerss.util.Util.ResponseHelpers
 
@@ -18,7 +18,7 @@ class SourcesManagementTest(implicit val ee: ExecutionEnv) extends Specification
 
   sequential
 
-  import DtoModelImplicits._
+  import FeedSourceDtoModelImplicits._
 
   private val sourceId = 1L
   private val dto = Gen.genSource(Some(sourceId)).toView

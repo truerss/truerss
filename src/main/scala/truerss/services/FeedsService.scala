@@ -3,13 +3,13 @@ package truerss.services
 import truerss.db.DbLayer
 import truerss.dto.FeedDto
 import truerss.db.Feed
-import truerss.services.management.DtoModelImplicits
+import truerss.services.management.FeedSourceDtoModelImplicits
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class FeedsService(dbLayer: DbLayer)(implicit val ec: ExecutionContext) {
 
-  import DtoModelImplicits._
+  import FeedSourceDtoModelImplicits._
 
   def findOne(feedId: Long): Future[Option[FeedDto]] = {
     dbLayer.feedDao.findOne(feedId).map { x => x.map(_.toDto) }

@@ -137,20 +137,22 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
     import SettingValueSupport._
 
     def key = column[String]("key")
+    def description = column[String]("description")
     def value = column[SettingValue]("value")
 
     def byKeyIndex = index("idx_key", key)
 
-    override def * = (key, value) <> (PredefinedSettings.tupled, PredefinedSettings.unapply)
+    override def * = (key, description, value) <> (PredefinedSettings.tupled, PredefinedSettings.unapply)
   }
 
   class UserSettingsTable(tag: Tag) extends Table[UserSettings](tag, tableNames.userSettings) {
     def key = column[String]("key")
+    def description = column[String]("description")
     def valueInt = column[Int]("valueInt")
     def valueBoolean = column[Boolean]("valueBoolean")
     def valueString = column[String]("valueString")
 
-    override def * = (key, valueInt.?, valueBoolean.?, valueString.?) <> (UserSettings.tupled, UserSettings.unapply)
+    override def * = (key, description, valueInt.?, valueBoolean.?, valueString.?) <> (UserSettings.tupled, UserSettings.unapply)
   }
 
   object query {
