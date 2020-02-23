@@ -4,10 +4,7 @@ import java.util.Date
 
 import play.api.libs.json._
 import truerss.db._
-import truerss.db.driver.{CheckBoxValue, ReadContent, SelectableValue, SettingKey, SettingValue, Settings, UnknownKey, UserSelectedValue, UserSettings}
 import truerss.dto.{Notify, _}
-
-import scala.reflect.ClassTag
 
 object JsonFormats {
 
@@ -96,125 +93,6 @@ object JsonFormats {
     }
   }
 
-  implicit lazy val settingKeyFormat: Format[SettingKey] = new Format[SettingKey] {
-    override def writes(o: SettingKey): JsValue = {
-      JsString(o.name)
-    }
 
-    override def reads(json: JsValue): JsResult[SettingKey] = {
-      json match {
-        case JsString(str) =>
-          val key = str match {
-            case ReadContent.name => ReadContent
-            case x => UnknownKey(x)
-          }
-          JsSuccess(key)
-        case x =>
-          JsError(s"Unexpected type: $x")
-      }
-    }
-  }
-
-  implicit lazy val settingValueFormat: Format[SettingValue] = new Format[SettingValue] {
-    private val fType = "type"
-    private val fValues = "values"
-    private val fValue = "value"
-
-    override def writes(o: SettingValue): JsValue = {
-      o match {
-        case i @ SelectableValue(xs) =>
-          JsObject(
-            Seq(
-              fType -> JsString(i.name),
-              fValues -> JsArray(xs.map(x => JsString(x)).toSeq)
-            )
-          )
-        case i @ CheckBoxValue(currentState) =>
-          JsObject(
-            Seq(
-              fType -> JsString(i.name),
-              fValue -> JsBoolean(currentState)
-            )
-          )
-      }
-    }
-
-    override def reads(json: JsValue): JsResult[SettingValue] = {
-      json match {
-        case JsObject(obj) =>
-          val tpe = obj.get(fType)
-          tpe match {
-            case Some(JsString(SelectableValue.fName)) =>
-              val values = obj.get(fValues)
-                .collect { case xs: JsArray => xs }
-                .map { arr => arr.value.collect { case JsString(value) => value } }
-                .getOrElse(Iterable.empty)
-              JsSuccess(
-                SelectableValue(
-                  values
-                )
-              )
-
-            case Some(JsString(CheckBoxValue.fName)) =>
-              val state = obj.get(fValue).collect { case JsBoolean(x) => x }
-                .getOrElse(false)
-              JsSuccess(
-                CheckBoxValue(state)
-              )
-
-            case _ =>
-              JsError(s"Unexpected type: $tpe")
-          }
-
-        case _ =>
-          JsError("Object is required")
-      }
-    }
-  }
-
-  implicit lazy val globalSettingsFormat: Format[Settings] = Json.format[Settings]
-
-  implicit lazy val userSelectedValueFormat: Format[UserSelectedValue[_]] = ???
-//    new Format[UserSelectedValue[_]] {
-//    private final val fValue = "value"
-//    override def writes[T: ClassTag](o: UserSelectedValue[_]): JsValue = {
-//      val v = o.value match {
-//        case value: Boolean => JsBoolean(value)
-//        case value: Int => JsNumber(value)
-//        case value: String => JsString(value)
-//      }
-//      JsObject(Seq(fValue -> v))
-//    }
-//
-//    override def reads(json: JsValue): JsResult[UserSelectedValue[_]] = {
-//      json match {
-//        case JsObject(obj) =>
-//          obj.get(fValue) match {
-//            case Some(JsBoolean(bool)) =>
-//              JsSuccess(UserSelectedBoolValue(bool))
-//
-//            case Some(JsNumber(value)) =>
-//              JsSuccess(UserSelectedIntValue(value.toInt))
-//
-//            case _ =>
-//              JsError("Object must have 'value' field")
-//          }
-//        case _ =>
-//          JsError("Object is required")
-//      }
-//    }
-//  }
-
-//  implicit lazy val userSettingsFormat: Format[UserSettings] = new Format[UserSettings[_]] {
-//    override def reads(json: JsValue): JsResult[UserSettings] = {
-//      ???
-//    }
-//
-//    override def writes(o: UserSettings): JsValue = {
-////      JsObject(Seq("key" -> o.key.name)) ++ userSelectedValueFormat.writes(o.value).as[JsObject]
-//      ???
-//    }
-//
-//  }
 
 }

@@ -1,6 +1,6 @@
 package truerss.api
 
-import truerss.db.driver.Settings
+import truerss.db.driver.PredefinedSettings
 import truerss.dto.{FeedDto, NewSourceFromFileWithErrors, PluginsViewDto, SourceViewDto}
 
 sealed trait Response
@@ -11,7 +11,7 @@ case class FeedsResponse(xs: Vector[FeedDto]) extends Response
 case class FeedsPageResponse(xs: Vector[FeedDto], total: Int) extends Response
 case class AppPluginsResponse(view: PluginsViewDto) extends Response
 case class ImportResponse(result: Map[Int, Either[NewSourceFromFileWithErrors, SourceViewDto]]) extends Response
-case class SettingsResponse(result: Iterable[Settings]) extends Response
+case class SettingsResponse(result: Iterable[PredefinedSettings]) extends Response
 //
 
 case class Ok(msg: String) extends Response

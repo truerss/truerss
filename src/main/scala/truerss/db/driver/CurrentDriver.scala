@@ -38,19 +38,11 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
   }
 
   object SettingValueSupport {
-    implicit val inputValueMapper = MappedColumnType.base[SettingValue, String](
-      value => Json.stringify(JsonFormats.settingValueFormat.writes(value)),
-      from => {
-        JsonFormats.settingValueFormat.reads(Json.parse(from)).getOrElse(SelectableValue.empty)
-      }
-    )
-  }
 
-  object SettingKeySupport {
-    implicit val settingKeyMapper = MappedColumnType.base[SettingKey, String](
-      value => Json.stringify(JsonFormats.settingKeyFormat.writes(value)),
+    implicit val inputValueMapper = MappedColumnType.base[SettingValue, String](
+      value => Json.stringify(DbSettingJsonFormats.settingValueFormat.writes(value)),
       from => {
-        JsonFormats.settingKeyFormat.reads(Json.parse(from)).getOrElse(UnknownKey(from))
+        DbSettingJsonFormats.settingValueFormat.reads(Json.parse(from)).getOrElse(SelectableValue.empty)
       }
     )
   }
@@ -141,24 +133,23 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
     override def * = (id, fact, when) <> (Version.tupled, Version.unapply)
   }
 
-  class SettingsTable(tag: Tag) extends Table[Settings](tag, tableNames.settings) {
+  class PredefinedSettingsTable(tag: Tag) extends Table[PredefinedSettings](tag, tableNames.predefinedSettings) {
 
-    import SettingKeySupport._
     import SettingValueSupport._
 
-    def key = column[SettingKey]("key")
+    def key = column[String]("key")
     def value = column[SettingValue]("value")
 
     def byKeyIndex = index("idx_key", key)
 
-    override def * = (key, value) <> (Settings.tupled, Settings.unapply)
+    override def * = (key, value) <> (PredefinedSettings.tupled, PredefinedSettings.unapply)
   }
 
   object query {
     lazy val sources = TableQuery[Sources]
     lazy val feeds = TableQuery[Feeds]
     lazy val versions = TableQuery[Versions]
-    lazy val settings = TableQuery[SettingsTable]
+    lazy val predefinedSettings = TableQuery[PredefinedSettingsTable]
   }
 
 }
@@ -166,14 +157,14 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
 case class TableNames(sources: String,
                       feeds: String,
                       versions: String,
-                      settings: String
+                      predefinedSettings: String
                      )
 object TableNames {
   val default = TableNames(
     sources = "sources",
     feeds = "feeds",
     versions = "versions",
-    settings = "settings"
+    predefinedSettings = "predefined_settings"
   )
 
   def withPrefix(prefix: String): TableNames = {
@@ -181,7 +172,7 @@ object TableNames {
       sources = s"${prefix}_sources",
       feeds = s"${prefix}_feeds",
       versions = s"${prefix}_versions",
-      settings = s"${prefix}_settings"
+      predefinedSettings = s"${prefix}_predefined_settings"
     )
   }
 }
