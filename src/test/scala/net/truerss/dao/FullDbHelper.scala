@@ -1,4 +1,4 @@
-package net.truerss.services
+package net.truerss.dao
 
 import java.io.File
 import java.util.concurrent.Executors
@@ -6,12 +6,11 @@ import java.util.concurrent.Executors
 import org.specs2.mutable.SpecificationLike
 import org.specs2.specification.BeforeAfterAll
 import slick.jdbc.JdbcBackend
-import truerss.db.DbLayer
+import truerss.db.{DbLayer, Source}
 import truerss.db.driver.{CurrentDriver, DBProfile, Sqlite, TableNames}
-import truerss.db.Source
 
-import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 trait FullDbHelper extends SpecificationLike with BeforeAfterAll {
   def dbName: String

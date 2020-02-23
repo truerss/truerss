@@ -1,4 +1,4 @@
-package net.truerss.services
+package net.truerss.services.management
 
 import akka.event.EventStream
 import net.truerss.Gen
@@ -6,10 +6,9 @@ import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import truerss.api.SourceResponse
-import truerss.services.{OpmlService, SourcesService}
-import truerss.services.management.SourcesManagement
-import truerss.services.management.FeedSourceDtoModelImplicits
 import truerss.services.actors.sync.SourcesKeeperActor
+import truerss.services.management.{FeedSourceDtoModelImplicits, SourcesManagement}
+import truerss.services.{OpmlService, SourcesService}
 import truerss.util.Util.ResponseHelpers
 
 import scala.concurrent.Future

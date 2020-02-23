@@ -1,4 +1,4 @@
-package net.truerss.services
+package net.truerss.services.management
 
 import akka.event.EventStream
 import net.truerss.Gen
@@ -6,8 +6,8 @@ import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import truerss.api.{FeedResponse, InternalServerErrorResponse}
-import truerss.services.{ContentReaderService, FeedsService, PublishPluginActor}
 import truerss.services.management.FeedsManagement
+import truerss.services.{ContentReaderService, FeedsService, PublishPluginActor}
 import truerss.util.Util.ResponseHelpers
 
 import scala.concurrent.Future

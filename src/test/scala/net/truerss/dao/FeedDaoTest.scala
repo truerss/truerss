@@ -1,4 +1,4 @@
-package net.truerss.services
+package net.truerss.dao
 
 import java.util.Date
 

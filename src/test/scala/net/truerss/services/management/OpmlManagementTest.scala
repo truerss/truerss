@@ -1,4 +1,4 @@
-package net.truerss.services
+package net.truerss.services.management
 
 import akka.event.EventStream
 import net.truerss.Gen
@@ -8,8 +8,8 @@ import org.specs2.mutable.Specification
 import truerss.api.ImportResponse
 import truerss.dto.{NewSourceDto, NewSourceFromFileWithErrors}
 import truerss.services.actors.sync.SourcesKeeperActor
-import truerss.services.{OpmlService, SourcesService}
 import truerss.services.management.OpmlManagement
+import truerss.services.{OpmlService, SourcesService}
 import truerss.util.Outline
 
 import scala.concurrent.Future

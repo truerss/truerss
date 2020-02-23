@@ -1,6 +1,7 @@
 package net.truerss.api
 
 import akka.http.scaladsl.model.StatusCodes
+import net.truerss.Gen
 import truerss.api._
 import truerss.dto.{AvailableSelect, AvailableSetup, CurrentValue, NewSetup}
 import truerss.services.management.SettingsManagement
@@ -10,13 +11,8 @@ class SettingsApiTest extends BaseApiTest {
 
   import JsonFormats._
 
-  private val setup = AvailableSetup(
-    key = "test",
-    description = "test",
-    options = AvailableSelect(Iterable(1, 2, 3)),
-    value = CurrentValue(1)
-  )
-  private val newSetup = NewSetup("test", CurrentValue(1))
+  private val setup = Gen.genSetup
+  private val newSetup = Gen.genNewSetup
 
   private val sm = mock[SettingsManagement]
   sm.getCurrentSetup returns f(SettingsResponse(Iterable(setup)))

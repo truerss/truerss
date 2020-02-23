@@ -1,6 +1,7 @@
 package net.truerss.services
 
 import net.truerss.Gen
+import net.truerss.dao.FullDbHelper
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mutable.SpecificationLike
 import org.specs2.specification.Scope

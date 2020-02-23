@@ -4,7 +4,7 @@ import java.time.LocalDateTime
 import java.util.{Date, Random, UUID}
 
 import truerss.db.{Feed, Source, SourceStates}
-import truerss.dto.{FeedDto, NewSourceDto, SourceViewDto, UpdateSourceDto}
+import truerss.dto.{AvailableSelect, AvailableSetup, CurrentValue, FeedDto, NewSetup, NewSourceDto, SourceViewDto, UpdateSourceDto}
 
 object Gen {
   import truerss.util.Util._
@@ -118,5 +118,17 @@ object Gen {
     )
   }
 
+  def genSetup: AvailableSetup[Int] = {
+    AvailableSetup(
+      key = Gen.genName,
+      description = Gen.genName,
+      options = AvailableSelect(Iterable(1, 2, 3)),
+      value = CurrentValue(1)
+    )
+  }
+
+  def genNewSetup: NewSetup[Int] = {
+    NewSetup(Gen.genName, CurrentValue(1))
+  }
 
 }
