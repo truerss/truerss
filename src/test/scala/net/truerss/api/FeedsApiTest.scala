@@ -1,6 +1,7 @@
-package net.truerss.services
+package net.truerss.api
 
 import akka.http.scaladsl.model.StatusCodes
+import net.truerss.Gen
 import truerss.api._
 import truerss.services.management.FeedsManagement
 import truerss.util.Util.ResponseHelpers

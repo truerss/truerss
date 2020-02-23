@@ -1,10 +1,10 @@
-package net.truerss.services
+package net.truerss
 
 import java.time.LocalDateTime
 import java.util.{Date, Random, UUID}
 
-import truerss.dto.{FeedDto, NewSourceDto, SourceViewDto, UpdateSourceDto}
 import truerss.db.{Feed, Source, SourceStates}
+import truerss.dto.{FeedDto, NewSourceDto, SourceViewDto, UpdateSourceDto}
 
 object Gen {
   import truerss.util.Util._

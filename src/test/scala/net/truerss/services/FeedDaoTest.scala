@@ -3,6 +3,7 @@ package net.truerss.services
 import java.util.Date
 
 import com.github.truerss.base.Entry
+import net.truerss.Gen
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mutable.SpecificationLike
 import org.specs2.specification.{BeforeAfterAll, Scope}

@@ -13,7 +13,7 @@ import scala.concurrent.duration._
 
 class SourceValidatorTest(implicit ee: ExecutionEnv) extends Specification with Mockito {
 
-  import Gen._
+  import net.truerss.Gen._
 
   implicit val dbLayer = mock[DbLayer]
   private val sv = new SourceValidator(new ApplicationPlugins)

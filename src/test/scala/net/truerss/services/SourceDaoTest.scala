@@ -2,10 +2,11 @@ package net.truerss.services
 
 import java.util.Date
 
+import net.truerss.Gen
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mutable.SpecificationLike
 import org.specs2.specification.BeforeAfterAll
-import truerss.db.{SourceStates, SourceState}
+import truerss.db.{SourceState, SourceStates}
 
 import scala.concurrent.duration._
 

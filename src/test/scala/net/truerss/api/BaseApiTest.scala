@@ -1,4 +1,4 @@
-package net.truerss.services
+package net.truerss.api
 
 import akka.http.scaladsl.model.{HttpRequest, StatusCode, StatusCodes}
 import akka.http.scaladsl.server.Route

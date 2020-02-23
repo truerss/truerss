@@ -1,6 +1,7 @@
 package net.truerss.services
 
 import akka.event.EventStream
+import net.truerss.Gen
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification

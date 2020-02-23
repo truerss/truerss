@@ -1,21 +1,22 @@
-package net.truerss.services
+package net.truerss.api
+
 import java.io.File
 
 import akka.http.scaladsl.model.{ContentTypes, Multipart, StatusCodes}
 import akka.http.scaladsl.server.Route
-import truerss.api.{BadRequestResponse, FeedsResponse, ImportResponse, JsonFormats, Ok, SourceResponse, SourcesApi, SourcesResponse}
-import truerss.services.management.{FeedsManagement, OpmlManagement, SourcesManagement}
-import truerss.services.management.FeedSourceDtoModelImplicits
+import net.truerss.Gen
 import play.api.libs.json._
+import truerss.api._
 import truerss.dto.FeedDto
+import truerss.services.management.{FeedSourceDtoModelImplicits, FeedsManagement, OpmlManagement, SourcesManagement}
 import truerss.util.Util.ResponseHelpers
 
 class SourcesApiTest extends BaseApiTest {
 
   sequential
 
-  import JsonFormats._
   import FeedSourceDtoModelImplicits._
+  import JsonFormats._
 
   private val uri = getClass.getResource("/1.txt").toURI
 

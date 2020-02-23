@@ -4,6 +4,7 @@ import java.net.{URI, URL}
 
 import com.github.truerss.base._
 import com.typesafe.config.Config
+import net.truerss.Gen
 import org.specs2.mock.Mockito
 import org.specs2.mutable.SpecificationLike
 import truerss.services.ApplicationPluginsService
