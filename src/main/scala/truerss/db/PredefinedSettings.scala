@@ -1,4 +1,4 @@
-package truerss.db.driver
+package truerss.db
 
 // I save setting in json representation
 // real Setup[T] Keys/Values will be defined on service-level
@@ -6,7 +6,7 @@ sealed trait SettingValue {
   val name: String
 }
 
-case class SelectableValue(predefined: Iterable[String]) extends SettingValue {
+case class SelectableValue(predefined: Iterable[Int]) extends SettingValue {
   override val name: String = SelectableValue.fName
 }
 

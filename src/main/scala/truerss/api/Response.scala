@@ -1,6 +1,6 @@
 package truerss.api
 
-import truerss.db.driver.PredefinedSettings
+import truerss.db.PredefinedSettings
 import truerss.dto.{FeedDto, NewSourceFromFileWithErrors, PluginsViewDto, SourceViewDto}
 
 sealed trait Response

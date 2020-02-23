@@ -2,10 +2,10 @@ package truerss.db.driver
 
 import java.util.Date
 
-import slick.jdbc.JdbcProfile
+import slick.jdbc.{JdbcProfile, JdbcType}
 import slick.sql.SqlProfile.ColumnOption.{NotNull, Nullable, SqlType}
 import play.api.libs.json._
-import truerss.api.JsonFormats
+import slick.ast.BaseTypedType
 import truerss.db._
 
 /**
@@ -16,7 +16,7 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
   import profile.api._
 
   object DateSupport {
-    implicit val javaUtilDateMapper =
+    implicit val javaUtilDateMapper: JdbcType[Date] with BaseTypedType[Date] =
       MappedColumnType.base[Date, java.sql.Timestamp](
         d => new java.sql.Timestamp(d.getTime),
         d => new java.util.Date(d.getTime))
@@ -24,12 +24,12 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
 
   object StateSupport {
     implicit val sourceStateMapper = MappedColumnType.base[SourceState, Byte](
-      state => state match {
+      {
         case SourceStates.Neutral => 0
         case SourceStates.Enable => 1
         case SourceStates.Disable => 2
       },
-      b => b match {
+      {
         case 0 => SourceStates.Neutral
         case 1 => SourceStates.Enable
         case 2 => SourceStates.Disable
@@ -39,7 +39,7 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
 
   object SettingValueSupport {
 
-    implicit val inputValueMapper = MappedColumnType.base[SettingValue, String](
+    implicit val inputValueMapper: JdbcType[SettingValue] with BaseTypedType[SettingValue] = MappedColumnType.base[SettingValue, String](
       value => Json.stringify(DbSettingJsonFormats.settingValueFormat.writes(value)),
       from => {
         DbSettingJsonFormats.settingValueFormat.reads(Json.parse(from)).getOrElse(SelectableValue.empty)
@@ -134,7 +134,6 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
   }
 
   class PredefinedSettingsTable(tag: Tag) extends Table[PredefinedSettings](tag, tableNames.predefinedSettings) {
-
     import SettingValueSupport._
 
     def key = column[String]("key")
@@ -145,11 +144,21 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
     override def * = (key, value) <> (PredefinedSettings.tupled, PredefinedSettings.unapply)
   }
 
+  class UserSettingsTable(tag: Tag) extends Table[UserSettings](tag, tableNames.userSettings) {
+    def key = column[String]("key")
+    def valueInt = column[Int]("valueInt")
+    def valueBoolean = column[Boolean]("valueBoolean")
+    def valueString = column[String]("valueString")
+
+    override def * = (key, valueInt.?, valueBoolean.?, valueString.?) <> (UserSettings.tupled, UserSettings.unapply)
+  }
+
   object query {
     lazy val sources = TableQuery[Sources]
     lazy val feeds = TableQuery[Feeds]
     lazy val versions = TableQuery[Versions]
     lazy val predefinedSettings = TableQuery[PredefinedSettingsTable]
+    lazy val userSettings = TableQuery[UserSettingsTable]
   }
 
 }
@@ -157,14 +166,16 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
 case class TableNames(sources: String,
                       feeds: String,
                       versions: String,
-                      predefinedSettings: String
+                      predefinedSettings: String,
+                      userSettings: String
                      )
 object TableNames {
   val default = TableNames(
     sources = "sources",
     feeds = "feeds",
     versions = "versions",
-    predefinedSettings = "predefined_settings"
+    predefinedSettings = "predefined_settings",
+    userSettings = "user_settings"
   )
 
   def withPrefix(prefix: String): TableNames = {
@@ -172,7 +183,8 @@ object TableNames {
       sources = s"${prefix}_sources",
       feeds = s"${prefix}_feeds",
       versions = s"${prefix}_versions",
-      predefinedSettings = s"${prefix}_predefined_settings"
+      predefinedSettings = s"${prefix}_predefined_settings",
+      userSettings = s"${prefix}_user_settings"
     )
   }
 }

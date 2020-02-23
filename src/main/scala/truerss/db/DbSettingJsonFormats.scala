@@ -1,4 +1,4 @@
-package truerss.db.driver
+package truerss.db
 
 import play.api.libs.json._
 
@@ -14,7 +14,7 @@ object DbSettingJsonFormats {
             JsObject(
               Seq(
                 fType -> JsString(i.name),
-                fValues -> JsArray(xs.map(x => JsString(x)).toSeq)
+                fValues -> JsArray(xs.map(x => JsNumber(x)).toSeq)
               )
             )
           case i @ CheckBoxValue(currentState) =>
@@ -35,7 +35,7 @@ object DbSettingJsonFormats {
               case Some(JsString(SelectableValue.fName)) =>
                 val values = obj.get(fValues)
                   .collect { case xs: JsArray => xs }
-                  .map { arr => arr.value.collect { case JsString(value) => value } }
+                  .map { arr => arr.value.collect { case JsNumber(value) => value.toInt } }
                   .getOrElse(Iterable.empty)
                 JsSuccess(
                   SelectableValue(
