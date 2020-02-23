@@ -1,7 +1,7 @@
 package truerss.services
 
 import truerss.db.{CheckBoxValue, DbLayer, PredefinedSettings, SelectableValue, UserSettings}
-import truerss.dto.{AvailableCheckBox, AvailableSelect, AvailableSetup, AvailableValue, CurrentValue, Setup, SetupKey, SetupKeys}
+import truerss.dto.{AvailableCheckBox, AvailableSelect, AvailableSetup, AvailableValue, CurrentValue, NewSetup, Setup, SetupKey, SetupKeys}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
@@ -10,7 +10,6 @@ class SettingsService(dbLayer: DbLayer)(implicit ec: ExecutionContext) {
 
   import SettingsService._
 
-  // get global setup
   def getCurrentSetup: Future[Iterable[AvailableSetup[_]]] = {
     for {
       global <- dbLayer.settingsDao.getSettings
@@ -20,7 +19,12 @@ class SettingsService(dbLayer: DbLayer)(implicit ec: ExecutionContext) {
     }
   }
 
-  // application layer dependency
+  def updateSetup[T](newSetup: NewSetup[T]): Future[Int] = {
+    dbLayer.userSettingsDao.update(newSetup.key,
+      newSetup.value)
+  }
+
+  // the application layer dependency
   // we should use it for application layer: check user defined setup for every feature
   //
   def where[T: ClassTag](key: SetupKey[T]): Future[Setup[T]] = {

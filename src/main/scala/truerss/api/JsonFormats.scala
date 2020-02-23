@@ -136,21 +136,46 @@ object JsonFormats {
     }
   }
 
-  implicit lazy val availableSetupFormat: Format[AvailableSetup[_]] = new Format[AvailableSetup[_]] {
+  implicit lazy val availableSetupWrites: Writes[AvailableSetup[_]] = new Writes[AvailableSetup[_]] {
     override def writes(o: AvailableSetup[_]): JsValue = {
       JsObject(
         Seq(
-          "key" -> JsString(o.key),
-          "description" -> JsString(o.description),
+          "key" -> o.key.j,
+          "description" -> o.description.j,
           "options" -> availableValueFormat.writes(o.options),
-          "value" -> currentValueFormat.writes(o.current)
+          "value" -> currentValueFormat.writes(o.value)
         )
       )
     }
-
-    override def reads(json: JsValue): JsResult[AvailableSetup[_]] = ???
   }
 
+  implicit lazy val newSetupFormat: Format[NewSetup[_]] = new Format[NewSetup[_]] {
+    private final val fKey = "key"
+    private final val fValue = "value"
+    override def reads(json: JsValue): JsResult[NewSetup[_]] = {
+      json match {
+        case JsObject(obj) =>
+          val r = for {
+            k <- obj.get(fKey).collect { case JsString(x) => x }
+            v <- obj.get(fValue).map(currentValueFormat.reads)
+            cv <- v.asOpt
+          } yield {
+            NewSetup(k, cv)
+          }
+          r.map(JsSuccess(_)).getOrElse(JsError(s"Unexpected object: $obj"))
+        case _ =>
+          JsError("Object is required")
+      }
+    }
 
+    override def writes(o: NewSetup[_]): JsValue = {
+      JsObject(
+        Seq(
+          "key" -> o.key.j,
+          "value" -> currentValueFormat.writes(o.value)
+        )
+      )
+    }
+  }
 
 }

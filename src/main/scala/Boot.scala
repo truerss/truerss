@@ -5,7 +5,7 @@ import akka.http.scaladsl.Http
 import truerss.api.{RoutingEndpoint, WebSockersSupport}
 import truerss.db.driver.SupportedDb
 import truerss.services._
-import truerss.services.management.{FeedsManagement, OpmlManagement, PluginsManagement, SourcesManagement}
+import truerss.services.management.{FeedsManagement, OpmlManagement, PluginsManagement, SettingsManagement, SourcesManagement}
 import truerss.util.TrueRSSConfig
 
 import scala.language.postfixOps
@@ -26,6 +26,7 @@ object Boot extends App {
 
       val dbLayer = SupportedDb.load(dbConf, isUserConf)(dbEc)
 
+      val settingsService = new SettingsService(dbLayer)
       val sourcesService = new SourcesService(dbLayer, trueRSSConfig.appPlugins)
       val applicationPluginsService = new ApplicationPluginsService(trueRSSConfig.appPlugins)
       val opmlService = new OpmlService(sourcesService)
@@ -38,6 +39,7 @@ object Boot extends App {
       val sourcesManagement = new SourcesManagement(sourcesService, opmlService, stream)
       val feedsManagement = new FeedsManagement(feedsService, contentReaderService, stream)
       val pluginsManagement = new PluginsManagement(applicationPluginsService)
+      val settingsManagement = new SettingsManagement(settingsService)
 
       system.actorOf(
         MainActor.props(actualConfig, dbLayer),
@@ -49,6 +51,7 @@ object Boot extends App {
         feedsManagement = feedsManagement,
         opmlManagement = opmlManagement,
         pluginsManagement = pluginsManagement,
+        settingsManagement = settingsManagement,
         wsPort = trueRSSConfig.wsPort
       )
 

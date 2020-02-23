@@ -1,6 +1,7 @@
 package truerss.services.management
 
 import truerss.api.SettingsResponse
+import truerss.dto.NewSetup
 import truerss.services.SettingsService
 
 import scala.concurrent.ExecutionContext
@@ -10,6 +11,10 @@ class SettingsManagement(val settingsService: SettingsService)
 
   def getCurrentSetup: R = {
     settingsService.getCurrentSetup.map(SettingsResponse(_))
+  }
+
+  def updateSetup[T](newSetup: NewSetup[T]): R = {
+    ???
   }
 
 }

@@ -4,6 +4,7 @@ import slick.jdbc.JdbcBackend.DatabaseDef
 import truerss.db.driver.CurrentDriver
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.reflect.ClassTag
 
 class UserSettingsDao(val db: DatabaseDef)(implicit
                                            val ec: ExecutionContext,
@@ -17,8 +18,19 @@ class UserSettingsDao(val db: DatabaseDef)(implicit
   }
 
   def getByKey(key: String): Future[Option[UserSettings]] = {
-    db.run(userSettings.filter(x => x.key === key).take(1).result)
+    db.run(userSettings.filter(_.key === key).take(1).result)
       .map(_.headOption)
+  }
+
+  def update[T: ClassTag](key: String, value: T): Future[Int] = {
+    val q = userSettings.filter(_.key === key)
+    val statement = value match {
+      case x: Int => q.map(_.valueInt).update(x)
+      case x: Boolean => q.map(_.valueBoolean).update(x)
+      case x: String => q.map(_.valueString).update(x)
+      case _ => throw new IllegalStateException(s"Unexpected type, for $key, value: $value")
+    }
+    db.run(statement)
   }
 
 }

@@ -1,16 +1,9 @@
 package net.truerss.services
 
-import akka.http.scaladsl.model.{HttpRequest, StatusCode, StatusCodes}
-import akka.http.scaladsl.testkit.{RouteTest, Specs2FrameworkInterface}
-import org.specs2.mock.Mockito
-import org.specs2.mutable.SpecificationLike
-import org.specs2.specification.AllExpectations
-import play.api.libs.json._
+import akka.http.scaladsl.model.StatusCodes
 import truerss.api._
 import truerss.services.management.FeedsManagement
 import truerss.util.Util.ResponseHelpers
-
-import scala.concurrent.Future
 
 
 class FeedsApiTest extends BaseApiTest {

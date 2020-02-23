@@ -66,8 +66,10 @@ object CurrentValue {
 }
 
 case class AvailableSetup[T](key: String,
-                          description: String,
-                          options: AvailableValue,
-                          current: CurrentValue[T]
+                             description: String,
+                             options: AvailableValue,
+                             value: CurrentValue[T]
                          )
+
+case class NewSetup[T](key: String, value: CurrentValue[T])
 
