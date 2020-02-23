@@ -3,7 +3,7 @@ package truerss.services.management
 import truerss.api.{AppPluginsResponse, CssResponse, JsResponse}
 import truerss.services.ApplicationPluginsService
 
-class PluginsManagement(val service: ApplicationPluginsService) {
+class PluginsManagement(val service: ApplicationPluginsService) extends BaseManagement {
 
   def getJs: JsResponse = {
     JsResponse(service.js.mkString)

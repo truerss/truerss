@@ -93,6 +93,64 @@ object JsonFormats {
     }
   }
 
+  implicit lazy val availableValueFormat: Format[AvailableValue] = new Format[AvailableValue] {
+    override def writes(o: AvailableValue): JsValue = {
+      o match {
+        case AvailableSelect(predefined) =>
+          JsArray(predefined.map(x => JsNumber(x)).toSeq)
+
+        case AvailableCheckBox(currentState) =>
+          JsBoolean(currentState)
+      }
+    }
+
+    override def reads(json: JsValue): JsResult[AvailableValue] = {
+      json match {
+        case JsBoolean(b) =>
+          JsSuccess(AvailableCheckBox(b))
+        case JsArray(xs) =>
+          JsSuccess(AvailableSelect(xs.collect { case JsNumber(x) => x.toInt }))
+        case _ =>
+          JsError("Invalid format")
+      }
+    }
+  }
+
+  implicit lazy val currentValueFormat: Format[CurrentValue[_]] = new Format[CurrentValue[_]] {
+    override def writes(o: CurrentValue[_]): JsValue = {
+      o match {
+        case CurrentValue(o: Int) => JsNumber(o)
+        case CurrentValue(o: Boolean) => JsBoolean(o)
+        case CurrentValue(o: String) => JsString(o)
+        case _ => JsNull
+      }
+    }
+
+    override def reads(json: JsValue): JsResult[CurrentValue[_]] = {
+      json match {
+        case JsNumber(o) => JsSuccess(CurrentValue(o))
+        case JsBoolean(o) => JsSuccess(CurrentValue(o))
+        case JsString(o) => JsSuccess(CurrentValue(o))
+        case x => JsError(s"Unkwnown type: $x")
+      }
+    }
+  }
+
+  implicit lazy val availableSetupFormat: Format[AvailableSetup[_]] = new Format[AvailableSetup[_]] {
+    override def writes(o: AvailableSetup[_]): JsValue = {
+      JsObject(
+        Seq(
+          "key" -> JsString(o.key),
+          "description" -> JsString(o.description),
+          "options" -> availableValueFormat.writes(o.options),
+          "value" -> currentValueFormat.writes(o.current)
+        )
+      )
+    }
+
+    override def reads(json: JsValue): JsResult[AvailableSetup[_]] = ???
+  }
+
 
 
 }

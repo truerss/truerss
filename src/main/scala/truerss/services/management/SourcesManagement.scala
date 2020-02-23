@@ -13,9 +13,7 @@ class SourcesManagement(sourcesService: SourcesService,
                         opmlService: OpmlService,
                         stream: EventStream
                        )
-                       (implicit ec: ExecutionContext){
-
-  type R = Future[Response]
+                       (implicit ec: ExecutionContext) extends BaseManagement {
 
   def all: R = {
     sourcesService.getAll.map(SourcesResponse)

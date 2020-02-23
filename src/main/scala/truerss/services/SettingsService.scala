@@ -11,7 +11,7 @@ class SettingsService(dbLayer: DbLayer)(implicit ec: ExecutionContext) {
   import SettingsService._
 
   // get global setup
-  def getCurrentSetup: Future[AvailableSetup[_]] = {
+  def getCurrentSetup: Future[Iterable[AvailableSetup[_]]] = {
     for {
       global <- dbLayer.settingsDao.getSettings
       user <- dbLayer.userSettingsDao.getSettings
@@ -29,8 +29,6 @@ class SettingsService(dbLayer: DbLayer)(implicit ec: ExecutionContext) {
         userSettings.map(_.toSetup[T]).getOrElse(SetupKeys.getDefault(key))
       }
   }
-
-
 
 }
 

@@ -101,9 +101,10 @@ trait HttpHelper {
       case SourceResponse(x) => ok(x)
       case FeedResponse(x) => ok(x)
       case FeedsResponse(xs) => ok(xs)
-      case FeedsPageResponse(xs, total) => ok(xs)
+      case FeedsPageResponse(xs, _) => ok(xs)
       case AppPluginsResponse(view) => ok(view)
       case ImportResponse(result) => ok(result)
+      case SettingsResponse(result) => ok(result)
 
       case Ok(x) => finish(OK, x.toString)
 

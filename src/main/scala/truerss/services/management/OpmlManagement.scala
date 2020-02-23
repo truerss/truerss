@@ -12,13 +12,9 @@ class OpmlManagement(opmlService: OpmlService,
                      sourcesService: SourcesService,
                      stream: EventStream
                     )
-                    (implicit ec: ExecutionContext)
-{
+                    (implicit ec: ExecutionContext) extends BaseManagement {
 
   import OpmlManagement._
-  private val logger = org.slf4j.LoggerFactory.getLogger(getClass)
-
-  type R = Future[Response]
 
   def getOpml: R = {
     opmlService.build.map(Ok)

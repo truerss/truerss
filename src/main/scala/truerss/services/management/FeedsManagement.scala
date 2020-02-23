@@ -16,11 +16,7 @@ class FeedsManagement(feedsService: FeedsService,
                       contentReaderService: ContentReaderService,
                       stream: EventStream
                      )
-                     (implicit ec: ExecutionContext){
-
-  private val logger = LoggerFactory.getLogger(getClass)
-
-  type R = Future[Response]
+                     (implicit ec: ExecutionContext) extends BaseManagement {
 
   def markAll: R = {
     feedsService.markAllAsRead.map { _ => ok }
