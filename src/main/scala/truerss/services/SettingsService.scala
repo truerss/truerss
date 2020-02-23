@@ -19,9 +19,9 @@ class SettingsService(dbLayer: DbLayer)(implicit ec: ExecutionContext) {
     }
   }
 
-  def updateSetup[T](newSetup: NewSetup[T]): Future[Int] = {
+  def updateSetup[T: ClassTag](newSetup: NewSetup[T]): Future[Int] = {
     dbLayer.userSettingsDao.update(newSetup.key,
-      newSetup.value)
+      newSetup.value.value)
   }
 
   // the application layer dependency
@@ -46,10 +46,12 @@ object SettingsService {
       }
     }
 
-    def toCurrentValue[T: ClassTag]: CurrentValue[T] = {
-      Vector(x.valueString, x.valueInt, x.valueBoolean).flatten.headOption match {
-        case Some(t: T) => CurrentValue(t)
-        case _ => CurrentValue.unknown[T]
+    def toCurrentValue: CurrentValue[_] = {
+      (x.valueString, x.valueInt, x.valueBoolean) match {
+        case (Some(x), _, _) => CurrentValue[String](x)
+        case (_, Some(x), _) => CurrentValue[Int](x)
+        case (_, _, Some(x)) => CurrentValue[Boolean](x)
+        case _ => CurrentValue.unknown[Any]
       }
     }
   }

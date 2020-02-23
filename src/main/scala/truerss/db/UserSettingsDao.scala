@@ -25,12 +25,18 @@ class UserSettingsDao(val db: DatabaseDef)(implicit
   def update[T: ClassTag](key: String, value: T): Future[Int] = {
     val q = userSettings.filter(_.key === key)
     val statement = value match {
-      case x: Int => q.map(_.valueInt).update(x)
-      case x: Boolean => q.map(_.valueBoolean).update(x)
-      case x: String => q.map(_.valueString).update(x)
+      case x: Int => q.map(_.valueInt).update(Some(x))
+      case x: Boolean => q.map(_.valueBoolean).update(Some(x))
+      case x: String => q.map(_.valueString).update(Some(x))
       case _ => throw new IllegalStateException(s"Unexpected type, for $key, value: $value")
     }
     db.run(statement)
+  }
+
+  def insert(xs: Iterable[UserSettings]): Future[Option[Int]] = {
+    db.run {
+      userSettings ++= xs
+    }
   }
 
 }

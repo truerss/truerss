@@ -30,6 +30,7 @@ lazy val mainProject = Project("truerss", file(".")).settings(
   setup ++ Seq(installTask, buildCoffeeTask) ++ Seq(
     //(compile in Compile) := (compile in Compile).dependsOn(buildCoffee).value,
     organization := "net.truerss",
+    classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.ScalaLibrary,
     name := "truerss",
     version := "0.0.3.4-pre.3",
     parallelExecution in Test := false,

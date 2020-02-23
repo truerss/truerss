@@ -6,7 +6,7 @@ case class SetupKey[T](name: String, description: String)
 
 case class Setup[T](key: SetupKey[T], value: T)
 object Setup {
-  def unknown[T](key: String): Setup[T] = {
+  def unknown[T: ClassTag](key: String): Setup[T] = {
     Setup(SetupKey(key, "Unknown key"), Default.value[T]) // ???
   }
 }
@@ -27,31 +27,33 @@ object Default extends LowerPriorityImplicits {
 
 
 case object SetupKeys {
-  val feedParallelism = "parallelism"
-  val readContent = "read_content"
+  val fFeedParallelism = "parallelism"
+  val fReadContent = "read_content"
   val unknown = "unknown"
 
-  final val parallelismKey = SetupKey[Int](feedParallelism, "Number of simultaneous requests")
-  final val readContentKey = SetupKey[Boolean](readContent, "Skip content")
-  final val unknownKey = SetupKey(unknown, "Unknown key")
+  final val parallelism = Setup(SetupKey[Int](fFeedParallelism, "Number of simultaneous requests"), 10)
+  final val readContent = Setup(SetupKey[Boolean](fReadContent, "Skip content"), true)
+  def unknownKey[T]: SetupKey[T] = SetupKey[T](unknown, "Unknown key")
 
 
   final val predefinedSetups = Map(
-    parallelismKey.name -> Setup(parallelismKey, 10),
-    readContentKey.name -> Setup(readContentKey, true)
+    fFeedParallelism -> parallelism,
+    fReadContent -> readContent
   )
 
   def getDefault[T: ClassTag](key: SetupKey[T]): Setup[T] = {
     predefinedSetups.get(key.name) match {
-      case Some(t: T) => Setup(key, t)
-      case _ =>  Setup.unknown(key.name)
+      case Some(Setup(_, v)) => Setup(key, v.asInstanceOf[T])
+      case _ =>
+        Setup.unknown[T](key.name)
     }
   }
 
-  def getDefault[T: ClassTag](key: String): Setup[T] = {
-    predefinedSetups.get(key) match {
-      case Some(t: T) => Setup[T](t.key.asInstanceOf[SetupKey[T]], t)
-      case _ =>  Setup.unknown(key)
+  def getDefault(key: String) = {
+    key match {
+      case `fFeedParallelism` => parallelism
+      case `fReadContent` => readContent
+      case _ => Setup.unknown(key)
     }
   }
 }

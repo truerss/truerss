@@ -33,7 +33,9 @@ trait FullDbHelper extends SpecificationLike with BeforeAfterAll {
   import driver.profile.api._
 
   val x = db.run {
-    (driver.query.sources.schema ++ driver.query.feeds.schema).create
+    (driver.query.sources.schema ++ driver.query.feeds.schema ++
+      driver.query.predefinedSettings.schema ++
+      driver.query.userSettings.schema).create
   }
   Await.result(x, initTime)
 
@@ -43,7 +45,9 @@ trait FullDbHelper extends SpecificationLike with BeforeAfterAll {
 
   override def afterAll = {
     db.run {
-      (driver.query.sources.schema ++ driver.query.feeds.schema).drop
+      (driver.query.sources.schema ++ driver.query.feeds.schema ++
+        driver.query.predefinedSettings.schema ++
+        driver.query.userSettings.schema).drop
     }
     println(s"delete ===========> ${new File(s"./$dbName.tdb").delete()}")
   }
