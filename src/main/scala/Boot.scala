@@ -2,9 +2,10 @@ package truerss
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import truerss.api.{RoutingApiImpl, WebSockersSupport}
+import truerss.api.{RoutingEndpoint, WebSockersSupport}
 import truerss.db.driver.SupportedDb
 import truerss.services._
+import truerss.services.management.{FeedsManagement, OpmlManagement, PluginsManagement, SourcesManagement}
 import truerss.util.TrueRSSConfig
 
 import scala.language.postfixOps
@@ -25,12 +26,33 @@ object Boot extends App {
 
       val dbLayer = SupportedDb.load(dbConf, isUserConf)(dbEc)
 
-      val mainActor = system.actorOf(
+      val sourcesService = new SourcesService(dbLayer, trueRSSConfig.appPlugins)
+      val applicationPluginsService = new ApplicationPluginsService(trueRSSConfig.appPlugins)
+      val opmlService = new OpmlService(sourcesService)
+      val feedsService = new FeedsService(dbLayer)
+      val contentReaderService = new ContentReaderService(applicationPluginsService)
+
+      val stream = system.eventStream
+
+      val opmlManagement = new OpmlManagement(opmlService, sourcesService, stream)
+      val sourcesManagement = new SourcesManagement(sourcesService, opmlService, stream)
+      val feedsManagement = new FeedsManagement(feedsService, contentReaderService, stream)
+      val pluginsManagement = new PluginsManagement(applicationPluginsService)
+
+      system.actorOf(
         MainActor.props(actualConfig, dbLayer),
         "main-actor"
       )
 
-      Http().bindAndHandle(new RoutingApiImpl(mainActor, actualConfig.wsPort).route,
+      val endpoint = new RoutingEndpoint(
+        sourcesManagement = sourcesManagement,
+        feedsManagement = feedsManagement,
+        opmlManagement = opmlManagement,
+        pluginsManagement = pluginsManagement,
+        wsPort = trueRSSConfig.wsPort
+      )
+
+      Http().bindAndHandle(endpoint.route,
         actualConfig.host,
         actualConfig.port
       ).foreach { _ =>

@@ -5,7 +5,7 @@ import truerss.dto.{FeedDto, NewSourceFromFileWithErrors, PluginsViewDto, Source
 
 sealed trait Response
 case class SourcesResponse(xs: Vector[SourceViewDto]) extends Response
-case class SourceResponse(x: Option[SourceViewDto]) extends Response
+case class SourceResponse(x: SourceViewDto) extends Response
 case class FeedResponse(x: FeedDto) extends Response
 case class FeedsResponse(xs: Vector[FeedDto]) extends Response
 case class FeedsPageResponse(xs: Vector[FeedDto], total: Int) extends Response

@@ -4,7 +4,7 @@ import akka.actor.{Actor, ActorLogging, Props}
 import akka.event.EventStream
 import com.github.truerss.base.Entry
 import truerss.api.WebSockerController
-import truerss.services.actors.management.DtoModelImplicits
+import truerss.services.management.DtoModelImplicits
 import truerss.db.DbLayer
 import truerss.db._
 

@@ -3,7 +3,7 @@ package truerss.services
 import truerss.db.DbLayer
 import truerss.dto.FeedDto
 import truerss.db.Feed
-import truerss.services.actors.management.DtoModelImplicits
+import truerss.services.management.DtoModelImplicits
 
 import scala.concurrent.{ExecutionContext, Future}
 
