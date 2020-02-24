@@ -5,7 +5,7 @@ import akka.http.scaladsl.Http
 import truerss.api.{RoutingEndpoint, WebSockersSupport}
 import truerss.db.driver.SupportedDb
 import truerss.services._
-import truerss.services.management.{FeedsManagement, OpmlManagement, PluginsManagement, SettingsManagement, SourcesManagement}
+import truerss.services.management._
 import truerss.util.TrueRSSConfig
 
 import scala.language.postfixOps

@@ -71,6 +71,10 @@ class AjaxService
   get_settings: () ->
     @_get("#{@settings_api}/current", @k)
 
+  update_settings: (params, success, error) ->
+    @_put("#{@settings_api}", params, success, error)
+
+
   load_ejs: (url) ->
     jQuery.ajax
       type: "GET"

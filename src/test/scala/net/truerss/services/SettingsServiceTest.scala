@@ -3,8 +3,8 @@ package net.truerss.services
 import net.truerss.dao.FullDbHelper
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mutable.SpecificationLike
-import truerss.db.{CheckBoxValue, PredefinedSettings, SelectableValue, UserSettings}
-import truerss.dto.{AvailableSetup, CurrentValue, NewSetup, SetupKeys}
+import truerss.db.{Predefined, PredefinedSettings, RadioValue, UserSettings}
+import truerss.dto.{AvailableSetup, CurrentValue, NewSetup, Setup, SetupKey}
 import truerss.services.SettingsService
 
 class SettingsServiceTest(implicit ee: ExecutionEnv)
@@ -19,10 +19,8 @@ class SettingsServiceTest(implicit ee: ExecutionEnv)
   private val settingsDao = dbLayer.settingsDao
   private val userSettingsDao = dbLayer.userSettingsDao
 
-  private val default1 = PredefinedSettings(SetupKeys.fFeedParallelism, "desc#1",
-    SelectableValue(Iterable(1, 2, 3)))
-  private val default2 = PredefinedSettings(SetupKeys.fReadContent, "desc#2",
-    CheckBoxValue(false))
+  private val default1 = Predefined.parallelism
+  private val default2 = Predefined.read
 
   private val userSettings1 = UserSettings(default1.key, default1.description,
     valueInt = Some(10), // somehow
@@ -41,7 +39,7 @@ class SettingsServiceTest(implicit ee: ExecutionEnv)
         AvailableSetup(default1.key, default1.description, default1.toAvailableOptions,
           CurrentValue(userSettings1.valueInt.get)),
         AvailableSetup(default2.key, default2.description, default2.toAvailableOptions,
-          CurrentValue(SetupKeys.readContent.value)
+          CurrentValue(default2.value)
         )
       )
     }
@@ -60,12 +58,13 @@ class SettingsServiceTest(implicit ee: ExecutionEnv)
     }
 
     "return key" in {
-      val r1 = a(service.where(SetupKeys.parallelism.key).map(_.value))
-      val r2 = a(service.where(SetupKeys.readContent.key).map(_.value))
-      val r3 = a(service.where(SetupKeys.unknownKey[Any]).map(_.value))
+      val r1 = a(service.where[Int](SetupKey(Predefined.parallelism.key,
+        Predefined.parallelism.description)).map(_.value))
+      val r2 = a(service.where[Boolean](SetupKey(Predefined.read.key, Predefined.read.description)).map(_.value))
+      val r3 = a(service.where[String](Setup.unknown[String]("test").key).map(_.value))
       r1 ==== v
-      r2 ==== SetupKeys.readContent.value // default
-      r3 ==== null
+      r2 ==== Predefined.read.value.defaultValue.asInstanceOf[Boolean] // default
+      r3 ==== ""
     }
   }
 

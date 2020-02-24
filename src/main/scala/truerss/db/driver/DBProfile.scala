@@ -84,6 +84,26 @@ object SupportedDb {
       )
     }
 
+    if (!tableNames.contains(names.predefinedSettings)) {
+      Console.out.println("----> add predefined settings tables")
+      Await.result(
+        db.run {
+          driver.query.predefinedSettings.schema.create
+        },
+        waitTime
+      )
+    }
+
+    if (!tableNames.contains(names.userSettings)) {
+      Console.out.println("----> add user settings & predefined settings tables")
+      Await.result(
+        db.run {
+          driver.query.userSettings.schema.create
+        },
+        waitTime
+      )
+    }
+
     if (!tableNames.contains(names.versions)) {
       // no versions
       Await.result(db.run { driver.query.versions.schema.create }, waitTime)
@@ -108,6 +128,8 @@ object SupportedDb {
     val currentSourceIndexes = driver.query.sources.baseTableRow.indexes.map(_.name)
 
     val v1 = Migration.addIndexes(dbProfile, driver, currentSourceIndexes)
+
+    runPredefinedChanges(db, dbProfile, driver)
 
     val all = Vector(
       v1
@@ -135,6 +157,26 @@ object SupportedDb {
     }
 
     Console.out.println("completed...")
+  }
+
+  def runPredefinedChanges(db: JdbcBackend.DatabaseDef, dbProfile: DBProfile,
+                           driver: CurrentDriver)(implicit ec: ExecutionContext): Unit = {
+    import driver.profile.api._
+    Predefined.predefined.foreach { p =>
+      val q = Await.result(
+        db.run {
+          driver.query.predefinedSettings.filter(_.key === p.key).result
+        }, waitTime
+      )
+      if (q.isEmpty) {
+        Console.println(s"Write: $p predefined settings")
+        Await.ready(
+          db.run {
+            driver.query.predefinedSettings ++= p :: Nil
+          }, waitTime
+        )
+      }
+    }
   }
 
   case class Migration(version: Long, description: String, changes: Option[ReversibleMigrationSeq])

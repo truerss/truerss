@@ -6,12 +6,14 @@ import akka.stream.Materializer
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.model.{ContentType => C, _}
+import akka.http.scaladsl.server.directives.BasicDirectives.extractRequestContext
+import akka.http.scaladsl.server.directives.LoggingMagnet
+
 import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
 import scala.util.{Try, Failure => F, Success => S}
-
 import play.api.libs.json._
-
+import org.slf4j.LoggerFactory
 /**
   * Created by mike on 17.12.16.
   */
@@ -25,6 +27,14 @@ trait HttpHelper {
   implicit val materializer: Materializer
 
   val utf8 = Charset.forName("UTF-8")
+
+  protected val logger = LoggerFactory.getLogger(getClass)
+
+  private def logIncomingRequest(req: HttpRequest): Unit = {
+    logger.debug(s"[${req.method}] ${req.uri}")
+  }
+
+  val log = logRequest(LoggingMagnet(_ => logIncomingRequest))
 
   val api = pathPrefix("api" / "v1")
 
@@ -128,7 +138,8 @@ trait HttpHelper {
       case S(Rejected(_)) =>
         complete(response(InternalServerError, "Rejected"))
 
-      case F(_) =>
+      case F(ex) =>
+        logger.warn(s"Request failed: $ex")
         complete(response(InternalServerError, "Failed"))
     }
   }

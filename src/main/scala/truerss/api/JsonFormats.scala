@@ -99,7 +99,7 @@ object JsonFormats {
         case AvailableSelect(predefined) =>
           JsArray(predefined.map(x => JsNumber(x)).toSeq)
 
-        case AvailableCheckBox(currentState) =>
+        case AvailableRadio(currentState) =>
           JsBoolean(currentState)
       }
     }
@@ -107,7 +107,7 @@ object JsonFormats {
     override def reads(json: JsValue): JsResult[AvailableValue] = {
       json match {
         case JsBoolean(b) =>
-          JsSuccess(AvailableCheckBox(b))
+          JsSuccess(AvailableRadio(b))
         case JsArray(xs) =>
           JsSuccess(AvailableSelect(xs.collect { case JsNumber(x) => x.toInt }))
         case _ =>

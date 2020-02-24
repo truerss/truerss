@@ -14,7 +14,7 @@ class PluginsApi(pluginsService: PluginsManagement)(
   val route = api {
     pathPrefix("plugins") {
       get {
-        pathPrefix("all") {
+        pathPrefix("all")  {
           call(pluginsService.getPluginList)
         } ~ pathPrefix("js") {
           call(pluginsService.getJs)

@@ -7,21 +7,23 @@ object DbSettingJsonFormats {
     private val fType = "type"
     private val fValues = "values"
     private val fValue = "value"
+    private val fDefault = "default"
 
     override def writes(o: SettingValue): JsValue = {
       o match {
-        case i @ SelectableValue(xs) =>
+        case i @ SelectableValue(xs, defaultValue) =>
           JsObject(
             Seq(
               fType -> JsString(i.name),
-              fValues -> JsArray(xs.map(x => JsNumber(x)).toSeq)
+              fValues -> JsArray(xs.map(x => JsNumber(x)).toSeq),
+              fDefault -> JsNumber(i.defaultValue)
             )
           )
-        case i @ CheckBoxValue(currentState) =>
+        case i @ RadioValue(defaultValue) =>
           JsObject(
             Seq(
               fType -> JsString(i.name),
-              fValue -> JsBoolean(currentState)
+              fDefault -> JsBoolean(defaultValue)
             )
           )
       }
@@ -33,21 +35,24 @@ object DbSettingJsonFormats {
           val tpe = obj.get(fType)
           tpe match {
             case Some(JsString(SelectableValue.fName)) =>
-              val values = obj.get(fValues)
-                .collect { case xs: JsArray => xs }
-                .map { arr => arr.value.collect { case JsNumber(value) => value.toInt } }
-                .getOrElse(Iterable.empty)
-              JsSuccess(
+              val res = for {
+                values <- obj.get(fValues)
+                  .collect { case xs: JsArray => xs }
+                  .map { arr => arr.value.collect { case JsNumber(value) => value.toInt } }
+                default <- obj.get(fDefault).map(_.as[Int])
+              } yield {
                 SelectableValue(
-                  values
+                  values,
+                  defaultValue = default
                 )
-              )
+              }
+              res.map(JsSuccess(_)).getOrElse(JsError("Failed to read"))
 
-            case Some(JsString(CheckBoxValue.fName)) =>
+            case Some(JsString(RadioValue.fName)) =>
               val state = obj.get(fValue).collect { case JsBoolean(x) => x }
                 .getOrElse(false)
               JsSuccess(
-                CheckBoxValue(state)
+                RadioValue(state)
               )
 
             case _ =>

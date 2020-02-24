@@ -1,7 +1,7 @@
 package truerss.services
 
-import truerss.db.{CheckBoxValue, DbLayer, PredefinedSettings, SelectableValue, UserSettings}
-import truerss.dto.{AvailableCheckBox, AvailableSelect, AvailableSetup, AvailableValue, CurrentValue, NewSetup, Setup, SetupKey, SetupKeys}
+import truerss.db.{RadioValue, DbLayer, PredefinedSettings, SelectableValue, UserSettings}
+import truerss.dto.{AvailableRadio, AvailableSelect, AvailableSetup, AvailableValue, CurrentValue, NewSetup, Setup, SetupKey}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
@@ -30,7 +30,7 @@ class SettingsService(dbLayer: DbLayer)(implicit ec: ExecutionContext) {
   def where[T: ClassTag](key: SetupKey[T]): Future[Setup[T]] = {
     dbLayer.userSettingsDao.getByKey(key.name)
       .map { userSettings =>
-        userSettings.map(_.toSetup[T]).getOrElse(SetupKeys.getDefault(key))
+        userSettings.map(_.toSetup[T]).getOrElse(Setup.unknown[T](key.name))
       }
   }
 
@@ -59,8 +59,8 @@ object SettingsService {
   implicit class PredefinedSettingsExt(val x: PredefinedSettings) extends AnyVal {
     def toAvailableOptions: AvailableValue = {
       x.value match {
-        case SelectableValue(predefined) => AvailableSelect(predefined)
-        case CheckBoxValue(currentState) => AvailableCheckBox(currentState)
+        case SelectableValue(predefined, _) => AvailableSelect(predefined)
+        case RadioValue(currentState) => AvailableRadio(currentState)
       }
     }
   }
@@ -76,7 +76,7 @@ object SettingsService {
         case None =>
           val opts = x.toAvailableOptions
           AvailableSetup(x.key, x.description, opts,
-            CurrentValue(SetupKeys.getDefault(x.key).value))
+            CurrentValue(x.value.defaultValue))
       }
     }
   }

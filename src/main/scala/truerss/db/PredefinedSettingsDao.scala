@@ -15,6 +15,7 @@ class PredefinedSettingsDao(val db: DatabaseDef)(implicit
     db.run(predefinedSettings.result)
   }
 
+  // for testing
   def insert(xs: Iterable[PredefinedSettings]): Future[Option[Int]] = {
     db.run {
       predefinedSettings ++= xs

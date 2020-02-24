@@ -42,7 +42,8 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
     implicit val inputValueMapper: JdbcType[SettingValue] with BaseTypedType[SettingValue] = MappedColumnType.base[SettingValue, String](
       value => Json.stringify(DbSettingJsonFormats.settingValueFormat.writes(value)),
       from => {
-        DbSettingJsonFormats.settingValueFormat.reads(Json.parse(from)).getOrElse(SelectableValue.empty)
+        DbSettingJsonFormats.settingValueFormat.reads(Json.parse(from))
+          .getOrElse(SelectableValue.empty)
       }
     )
   }
