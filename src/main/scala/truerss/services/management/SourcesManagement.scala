@@ -1,11 +1,11 @@
 package truerss.services.management
 
 import akka.event.EventStream
-import truerss.api.{BadRequestResponse, NotFoundResponse, Response, SourceResponse, SourcesResponse}
+import truerss.api.{BadRequestResponse, NotFoundResponse, SourceResponse, SourcesResponse}
 import truerss.dto.{NewSourceDto, UpdateSourceDto}
 import truerss.services.{OpmlService, SourcesService}
 import truerss.services.actors.sync.SourcesKeeperActor
-import truerss.util.Util.ResponseHelpers.{ok, sourceNotFound}
+import truerss.util.Util.ResponseHelpers.sourceNotFound
 
 import scala.concurrent.{ExecutionContext, Future}
 
