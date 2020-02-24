@@ -95,7 +95,7 @@ object SupportedDb {
     }
 
     if (!tableNames.contains(names.userSettings)) {
-      Console.out.println("----> add user settings & predefined settings tables")
+      Console.out.println("----> add user settings tables")
       Await.result(
         db.run {
           driver.query.userSettings.schema.create
@@ -107,10 +107,6 @@ object SupportedDb {
     if (!tableNames.contains(names.versions)) {
       // no versions
       Await.result(db.run { driver.query.versions.schema.create }, waitTime)
-    }
-
-    if (!tableNames.contains(names.predefinedSettings)) {
-      Await.result(db.run { driver.query.predefinedSettings.schema.create }, waitTime)
     }
 
     runMigrations(db, dbProfile, driver)
