@@ -22,4 +22,5 @@ Templates =
   plugins_template: null
   pagination_view: new Sirius.View("#pagination")
   tippy_template: null
+  settings_template: null
 

@@ -94,13 +94,14 @@ object JsonFormats {
   }
 
   implicit lazy val availableValueFormat: Format[AvailableValue] = new Format[AvailableValue] {
+    private final val r = JsObject(Seq("type" -> "radio".j))
     override def writes(o: AvailableValue): JsValue = {
       o match {
         case AvailableSelect(predefined) =>
           JsArray(predefined.map(x => JsNumber(x)).toSeq)
 
-        case AvailableRadio(currentState) =>
-          JsBoolean(currentState)
+        case AvailableRadio(_) =>
+          r
       }
     }
 

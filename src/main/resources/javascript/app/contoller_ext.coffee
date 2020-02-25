@@ -68,8 +68,8 @@ class AjaxService
   mark_all_as_read: () ->
     @_put("#{@sources_api}/markall", @k, @k)
 
-  get_settings: () ->
-    @_get("#{@settings_api}/current", @k)
+  get_settings: (success) ->
+    @_get("#{@settings_api}/current", success, @k)
 
   update_settings: (params, success, error) ->
     @_put("#{@settings_api}", params, success, error)
@@ -125,6 +125,7 @@ States =
   List: 6
   Source: 7
   Feed: 8
+  Settings: 9
 
 class Steps
   constructor: (state = States.Main) ->

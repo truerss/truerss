@@ -1,0 +1,37 @@
+<article class="uk-article">
+    <h1 class="uk-article-title">Settings</h1>
+    <p class="uk-article-lead">
+        <table class="uk-table">
+            <thead>
+              <tr>
+                <th>Setting</th>
+                <th>Current</th>
+              </tr>
+            </thead>
+        </table>
+
+        <% for (i = 0; i < settings.length; i++) { %>
+            <table class="uk-table uk-table-striped">
+               <tbody>
+                 <tr>
+                   <td><%= settings[i].description %></td>
+                   <% if (settings[i].is_radio) { %>
+                     <td>
+                        <% if (settings[i].value) { %>
+                            <input type="radio" data-settings="<%= settings[i].key %>" checked/>
+
+                        <% } else { %>
+                            <input type="radio" data-settings="<%= settings[i].key %>" checked/>
+                        <% } %}
+                     </td>
+                   <% } else { %>
+                     <td><%= settings[i].value %></td>
+                   <% } %>
+                 </tr>
+               </tbody>
+            </table>
+        <% } %>
+
+
+    </p>
+</article>
