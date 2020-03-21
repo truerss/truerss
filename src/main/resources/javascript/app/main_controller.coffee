@@ -84,18 +84,16 @@ MainController =
       ajax.load_ejs("sources")
       ajax.load_ejs("feeds_list")
       ajax.load_ejs("all_sources")
-      ajax.load_ejs("feeds")
       ajax.load_ejs("favorites")
       ajax.load_ejs("plugins")
       ajax.load_ejs("main")
       ajax.load_ejs("tippy_tooltip")
       ajax.load_ejs("settings")
-    ).done (sources, feeds_list, all_sources, feeds, favorites, plugins, main, tippy_tooltip, settings) =>
+    ).done (sources, feeds_list, all_sources, favorites, plugins, main, tippy_tooltip, settings) =>
       # TODO use async loading in controllers
       Templates.source_list = new EJS(sources[0])
       Templates.feeds_list = new EJS(feeds_list[0])
       Templates.all_sources_template = new EJS(all_sources[0])
-      Templates.feeds_template = new EJS(feeds[0])
       Templates.favorites_template = new EJS(favorites[0])
       Templates.plugins_template = new EJS(plugins[0])
       Templates.feed_template = new EJS(main[0])
