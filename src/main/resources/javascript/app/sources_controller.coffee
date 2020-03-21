@@ -64,7 +64,7 @@ SourcesController =
 
       view = new Sirius.View(el)
       view.render(hidden_class).zoom("td > span").add_class()
-      view.render(hidden_class).zoom("td a.edit-source").add_class()
+      view.render(hidden_class).zoom("td a.source-link").add_class()
       view.render(hidden_class).zoom("td input").remove_class()
       view.render(hidden_class).zoom("td button").remove_class()
 
@@ -93,10 +93,10 @@ SourcesController =
         ajax.update_source source.id(), source.ajaxify(),
           (s) ->
             logger.info("update source #{source.id()}")
-            view.render(hidden_class).zoom("td > span").remove_class()
-            view.render(hidden_class).zoom("td a.edit-source").remove_class()
             view.render(hidden_class).zoom("td input").add_class()
             view.render(hidden_class).zoom("td button").add_class()
+            view.render(hidden_class).zoom("td > span").remove_class()
+            view.render(hidden_class).zoom("td a.source-link").remove_class()
         (e) ->
             logger.error("error on update source: #{e}")
 

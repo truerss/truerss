@@ -15,6 +15,15 @@ get '/' do
   serve("index.html")
 end
 
+get '/about' do
+   content_type 'text/plain'
+   req = RestClient::Request.execute(
+       method: 'GET',
+       url: "#{url}/about"
+   )
+   req.body
+end
+
 get '/js/:name' do
   content_type 'application/javascript'
   serve("javascript/#{params['name']}")
@@ -33,7 +42,7 @@ any '/api/*' do
 
   content_type 'application/json'
 
-  if http_method == "POST" || http_method == "PUT"
+  if (http_method == "POST" || http_method == "PUT") && !request.body.read.empty?
     req = RestClient::Request.execute(
         method: http_method,
         url: "#{url}/api/#{path}",

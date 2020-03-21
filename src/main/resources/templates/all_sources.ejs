@@ -45,10 +45,12 @@
             </td>
 
             <td>
+                <a href="#refresh-source" data-source-id="<%= sources[i].id() %>"
+                   class="uk-icon-link refresh-source source-link" uk-icon="refresh"></a>
                 <a href="#edit-source" data-source-id="<%= sources[i].id() %>"
-                   class="uk-icon-link edit-source" uk-icon="file-edit"></a>
+                   class="uk-icon-link edit-source source-link" uk-icon="file-edit"></a>
                 <a href="#delete-source" data-source-id="<%= sources[i].id() %>"
-                   class="uk-icon-link" uk-icon="trash"></a>
+                   class="uk-icon-link delete-source source-link" uk-icon="trash"></a>
                 <button href="#" class="uk-hidden uk-margin-remove"
                         uk-icon="check" href="#"></button>
             </td>
