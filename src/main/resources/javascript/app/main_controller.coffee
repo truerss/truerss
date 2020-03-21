@@ -16,14 +16,16 @@ MainController =
       "wss"
     else
       "ws"
-     ws = new WebSocket("#{protocol}://#{location.hostname}:#{port}/")
+
+    ws = new WebSocket("#{protocol}://#{location.hostname}:#{port}/")
     ws.onopen = () ->
       logger.info("ws open on port: #{port}")
-     ws.onmessage = (e) ->
+
+    ws.onmessage = (e) ->
       message = JSON.parse(e.data)
       logger.info("ws given message: #{message.messageType}")
       adapter.fire(document, "ws:#{message.messageType}", message.body)
-     ws.onclose = () ->
+    ws.onclose = () ->
       logger.info("ws close")
 
   _bind_modal: () ->
@@ -117,8 +119,11 @@ MainController =
       else
         self = @
         ajax.sources_all (arr) ->
+          logger.info("load #{arr.length} sources")
+          
           Sirius.Application.get_adapter().and_then (adapter) ->
-            self._init_ws(logger, adapter, port)
+            logger.info("initialize ws on #{port}")
+            #TODO self._init_ws(logger, adapter, port)
 
           arr = arr.sort (a, b) -> parseInt(a.count) - parseInt(b.count)
 
@@ -126,11 +131,13 @@ MainController =
 
           if arr.length > 0
             sxs = Sources.all().filter (s) -> s.count() > 0
+            logger.info "redirect to"
             if sxs[0]
               source = sxs[0]
-              redirect(source.href())
+
+              #TODO redirect(source.href())
             else
-              redirect(Sources.first().href())
+              #TODO redirect(Sources.first().href())
 
 
         @_bind_modal()

@@ -17,12 +17,14 @@ SourcesController =
   show: (normalized) ->
     normalized = decodeURIComponent(normalized)
     source = Sources.takeFirst (s) -> s.normalized() == normalized
+    logger.info("Show: #{normalized} source is exist? #{source != null}")
+
     if source
       ajax.get_unread source.id(), (feeds) ->
+        logger.info("Load from source: #{source.id()}, #{feeds.length} feeds")
         source.reset('feeds')
         feeds = feeds.map (x) ->
-          pd = moment(x['publishedDate'])
-          x['publishedDate'] = pd
+          x['publishedDate'] = moment(x['publishedDate'])
           f = new Feed(x)
           source.add_feed(f)
           f
@@ -32,8 +34,7 @@ SourcesController =
         else
           ajax.get_feeds source.id(), (feeds) ->
             feeds = feeds.map (x) ->
-              pd = moment(x['publishedDate'])
-              x['publishedDate'] = pd
+              x['publishedDate'] = moment(x['publishedDate'])
               f = new Feed(x)
               source.add_feed(f)
               f
@@ -43,6 +44,9 @@ SourcesController =
       state.to(States.Source)
       posts.clear()
       sources.set(source.id())
+
+    else
+      logger.warn "source: #{normalized} does not exist"
 
   refresh_one: (e, id) ->
     ajax.refresh_one id
@@ -107,6 +111,7 @@ SourcesController =
             source.set_error("url.url_validator", e.responseText)
 
   mark_by_click_on_count_button: (_, id) ->
+    logger.debug(123)
     id = parseInt(id, 10)
     source = Sources.takeFirst (s) -> s.id() == id
     if source

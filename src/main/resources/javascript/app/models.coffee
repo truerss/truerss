@@ -10,6 +10,9 @@ class Source extends Sirius.BaseModel
   is_disable: () ->
     parseInt(@state()) is 2
 
+  is_empty: () ->
+    @count() == 0
+
   withPlugin: () ->
     (parseInt(@state()) is 1) || (parseInt(@state()) is 2)
 
@@ -98,7 +101,7 @@ Sources.subscribe "add", (source) ->
       to: 'a.source-url'
     },
     "count": {
-      to: 'span.source-count'
+      to: 'a.source-count'
       via: (new_value, selector, view, attribute) ->
         x = parseInt(new_value, 10)
         count = if isNaN(x) or x <= 0

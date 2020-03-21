@@ -199,9 +199,10 @@ ControllerExt =
     document.cookie = cn + '=; Path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;'
 
   render_source_feeds_and_redirect_to_first: (source) ->
-    result = Templates.feeds_template.render({feeds: source.feeds()})
-    Templates.feeds_view.render(result).html()
+    result = Templates.feeds_list.render({feeds: source.feeds()})
+    Templates.article_view.render(result).html()
     if source.feeds().length > 0
-      redirect(source.feeds()[0].href())
+      c(1)
+      # TODO redirect(source.feeds()[0].href())
 
 

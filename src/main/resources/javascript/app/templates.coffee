@@ -16,7 +16,7 @@ Templates =
   article_view: new Sirius.View("#main")
   modal_element: "#add-modal"
   modal_view: new Sirius.View("#add-modal")
-  feeds_view: new Sirius.View("#feeds")
+  feeds_view: new Sirius.View("#feeds")               # deprecated
   feeds_template: null
   favorites_template: null
   plugins_template: null

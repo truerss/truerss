@@ -99,7 +99,7 @@ $ ->
     "keyup body": controller: FeedsController, action: "move", guard: "check_key"
     "keydown body": controller: FeedsController, action: "key_action", guard: "check_shift"
     "click #truerss-markall": controller: SourcesController, action: "mark_all"
-    "click span.source-count": controller: SourcesController, action: "mark_by_click_on_count_button", data: "data-source-id"
+    "click a.source-count": controller: SourcesController, action: "mark_by_click_on_count_button", data: "data-source-id"
     "input #search": controller: SourcesController, action: "filter"
     "mouseenter .tippy-count": controller: FeedsController, action: 'draw_tooltip', data: "data-source-id"
 
@@ -108,5 +108,9 @@ $ ->
     adapter: new JQueryAdapter()
     mix_logger_into_controller: true
     controller_wrapper: ControllerExt
-    log: false
+    logger: (log_level, message) ->
+      if log_level.toLowerCase() != "debug"
+        console.log("#{log_level} #{message}")
+    log: true
     log_filters: 'all'
+    
