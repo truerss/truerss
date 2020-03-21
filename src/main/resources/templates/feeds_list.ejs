@@ -6,19 +6,11 @@
           </span>
           <span class="uk-text-light uk-text-right uk-text-large uk-width-auto">
             <% if (feeds[i].favorite()) { %>
-                  <a data-feed="<%= feeds[i].id() %>" href="#"
-                     class="unfavorite" title="remove from favorites" uk-icon="heart"></a>
+                  <a data-feed-id="<%= feeds[i].id() %>" href="#"
+                     class="unfavorite" title="remove from favorites" uk-icon="star"></a>
             <% } else {  %>
-                <a  data-feed="<%= feeds[i].id() %>" href="#"
-                   class="favorite" title="mark as favorite" uk-icon="heart"></a>
-            <% } %>
-
-            <% if (feeds[i].is_read()) { %>
-                <a href="#" data-id="<%= feeds[i].id() %>"
-                   class="TODO unread" title="mark as unread" uk-icon="check"></a>
-            <% } else {  %>
-            <a href="#" data-id="<%= feeds[i].id() %>"
-               class="TODO read" title="mark as read" uk-icon="check"></a>
+                <a  data-feed-id="<%= feeds[i].id() %>" href="#"
+                   class="favorite" title="mark as favorite" uk-icon="star"></a>
             <% } %>
           </span>
         </div>

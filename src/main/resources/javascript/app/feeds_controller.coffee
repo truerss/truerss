@@ -12,19 +12,16 @@ FeedsController =
       Templates.article_view.render(html).html()
       state.to(States.Favorites)
 
-  _favorite_helper: (id, favorite) =>
-    1
-    # TODO binding
-    # TODO
-#    v = new Sirius.View("i[data-favorite='#{id}']")
-#    klasses = [["uk-icon-star-o", "favorite"], ["uk-icon-star", "unfavorite"]]
-#    [remove, add] = if favorite
-#      klasses
-#    else
-#      klasses.reverse()
+  _favorite_helper: (id, is_favorite) =>
+    v = new Sirius.View("a[data-feed-id='#{id}']")
+    klasses = ["favorite", "unfavorite"]
+    [remove, add] = if is_favorite
+      klasses
+    else
+      klasses.reverse()
 
-    #remove.forEach (klass) -> v.render(klass).remove_class()
-    #add.forEach (klass) -> v.render(klass).add_class()
+    v.render(remove).remove_class()
+    v.render(add).add_class()
 
     # mark feed in collection as favorite or unmark
     if !sources.is_empty()
@@ -32,21 +29,17 @@ FeedsController =
       if source && !posts.is_empty()
         feed = source.feeds().filter (f) -> f.id() == posts.get()
         if feed && feed.length > 0
-          feed[0].favorite(favorite)
+          feed[0].favorite(is_favorite)
 
-  favorite: (e) ->
-    id = parseInt($(e.currentTarget).data('feed'))
+  favorite: (e, id) ->
     ajax.set_favorite id, (response) =>
       logger.info("Feed #{id} mark as favorite")
       @_favorite_helper(id, true)
-    e.stopPropagation
 
-  unfavorite: (e) ->
-    id = parseInt($(e.currentTarget).data('feed'))
+  unfavorite: (e, id) ->
     ajax.unset_favorite id, (response) =>
       logger.info("Feed #{id} remove from favorite list")
       @_favorite_helper(id, false)
-    e.stopPropagation
 
   view0: (e, id) -> # helper, if feeds have not uniq name need check it
     posts.set(id)

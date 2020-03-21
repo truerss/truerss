@@ -86,8 +86,8 @@ $ ->
     "/settings" : controller: SettingsController, action: 'all'
     #"click a.feed-link": controller: FeedsController, action: "view0", data: "data-feed-id"
     "click a[href='#refresh']" : controller: SourcesController, action: "refresh_all"
-    "click a.favorite": controller: FeedsController, action: "favorite", data: "data-feed"
-    "click a.unfavorite": controller: FeedsController, action: "unfavorite", data: "data-feed"
+    "click a.favorite": controller: FeedsController, action: "favorite", data: "data-feed-id"
+    "click a.unfavorite": controller: FeedsController, action: "unfavorite", data: "data-feed-id"
     "click a[href='#refresh-source']" : controller: SourcesController, action: "refresh_one", data: "data-source-id"
     "click a[href='#delete-source']": controller: SourcesController, action: "remove", data: "data-source-id"
     "click a[href='#edit-source']": controller: SourcesController, action: "edit", data: "data-source-id"
