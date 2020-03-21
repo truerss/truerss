@@ -86,22 +86,22 @@ $ ->
     "/by/:source-name": controller: FeedsController, action: "view"
     "/opml": controller: SourcesController, action: "download"
     "/settings" : controller: SettingsController, action: 'all'
-    "click a.feed-link": controller: FeedsController, action: "view0", data: "data-feed-id"
+    #"click a.feed-link": controller: FeedsController, action: "view0", data: "data-feed-id"
     "click a[href='#refresh']" : controller: SourcesController, action: "refresh_all"
-    "click i.favorite": controller: FeedsController, action: "favorite", data: "data-favorite"
-    "click i.unfavorite": controller: FeedsController, action: "unfavorite", data: "data-favorite"
-    "click a[href='#update-source']" : controller: SourcesController, action: "refresh_one", data: "data-source-id"
-    "click a[href='#delete-source']": controller: SourcesController, action: "remove", data: "data-source-id"
-    "click a[href='#edit-source']": controller: SourcesController, action: "edit", data: "data-source-id"
-    "click a[href='#mark-source-as-read']": controller: SourcesController, action: "mark"
-    "click #truerss-next": controller: FeedsController, action: "next", data: "data-feed-id", guard: "prev_next_guard"
-    "click #truerss-prev": controller: FeedsController, action: "prev", data: "data-feed-id", guard: "prev_next_guard"
-    "keyup body": controller: FeedsController, action: "move", guard: "check_key"
-    "keydown body": controller: FeedsController, action: "key_action", guard: "check_shift"
-    "click #truerss-markall": controller: SourcesController, action: "mark_all"
+    "click a.favorite": controller: FeedsController, action: "favorite", data: "data-feed"
+    "click a.unfavorite": controller: FeedsController, action: "unfavorite", data: "data-feed"
+#    "click a[href='#update-source']" : controller: SourcesController, action: "refresh_one", data: "data-source-id"
+#    "click a[href='#delete-source']": controller: SourcesController, action: "remove", data: "data-source-id"
+#    "click a[href='#edit-source']": controller: SourcesController, action: "edit", data: "data-source-id"
+#    "click a[href='#mark-source-as-read']": controller: SourcesController, action: "mark"
+#    "click #truerss-next": controller: FeedsController, action: "next", data: "data-feed-id", guard: "prev_next_guard"
+#    "click #truerss-prev": controller: FeedsController, action: "prev", data: "data-feed-id", guard: "prev_next_guard"
+#    "keyup body": controller: FeedsController, action: "move", guard: "check_key"
+#    "keydown body": controller: FeedsController, action: "key_action", guard: "check_shift"
+#    "click #truerss-markall": controller: SourcesController, action: "mark_all"
     "click a.source-count": controller: SourcesController, action: "mark_by_click_on_count_button", data: "data-source-id"
     "input #search": controller: SourcesController, action: "filter"
-    "mouseenter .tippy-count": controller: FeedsController, action: 'draw_tooltip', data: "data-source-id"
+#    "mouseenter .tippy-count": controller: FeedsController, action: 'draw_tooltip', data: "data-source-id"
 
   app = Sirius.Application.run
     route: routes
@@ -111,6 +111,6 @@ $ ->
     logger: (log_level, message) ->
       if log_level.toLowerCase() != "debug"
         console.log("#{log_level} #{message}")
-    log: true
+    log: false
     log_filters: 'all'
     

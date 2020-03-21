@@ -160,6 +160,7 @@ SourcesController =
     window.open("/api/v1/sources/opml")
 
   fetch_unread: (e, source) ->
+    c(123)
     ajax.get_unread source.id(), (feeds) ->
       feeds = feeds.map (x) ->
         pd = moment(x['publishedDate'])
