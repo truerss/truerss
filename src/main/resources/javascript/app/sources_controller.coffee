@@ -56,6 +56,7 @@ SourcesController =
     source = Sources.find("id", id)
     if source
       Sources.remove(source)
+      # TODO current table. does sirius do it?
       jQuery("#all-sources tr.source-#{id}").remove()
 
 
@@ -63,25 +64,21 @@ SourcesController =
     logger.info("update #{id} source")
     source = Sources.find('id', id)
     if source
+      hidden_class = "uk-hidden"
       el = "table tr.source-#{source.id()}"
 
       view = new Sirius.View(el)
-      view.render("uk-hidden").zoom("td > span").add_class()
-      view.render("uk-hidden").zoom("td input").remove_class()
-      view.render("uk-hidden").zoom("span.errors").remove_class()
+      view.render(hidden_class).zoom("td > span").add_class()
+      view.render(hidden_class).zoom("td a.edit-source").add_class()
+      view.render(hidden_class).zoom("td input").remove_class()
+      view.render(hidden_class).zoom("td button").remove_class()
 
       to_view_transformer = Sirius.Transformer.draw({
-        name: {
+        'name': {
           to: 'span.source-name'
-        },
-        'url': {
-          to: 'span.source-url'
         },
         'interval': {
           to: 'span.source-interval'
-        },
-        'errors.url.url_validator': {
-          to: 'span.errors'
         }
       })
 
@@ -91,27 +88,24 @@ SourcesController =
         "input[name='name']": {
           to: 'name'
         },
-        "input[name='url']": {
-          to: 'url'
-        },
         "input[name='interval']": {
           to: 'interval'
         }
       })
 
       view.bind(source, to_model_transformer)
-      view.on "input[type='button']", "click", (e) ->
+      view.on "button", "click", (e) ->
         ajax.update_source source.id(), source.ajaxify(),
           (s) ->
             logger.info("update source #{source.id()}")
-            view.render("uk-hidden").zoom("td > span").remove_class()
-            view.render("uk-hidden").zoom("td input").add_class()
-          (e) ->
-            logger.error("error on update source")
-            source.set_error("url.url_validator", e.responseText)
+            view.render(hidden_class).zoom("td > span").remove_class()
+            view.render(hidden_class).zoom("td a.edit-source").remove_class()
+            view.render(hidden_class).zoom("td input").add_class()
+            view.render(hidden_class).zoom("td button").add_class()
+        (e) ->
+            logger.error("error on update source: #{e}")
 
   mark_by_click_on_count_button: (_, id) ->
-    logger.debug(123)
     id = parseInt(id, 10)
     source = Sources.takeFirst (s) -> s.id() == id
     if source
@@ -160,7 +154,6 @@ SourcesController =
     window.open("/api/v1/sources/opml")
 
   fetch_unread: (e, source) ->
-    c(123)
     ajax.get_unread source.id(), (feeds) ->
       feeds = feeds.map (x) ->
         pd = moment(x['publishedDate'])

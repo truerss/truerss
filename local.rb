@@ -30,12 +30,23 @@ any '/api/*' do
   path = params["splat"].first
   http_method = request.env["REQUEST_METHOD"]
   url = settings.api_url
-  req = RestClient::Request.execute(
-    method: http_method,
-    url: "#{url}/api/#{path}"
-  )
+
   content_type 'application/json'
-  req.body
+
+  if http_method == "POST" || http_method == "PUT"
+    req = RestClient::Request.execute(
+        method: http_method,
+        url: "#{url}/api/#{path}",
+        body: JSON.parse(request.body.read)
+    )
+    req.body
+  else
+    req = RestClient::Request.execute(
+        method: http_method,
+        url: "#{url}/api/#{path}"
+    )
+    req.body
+  end
 end
 
 get '/*' do
