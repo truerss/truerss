@@ -82,8 +82,6 @@ $ ->
     "/about" : controller: MainController, action: "about"
     "/show/:source-name/:feed-name": controller: FeedsController, action: "show"
     "/show/:source-name" : controller: SourcesController, action: "show"
-    "/by-source" : controller: SourcesController, action: "by_source"
-    "/by/:source-name": controller: FeedsController, action: "view"
     "/opml": controller: SourcesController, action: "download"
     "/settings" : controller: SettingsController, action: 'all'
     #"click a.feed-link": controller: FeedsController, action: "view0", data: "data-feed-id"

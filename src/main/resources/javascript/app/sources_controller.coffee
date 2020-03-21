@@ -1,11 +1,6 @@
 
 SourcesController =
 
-  by_source: () ->
-    html = Templates.list.render({sources: Sources.all()})
-    Templates.article_view.render(html).html()
-    state.to(States.List)
-
   all: () ->
     html = Templates.all_sources_template.render({sources: Sources.all()})
     Templates.article_view.render(html).html()

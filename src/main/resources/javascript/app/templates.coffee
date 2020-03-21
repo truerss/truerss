@@ -8,7 +8,6 @@ class EJS
 
 Templates =
   source_list: null
-  list: null
   feeds_list: null
   all_sources_template: null
   source_list_view: new Sirius.View("#source-list")

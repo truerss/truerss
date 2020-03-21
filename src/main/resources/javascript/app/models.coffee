@@ -19,9 +19,6 @@ class Source extends Sirius.BaseModel
   href: () ->
     "/show/#{@normalized()}"
 
-  href0: () ->
-    "/by/#{@normalized()}"
-
   ajaxify: () ->
     JSON.stringify({url: @url(), interval: parseInt(@interval()), name: @name(), id: @id()})
 
