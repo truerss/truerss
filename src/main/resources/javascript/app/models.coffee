@@ -78,6 +78,7 @@ class FavoriteFeed
     @title = feed.title()
     @description = feed.description()
     @href = feed.href()
+    @favorite = feed.favorite()
     @source_name = feed.source().name()
 
 

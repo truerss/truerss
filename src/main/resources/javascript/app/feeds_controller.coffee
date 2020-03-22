@@ -8,7 +8,7 @@ FeedsController =
         feed = new Feed(f)
         new FavoriteFeed(feed)
 
-      html = Templates.favorites_template.render({feeds: feeds.group_by('source_name')})
+      html = Templates.favorites_template.render({feeds: feeds})
       Templates.article_view.render(html).html()
       state.to(States.Favorites)
 

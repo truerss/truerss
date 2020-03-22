@@ -1,25 +1,18 @@
-<% if (Object.keys(feeds).length > 0) { %>
-    <article class="uk-article">
-        <h1 class="uk-article-title">Favorites List</h1>
-        <p class="uk-article-lead">
-            <% for(var k in feeds) { %>
-              <% if (feeds.hasOwnProperty(k)) { %>
-                  <h3><%= k %></h3>
-                  <dl class="uk-description-list-line favorites">
-                      <% for(var i = 0; i < feeds[k].length; i++) { %>
-                          <dt><a href="<%= feeds[k][i].href %>" ><%= feeds[k][i].title %></a>
-                          [<a href="<%= feeds[k][i].url %>">
-                              <i class="uk-icon-external-link"></i>original</a>]</dt>
-                          <dd><%= feeds[k][i].description %></dd>
-                      <% } %>
-                  </dl>
-              <% } %>
-            <% } %>
-        </p>
-    </article>
-<% } else { %>
-    <article class="uk-article">
-        <h1 class="uk-article-title">Favorites List is Empty</h1>
-     </article>
+<% for (i = 0; i < feeds.length; i ++) { %>
+    <div class="uk-section uk-section-muted uk-padding-small mt3">
+        <div uk-grid>
+          <span class="uk-text-light uk-text-large uk-width-expand">
+            <%= feeds[i].title %>
+          </span>
+            <span class="uk-text-light uk-text-right uk-text-large uk-width-auto">
+                <% if (feeds[i].favorite) { %>
+                    <a data-feed-id="<%= feeds[i].id %>" href="#"
+                       class="unfavorite" title="remove from favorites" uk-icon="star"></a>
+                <% } else {  %>
+                    <a  data-feed-id="<%= feeds[i].id %>" href="#"
+                        class="favorite" title="mark as favorite" uk-icon="star"></a>
+                <% } %>
+            </span>
+        </div>
+    </div>
 <% } %>
-
