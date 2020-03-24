@@ -13,7 +13,7 @@ class Source extends Sirius.BaseModel
   is_empty: () ->
     @count() == 0
 
-  withPlugin: () ->
+  has_plugin: () ->
     (parseInt(@state()) is 1) || (parseInt(@state()) is 2)
 
   href: () ->
@@ -32,6 +32,14 @@ class Source extends Sirius.BaseModel
   unread_feeds: () ->
     @feeds().filter (f) -> !f.read()
 
+  favorites_count: () ->
+    @feeds().filter((x) -> x.favorite()).length
+
+  has_favorites: () ->
+    @favorites_count() != 0
+
+  feeds_count: () ->
+    @feeds().length
 
 
 class Feed extends Sirius.BaseModel

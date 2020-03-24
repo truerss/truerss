@@ -203,6 +203,8 @@ ControllerExt =
     Templates.article_view.render(result).html()
     if source.feeds().length > 0
       1
+    description = Templates.source_overview_template.render({source: source})
+    Templates.source_overview_view.render(description).html()
       # TODO redirect(source.feeds()[0].href())
 
 

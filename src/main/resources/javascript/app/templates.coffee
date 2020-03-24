@@ -21,4 +21,6 @@ Templates =
   pagination_view: new Sirius.View("#pagination")
   tippy_template: null
   settings_template: null
+  source_overview_template: null
+  source_overview_view: new Sirius.View("#source-overview")
 

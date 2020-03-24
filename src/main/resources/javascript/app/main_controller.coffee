@@ -89,7 +89,8 @@ MainController =
       ajax.load_ejs("main")
       ajax.load_ejs("tippy_tooltip")
       ajax.load_ejs("settings")
-    ).done (sources, feeds_list, all_sources, favorites, plugins, main, tippy_tooltip, settings) =>
+      ajax.load_ejs("source_overview")
+    ).done (sources, feeds_list, all_sources, favorites, plugins, main, tippy_tooltip, settings, source_description) =>
       # TODO use async loading in controllers
       Templates.source_list = new EJS(sources[0])
       Templates.feeds_list = new EJS(feeds_list[0])
@@ -99,6 +100,7 @@ MainController =
       Templates.feed_template = new EJS(main[0])
       Templates.tippy_template = new EJS(tippy_tooltip[0])
       Templates.settings_template = new EJS(settings[0])
+      Templates.source_overview_template = new EJS(source_description[0])
 
       @_load_js_and_css(ajax)
       port = read_cookie("port")
