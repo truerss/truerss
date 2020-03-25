@@ -75,7 +75,6 @@ $ ->
     "sources:fetch": controller: SourcesController, action: "fetch_unread"
     "ws:new": controller: WSController, action: "fresh"
     "ws:notify": controller: WSController, action: "notify"
-    "/sources" : controller: SourcesController, action: "all"
     "/" : controller: MainController, action: "view"
     "/favorites" : controller: FeedsController, action: "favorites"
     "/plugins" : controller: MainController, action: "plugin_list"
