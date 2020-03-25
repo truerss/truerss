@@ -2,14 +2,19 @@
     <div class="mt1">
         <dl class="uk-description-list uk-description-list-divider">
             <dt class="uk-grid-small" uk-grid>
-                <span class="uk-width-expand" uk-leader>source#1</span>
+                <span class="uk-width-expand" id="source-name-<%= source.id() %>" uk-leader>
+                    <span><%= source.name() %></span>
+                    <input class="uk-hidden uk-form-width-small"
+                           type="text" name="name"
+                           value="<%= source.name() %>" />
+                </span>
                 <span>
                     <ul class="uk-iconnav">
-                        <li><a href="#refresh-source" data-feed-id="<%= source.id() %>"
+                        <li><a href="#refresh-source" data-source-id="<%= source.id() %>"
                                title="refresh" uk-icon="refresh"></a></li>
-                        <li><a href="#edit-source" data-feed-id="<%= source.id() %>"
+                        <li><a href="#edit-source" data-source-id="<%= source.id() %>"
                                title="edit source" uk-icon="file-edit"></a></li>
-                        <li><a href="#remove-source" data-feed-id="<%= source.id() %>"
+                        <li><a href="#remove-source" data-source-id="<%= source.id() %>"
                                title="remove feed" uk-icon="trash"></a></li>
                     </ul>
                 </span>
@@ -20,6 +25,12 @@
                     <a class="uk-link-text" href="<%= source.url() %>">
                         <%= source.url() %>
                     </a>
+                </span>
+            </dt>
+            <dt class="uk-grid-small" uk-grid>
+                <span class="uk-width-expand" uk-leader>Update every:</span>
+                <span>
+                   <%= source.interval() %> hour(s)
                 </span>
             </dt>
             <dt class="uk-grid-small" uk-grid>

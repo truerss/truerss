@@ -55,45 +55,44 @@ SourcesController =
     source = Sources.find('id', id)
     if source
       hidden_class = "uk-hidden"
-      el = "table tr.source-#{source.id()}"
+      el = "span#source-name-#{source.id()}"
 
       view = new Sirius.View(el)
-      view.render(hidden_class).zoom("td > span").add_class()
-      view.render(hidden_class).zoom("td a.source-link").add_class()
-      view.render(hidden_class).zoom("td input").remove_class()
-      view.render(hidden_class).zoom("td button").remove_class()
-
-      to_view_transformer = Sirius.Transformer.draw({
-        'name': {
-          to: 'span.source-name'
-        },
-        'interval': {
-          to: 'span.source-interval'
-        }
-      })
-
-      source.bind(view, to_view_transformer)
-
-      to_model_transformer = Sirius.Transformer.draw({
-        "input[name='name']": {
-          to: 'name'
-        },
-        "input[name='interval']": {
-          to: 'interval'
-        }
-      })
-
-      view.bind(source, to_model_transformer)
-      view.on "button", "click", (e) ->
-        ajax.update_source source.id(), source.ajaxify(),
-          (s) ->
-            logger.info("update source #{source.id()}")
-            view.render(hidden_class).zoom("td input").add_class()
-            view.render(hidden_class).zoom("td button").add_class()
-            view.render(hidden_class).zoom("td > span").remove_class()
-            view.render(hidden_class).zoom("td a.source-link").remove_class()
-        (e) ->
-            logger.error("error on update source: #{e}")
+      view.render(hidden_class).zoom("span").add_class()
+      view.render(hidden_class).zoom("input").remove_class()
+#      view.render(hidden_class).zoom("td button").remove_class()
+#
+#      to_view_transformer = Sirius.Transformer.draw({
+#        'name': {
+#          to: 'span.source-name'
+#        },
+#        'interval': {
+#          to: 'span.source-interval'
+#        }
+#      })
+#
+#      source.bind(view, to_view_transformer)
+#
+#      to_model_transformer = Sirius.Transformer.draw({
+#        "input[name='name']": {
+#          to: 'name'
+#        },
+#        "input[name='interval']": {
+#          to: 'interval'
+#        }
+#      })
+#
+#      view.bind(source, to_model_transformer)
+#      view.on "button", "click", (e) ->
+#        ajax.update_source source.id(), source.ajaxify(),
+#          (s) ->
+#            logger.info("update source #{source.id()}")
+#            view.render(hidden_class).zoom("td input").add_class()
+#            view.render(hidden_class).zoom("td button").add_class()
+#            view.render(hidden_class).zoom("td > span").remove_class()
+#            view.render(hidden_class).zoom("td a.source-link").remove_class()
+#        (e) ->
+#            logger.error("error on update source: #{e}")
 
   mark_by_click_on_count_button: (_, id) ->
     id = parseInt(id, 10)
