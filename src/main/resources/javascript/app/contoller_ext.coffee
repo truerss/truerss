@@ -59,6 +59,9 @@ class AjaxService
   set_read: (num, success) ->
     @_put("#{@feeds_api}/read/#{num}", {}, success, @k)
 
+  set_unread: (num, success) ->
+    @_put("#{@feeds_api}/unread/#{num}", {}, success, @k)
+
   about: (success) ->
     @_get("/about", success, @k)
 

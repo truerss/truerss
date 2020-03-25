@@ -12,24 +12,40 @@ FeedsController =
       Templates.article_view.render(html).html()
       state.to(States.Favorites)
 
-  _favorite_helper: (id, is_favorite) =>
-    v = new Sirius.View("a[data-feed-id='#{id}']")
-    klasses = ["favorite", "unfavorite"]
-    [remove, add] = if is_favorite
-      klasses
+  _change: (view, has_flag, available_classes, f) =>
+    [remove, add] = if has_flag
+      available_classes
     else
-      klasses.reverse()
+      available_classes.reverse()
 
-    v.render(remove).remove_class()
-    v.render(add).add_class()
+    view.render(remove).remove_class()
+    view.render(add).add_class()
 
-    # mark feed in collection as favorite or unmark
     if !sources.is_empty()
       source = Sources.takeFirst (s) -> s.id() == sources.get()
       if source && !posts.is_empty()
         feed = source.feeds().filter (f) -> f.id() == posts.get()
         if feed && feed.length > 0
-          feed[0].favorite(is_favorite)
+          f(feed[0])
+
+  _favorite_helper: (id, is_favorite) ->
+    @_change(new Sirius.View("a[data-feed-id='#{id}']"),
+      is_favorite, ["favorite", "unfavorite"], (feed) -> feed.favorite(is_favorite))
+
+
+  _read_helper: (id, is_read) ->
+    @_change(new Sirius.View("a[data-feed-id='#{id}']"), is_read,
+      ["read", "unread"], (feed) -> feed.read(is_read))
+
+  read: (e, id) ->
+    ajax.set_read id, (response) =>
+      logger.info("Feed #{id} mark as read")
+      @_read_helper(id, true)
+
+  unread: (e, id) ->
+    ajax.set_unread id, (response) =>
+      logger.info("Feed #{id} mark as unread")
+      @_read_helper(id, false)
 
   favorite: (e, id) ->
     ajax.set_favorite id, (response) =>
