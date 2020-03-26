@@ -19,7 +19,7 @@ get '/about' do
    content_type 'text/plain'
    req = RestClient::Request.execute(
        method: 'GET',
-       url: "#{url}/about"
+       url: "#{settings.api_url}/about"
    )
    req.body
 end

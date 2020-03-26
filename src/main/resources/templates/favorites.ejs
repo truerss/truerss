@@ -1,5 +1,9 @@
 <% for (i = 0; i < feeds.length; i ++) { %>
-    <div class="uk-section uk-section-muted uk-padding-small mt3">
+    <% if (i == 0 ) { %>
+        <div class="uk-section uk-section-muted uk-padding-small">
+    <% } else { %>
+        <div class="uk-section uk-section-muted uk-padding-small mt3">
+    <% } %>
         <div uk-grid>
           <span class="uk-text-light uk-text-large uk-width-expand">
             <%= feeds[i].title %>
