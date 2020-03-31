@@ -135,6 +135,11 @@ MainController =
             else
               #TODO redirect(Sources.first().href())
 
+        ajax.get_settings (arr) ->
+          arr.forEach (x) -> Settings.add(x)
+          # TODO bind Settings.Collection plz
+          result = Templates.settings_template.render({settings: arr})
+          Templates.settings_view.render(result).html()
 
         @_bind_modal()
       delete_cookie("redirect")

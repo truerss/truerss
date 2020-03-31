@@ -1,36 +1,51 @@
-<article class="uk-article">
-    <h1 class="uk-article-title">Settings</h1>
-    <p class="uk-article-lead">
-        <table class="uk-table">
-            <thead>
-              <tr>
-                <th>Setting</th>
-                <th>Current</th>
-              </tr>
-            </thead>
-        </table>
+<div class="uk-modal-dialog">
+    <button class="uk-modal-close-default" type="button" uk-close></button>
+    <div class="uk-modal-header">
+        <h2 class="uk-modal-title">Settings</h2>
+    </div>
+    <div class="uk-modal-body">
+        <form class="uk-form-horizontal uk-margin-large uk-margin-remove-top">
+            <% for(var i = 0; i < settings.length; i++) { %>
+                <div class="uk-margin-medium" id="settings-<%= settings[i].key() %>">
 
-        <% for (i = 0; i < settings.length; i++) { %>
-            <table class="uk-table uk-table-striped">
-               <tbody>
-                 <tr>
-                   <td><%= settings[i].description %></td>
-                   <% if (settings[i].is_radio) { %>
-                     <td>
-                        <% if (settings[i].value) { %>
-                            <input type="radio" data-settings="<%= settings[i].key %>" checked/>
+                    <div class="uk-form-label">
+                        <span class="uk-text-large"><%= settings[i].key() %></span><br/>
+                        <span><%= settings[i].description() %></span>
+                    </div>
+
+                    <div class="uk-form-controls">
+                        <% if (settings[i].is_radio()) { %>
+                            <div class="uk-form-controls uk-form-controls-text">
+                                <label>
+                                    <input class="uk-radio" type="radio" name="<%= settings[i].key() %>"
+                                    value="yes"
+                                    <% if (settings[i].is_eq(true)) { %> checked <% } %> />Yes
+                                </label>
+                                <br>
+                                <label>
+                                    <input class="uk-radio" type="radio" name="<%= settings[i].key() %>"
+                                           value="no"
+                                           <% if (settings[i].is_eq(false)) { %>checked<% } %> />No
+                                </label>
+                            </div>
                         <% } else { %>
-                            <input type="radio" data-settings="<%= settings[i].key %>" checked/>
-                        <% } %}
-                     </td>
-                   <% } else { %>
-                     <td><%= settings[i].value %></td>
-                   <% } %>
-                 </tr>
-               </tbody>
-            </table>
-        <% } %>
+                                <select class="uk-select uk-form-width-xsmall mt3" name="<%= settings[i].key() %>">
+                                    <% for(var j = 0; j < settings[i].options().length; j++) { %>
+                                        <option <% if (settings[i].is_eq(settings[i].options()[j])) { %> selected <% } %>>
+                                            <%= settings[i].options()[j] %>
+                                        </option>
+                                    <% } %>
+                                </select>
+                        <% } %>
 
+                    </div>
+                </div>
+            <% } %>
+        </form>
+    </div>
+    <div class="uk-modal-footer uk-text-right">
+        <button class="uk-button uk-button-default uk-modal-close" type="button">Cancel</button>
+        <button class="uk-button uk-button-primary" type="button">Save</button>
+    </div>
+</div>
 
-    </p>
-</article>

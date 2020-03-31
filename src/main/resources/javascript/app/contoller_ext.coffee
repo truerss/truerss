@@ -72,7 +72,14 @@ class AjaxService
     @_put("#{@sources_api}/markall", @k, @k)
 
   get_settings: (success) ->
-    @_get("#{@settings_api}/current", success, @k)
+    @_get(
+      "#{@settings_api}/current",
+      (response) -> success(response.map (x) -> new Setting(x))
+      @k)
+
+  update_settings: (success, error) ->
+    # TODO update impl
+    @_put("#{@settings_api}", success, error)
 
   update_settings: (params, success, error) ->
     @_put("#{@settings_api}", params, success, error)

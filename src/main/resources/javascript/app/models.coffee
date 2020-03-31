@@ -89,6 +89,19 @@ class FavoriteFeed
     @favorite = feed.favorite()
     @source_name = feed.source().name()
 
+class Setting extends Sirius.BaseModel
+  @attrs: ["key", "description", "value", "options"]
+
+  @skip: true
+
+  is_radio: () ->
+    @options()['type'] == 'radio'
+
+  is_eq: (x) ->
+    x == @value()
+
+Settings = new Sirius.Collection(Setting, {index: ["key"]})
+Settings.subscribe("add", "settings:add")
 
 Sources = new Sirius.Collection(Source, {index: ['id', 'name', 'normalized']})
 Sources.subscribe "add", (source) ->

@@ -82,7 +82,8 @@ $ ->
     "/show/:source-name/:feed-name": controller: FeedsController, action: "show"
     "/show/:source-name" : controller: SourcesController, action: "show"
     "/opml": controller: SourcesController, action: "download"
-    "/settings" : controller: SettingsController, action: 'all'
+    "/settings" : controller: SettingsController, action: "show"
+    "settings:add": controller: SettingsController, action: "on_add"
     #"click a.feed-link": controller: FeedsController, action: "view0", data: "data-feed-id"
     "click a[href='#refresh']" : controller: SourcesController, action: "refresh_all"
     "click a.favorite": controller: FeedsController, action: "favorite", data: "data-feed-id"
@@ -92,8 +93,6 @@ $ ->
     "click a[href='#refresh-source']" : controller: SourcesController, action: "refresh_one", data: "data-source-id"
     "click a[href='#remove-source']": controller: SourcesController, action: "remove", data: "data-source-id"
     "click a[href='#edit-source']": controller: SourcesController, action: "edit", data: "data-source-id"
-#    "click a[href='#mark-source-as-read']": controller: SourcesController, action: "mark"
-#    "click #truerss-markall": controller: SourcesController, action: "mark_all"
     "click a.source-count": controller: SourcesController, action: "mark_by_click_on_count_button", data: "data-source-id"
     "input #search": controller: SourcesController, action: "filter"
 #    "mouseenter .tippy-count": controller: FeedsController, action: 'draw_tooltip', data: "data-source-id"
