@@ -1,42 +1,49 @@
-<div class="uk-section uk-section-muted uk-padding-small">
-    <h1 class="">Plugins List</h1>
-    <div>
-        <% if (plugins.feed.length > 0) { %>
-        <dl class="uk-description-list">
-            <% for(var i = 0; i < plugins.feed.length; i++) { %>
-                <dt><%= plugins.feed[i].pluginName %> (v<%= plugins.feed[i].version %>)</dt>
-                <dd><%= plugins.feed[i].about %></dd>
-            <% } %>
-        </dl>
-        <% } %>
-
-        <% if (plugins.content.length > 0) { %>
-            <dl class="uk-description-list">
-                <% for(var i = 0; i < plugins.content.length; i++) { %>
-                    <dt><%= plugins.content[i].pluginName %> (v<%= plugins.content[i].version %>)</dt>
-                    <dd><%= plugins.content[i].about %></dd>
+<div class="uk-modal-dialog">
+    <button class="uk-modal-close-default" type="button" uk-close></button>
+    <div class="uk-modal-header">
+        <h2 class="uk-modal-title">Plugins List</h2>
+    </div>
+    <div class="uk-modal-body">
+        <div class="uk-section uk-padding-small">
+            <div>
+                <% if (plugins.feed.length > 0) { %>
+                    <dl class="uk-description-list">
+                        <% for(var i = 0; i < plugins.feed.length; i++) { %>
+                            <dt><%= plugins.feed[i].pluginName %> (v<%= plugins.feed[i].version %>)</dt>
+                            <dd><%= plugins.feed[i].about %></dd>
+                        <% } %>
+                    </dl>
                 <% } %>
-            </dl>
-        <% } %>
 
-        <% if (plugins.publish.length > 0) { %>
-            <dl class="uk-description-list">
-                <% for(var i = 0; i < plugins.publish.length; i++) { %>
-                    <dt><%= plugins.publish[i].pluginName %> (v<%= plugins.publish[i].version %>)</dt>
-                    <dd><%= plugins.publish[i].about %></dd>
+                <% if (plugins.content.length > 0) { %>
+                    <dl class="uk-description-list">
+                        <% for(var i = 0; i < plugins.content.length; i++) { %>
+                            <dt><%= plugins.content[i].pluginName %> (v<%= plugins.content[i].version %>)</dt>
+                            <dd><%= plugins.content[i].about %></dd>
+                        <% } %>
+                    </dl>
                 <% } %>
-            </dl>
-        <% } %>
 
-        <% if (plugins.site.length > 0) { %>
-            <dl class="uk-description-list">
-                <% for(var i = 0; i < plugins.site.length; i++) { %>
-                    <dt><%= plugins.site[i].pluginName %> (v<%= plugins.site[i].version %>)</dt>
-                    <dd><%= plugins.site[i].about %></dd>
+                <% if (plugins.publish.length > 0) { %>
+                    <dl class="uk-description-list">
+                        <% for(var i = 0; i < plugins.publish.length; i++) { %>
+                            <dt><%= plugins.publish[i].pluginName %> (v<%= plugins.publish[i].version %>)</dt>
+                            <dd><%= plugins.publish[i].about %></dd>
+                        <% } %>
+                    </dl>
                 <% } %>
-            </dl>
-        <% } %>
 
+                <% if (plugins.site.length > 0) { %>
+                    <dl class="uk-description-list">
+                        <% for(var i = 0; i < plugins.site.length; i++) { %>
+                            <dt><%= plugins.site[i].pluginName %> (v<%= plugins.site[i].version %>)</dt>
+                            <dd><%= plugins.site[i].about %></dd>
+                        <% } %>
+                    </dl>
+                <% } %>
 
+            </div>
+        </div>
     </div>
 </div>
+

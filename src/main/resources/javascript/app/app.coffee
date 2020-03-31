@@ -72,12 +72,14 @@ $ ->
 
   routes =
     "application:run" : controller: MainController, action: "start"
+    "plugins:load": controller: PluginsController, action: "load"
+    "settings:load": controller: SettingsController, action: "load"
     "sources:fetch": controller: SourcesController, action: "fetch_unread"
     "ws:new": controller: WSController, action: "fresh"
     "ws:notify": controller: WSController, action: "notify"
     "/" : controller: MainController, action: "view"
     "/favorites" : controller: FeedsController, action: "favorites"
-    "/plugins" : controller: MainController, action: "plugin_list"
+    "/plugins" : controller: PluginsController, action: "show"
     "/about" : controller: MainController, action: "about"
     "/show/:source-name/:feed-name": controller: FeedsController, action: "show"
     "/show/:source-name" : controller: SourcesController, action: "show"

@@ -17,6 +17,7 @@ Templates =
   feeds_view: new Sirius.View("#feeds")               # deprecated
   favorites_template: null
   plugins_template: null
+  plugins_view: new Sirius.View("#plugins-modal")
   pagination_view: new Sirius.View("#pagination")
   tippy_template: null
   settings_template: null

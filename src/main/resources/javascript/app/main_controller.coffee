@@ -79,6 +79,7 @@ MainController =
       jQuery(style).text(resp)
       jQuery("head").append(style)
 
+
   start: () ->
     jQuery.when(
       ajax.load_ejs("sources")
@@ -116,9 +117,11 @@ MainController =
         self = @
         ajax.sources_all (arr) ->
           logger.info("load #{arr.length} sources")
-          
+
           Sirius.Application.get_adapter().and_then (adapter) ->
             logger.info("initialize ws on #{port}")
+            adapter.fire(document, "plugins:load")
+            adapter.fire(document, "settings:load")
             #TODO self._init_ws(logger, adapter, port)
 
           arr = arr.sort (a, b) -> parseInt(a.count) - parseInt(b.count)
@@ -135,11 +138,6 @@ MainController =
             else
               #TODO redirect(Sources.first().href())
 
-        ajax.get_settings (arr) ->
-          arr.forEach (x) -> Settings.add(x)
-          # TODO bind Settings.Collection plz
-          result = Templates.settings_template.render({settings: arr})
-          Templates.settings_view.render(result).html()
 
         @_bind_modal()
       delete_cookie("redirect")
@@ -155,12 +153,6 @@ MainController =
     ajax.about (info) ->
       Templates.article_view.render(info).html()
       state.to(States.About)
-
-  plugin_list: () ->
-    ajax.plugins_all (list) ->
-      result = Templates.plugins_template.render({plugins: list})
-      Templates.article_view.render(result).html()
-      state.to(States.Plugins)
 
 
 

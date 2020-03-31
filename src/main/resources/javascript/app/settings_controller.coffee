@@ -1,7 +1,14 @@
 
 SettingsController =
 
-  _modal: UIkit.modal(document.querySelector("#settings-modal"))
+  _modal: null
+
+  load: () ->
+    ajax.get_settings (arr) ->
+      arr.forEach (x) -> Settings.add(x)
+      # TODO bind Settings.Collection plz
+      result = Templates.settings_template.render({settings: arr})
+      Templates.settings_view.render(result).html()
 
   on_add: (event, setting) ->
     key = setting.key()
@@ -25,7 +32,10 @@ SettingsController =
 
 
   show: () ->
-    UIkit.modal(document.querySelector("#settings-modal")).show()
+    if @_modal == null
+      @_modal = UIkit.modal(document.querySelector("#settings-modal"))
+
+    @_modal.show()
 
   save: () ->
     c(123)
