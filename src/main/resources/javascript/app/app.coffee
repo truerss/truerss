@@ -99,14 +99,19 @@ $ ->
     "input #search": controller: SourcesController, action: "filter"
 #    "mouseenter .tippy-count": controller: FeedsController, action: 'draw_tooltip', data: "data-source-id"
 
-  app = Sirius.Application.run
+  setup =
+    enable_logging: true
     route: routes
     adapter: new JQueryAdapter()
-    mix_logger_into_controller: true
     controller_wrapper: ControllerExt
-    logger: (log_level, message) ->
-      if log_level.toLowerCase() != "debug"
-        console.log("#{log_level} #{message}")
-    log: false
-    log_filters: 'all'
+    log_to: (log_level, log_source, message) ->
+      msg = message.trim()
+      is_define = msg.startsWith("define")
+      is_set = msg.endsWith("to 'feeds'")
+
+      if !is_define && !is_set
+        console.log("#{log_level} [#{log_source}] #{message}")
+
+
+  Sirius.Application.run(setup)
     

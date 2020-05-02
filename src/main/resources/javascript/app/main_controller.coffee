@@ -1,6 +1,8 @@
 
 MainController =
 
+  logger: Sirius.Application.get_logger("MainController")
+
   error_message: """
     <h1>Error! Websockets and FormData not supported</h1>
     <p>
@@ -11,7 +13,7 @@ MainController =
     </p>
   """
 
-  _init_ws: (logger, adapter, port) ->
+  _init_ws: (adapter, port) ->
     protocol = if location.protocol is "https"
       "wss"
     else
@@ -19,33 +21,33 @@ MainController =
 
     ws = new WebSocket("#{protocol}://#{location.hostname}:#{port}/")
     ws.onopen = () ->
-      logger.info("ws open on port: #{port}")
+      @logger.info("ws open on port: #{port}")
 
     ws.onmessage = (e) ->
       message = JSON.parse(e.data)
-      logger.info("ws given message: #{message.messageType}")
+      @logger.info("ws given message: #{message.messageType}")
       adapter.fire(document, "ws:#{message.messageType}", message.body)
     ws.onclose = () ->
-      logger.info("ws close")
+      @logger.info("ws close")
 
   _bind_modal: () ->
     source = new Source()
 
-    to_model_transformer = Sirius.Transformer.draw({
-      "input[name='title']" : to: "name"
-      "input[name='url']" : to: "url"
-      "input[name='interval']" : to : "interval"
-    })
+    Sirius.Materializer.build(Templates.modal_view, source)
+      .field("input[name='title']")
+      .to((x) -> x.name)
+      .transform((x) -> x.text)
+      .field("input[name='url']")
+      .to((x) -> x.url)
+      .transform((x) -> x.text)
+      .field("input[name='interval']")
+      .to((x) -> x.interval)
+      .transform((x) -> x.text)
+      .run()
 
-    Templates.modal_view.bind(source, to_model_transformer)
-
-    to_view_transformer = Sirius.Transformer.draw({
-      "errors.url.url_validator": {
-        to: 'span.source-url-error'
-      }
-    })
-
-    source.bind(Templates.modal_view, to_view_transformer)
+    Sirius.Materializer.build(source, Templates.modal_view)
+      .field((x) -> x.errors.url.url_validator)
+      .to("span.source-url-error")
 
     modal = UIkit.modal("#add-modal")
     # TODO use binding
@@ -115,6 +117,7 @@ MainController =
 
       else
         self = @
+        logger = @logger
         ajax.sources_all (arr) ->
           logger.info("load #{arr.length} sources")
 
@@ -122,7 +125,7 @@ MainController =
             logger.info("initialize ws on #{port}")
             adapter.fire(document, "plugins:load")
             adapter.fire(document, "settings:load")
-            #TODO self._init_ws(logger, adapter, port)
+            #TODO self._init_ws(@logger, adapter, port)
 
           arr = arr.sort (a, b) -> parseInt(a.count) - parseInt(b.count)
 

@@ -1,33 +1,30 @@
 
 SourcesController =
 
+  logger: Sirius.Application.get_logger("SourcesController")
+
   refresh_all: () ->
     ajax.refresh_all()
 
   show: (normalized) ->
     normalized = decodeURIComponent(normalized)
     source = Sources.takeFirst (s) -> s.normalized() == normalized
-    logger.info("Show: #{normalized} source is exist? #{source != null}")
+    @logger.info("Show: #{normalized} source is exist? #{source != null}")
 
     if source
-      ajax.get_unread source.id(), (feeds) ->
-        logger.info("Load from source: #{source.id()}, #{feeds.length} feeds")
+      ajax.get_unread source.id(), (feeds) =>
+        @logger.info("Load from source: #{source.id()}, #{feeds.length} feeds")
         source.reset('feeds')
-        feeds = feeds.map (x) ->
-          x['publishedDate'] = moment(x['publishedDate'])
-          f = new Feed(x)
-          source.add_feed(f)
-          f
+        feeds = feeds.map((x) -> Feed.create(x))
+        source.add_feeds(feeds)
 
         if feeds.length > 0
           render_source_feeds_and_redirect_to_first(source)
         else
+          # if not unread
           ajax.get_feeds source.id(), (feeds) ->
-            feeds = feeds.map (x) ->
-              x['publishedDate'] = moment(x['publishedDate'])
-              f = new Feed(x)
-              source.add_feed(f)
-              f
+            feeds = feeds.map ((x) -> Feed.create(x))
+            source.add_feeds(feeds)
 
             render_source_feeds_and_redirect_to_first(source)
 
@@ -36,7 +33,7 @@ SourcesController =
       sources.set(source.id())
 
     else
-      logger.warn "source: #{normalized} does not exist"
+      @logger.warn "source: #{normalized} does not exist"
 
   refresh_one: (e, id) ->
     ajax.refresh_one id
@@ -51,7 +48,7 @@ SourcesController =
 
 
   edit: (e, id) ->
-    logger.info("update #{id} source")
+    @logger.info("update #{id} source")
     source = Sources.find('id', id)
     if source
       hidden_class = "uk-hidden"
@@ -101,7 +98,7 @@ SourcesController =
       ajax.mark_as_read(id)
       source.count(0)
     else
-      logger.warn("source with id=#{id} not found")
+      @logger.warn("source with id=#{id} not found")
 
   mark: (event, id) ->
     unless !(state.hasState(States.Source) || state.hasState(States.Feed))
@@ -113,7 +110,7 @@ SourcesController =
           ajax.mark_as_read(source.id())
           source.count(0)
         else
-          logger.warn("source not found with normalized: '#{normalized}' from '#{url}'")
+          @logger.warn("source not found with normalized: '#{normalized}' from '#{url}'")
 
     event.preventDefault()
 

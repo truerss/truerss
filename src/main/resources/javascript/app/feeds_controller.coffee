@@ -1,6 +1,8 @@
 
 FeedsController =
 
+  logger: Sirius.Application.get_logger("FeedsController")
+
   favorites: () ->
     ajax.favorites_feed (response) ->
       # extract sources
@@ -39,22 +41,22 @@ FeedsController =
 
   read: (e, id) ->
     ajax.set_read id, (response) =>
-      logger.info("Feed #{id} mark as read")
+      @logger.info("Feed #{id} mark as read")
       @_read_helper(id, true)
 
   unread: (e, id) ->
     ajax.set_unread id, (response) =>
-      logger.info("Feed #{id} mark as unread")
+      @logger.info("Feed #{id} mark as unread")
       @_read_helper(id, false)
 
   favorite: (e, id) ->
     ajax.set_favorite id, (response) =>
-      logger.info("Feed #{id} mark as favorite")
+      @logger.info("Feed #{id} mark as favorite")
       @_favorite_helper(id, true)
 
   unfavorite: (e, id) ->
     ajax.unset_favorite id, (response) =>
-      logger.info("Feed #{id} remove from favorite list")
+      @logger.info("Feed #{id} remove from favorite list")
       @_favorite_helper(id, false)
 
   view0: (e, id) -> # helper, if feeds have not uniq name need check it
@@ -69,7 +71,7 @@ FeedsController =
       result = Templates.feed_template.render({feed: feed})
       Templates.article_view.render(result).html()
     catch error
-      logger.error("error when insert feed #{error}")
+      @logger.error("error when insert feed #{error}")
 
     original_feed.merge(feed)
     unless feed.read()
@@ -113,7 +115,7 @@ FeedsController =
               timeout : 4000,
               pos     : 'top-right'
     else
-      logger.warn("Source not found #{source_name}")
+      @logger.warn("Source not found #{source_name}")
 
   draw_tooltip: (e, source_id) ->
     # seems tippy does not work with uikit

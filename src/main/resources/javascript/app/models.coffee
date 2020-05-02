@@ -24,10 +24,11 @@ class Source extends Sirius.BaseModel
 
   compare: (other) -> @id() == other.id()
 
+  add_feeds: (feeds) ->
+    @feeds((@feeds() || []).concat(feeds))
+
   add_feed: (feed) ->
-    tmp = @feeds()
-    tmp.push(feed)
-    @feeds(tmp)
+    @add_feeds([feed])
 
   unread_feeds: () ->
     @feeds().filter (f) -> !f.read()
@@ -70,6 +71,10 @@ class Feed extends Sirius.BaseModel
     @content(another_feed.content())
     @favorite(another_feed.favorite())
 
+  @create: (json) ->
+    json['publishedDate'] = moment(json['publishedDate'])
+    new Feed(json)
+
   anything: () ->
     if @content()
       @content()
@@ -109,30 +114,22 @@ Sources.subscribe "add", (source) ->
   Templates.source_list_view.render(html).prepend()
   source_view = new Sirius.View("#source-#{source.id()}")
 
-  transformer = Sirius.Transformer.draw({
-    "normalized": {
-      to: 'a.source-url'
-      attr: 'href'
-      via: (new_value, selector, view, attribute) ->
-        view.zoom(selector).render("/show/#{new_value}").swap(attribute)
-    },
-    "name": {
-      to: 'a.source-url'
-    },
-    "count": {
-      to: 'a.source-count'
-      via: (new_value, selector, view, attribute) ->
-        x = parseInt(new_value, 10)
-        count = if isNaN(x) or x <= 0
-            "0"
-          else
-            "#{x}"
-        view.zoom(selector).render(count).toggle()
-    }
-  })
-
-  source.bind(source_view, transformer)
-
+  Sirius.Materializer.build(source, source_view)
+    .field((x) -> x.normalized)
+    .to((v) -> v.zoom("a.source-url"))
+    .transform((x) -> "/show/#{x}")
+    .handle((view, value) -> view.render(value).swap("href"))
+    .field((x) -> x.count)
+    .to((v) -> v.zoom("a.source-count"))
+    .transform((x) ->
+      x = parseInt(x, 10)
+      if (isNaN(x)) or x <= 0
+        "0"
+      else
+        "#{x}"
+    )
+    .handle((view, value) -> view.render(value).toggle())
+    .run()
 
   return
 

@@ -17,18 +17,13 @@ SettingsController =
       "input"
     else
       "select"
-    transformer = Sirius.Transformer.draw({
-      "#{html_element}[name='#{key}']":
-        to: 'value'
-        from: 'selected'
-        via: (new_value, old_value, selector, event_target) ->
-          c(new_value)
-          c(old_value)
-          c(selector)
-          c(event_target)
-    })
 
-    view.bind(setting, transformer)
+#    Sirius.Materializer.build(view, setting)
+#      .field((v) -> v.zoom("#{html_element}[name='#{key}']"))
+#      .from_attribute("selected")
+#      .to((x) -> x.value)
+#      .transform((changes) -> changes.text) # or state
+#      .run()
 
 
   show: () ->
