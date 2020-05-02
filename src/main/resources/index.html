@@ -95,6 +95,27 @@
                 padding-left: 0 !important;
             }
 
+            .custom-padding-top-30 {
+                padding-top: 30%;
+            }
+
+            .custom-padding-right-3 {
+                padding-right: 10%;
+            }
+
+            .custom-padding-top-3 {
+                padding-top: 3%;
+            }
+
+            .scrollable {
+                overflow-y: scroll;
+            }
+
+            .custom-padding {
+                padding: 3px;
+            }
+
+
         </style>
 
 </head>
@@ -147,7 +168,7 @@
 
     <div class="uk-grid uk-padding-remove-top uk-margin-auto h100 mt1" uk-grid>
 
-        <div class="uk-width-1-6 uk-background-muted uk-background-cover uk-height-max-large h100">
+        <div class="scrollable uk-sticky uk-width-1-6 uk-background-cover uk-height-max-large h100">
             <div class="uk-text-left">
                 <ul class="uk-list uk-padding-small" id="source-list">
 
@@ -156,15 +177,15 @@
 
         </div>
 
-        <div class="uk-width-3-5">
+        <div class="uk-width-3-5 custom-padding-top-3">
             <div class="uk-text-left" id="main">
 
             </div>
         </div>
 
 
-        <div id="source-overview" class="uk-width-1-5 uk-align-right uk-background-muted uk-background-cover
-        uk-height-max-large right h100" uk-grid>
+        <div id="source-overview" class="uk-sticky uk-width-1-5 uk-align-right uk-background-cover
+        uk-height-max-large uk-text-small right h100">
         </div>
     </div>
 

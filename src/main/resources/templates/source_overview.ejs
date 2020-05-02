@@ -1,82 +1,38 @@
-<div class="uk-text-left uk-margin-right">
-    <div class="mt1">
-        <dl class="uk-description-list uk-description-list-divider">
-            <dt class="uk-grid-small" uk-grid>
-                <span class="uk-width-expand" id="source-name-<%= source.id() %>" uk-leader>
-                    <span><%= source.name() %></span>
-                    <input class="uk-hidden uk-form-width-small"
-                           type="text" name="name"
-                           value="<%= source.name() %>" />
-                </span>
-                <span>
-                    <ul class="uk-iconnav">
-                        <li><a href="#refresh-source" data-source-id="<%= source.id() %>"
-                               title="refresh" uk-icon="refresh"></a></li>
-                        <li><a href="#edit-source" data-source-id="<%= source.id() %>"
-                               title="edit source" uk-icon="file-edit"></a></li>
-                        <li><a href="#remove-source" data-source-id="<%= source.id() %>"
-                               title="remove feed" uk-icon="trash"></a></li>
-                    </ul>
-                </span>
-            </dt>
-            <dt class="uk-grid-small" uk-grid>
-                <span class="uk-width-expand" uk-leader>Link:</span>
-                <span>
-                    <a class="uk-link-text" href="<%= source.url() %>">
-                        <%= source.url() %>
-                    </a>
-                </span>
-            </dt>
-            <dt class="uk-grid-small" uk-grid>
-                <span class="uk-width-expand" uk-leader>Update every:</span>
-                <span>
-                   <%= source.interval() %> hour(s)
-                </span>
-            </dt>
-            <dt class="uk-grid-small" uk-grid>
-                <span class="uk-width-expand" uk-leader>Last Update:</span>
-                <span>
-                    <%= moment(source.last_update()).fromNow() %>
-                </span>
-            </dt>
-            <dt class="uk-grid-small" uk-grid>
-                <span class="uk-width-expand" uk-leader>Plugins?</span>
-                <span>
-                    <% if (source.has_plugin()) { %>
-                        Yes
-                    <% } else { %>
-                        No
-                    <% } %>
-                </span>
-            </dt>
-            <dt class="uk-grid-small" uk-grid>
-                <span class="uk-width-expand" uk-leader>Feed count:</span>
-                <span>
-                   <%= source.feeds_count() %>
-                </span>
-            </dt>
-
-            <dt class="uk-grid-small" uk-grid>
-                <span class="uk-width-expand" uk-leader>Unread count:</span>
-                <span>
-                    <% if (!source.is_empty()) { %>
-                        <%= source.count() %>
-                    <% } else { %>
-                        -
-                    <% } %>
-                </span>
-            </dt>
-
-            <% if (source.has_favorites()) { %>
-                <dt class="uk-grid-small" uk-grid>
-                    <span class="uk-width-expand" uk-leader>Favorites count:</span>
-                    <span>
-                       <%= source.favorites_count() %>
+<ul class="uk-list custom-padding-top-30">
+    <li><%= source.name() %>
+        <span class="uk-align-right custom-padding-right-3">
+                        <a href="#refresh-source" data-source-id="<%= source.id() %>"
+                           title="refresh" uk-icon="refresh"></a>
+                        <a href="#edit-source" data-source-id="<%= source.id() %>"
+                           title="edit source" uk-icon="file-edit"></a>
+                        <a href="#remove-source" data-source-id="<%= source.id() %>"
+                           title="remove feed" uk-icon="trash"></a>
                     </span>
-                </dt>
-            <% } %>
+    </li>
+    <li>
+        <a class="uk-link-text" href="<%= source.url() %>">
+            <%= source.url() %>
+        </a>
+    </li>
+    <li>Updated every <%= source.interval() %> hour(s)</li>
+    <li>Last updated  <%= moment(source.last_update()).fromNow() %></li>
+    <li>plugins?
+        <% if (source.has_plugin()) { %>
+            Yes
+        <% } else { %>
+            No
+        <% } %>
+    </li>
+    <li><%= source.feeds_count() %> feeds</li>
+    <li>unread count:
+        <% if (!source.is_empty()) { %>
+            <%= source.count() %>
+        <% } else { %>
+            -
+        <% } %>
+    </li>
+    <% if (source.has_favorites()) { %>
+    <li>In favorites: <%= source.favorites_count() %> feeds</li>
+    <% } %>
 
-
-        </dl>
-    </div>
-</div>
+</ul>

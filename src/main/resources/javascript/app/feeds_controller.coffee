@@ -31,12 +31,12 @@ FeedsController =
           f(feed[0])
 
   _favorite_helper: (id, is_favorite) ->
-    @_change(new Sirius.View("a[data-feed-id='#{id}']"),
+    @_change(new Sirius.View("a[data-feed-id='#{id}'].in-favorites"),
       is_favorite, ["favorite", "unfavorite"], (feed) -> feed.favorite(is_favorite))
 
 
   _read_helper: (id, is_read) ->
-    @_change(new Sirius.View("a[data-feed-id='#{id}']"), is_read,
+    @_change(new Sirius.View("a[data-feed-id='#{id}'].in-read"), is_read,
       ["read", "unread"], (feed) -> feed.read(is_read))
 
   read: (e, id) ->

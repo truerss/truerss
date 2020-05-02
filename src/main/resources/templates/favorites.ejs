@@ -1,14 +1,14 @@
 <% for (i = 0; i < feeds.length; i ++) { %>
     <% if (i == 0 ) { %>
-        <div class="uk-section uk-section-muted uk-padding-small">
+        <div class="uk-section custom-padding">
     <% } else { %>
-        <div class="uk-section uk-section-muted uk-padding-small mt3">
+        <div class="uk-section custom-padding mt3">
     <% } %>
         <div uk-grid>
-          <span class="uk-text-light uk-text-large uk-width-expand">
-            <%= feeds[i].title %>
-          </span>
-            <span class="uk-text-light uk-text-right uk-text-large uk-width-auto">
+            <span class="uk-text-light uk-text-large uk-width-expand">
+              <%= feeds[i].title %>
+            </span>
+            <span class="uk-text-light uk-text-right uk-text-large uk-width-auto custom-padding-top-3">
                 <% if (feeds[i].favorite) { %>
                     <a data-feed-id="<%= feeds[i].id %>" href="#"
                        class="unfavorite" title="remove from favorites" uk-icon="star"></a>

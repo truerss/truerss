@@ -1,14 +1,14 @@
 <li class="source-element" id="source-<%= source.id() %>" data-source-id=<%= source.id() %>>
   <% if (source.is_disable()) { %>
-    <span><%= source.name() %></span>
+    <span class="uk-link-muted uk-text-small"><%= source.name() %></span>
   <% } else { %>
-    <a class="uk-link-muted source-url" href="<%= source.href() %>">
+    <a class="uk-link-muted uk-text-small source-url" href="<%= source.href() %>">
       <%= source.name() %>
     </a>
   <% } %>
 
   <% if (!source.is_empty()) { %>
-    <a id="source-count-<%=source.id()%>" class="uk-badge uk-align-right source-count" data-source-id="<%= source.id() %>"><%= source.count() %></a>
+    <a id="source-count-<%=source.id()%>" class="uk-badge uk-align-right uk-margin-remove uk-text-small source-count" data-source-id="<%= source.id() %>"><%= source.count() %></a>
   <% } %>
 
 </li>                    

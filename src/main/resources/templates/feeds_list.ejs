@@ -1,8 +1,8 @@
 <% for (i = 0; i < feeds.length; i ++) { %>
     <% if (i == 0) { %>
-        <div class="uk-section uk-section-muted uk-padding-small">
+        <div class="uk-section custom-padding">
     <% } else { %>
-        <div class="uk-section uk-section-muted uk-padding-small mt3">
+        <div class="uk-section custom-padding mt3">
     <% } %>
         <div uk-grid>
           <span class="uk-text-light uk-text-large uk-width-expand">
@@ -11,18 +11,18 @@
           <span class="uk-text-light uk-text-right uk-text-large uk-width-auto">
             <% if (feeds[i].favorite()) { %>
                 <a data-feed-id="<%= feeds[i].id() %>" href="#"
-                   class="unfavorite" title="remove from favorites" uk-icon="star"></a>
+                   class="in-favorites unfavorite" title="remove from favorites" uk-icon="star"></a>
             <% } else {  %>
                 <a  data-feed-id="<%= feeds[i].id() %>" href="#"
-                    class="favorite" title="mark as favorite" uk-icon="star"></a>
+                    class="in-favorites favorite" title="mark as favorite" uk-icon="star"></a>
             <% } %>
 
             <% if (feeds[i].read()) { %>
                   <a data-feed-id="<%= feeds[i].id() %>" href="#"
-                     class="unread" title="as unread" uk-icon="check"></a>
+                     class="in-read unread" title="as unread" uk-icon="check"></a>
             <% } else {  %>
                 <a  data-feed-id="<%= feeds[i].id() %>" href="#"
-                   class="read" title="as read" uk-icon="check"></a>
+                   class="in-read read" title="as read" uk-icon="check"></a>
             <% } %>
 
           </span>
@@ -36,4 +36,6 @@
             <div class="uk-width-1-3"><a class="uk-link-muted" href="#">TODO: View content</a></div>
         </div>
     </div>
+
+    <hr class="uk-divider-icon">
 <% } %>
