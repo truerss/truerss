@@ -1,4 +1,4 @@
-<ul class="uk-list custom-padding-top-30">
+<ul class="uk-list custom-padding-top-30" id="source-overview-<%= source.id() %>">
     <li><%= source.name() %>
         <span class="uk-align-right custom-padding-right-3">
                         <a href="#refresh-source" data-source-id="<%= source.id() %>"
@@ -25,14 +25,20 @@
     </li>
     <li><%= source.feeds_count() %> feeds</li>
     <li>unread count:
+        <span class="source-overview-unread-count" data-source-id="<%= source.id() %>">
         <% if (!source.is_empty()) { %>
             <%= source.count() %>
         <% } else { %>
             -
         <% } %>
+        </span>
     </li>
-    <% if (source.has_favorites()) { %>
-    <li>In favorites: <%= source.favorites_count() %> feeds</li>
-    <% } %>
+
+    <li>In favorites:
+        <span class="source-overview-favorites-count" data-source-id="<%= source.id() %>">
+            <%= source.favorites_count() %>
+        </span>
+        feeds
+    </li>
 
 </ul>

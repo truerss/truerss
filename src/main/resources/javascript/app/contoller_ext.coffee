@@ -270,6 +270,20 @@ ControllerExt =
       1
     description = Templates.source_overview_template.render({source: source})
     Templates.source_overview_view.render(description).html()
+    overview_view = new Sirius.View("#source-overview-#{source.id()}")
+    Sirius.Materializer.build(source, overview_view)
+    .field((x) -> x.count)
+    .to((v) -> v.zoom('.source-overview-unread-count'))
+    .transform((x) ->
+      if x != 0
+        "#{x}"
+      else
+        ""
+    )
+    .field((x) -> x.favorites_count)
+    .to((v) -> v.zoom('.source-overview-favorites-count'))
+    .run()
+
       # TODO redirect(source.feeds()[0].href())
 
 

@@ -14,7 +14,9 @@ FeedsController =
       Templates.article_view.render(html).html()
       state.to(States.Favorites)
 
-  _change: (view, has_flag, available_classes, f) =>
+  _change: (view, has_flag, available_classes, feed_id, source_id, f) =>
+    feed_id = parseInt(feed_id, 10)
+    source_id = parseInt(source_id, 10)
     [remove, add] = if has_flag
       available_classes
     else
@@ -23,41 +25,58 @@ FeedsController =
     view.render(remove).remove_class()
     view.render(add).add_class()
 
-    if !sources.is_empty()
-      source = Sources.takeFirst (s) -> s.id() == sources.get()
-      if source && !posts.is_empty()
-        feed = source.feeds().filter (f) -> f.id() == posts.get()
-        if feed && feed.length > 0
-          f(feed[0])
+    source = Sources.takeFirst (s) -> s.id() == source_id
+    if source?
+      feed = source.feeds().filter (f) -> f.id() == feed_id
+      if feed? && feed.length > 0
+        f(feed[0], source)
 
-  _favorite_helper: (id, is_favorite) ->
+  _favorite_helper: (id, source_id, is_favorite) ->
     @_change(new Sirius.View("a[data-feed-id='#{id}'].in-favorites"),
-      is_favorite, ["favorite", "unfavorite"], (feed) -> feed.favorite(is_favorite))
+      is_favorite, ["favorite", "unfavorite"], id, source_id,
+        (feed, source) ->
+            current = source.favorites_count()
+            count = if is_favorite
+              current + 1
+            else
+              current - 1
+            source.favorites_count(count)
+            feed.favorite(is_favorite))
 
 
-  _read_helper: (id, is_read) ->
+  _read_helper: (id, source_id, is_read) ->
     @_change(new Sirius.View("a[data-feed-id='#{id}'].in-read"), is_read,
-      ["read", "unread"], (feed) -> feed.read(is_read))
+      ["read", "unread"], id, source_id,
+      (feed, source) ->
+          current = source.count()
+          count = if is_read
+            current - 1
+          else
+            current + 1
+          source.count(count)
+          feed.read(is_read)
+    )
 
-  read: (e, id) ->
+
+  read: (e, id, source_id) ->
     ajax.set_read id, (response) =>
       @logger.info("Feed #{id} mark as read")
-      @_read_helper(id, true)
+      @_read_helper(id, source_id, true)
 
-  unread: (e, id) ->
+  unread: (e, id, source_id) ->
     ajax.set_unread id, (response) =>
       @logger.info("Feed #{id} mark as unread")
-      @_read_helper(id, false)
+      @_read_helper(id, source_id, false)
 
-  favorite: (e, id) ->
+  favorite: (e, id, source_id) ->
     ajax.set_favorite id, (response) =>
       @logger.info("Feed #{id} mark as favorite")
-      @_favorite_helper(id, true)
+      @_favorite_helper(id, source_id, true)
 
-  unfavorite: (e, id) ->
+  unfavorite: (e, id, source_id) ->
     ajax.unset_favorite id, (response) =>
       @logger.info("Feed #{id} remove from favorite list")
-      @_favorite_helper(id, false)
+      @_favorite_helper(id, source_id, false)
 
   view0: (e, id) -> # helper, if feeds have not uniq name need check it
     posts.set(id)

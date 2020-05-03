@@ -1,7 +1,8 @@
 
 class Source extends Sirius.BaseModel
   @attrs: ["id", "url", "name", {"interval" : 1}, "state", "normalized",
-    "lastUpdate", "count", {"feeds": []}]
+    "lastUpdate", "count", {"feeds": []}, {"favorites_count": 0}]
+
 
   @skip : true
   @validate:
@@ -26,18 +27,13 @@ class Source extends Sirius.BaseModel
 
   add_feeds: (feeds) ->
     @feeds((@feeds() || []).concat(feeds))
+    @favorites_count(@feeds().filter((x) -> x.favorite()).length)
 
   add_feed: (feed) ->
     @add_feeds([feed])
 
   unread_feeds: () ->
     @feeds().filter (f) -> !f.read()
-
-  favorites_count: () ->
-    @feeds().filter((x) -> x.favorite()).length
-
-  has_favorites: () ->
-    @favorites_count() != 0
 
   feeds_count: () ->
     @feeds().length

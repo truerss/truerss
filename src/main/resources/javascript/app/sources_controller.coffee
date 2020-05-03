@@ -148,6 +148,6 @@ SourcesController =
         x['publishedDate'] = pd
         new Feed(x)
 
-      source.reset('feeds')
+      source.set('feeds', [])
       source.count(feeds.length)
       feeds.forEach (f) -> source.add_feed(f)

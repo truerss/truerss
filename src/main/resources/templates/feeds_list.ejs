@@ -10,18 +10,26 @@
           </span>
           <span class="uk-text-light uk-text-right uk-text-large uk-width-auto">
             <% if (feeds[i].favorite()) { %>
-                <a data-feed-id="<%= feeds[i].id() %>" href="#"
+                <a data-feed-id="<%= feeds[i].id() %>"
+                   data-source-id="<%= feeds[i].source_id() %>"
+                   href="#"
                    class="in-favorites unfavorite" title="remove from favorites" uk-icon="star"></a>
             <% } else {  %>
-                <a  data-feed-id="<%= feeds[i].id() %>" href="#"
+                <a  data-feed-id="<%= feeds[i].id() %>"
+                    data-source-id="<%= feeds[i].source_id() %>"
+                    href="#"
                     class="in-favorites favorite" title="mark as favorite" uk-icon="star"></a>
             <% } %>
 
             <% if (feeds[i].read()) { %>
-                  <a data-feed-id="<%= feeds[i].id() %>" href="#"
+                  <a data-feed-id="<%= feeds[i].id() %>"
+                     data-source-id="<%= feeds[i].source_id() %>"
+                     href="#"
                      class="in-read unread" title="as unread" uk-icon="check"></a>
             <% } else {  %>
-                <a  data-feed-id="<%= feeds[i].id() %>" href="#"
+                <a  data-feed-id="<%= feeds[i].id() %>"
+                    data-source-id="<%= feeds[i].source_id() %>"
+                    href="#"
                    class="in-read read" title="as read" uk-icon="check"></a>
             <% } %>
 
