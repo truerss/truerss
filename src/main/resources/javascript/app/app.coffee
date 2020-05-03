@@ -83,6 +83,7 @@ $ ->
     "/about" : controller: MainController, action: "about"
     "/show/:source-name/:feed-name": controller: FeedsController, action: "show"
     "/show/:source-name" : controller: SourcesController, action: "show"
+    "/show/:source-name/page/:page" : controller: SourcesController, action: "show"
     "/opml": controller: SourcesController, action: "download"
     "/settings" : controller: SettingsController, action: "show"
     "settings:add": controller: SettingsController, action: "on_add"
@@ -108,8 +109,9 @@ $ ->
       msg = message.trim()
       is_define = msg.startsWith("define")
       is_set = msg.endsWith("to 'feeds'")
+      is_render = msg.indexOf("Call render for") != -1
 
-      if !is_define && !is_set
+      if !is_define && !is_set && !is_render
         console.log("#{log_level} [#{log_source}] #{message}")
 
 

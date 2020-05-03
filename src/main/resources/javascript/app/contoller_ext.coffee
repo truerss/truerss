@@ -198,6 +198,16 @@ class GlobalStateService
     return
 
 
+Array::each_cons = (num) ->
+  Array.from(
+    {length: @length - num + 1},
+    (_, i) => @slice(i, i + num)
+  )
+
+Array::add_to = (el) ->
+  if @length == 0 || @[@length-1] != el
+    @push(el)
+  @
 
 ControllerExt =
   ajax: new AjaxService()
@@ -208,8 +218,53 @@ ControllerExt =
   delete_cookie: (cn) ->
     document.cookie = cn + '=; Path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;'
 
-  render_source_feeds_and_redirect_to_first: (source) ->
-    result = Templates.feeds_list.render({feeds: source.feeds()})
+  render_source_feeds_and_redirect_to_first: (source, current_page, source_name_normalized) ->
+    # TODO from setup - feeds per page
+    feeds = source.feeds()
+    length = feeds.length
+
+    make_pagination = (length, per_page, current) ->
+      tmp = parseInt(length / per_page, 10)
+      additional = if per_page * tmp == length
+        0
+      else
+        1
+      page_count = additional + tmp
+
+      next_page = current + 1
+      prev_page = current - 1
+
+      arr = [prev_page, current, next_page]
+      arr.unshift(1)
+      arr.push(page_count)
+      arr = Array.from(new Set(arr))
+      arr = arr.filter (x) -> x > 0 && x <= page_count
+
+      results = []
+      splitted = arr.each_cons(2)
+      for [a, b] in splitted
+        if b - a > 1
+          results.add_to(a).add_to(-1).add_to(b)
+        else
+          results.add_to(a).add_to(b)
+      results
+
+    feeds_per_page = 30
+    pagination = make_pagination(length, feeds_per_page, current_page)
+
+    start = (current_page - 1) * feeds_per_page
+    end = start + feeds_per_page
+
+    needed_feeds = feeds.slice(start, end)
+
+    options =
+      feeds: needed_feeds
+      current_page: current_page
+      feeds_per_page: feeds_per_page
+      pagination: pagination
+      source_name_normalized: source_name_normalized
+
+    result = Templates.feeds_list.render(options)
     Templates.article_view.render(result).html()
     if source.feeds().length > 0
       1

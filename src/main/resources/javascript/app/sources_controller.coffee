@@ -6,11 +6,13 @@ SourcesController =
   refresh_all: () ->
     ajax.refresh_all()
 
-  show: (normalized) ->
+  show: (normalized, page) ->
+    page ||= 1
+    page = parseInt(page, 10)
     normalized = decodeURIComponent(normalized)
     source = Sources.takeFirst (s) -> s.normalized() == normalized
     @logger.info("Show: #{normalized} source is exist? #{source != null}")
-
+    # TODO do not fetch from server render feeds if already present
     if source
       ajax.get_unread source.id(), (feeds) =>
         @logger.info("Load from source: #{source.id()}, #{feeds.length} feeds")
@@ -19,14 +21,14 @@ SourcesController =
         source.add_feeds(feeds)
 
         if feeds.length > 0
-          render_source_feeds_and_redirect_to_first(source)
+          render_source_feeds_and_redirect_to_first(source, page, normalized)
         else
           # if not unread
           ajax.get_feeds source.id(), (feeds) ->
             feeds = feeds.map ((x) -> Feed.create(x))
             source.add_feeds(feeds)
 
-            render_source_feeds_and_redirect_to_first(source)
+            render_source_feeds_and_redirect_to_first(source, page, normalized)
 
       state.to(States.Source)
       posts.clear()

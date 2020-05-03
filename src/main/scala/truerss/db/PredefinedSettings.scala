@@ -35,6 +35,7 @@ case class PredefinedSettings(key: String, description: String, value: SettingVa
 object Predefined {
   val fFeedParallelism = "parallelism"
   val fReadContent = "read_content"
+  val fFeedsPerPage = "feeds_per_page"
 
   val parallelism = PredefinedSettings(
     key = fFeedParallelism,
@@ -48,5 +49,11 @@ object Predefined {
     value = RadioValue(true)
   )
 
-  val predefined = parallelism :: read :: Nil
+  val feedsPerPage = PredefinedSettings(
+    key = fFeedsPerPage,
+    description = "Feeds per page",
+    value = SelectableValue(Iterable(10, 20, 30, 50, 100), 10)
+  )
+
+  val predefined = parallelism :: read :: feedsPerPage :: Nil
 }
