@@ -1,5 +1,6 @@
 package truerss.db.driver
 
+import java.time.{LocalDateTime, ZoneId, ZoneOffset, ZonedDateTime}
 import java.util.Date
 
 import slick.jdbc.{JdbcProfile, JdbcType}
@@ -16,10 +17,11 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
   import profile.api._
 
   object DateSupport {
-    implicit val javaUtilDateMapper: JdbcType[Date] with BaseTypedType[Date] =
-      MappedColumnType.base[Date, java.sql.Timestamp](
-        d => new java.sql.Timestamp(d.getTime),
-        d => new java.util.Date(d.getTime))
+    implicit val javaTimeMapper: JdbcType[LocalDateTime] with BaseTypedType[LocalDateTime] =
+      MappedColumnType.base[LocalDateTime, java.sql.Timestamp](
+        d => new java.sql.Timestamp(d.toInstant(ZoneOffset.UTC).getEpochSecond),
+        d => LocalDateTime.ofInstant(d.toInstant, ZoneOffset.UTC)
+      )
   }
 
   object StateSupport {
@@ -66,7 +68,7 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
 
     def normalized = column[String]("normalized")
 
-    def lastUpdate = column[Date]("lastupdate")
+    def lastUpdate = column[LocalDateTime]("lastupdate")
 
     def count = column[Int]("count", O.Default(0)) // ignored
 
@@ -93,7 +95,7 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
 
     def author = column[String]("author")
 
-    def publishedDate = column[Date]("published_date")
+    def publishedDate = column[LocalDateTime]("published_date")
 
     def description = column[String]("description", Nullable, SqlType("TEXT"))
 
@@ -129,7 +131,7 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
 
     def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
     def fact = column[String]("fact", SqlType("TEXT"))
-    def when = column[Date]("when", O.Default(new Date))
+    def when = column[LocalDateTime]("when", O.Default(LocalDateTime.now()))
 
     override def * = (id, fact, when) <> (Version.tupled, Version.unapply)
   }

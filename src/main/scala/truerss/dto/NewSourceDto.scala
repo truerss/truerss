@@ -1,5 +1,6 @@
 package truerss.dto
 
+import java.time.LocalDateTime
 import java.util.Date
 
 import truerss.db.SourceState
@@ -25,13 +26,13 @@ case class UpdateSourceDto(id: Long,
 }
 
 case class SourceViewDto(id: Long,
-                     url: String,
-                     name: String,
-                     interval: Int,
-                     state: SourceState,
-                     normalized: String,
-                     lastUpdate: Date,
-                     count: Int = 0) {
+                         url: String,
+                         name: String,
+                         interval: Int,
+                         state: SourceState,
+                         normalized: String,
+                         lastUpdate: LocalDateTime,
+                         count: Int = 0) {
   def recount(x: Int): SourceViewDto = copy(count = x)
 }
 
@@ -57,7 +58,7 @@ case class FeedDto(
                    url: String,
                    title: String,
                    author: String,
-                   publishedDate: Date,
+                   publishedDate: LocalDateTime,
                    description: Option[String],
                    content: Option[String],
                    normalized: String,

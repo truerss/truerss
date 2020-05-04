@@ -1,5 +1,6 @@
 package net.truerss.dao
 
+import java.time.{LocalDateTime, ZoneId, ZoneOffset}
 import java.util.Date
 
 import net.truerss.Gen
@@ -7,11 +8,14 @@ import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mutable.SpecificationLike
 import org.specs2.specification.BeforeAfterAll
 import truerss.db.{SourceState, SourceStates}
+import truerss.services.SourceOverviewService
 
 import scala.concurrent.duration._
 
 class SourceDaoTest(implicit ee: ExecutionEnv) extends FullDbHelper
   with SpecificationLike with BeforeAfterAll {
+
+  import SourceOverviewService._
 
   override def dbName = "source_dao_spec"
 
@@ -67,7 +71,7 @@ class SourceDaoTest(implicit ee: ExecutionEnv) extends FullDbHelper
 
     "update last date" in {
       val id = a(sourceDao.insert(Gen.genSource()))
-      val date = new Date()
+      val date = LocalDateTime.now(ZoneOffset.UTC)
 
       sourceDao.updateLastUpdateDate(id, date) must be_==(1).await
 

@@ -1,9 +1,10 @@
 package truerss.services.management
 
+import java.time.{Clock, LocalDateTime}
 import java.util.Date
 
 import truerss.dto.{FeedDto, NewSourceDto, SourceViewDto, UpdateSourceDto}
-import truerss.db.{Feed, SourceStates, Source}
+import truerss.db.{Feed, Source, SourceStates}
 import truerss.util.Util
 
 object FeedSourceDtoModelImplicits {
@@ -19,7 +20,7 @@ object FeedSourceDtoModelImplicits {
         interval = x.interval,
         state = SourceStates.Neutral,
         normalized = x.name.normalize,
-        lastUpdate = new Date()
+        lastUpdate = LocalDateTime.now(Clock.systemUTC())
       )
     }
   }
@@ -33,7 +34,7 @@ object FeedSourceDtoModelImplicits {
         interval = x.interval,
         state = SourceStates.Neutral,
         normalized = x.name.normalize,
-        lastUpdate = new Date()
+        lastUpdate = LocalDateTime.now(Clock.systemUTC())
       )
     }
   }

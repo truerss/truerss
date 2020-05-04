@@ -1,5 +1,6 @@
 package truerss.services.actors.sync
 
+import java.time.ZoneOffset
 import java.util.Date
 
 import akka.actor.{Actor, ActorLogging, Props}
@@ -21,7 +22,7 @@ class SourceActor(source: SourceViewDto, feedReader: BaseFeedReader)
 
   val stream = context.system.eventStream
 
-  val updTime = UpdateTime(source.lastUpdate.getTime, source.interval)
+  val updTime = UpdateTime(source.lastUpdate.toInstant(ZoneOffset.UTC).getEpochSecond, source.interval)
 
   log.info(s"Next time update for ${source.name} -> ${updTime.tickTime}; " +
     s"Interval: ${updTime.interval}")

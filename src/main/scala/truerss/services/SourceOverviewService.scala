@@ -1,5 +1,6 @@
 package truerss.services
 
+import java.time.{LocalDateTime, ZoneOffset}
 import java.util.concurrent.TimeUnit
 
 import truerss.db.{DbLayer, Feed}
@@ -23,6 +24,19 @@ class SourceOverviewService(val dbLayer: DbLayer)(implicit ec: ExecutionContext)
 }
 
 object SourceOverviewService {
+
+  implicit val localDateTimeOrdering: Ordering[LocalDateTime] = new Ordering[LocalDateTime] {
+    override def compare(x: LocalDateTime, y: LocalDateTime): Int = {
+      if (x.isBefore(y)) {
+        -1
+      } else if (x.isAfter(y)) {
+        1
+      } else {
+        0
+      }
+    }
+  }
+
   def calculate(sourceId: Long, feeds: Seq[Feed]): SourceOverview = {
     val favorites = feeds.count(_.favorite)
     val unread = feeds.count(!_.read)
@@ -43,15 +57,15 @@ object SourceOverviewService {
     } else {
       val count = feeds.length
       val dates = feeds.map(_.publishedDate).sorted
-      val start = dates.head.getTime
-      val end = dates.last.getTime
+      val start = dates.head.toInstant(ZoneOffset.UTC).getEpochSecond
+      val end = dates.last.toInstant(ZoneOffset.UTC).getEpochSecond
 
       val diff = scala.math.abs(end - start)
-      val daysDiff = TimeUnit.MILLISECONDS.toDays(diff) * 1.0
+      val daysDiff = TimeUnit.SECONDS.toDays(diff) * 1.0
 
-      val perDay = daysDiff/count
-      val perWeek = daysDiff/(count*7)
-      val perMonth = daysDiff/(count*30)
+      val perDay = count/daysDiff
+      val perWeek = count/(daysDiff/7.0)
+      val perMonth = count/(daysDiff/30.0)
 
       FeedsFrequency(
         perDay = perDay,

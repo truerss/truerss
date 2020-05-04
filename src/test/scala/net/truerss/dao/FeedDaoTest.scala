@@ -8,12 +8,15 @@ import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mutable.SpecificationLike
 import org.specs2.specification.{BeforeAfterAll, Scope}
 import truerss.db.{Feed, Source}
+import truerss.services.SourceOverviewService
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
 class FeedDaoTest(implicit ee: ExecutionEnv)
   extends FullDbHelper with SpecificationLike with BeforeAfterAll {
+
+  import SourceOverviewService._
 
   override def dbName = "fee_dao_spec"
 

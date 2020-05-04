@@ -1,5 +1,6 @@
 package truerss.db
 
+import java.time.{Clock, Instant, LocalDateTime}
 import java.util.Date
 
 import slick.jdbc.JdbcBackend.DatabaseDef
@@ -68,7 +69,8 @@ class SourceDao(val db: DatabaseDef)(implicit
     }
   }
 
-  def updateLastUpdateDate(sourceId: Long, date: Date = new Date()): Future[Int] = {
+  def updateLastUpdateDate(sourceId: Long,
+                           date: LocalDateTime = LocalDateTime.now(Clock.systemUTC())): Future[Int] = {
     db.run {
       sources.filter(_.id === sourceId)
         .map(s => s.lastUpdate).update(date)

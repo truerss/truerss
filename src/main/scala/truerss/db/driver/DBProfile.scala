@@ -2,6 +2,7 @@ package truerss.db.driver
 
 import java.util.Date
 import java.nio.file.Paths
+import java.time.{Clock, LocalDateTime}
 import java.util.Properties
 
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
@@ -145,7 +146,7 @@ object SupportedDb {
           Console.out.println(s"skip: ${m.version}: ${m.description}")
       }
 
-      val version = Version(m.version, m.description, new Date())
+      val version = Version(m.version, m.description, LocalDateTime.now(Clock.systemUTC()))
       val f = db.run {
         (driver.query.versions returning driver.query.versions.map(_.id)) += version
       }

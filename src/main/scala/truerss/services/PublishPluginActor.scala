@@ -1,5 +1,8 @@
 package truerss.services
 
+import java.time.{LocalDateTime, ZoneOffset}
+import java.util.Date
+
 import akka.actor.{Actor, ActorLogging}
 import com.github.truerss.base.{BasePublishPlugin, Entry, PublishActions}
 import truerss.dto.FeedDto
@@ -33,7 +36,7 @@ object PublishPluginActor {
         url = x.url,
         title = x.title,
         author = x.author,
-        publishedDate = x.publishedDate,
+        publishedDate = new Date(x.publishedDate.toEpochSecond(ZoneOffset.UTC)),
         description = x.description,
         content = x.content
       )

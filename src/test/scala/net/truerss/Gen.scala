@@ -69,7 +69,7 @@ object Gen {
       interval = genInt,
       state = SourceStates.Neutral,
       normalized = name.normalize,
-      lastUpdate = z.plusDays(1).toDate
+      lastUpdate = z.plusDays(1)
     )
   }
 
@@ -82,7 +82,7 @@ object Gen {
       interval = genInt,
       state = SourceStates.Neutral,
       normalized = n.normalize,
-      lastUpdate = LocalDateTime.now().toDate
+      lastUpdate = LocalDateTime.now()
     )
   }
 
@@ -94,7 +94,7 @@ object Gen {
       url = s"$sourceUrl/feed/$genId",
       title = title,
       author = genAuthor,
-      publishedDate = new Date(),
+      publishedDate = LocalDateTime.now(),
       description = Some(genText),
       content = None,
       normalized = title.normalize,
@@ -111,7 +111,7 @@ object Gen {
       url = genUrl,
       title = Gen.genName,
       author = Gen.genName,
-      publishedDate = new Date(),
+      publishedDate = LocalDateTime.now(),
       description = None,
       content = None,
       normalized = Gen.genName

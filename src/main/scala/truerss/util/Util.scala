@@ -1,6 +1,6 @@
 package truerss.util
 
-import java.time.{LocalDateTime, ZoneId}
+import java.time.{LocalDateTime, ZoneId, ZoneOffset}
 import java.util.Date
 
 import com.github.truerss.base.Entry
@@ -19,7 +19,8 @@ object Util {
       sourceId = sourceId,
       url = entry.url,
       title = entry.title,
-      publishedDate = entry.publishedDate,
+      publishedDate = entry.publishedDate.toInstant
+        .atZone(ZoneOffset.UTC).toLocalDateTime,
       author = entry.author,
       description = entry.description,
       content = entry.content,
