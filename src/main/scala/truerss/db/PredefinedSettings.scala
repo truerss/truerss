@@ -1,5 +1,7 @@
 package truerss.db
 
+import truerss.dto.SetupKey
+
 // I save setting in json representation
 // real Setup[T] Keys/Values will be defined on service-level
 sealed trait SettingValue {
@@ -30,7 +32,11 @@ object RadioValue {
   val fName = "radio"
 }
 
-case class PredefinedSettings(key: String, description: String, value: SettingValue)
+case class PredefinedSettings(key: String, description: String, value: SettingValue) {
+  def toKey: SetupKey = {
+    SetupKey(key, description)
+  }
+}
 
 object Predefined {
   val fFeedParallelism = "parallelism"

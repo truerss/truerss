@@ -1,5 +1,6 @@
 package truerss.util
 
+import scala.concurrent.Future
 import scala.util.Either
 
 object syntax {
@@ -22,5 +23,16 @@ object syntax {
   }
 
   object ext extends WithOptionExt with WithEitherExt
+
+  final class FutureExt[T](val x: T) extends AnyVal {
+    def toF: Future[T] = Future.successful(x)
+  }
+
+  trait WithFutureSyntax extends {
+    implicit def WithFutureExt[T](x: T): FutureExt[T] = new FutureExt(x)
+  }
+
+
+  object future extends WithFutureSyntax
 
 }

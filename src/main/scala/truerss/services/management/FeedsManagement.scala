@@ -1,22 +1,28 @@
 package truerss.services.management
 
 import akka.event.EventStream
-import truerss.api.{FeedResponse, FeedsPageResponse, FeedsResponse, InternalServerErrorResponse, Response}
+import truerss.api._
+import truerss.db.Predefined
 import truerss.dto.FeedDto
 import truerss.services.DbHelperActor.FeedContentUpdate
-import truerss.services.{ContentReaderService, FeedsService, PublishPluginActor}
+import truerss.services.{ContentReaderService, FeedsService, PublishPluginActor, SettingsService}
 import truerss.util.Util.ResponseHelpers
-import truerss.util.Util.ResponseHelpers.{feedNotFound, ok}
-import org.slf4j.LoggerFactory
+import truerss.util.Util.ResponseHelpers.feedNotFound
+import truerss.util.syntax.future._
 
 import scala.concurrent.{ExecutionContext, Future}
 
 
 class FeedsManagement(feedsService: FeedsService,
                       contentReaderService: ContentReaderService,
+                      settingsService: SettingsService,
                       stream: EventStream
                      )
                      (implicit ec: ExecutionContext) extends BaseManagement {
+
+
+  private val read = Predefined.read
+  private val readContent = read.toKey
 
   def markAll: R = {
     feedsService.markAllAsRead.map { _ => ok }
@@ -27,32 +33,44 @@ class FeedsManagement(feedsService: FeedsService,
   }
 
   def getFeed(feedId: Long): R = {
-    feedsService.findOne(feedId).map {
+    feedsService.findOne(feedId).flatMap {
       case Some(feed) =>
         feed.content match {
           case Some(_) =>
-            FeedResponse(feed)
+            FeedResponse(feed).toF
 
           case None =>
-            contentReaderService.read(feed.url).fold(
-              error =>
-                InternalServerErrorResponse(error),
-              value => {
-                val x = value.map { content =>
-                  stream.publish(FeedContentUpdate(feedId, content))
-                  feed.copy(content = Some(content))
-                }.getOrElse(feed)
-                FeedResponse(x)
-              }
-            )
+            processContent(feedId, feed)
         }
 
       case None =>
-        feedNotFound
+        feedNotFound.toF
     }.recover {
       case ex: Throwable =>
         logger.warn(s"Failed to get content for feed=$feedId: $ex")
         InternalServerErrorResponse("Something went wrong")
+    }
+  }
+
+
+  private def processContent(feedId: Long, feed: FeedDto): Future[Response] = {
+    settingsService.where[Boolean](readContent, true).map { setup =>
+      if (setup.value) {
+        logger.debug(s"Need to read content for $feedId")
+        contentReaderService.read(feed.url).fold(
+          error =>
+            InternalServerErrorResponse(error),
+          value => {
+            val x = value.map { content =>
+              stream.publish(FeedContentUpdate(feedId, content))
+              feed.copy(content = Some(content))
+            }.getOrElse(feed)
+            FeedResponse(x)
+          }
+        )
+      } else {
+        FeedResponse(feed)
+      }
     }
   }
 

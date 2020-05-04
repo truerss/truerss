@@ -39,7 +39,8 @@ object Boot extends App {
       val opmlManagement = new OpmlManagement(opmlService, sourcesService, stream)
       val sourcesManagement = new SourcesManagement(sourcesService,
         opmlService, sourceOverviewService, stream)
-      val feedsManagement = new FeedsManagement(feedsService, contentReaderService, stream)
+      val feedsManagement = new FeedsManagement(feedsService,
+        contentReaderService, settingsService, stream)
       val pluginsManagement = new PluginsManagement(applicationPluginsService)
       val settingsManagement = new SettingsManagement(settingsService)
 

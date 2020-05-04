@@ -6,8 +6,10 @@ import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import truerss.api.{FeedResponse, InternalServerErrorResponse}
+import truerss.db.Predefined
+import truerss.dto.Setup
 import truerss.services.management.FeedsManagement
-import truerss.services.{ContentReaderService, FeedsService, PublishPluginActor}
+import truerss.services.{ContentReaderService, FeedsService, PublishPluginActor, SettingsService}
 import truerss.util.Util.ResponseHelpers
 
 import scala.concurrent.Future
@@ -27,8 +29,9 @@ class FeedsManagementTest(implicit val ee: ExecutionEnv) extends Specification w
   private val noContentDto1 = Gen.genFeedDto.copy(content = None)
   private val fs = mock[FeedsService]
   private val cr = mock[ContentReaderService]
+  private val sm = mock[SettingsService]
   private val es = mock[EventStream]
-  private val f = new FeedsManagement(fs, cr, es)
+  private val f = new FeedsManagement(fs, cr, sm, es)
   fs.addToFavorites(feedId) returns f(Some(dto))
   fs.findOne(feedId) returns f(Some(dto))
   fs.findOne(feedId1) returns f(None)
@@ -37,6 +40,9 @@ class FeedsManagementTest(implicit val ee: ExecutionEnv) extends Specification w
 
   cr.read(noContentDto.url) returns Left(boom)
   cr.read(noContentDto1.url) returns Right(Some(content))
+  val key = Predefined.read.toKey
+  val setup = Future.successful(Setup[Boolean](key, true))
+  sm.where(key, true) returns setup
 
 
   "feeds management" should {
@@ -52,6 +58,21 @@ class FeedsManagementTest(implicit val ee: ExecutionEnv) extends Specification w
         f.getFeed(feedId) must be_==(FeedResponse(dto)).await
 
         there was one(fs).findOne(feedId)
+        there was no(cr)
+      }
+
+      "read content only if content-setting is enabled" in {
+        val fs = mock[FeedsService]
+        val cr = mock[ContentReaderService]
+        val sm = mock[SettingsService]
+        val es = mock[EventStream]
+        fs.findOne(feedId) returns f(Some(dto.copy(content = None)))
+        sm.where[Boolean](Predefined.read.toKey, true) returns Future.successful(Setup[Boolean](Predefined.read.toKey, false))
+        val service = new FeedsManagement(fs, cr, sm, es)
+
+        service.getFeed(feedId) must be_==(FeedResponse(dto.copy(content = None))).await
+
+        there was one(sm).where(key, true)
         there was no(cr)
       }
 
