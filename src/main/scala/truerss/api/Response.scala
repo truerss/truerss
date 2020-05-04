@@ -5,6 +5,7 @@ import truerss.dto._
 sealed trait Response
 case class SourcesResponse(xs: Vector[SourceViewDto]) extends Response
 case class SourceResponse(x: SourceViewDto) extends Response
+case class SourceOverViewResponse(overview: SourceOverview) extends Response
 case class FeedResponse(x: FeedDto) extends Response
 case class FeedsResponse(xs: Vector[FeedDto]) extends Response
 case class FeedsPageResponse(xs: Vector[FeedDto], total: Int) extends Response

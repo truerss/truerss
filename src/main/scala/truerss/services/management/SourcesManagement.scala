@@ -1,9 +1,9 @@
 package truerss.services.management
 
 import akka.event.EventStream
-import truerss.api.{BadRequestResponse, NotFoundResponse, SourceResponse, SourcesResponse}
+import truerss.api.{BadRequestResponse, NotFoundResponse, SourceOverViewResponse, SourceResponse, SourcesResponse}
 import truerss.dto.{NewSourceDto, UpdateSourceDto}
-import truerss.services.{OpmlService, SourcesService}
+import truerss.services.{OpmlService, SourceOverviewService, SourcesService}
 import truerss.services.actors.sync.SourcesKeeperActor
 import truerss.util.Util.ResponseHelpers.sourceNotFound
 
@@ -11,6 +11,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class SourcesManagement(sourcesService: SourcesService,
                         opmlService: OpmlService,
+                        sourceOverviewService: SourceOverviewService,
                         stream: EventStream
                        )
                        (implicit ec: ExecutionContext) extends BaseManagement {
@@ -22,8 +23,13 @@ class SourcesManagement(sourcesService: SourcesService,
   def getSource(sourceId: Long): R = {
     sourcesService.getSource(sourceId).map {
       case Some(s) => SourceResponse(s)
-      case _ => NotFoundResponse(s"Souce $sourceId was not found")
+      case _ => NotFoundResponse(s"Source $sourceId was not found")
     }
+  }
+
+  def getSourceOverview(sourceId: Long): R = {
+    sourceOverviewService.getSourceOverview(sourceId)
+      .map(SourceOverViewResponse)
   }
 
   def markSource(sourceId: Long): R = {

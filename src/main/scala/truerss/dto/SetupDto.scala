@@ -2,9 +2,9 @@ package truerss.dto
 
 import scala.reflect.ClassTag
 
-case class SetupKey[T](name: String, description: String)
+case class SetupKey(name: String, description: String)
 
-case class Setup[T](key: SetupKey[T], value: T)
+case class Setup[T](key: SetupKey, value: T)
 object Setup {
   def unknown[T: ClassTag](key: String): Setup[T] = {
     Setup(SetupKey(key, "Unknown key"), Default.value[T]) // ???

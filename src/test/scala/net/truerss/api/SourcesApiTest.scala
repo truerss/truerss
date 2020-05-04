@@ -7,7 +7,7 @@ import akka.http.scaladsl.server.Route
 import net.truerss.Gen
 import play.api.libs.json._
 import truerss.api._
-import truerss.dto.FeedDto
+import truerss.dto.{FeedDto, SourceOverview}
 import truerss.services.management.{FeedSourceDtoModelImplicits, FeedsManagement, OpmlManagement, SourcesManagement}
 import truerss.util.Util.ResponseHelpers
 
@@ -47,6 +47,7 @@ class SourcesApiTest extends BaseApiTest {
   sm.markSource(id_200) returns f(ResponseHelpers.ok)
   sm.forceRefreshSource(sId1) returns f(ResponseHelpers.ok)
   sm.forceRefresh returns f(ResponseHelpers.ok)
+  sm.getSourceOverview(id_200) returns f(SourceOverViewResponse(SourceOverview.empty(id_200)))
 
   fm.markAll returns f(ResponseHelpers.ok)
   fm.findUnreadBySource(id_200) returns f(FeedsResponse(Vector(unreadFeed)))
@@ -74,6 +75,11 @@ class SourcesApiTest extends BaseApiTest {
     "get source#404" in {
       checkR(Get(s"$url/$id_404"), nf)
       there was one(sm).getSource(id_404)
+    }
+
+    "get overview" in {
+      checkR(Get(s"$url/overview/$id_200"), StatusCodes.OK)
+      there was one(sm).getSourceOverview(id_200)
     }
 
     "create new source#ok" in {

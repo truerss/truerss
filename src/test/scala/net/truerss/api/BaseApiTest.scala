@@ -28,12 +28,18 @@ abstract class BaseApiTest extends RouteTest
       if (resultStatus == StatusCodes.OK) {
         responseAs[String] ==== Json.toJson(res).toString
       }
+      if (status != resultStatus) {
+        println(s"failed with ${responseAs[String]}")
+      }
       status ==== resultStatus
     }
   }
 
   protected def checkR(req: HttpRequest, resultStatus: StatusCode) = {
     req ~> r ~> check {
+      if (status != resultStatus) {
+        println(s"failed with ${responseAs[String]}")
+      }
       status ==== resultStatus
     }
   }

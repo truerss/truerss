@@ -29,6 +29,8 @@ class SourcesApi(sourcesManagement: SourcesManagement,
         call(sm.all)
       } ~ (get & pathPrefix(LongNumber)) { sourceId =>
         call(sm.getSource(sourceId))
+      } ~ (get & pathPrefix("overview"/ LongNumber)) { sourceId =>
+        call(sm.getSourceOverview(sourceId))
       } ~ (post & pathEndOrSingleSlash) {
         create1[NewSourceDto](x => sm.addSource(x))
       } ~ (delete & pathPrefix(LongNumber)) { sourceId =>

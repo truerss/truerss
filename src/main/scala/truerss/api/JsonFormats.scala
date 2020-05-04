@@ -129,9 +129,9 @@ object JsonFormats {
 
     override def reads(json: JsValue): JsResult[CurrentValue[_]] = {
       json match {
-        case JsNumber(o) => JsSuccess(CurrentValue(o))
-        case JsBoolean(o) => JsSuccess(CurrentValue(o))
-        case JsString(o) => JsSuccess(CurrentValue(o))
+        case JsNumber(o) => JsSuccess(CurrentValue[Int](o.toInt))
+        case JsBoolean(o) => JsSuccess(CurrentValue[Boolean](o))
+        case JsString(o) => JsSuccess(CurrentValue[String](o))
         case x => JsError(s"Unkwnown type: $x")
       }
     }
@@ -161,9 +161,18 @@ object JsonFormats {
             v <- obj.get(fValue).map(currentValueFormat.reads)
             cv <- v.asOpt
           } yield {
-            NewSetup(k, cv)
+            cv match {
+              case CurrentValue(x: Int) =>
+                JsSuccess(NewSetup[Int](k, CurrentValue(x)))
+              case CurrentValue(x: String) =>
+                JsSuccess(NewSetup[String](k, CurrentValue(x)))
+              case CurrentValue(x: Boolean) =>
+                JsSuccess(NewSetup[Boolean](k, CurrentValue(x)))
+              case _ =>
+                JsError(s"Unexpected type: $cv")
+            }
           }
-          r.map(JsSuccess(_)).getOrElse(JsError(s"Unexpected object: $obj"))
+          r.getOrElse(JsError(s"Unexpected object: $obj"))
         case _ =>
           JsError("Object is required")
       }
@@ -178,5 +187,8 @@ object JsonFormats {
       )
     }
   }
+
+  implicit val feedsFrequencyFormat: Format[FeedsFrequency] = Json.format[FeedsFrequency]
+  implicit val sourceOverviewFormat: Format[SourceOverview] = Json.format[SourceOverview]
 
 }

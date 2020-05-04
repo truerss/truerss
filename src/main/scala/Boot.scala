@@ -27,6 +27,7 @@ object Boot extends App {
       val dbLayer = SupportedDb.load(dbConf, isUserConf)(dbEc)
 
       val settingsService = new SettingsService(dbLayer)
+      val sourceOverviewService = new SourceOverviewService(dbLayer)
       val sourcesService = new SourcesService(dbLayer, trueRSSConfig.appPlugins)
       val applicationPluginsService = new ApplicationPluginsService(trueRSSConfig.appPlugins)
       val opmlService = new OpmlService(sourcesService)
@@ -36,7 +37,8 @@ object Boot extends App {
       val stream = system.eventStream
 
       val opmlManagement = new OpmlManagement(opmlService, sourcesService, stream)
-      val sourcesManagement = new SourcesManagement(sourcesService, opmlService, stream)
+      val sourcesManagement = new SourcesManagement(sourcesService,
+        opmlService, sourceOverviewService, stream)
       val feedsManagement = new FeedsManagement(feedsService, contentReaderService, stream)
       val pluginsManagement = new PluginsManagement(applicationPluginsService)
       val settingsManagement = new SettingsManagement(settingsService)

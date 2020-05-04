@@ -65,3 +65,38 @@ case class FeedDto(
                    read: Boolean = false,
                    delete: Boolean = false
                 )
+
+case class FeedsFrequency(
+  perDay: Double,
+  perWeek: Double,
+  perMonth: Double
+)
+object FeedsFrequency {
+  val empty = {
+    FeedsFrequency(
+      perDay = 0d,
+      perWeek = 0d,
+      perMonth = 0d
+    )
+  }
+}
+
+case class SourceOverview(
+                         sourceId: Long,
+                         unreadCount: Int,
+                         favoritesCount: Int,
+                         feedsCount: Int,
+                         frequency: FeedsFrequency
+                         )
+
+object SourceOverview {
+  def empty(sourceId: Long) = {
+    SourceOverview(
+      sourceId = sourceId,
+      unreadCount = 0,
+      favoritesCount = 0,
+      feedsCount = 0,
+      frequency = FeedsFrequency.empty
+    )
+  }
+}

@@ -6,12 +6,11 @@ object DbSettingJsonFormats {
   implicit lazy val settingValueFormat: Format[SettingValue] = new Format[SettingValue] {
     private val fType = "type"
     private val fValues = "values"
-    private val fValue = "value"
     private val fDefault = "default"
 
     override def writes(o: SettingValue): JsValue = {
       o match {
-        case i @ SelectableValue(xs, defaultValue) =>
+        case i @ SelectableValue(xs, _) =>
           JsObject(
             Seq(
               fType -> JsString(i.name),
@@ -49,7 +48,7 @@ object DbSettingJsonFormats {
               res.map(JsSuccess(_)).getOrElse(JsError("Failed to read"))
 
             case Some(JsString(RadioValue.fName)) =>
-              val state = obj.get(fValue).collect { case JsBoolean(x) => x }
+              val state = obj.get(fDefault).collect { case JsBoolean(x) => x }
                 .getOrElse(false)
               JsSuccess(
                 RadioValue(state)

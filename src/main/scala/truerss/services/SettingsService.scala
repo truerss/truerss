@@ -1,6 +1,6 @@
 package truerss.services
 
-import truerss.db.{RadioValue, DbLayer, PredefinedSettings, SelectableValue, UserSettings}
+import truerss.db.{DbLayer, PredefinedSettings, RadioValue, SelectableValue, UserSettings}
 import truerss.dto.{AvailableRadio, AvailableSelect, AvailableSetup, AvailableValue, CurrentValue, NewSetup, Setup, SetupKey}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -25,13 +25,21 @@ class SettingsService(dbLayer: DbLayer)(implicit ec: ExecutionContext) {
   }
 
   // the application layer dependency
-  // we should use it for application layer: check user defined setup for every feature
+  // we should use that in the application layer: for checking user-defined setup in every feature
   //
-  def where[T: ClassTag](key: SetupKey[T]): Future[Setup[T]] = {
-    dbLayer.userSettingsDao.getByKey(key.name)
-      .map { userSettings =>
-        userSettings.map(_.toSetup[T]).getOrElse(Setup.unknown[T](key.name))
-      }
+  def where[T: ClassTag](key: SetupKey, defaultValue: T): Future[Setup[T]] = {
+    val default: Setup[T] = Setup[T](
+      key = key,
+      value = defaultValue
+    )
+    getCurrentSetup.map { xs =>
+      xs.find(_.key == key.name).map { available =>
+        Setup(
+          key = key,
+          value = available.value.value.asInstanceOf[T]
+        )
+      }.getOrElse(default)
+    }
   }
 
 }

@@ -8,7 +8,7 @@ import org.specs2.mutable.Specification
 import truerss.api.SourceResponse
 import truerss.services.actors.sync.SourcesKeeperActor
 import truerss.services.management.{FeedSourceDtoModelImplicits, SourcesManagement}
-import truerss.services.{OpmlService, SourcesService}
+import truerss.services.{OpmlService, SourceOverviewService, SourcesService}
 import truerss.util.Util.ResponseHelpers
 
 import scala.concurrent.Future
@@ -26,8 +26,9 @@ class SourcesManagementTest(implicit val ee: ExecutionEnv) extends Specification
   private val updateSource = Gen.genUpdSource(sourceId)
   private val sm = mock[SourcesService]
   private val om = mock[OpmlService]
+  private val som = mock[SourceOverviewService]
   private val es = mock[EventStream]
-  private val s = new SourcesManagement(sm, om, es)
+  private val s = new SourcesManagement(sm, om, som, es)
   sm.delete(sourceId) returns f(Some(dto))
   sm.addSource(newSource) returns f(Right(dto))
   sm.updateSource(sourceId, updateSource) returns f(Right(dto))
