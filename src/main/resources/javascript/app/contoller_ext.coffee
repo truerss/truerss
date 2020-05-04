@@ -71,6 +71,12 @@ class AjaxService
   mark_all_as_read: () ->
     @_put("#{@sources_api}/markall", @k, @k)
 
+  get_source_overview: (sourceId, success) ->
+    @_get("#{@sources_api}/overview/#{sourceId}", success, @k)
+
+  get_feed_content: (feedId, success) ->
+    @_get("#{@feeds_api}/content/#{feedId}", success, @k)
+
   get_settings: (success) ->
     @_get(
       "#{@settings_api}/current",
@@ -218,39 +224,47 @@ ControllerExt =
   delete_cookie: (cn) ->
     document.cookie = cn + '=; Path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;'
 
-  render_source_feeds_and_redirect_to_first: (source, current_page, source_name_normalized) ->
+  _make_pagination: (length, per_page, current) ->
+    tmp = parseInt(length / per_page, 10)
+    additional = if per_page * tmp == length
+      0
+    else
+      1
+    page_count = additional + tmp
+
+    next_page = current + 1
+    prev_page = current - 1
+
+    arr = [prev_page, current, next_page]
+    arr.unshift(1)
+    arr.push(page_count)
+    arr = Array.from(new Set(arr))
+    arr = arr.filter (x) -> x > 0 && x <= page_count
+
+    results = []
+    splitted = arr.each_cons(2)
+    for [a, b] in splitted
+      if b - a > 1
+        results.add_to(a).add_to(-1).add_to(b)
+      else
+        results.add_to(a).add_to(b)
+    results
+
+  _materializer: null
+
+  render_source_feeds_and_redirect_to_first: (source, current_page, source_name_normalized, overview) ->
     # TODO from setup - feeds per page
     feeds = source.feeds()
     length = feeds.length
 
-    make_pagination = (length, per_page, current) ->
-      tmp = parseInt(length / per_page, 10)
-      additional = if per_page * tmp == length
-        0
-      else
-        1
-      page_count = additional + tmp
-
-      next_page = current + 1
-      prev_page = current - 1
-
-      arr = [prev_page, current, next_page]
-      arr.unshift(1)
-      arr.push(page_count)
-      arr = Array.from(new Set(arr))
-      arr = arr.filter (x) -> x > 0 && x <= page_count
-
-      results = []
-      splitted = arr.each_cons(2)
-      for [a, b] in splitted
-        if b - a > 1
-          results.add_to(a).add_to(-1).add_to(b)
-        else
-          results.add_to(a).add_to(b)
-      results
+    settings = Settings.takeFirst((x) -> x.is_feeds_per_page())
 
     feeds_per_page = 30
-    pagination = make_pagination(length, feeds_per_page, current_page)
+
+    if settings?
+      feeds_per_page = parseInt(settings.value(), 10)
+
+    pagination = @_make_pagination(length, feeds_per_page, current_page)
 
     start = (current_page - 1) * feeds_per_page
     end = start + feeds_per_page
@@ -268,21 +282,29 @@ ControllerExt =
     Templates.article_view.render(result).html()
     if source.feeds().length > 0
       1
-    description = Templates.source_overview_template.render({source: source})
+
+    # overview
+
+    description = Templates.source_overview_template.render({source: source, overview: overview})
     Templates.source_overview_view.render(description).html()
     overview_view = new Sirius.View("#source-overview-#{source.id()}")
-    Sirius.Materializer.build(source, overview_view)
-    .field((x) -> x.count)
-    .to((v) -> v.zoom('.source-overview-unread-count'))
-    .transform((x) ->
-      if x != 0
-        "#{x}"
-      else
-        ""
-    )
-    .field((x) -> x.favorites_count)
-    .to((v) -> v.zoom('.source-overview-favorites-count'))
-    .run()
+
+    if @_materializer?
+      @_materializer.stop()
+
+    @_materializer = Sirius.Materializer.build(source, overview_view)
+      .field((x) -> x.count)
+      .to((v) -> v.zoom('.source-overview-unread-count'))
+      .transform((x) ->
+        if x != 0
+          "#{x}"
+        else
+          ""
+      )
+      .field((x) -> x.favorites_count)
+      .to((v) -> v.zoom('.source-overview-favorites-count'))
+
+    @_materializer.run()
 
       # TODO redirect(source.feeds()[0].href())
 

@@ -78,6 +78,10 @@ FeedsController =
       @logger.info("Feed #{id} remove from favorite list")
       @_favorite_helper(id, source_id, false)
 
+  view_content: (feed_id) ->
+    ajax.get_feed_content feed_id, (response) ->
+      console.log(response)
+
   view0: (e, id) -> # helper, if feeds have not uniq name need check it
     posts.set(id)
 

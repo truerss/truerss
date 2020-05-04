@@ -101,6 +101,9 @@ class Setting extends Sirius.BaseModel
   is_eq: (x) ->
     x == @value()
 
+  is_feeds_per_page: () ->
+    @key() == "feeds_per_page"
+
 Settings = new Sirius.Collection(Setting, {index: ["key"]})
 Settings.subscribe("add", "settings:add")
 

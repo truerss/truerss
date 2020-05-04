@@ -23,10 +23,10 @@
             No
         <% } %>
     </li>
-    <li><%= source.feeds_count() %> feeds</li>
+    <li><%= overview.feedsCount %> feeds</li>
     <li>unread count:
         <span class="source-overview-unread-count" data-source-id="<%= source.id() %>">
-        <% if (!source.is_empty()) { %>
+        <% if (overview.unreadCount != 0) { %>
             <%= source.count() %>
         <% } else { %>
             -
@@ -36,7 +36,7 @@
 
     <li>In favorites:
         <span class="source-overview-favorites-count" data-source-id="<%= source.id() %>">
-            <%= source.favorites_count() %>
+            <%= overview.favoritesCount %>
         </span>
         feeds
     </li>

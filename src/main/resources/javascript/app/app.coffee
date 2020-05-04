@@ -84,6 +84,7 @@ $ ->
     "/show/:source-name/:feed-name": controller: FeedsController, action: "show"
     "/show/:source-name" : controller: SourcesController, action: "show"
     "/show/:source-name/page/:page" : controller: SourcesController, action: "show"
+    "/show/feeds/content/:feed": controller: FeedsController, action: "view_content"
     "/opml": controller: SourcesController, action: "download"
     "/settings" : controller: SettingsController, action: "show"
     "settings:add": controller: SettingsController, action: "on_add"
