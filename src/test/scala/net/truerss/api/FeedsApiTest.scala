@@ -3,6 +3,7 @@ package net.truerss.api
 import akka.http.scaladsl.model.StatusCodes
 import net.truerss.Gen
 import truerss.api._
+import truerss.dto.FeedContent
 import truerss.services.management.FeedsManagement
 import truerss.util.Util.ResponseHelpers
 
@@ -15,9 +16,11 @@ class FeedsApiTest extends BaseApiTest {
   private val id_200 = 1L
   private val id_404 = 10L
   private val id_500 = 100L
+  private val cnt = FeedContent(Some("test"))
   private val fm = mock[FeedsManagement]
   fm.favorites returns f(FeedsResponse(Vector(dto)))
   fm.getFeed(id_200) returns f(FeedResponse(dto))
+  fm.getFeedContent(id_200) returns f(FeedContentResponse(cnt))
   fm.getFeed(id_404) returns f(ResponseHelpers.feedNotFound)
   fm.getFeed(id_500) returns f(InternalServerErrorResponse("boom"))
   fm.addToFavorites(id_200) returns f(FeedResponse(dto))
@@ -41,6 +44,11 @@ class FeedsApiTest extends BaseApiTest {
     "get feed#ok" in {
       checkR(Get(s"$url/$id_200"), dto)
       there was one(fm).getFeed(id_200)
+    }
+
+    "get feed content" in {
+      checkR(Get(s"$url/content/$id_200"), cnt)
+      there was one(fm).getFeedContent(id_200)
     }
 
     "get feed#404" in {

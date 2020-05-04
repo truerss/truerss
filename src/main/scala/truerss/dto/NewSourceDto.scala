@@ -51,6 +51,7 @@ case class PluginsViewDto(
                            publish: Vector[PluginDto] = Vector.empty,
                            site: Vector[PluginDto] = Vector.empty
                          )
+case class FeedContent(content: Option[String])
 
 case class FeedDto(
                    id: Long,

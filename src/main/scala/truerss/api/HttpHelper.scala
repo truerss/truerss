@@ -111,6 +111,7 @@ trait HttpHelper {
       case SourceResponse(x) => ok(x)
       case SourceOverViewResponse(x) => ok(x)
       case FeedResponse(x) => ok(x)
+      case FeedContentResponse(x) => ok(x)
       case FeedsResponse(xs) => ok(xs)
       case FeedsPageResponse(xs, _) => ok(xs)
       case AppPluginsResponse(view) => ok(view)

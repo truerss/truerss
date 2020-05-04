@@ -20,6 +20,8 @@ class FeedsApi(val feedsManagement: FeedsManagement)
         call(fm.favorites)
       } ~ (get & pathPrefix(LongNumber)) { feedId =>
         call(fm.getFeed(feedId))
+      } ~ (get & pathPrefix("content" / LongNumber)) { feedId =>
+        call(fm.getFeedContent(feedId))
       } ~ put {
         pathPrefix("mark" / LongNumber) { feedId =>
           call(fm.addToFavorites(feedId))

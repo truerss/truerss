@@ -3,12 +3,12 @@ package truerss.services.management
 import akka.event.EventStream
 import truerss.api._
 import truerss.db.Predefined
-import truerss.dto.FeedDto
+import truerss.dto.{FeedContent, FeedDto}
 import truerss.services.DbHelperActor.FeedContentUpdate
 import truerss.services.{ContentReaderService, FeedsService, PublishPluginActor, SettingsService}
 import truerss.util.Util.ResponseHelpers
-import truerss.util.Util.ResponseHelpers.feedNotFound
 import truerss.util.syntax.future._
+import truerss.util.syntax.ext._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -32,19 +32,42 @@ class FeedsManagement(feedsService: FeedsService,
     feedsService.favorites.map(FeedsResponse)
   }
 
+  def getFeedContent(feedId: Long): R = {
+    fetchFeedOrError(feedId) { feed =>
+      feed.content match {
+        case Some(content) =>
+          FeedContentResponse(FeedContent(content.some)).toF
+
+        case None =>
+          fetchContentOrError(feed.url) { maybeContent =>
+            maybeContent.foreach { content =>
+              stream.publish(FeedContentUpdate(feedId, content))
+            }
+            FeedContentResponse(FeedContent(maybeContent))
+          }.toF
+      }
+    }
+  }
+
   def getFeed(feedId: Long): R = {
+    fetchFeedOrError(feedId) { feed =>
+      feed.content match {
+        case Some(_) =>
+          FeedResponse(feed).toF
+
+        case None =>
+          processContent(feedId, feed)
+      }
+    }
+  }
+
+  private def fetchFeedOrError(feedId: Long)(f: FeedDto => Future[Response]): R = {
     feedsService.findOne(feedId).flatMap {
       case Some(feed) =>
-        feed.content match {
-          case Some(_) =>
-            FeedResponse(feed).toF
-
-          case None =>
-            processContent(feedId, feed)
-        }
+        f.apply(feed)
 
       case None =>
-        feedNotFound.toF
+        ResponseHelpers.feedNotFound.toF
     }.recover {
       case ex: Throwable =>
         logger.warn(s"Failed to get content for feed=$feedId: $ex")
@@ -52,26 +75,31 @@ class FeedsManagement(feedsService: FeedsService,
     }
   }
 
-
   private def processContent(feedId: Long, feed: FeedDto): Future[Response] = {
     settingsService.where[Boolean](readContent, true).map { setup =>
       if (setup.value) {
         logger.debug(s"Need to read content for $feedId")
-        contentReaderService.read(feed.url).fold(
-          error =>
-            InternalServerErrorResponse(error),
-          value => {
-            val x = value.map { content =>
-              stream.publish(FeedContentUpdate(feedId, content))
-              feed.copy(content = Some(content))
-            }.getOrElse(feed)
-            FeedResponse(x)
-          }
-        )
+        fetchContentOrError(feed.url) { value =>
+          val x = value.map { content =>
+            stream.publish(FeedContentUpdate(feedId, content))
+            feed.copy(content = Some(content))
+          }.getOrElse(feed)
+          FeedResponse(x)
+        }
       } else {
         FeedResponse(feed)
       }
     }
+  }
+
+  private def fetchContentOrError(url: String)(f: Option[String] => Response): Response = {
+    contentReaderService.read(url).fold(
+      error =>
+        InternalServerErrorResponse(error),
+      value => {
+        f(value)
+      }
+    )
   }
 
   def addToFavorites(feedId: Long): R = {
@@ -80,7 +108,7 @@ class FeedsManagement(feedsService: FeedsService,
         stream.publish(PublishPluginActor.PublishEvent(feed))
         FeedResponse(feed)
       case None =>
-        feedNotFound
+        ResponseHelpers.feedNotFound
     }
   }
 
