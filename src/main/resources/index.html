@@ -197,5 +197,25 @@
     <div id="plugins-modal" uk-modal>
     </div>
 
+
+    <div id="upload-modal" uk-modal>
+        <div class="uk-modal-dialog uk-modal-body">
+            <h2 class="uk-modal-title"></h2>
+            <div id="upload" class="js-upload uk-placeholder uk-text-center">
+                <span uk-icon="icon: cloud-upload"></span>
+                <span class="uk-text-middle">Attach OPML by dropping them here or</span>
+                <div uk-form-custom>
+                    <input type="file" multiple>
+                    <span class="uk-link">selecting one</span>
+                </div>
+            </div>
+            <progress id="progressbar" class="uk-progress" value="0" max="100" hidden></progress>
+        </div>
+    </div>
+
+
+
+
+
 </body>
 </html>

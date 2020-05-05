@@ -5,7 +5,7 @@ task :compile do
   path = "#{Dir.pwd}/src/main/resources/javascript/app"
   files = ["ext", "feeds_controller", "ws_controller",
     "contoller_ext", "main_controller", "plugins_controller", "models", "sources_controller",
-    "settings_controller",
+    "settings_controller", "upload_controller",
     "templates", "app"
    ].map{|f| "#{path}/#{f}.coffee"}.join(" ")
   system("cat #{files} | coffee -c -b --stdio > #{c_to}/truerss.js")

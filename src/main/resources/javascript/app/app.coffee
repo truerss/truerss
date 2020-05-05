@@ -98,6 +98,7 @@ $ ->
     "click a[href='#remove-source']": controller: SourcesController, action: "remove", data: "data-source-id"
     "click a[href='#edit-source']": controller: SourcesController, action: "edit", data: "data-source-id"
     "click a.source-count": controller: SourcesController, action: "mark_by_click_on_count_button", data: "data-source-id"
+    "click a[href='#add-modal']": controller: UploadController, action: "upload"
     "input #search": controller: SourcesController, action: "filter"
 #    "mouseenter .tippy-count": controller: FeedsController, action: 'draw_tooltip', data: "data-source-id"
 
