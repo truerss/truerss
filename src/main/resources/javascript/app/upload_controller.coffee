@@ -17,9 +17,10 @@ UploadController =
 
     @_modal.show()
 
-
     clear_input = () ->
       jQuery("#{Templates.modal_view.get_element()} input").val('')
+
+    clear_input()
 
 
     if @to_model_materializer?
@@ -65,7 +66,6 @@ UploadController =
           (err) =>
             @logger.warn("Failed to create a new source: #{JSON.stringify(err)}")
             source.set_error("url.url_validator", err.responseJSON['error'])
-
 
     bar = document.getElementById("progressbar")
 

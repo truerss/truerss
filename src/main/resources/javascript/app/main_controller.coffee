@@ -30,45 +30,6 @@ MainController =
     ws.onclose = () ->
       @logger.info("ws close")
 
-  _bind_modal: () ->
-    source = new Source()
-
-    Sirius.Materializer.build(Templates.modal_view, source)
-      .field("input[name='title']")
-      .to((x) -> x.name)
-      .transform((x) -> x.text)
-      .field("input[name='url']")
-      .to((x) -> x.url)
-      .transform((x) -> x.text)
-      .field("input[name='interval']")
-      .to((x) -> x.interval)
-      .transform((x) -> x.text)
-      .run()
-
-    Sirius.Materializer.build(source, Templates.modal_view)
-      .field((x) -> x.errors.url.url_validator)
-      .to("span.source-url-error")
-
-    modal = UIkit.modal("#add-modal")
-    # TODO use binding
-    clear_input = () ->
-      jQuery("#{Templates.modal_element} .uk-form input.custom-input").val('')
-
-    Templates.modal_view.on 'button.uk-button-primary', 'click', (e) ->
-      if source.is_valid()
-        ajax.source_create source.ajaxify(),
-          (json) ->
-            Sources.add(new Source(json))
-            modal.hide()
-            clear_input()
-          (err) ->
-            source.set_error("url.url_validator", err.responseJSON['error'])
-
-    Templates.modal_view.on 'button.close-modal', 'click', (e) ->
-      modal.hide()
-
-      clear_input()
-
   _load_js_and_css: (ajax) ->
     ajax.js_all (resp) ->
       script = document.createElement('script')
@@ -141,8 +102,6 @@ MainController =
             else
               #TODO redirect(Sources.first().href())
 
-
-        #@_bind_modal()
       delete_cookie("redirect")
     return
 
