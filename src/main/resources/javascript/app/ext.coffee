@@ -59,3 +59,14 @@ Array::group_by = (key) ->
     else
       o[k] = [a]
   o
+
+Array::each_cons = (num) ->
+  Array.from(
+    {length: @length - num + 1},
+    (_, i) => @slice(i, i + num)
+  )
+
+Array::add_to = (el) ->
+  if @length == 0 || @[@length-1] != el
+    @push(el)
+  @
