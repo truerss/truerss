@@ -5,7 +5,7 @@ import java.util.Date
 
 import com.github.truerss.base.Entry
 import truerss.api.{NotFoundResponse, Ok}
-import truerss.db.{Feed, SourceStates}
+import truerss.db.{Feed, SourceState, SourceStates}
 
 
 object Util {
@@ -38,11 +38,13 @@ object Util {
   }
 
   // ?
-  implicit class ApplicationPluginsExt(a: ApplicationPlugins) {
-    def getState(url: String) = if (a.matchUrl(url)) {
-      SourceStates.Enable
-    } else {
-      SourceStates.Neutral
+  implicit class ApplicationPluginsExt(val a: ApplicationPlugins) extends AnyVal {
+    def getState(url: String): SourceState = {
+      if (a.matchUrl(url)) {
+        SourceStates.Enable
+      } else {
+        SourceStates.Neutral
+      }
     }
   }
 

@@ -28,8 +28,8 @@ object Boot extends App {
 
       val settingsService = new SettingsService(dbLayer)
       val sourceOverviewService = new SourceOverviewService(dbLayer)
-      val sourcesService = new SourcesService(dbLayer, trueRSSConfig.appPlugins)
-      val applicationPluginsService = new ApplicationPluginsService(trueRSSConfig.appPlugins)
+      val sourcesService = new SourcesService(dbLayer, actualConfig.appPlugins)
+      val applicationPluginsService = new ApplicationPluginsService(actualConfig.appPlugins)
       val opmlService = new OpmlService(sourcesService)
       val feedsService = new FeedsService(dbLayer)
       val contentReaderService = new ContentReaderService(applicationPluginsService)
@@ -45,7 +45,7 @@ object Boot extends App {
       val settingsManagement = new SettingsManagement(settingsService)
 
       system.actorOf(
-        MainActor.props(actualConfig, dbLayer),
+        MainActor.props(actualConfig, applicationPluginsService, sourcesService,  dbLayer),
         "main-actor"
       )
 
@@ -55,7 +55,7 @@ object Boot extends App {
         opmlManagement = opmlManagement,
         pluginsManagement = pluginsManagement,
         settingsManagement = settingsManagement,
-        wsPort = trueRSSConfig.wsPort
+        wsPort = actualConfig.wsPort
       )
 
       Http().bindAndHandle(endpoint.route,

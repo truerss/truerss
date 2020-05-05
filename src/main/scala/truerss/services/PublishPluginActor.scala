@@ -1,17 +1,13 @@
 package truerss.services
 
-import java.time.{LocalDateTime, ZoneOffset}
+import java.time.ZoneOffset
 import java.util.Date
 
 import akka.actor.{Actor, ActorLogging}
 import com.github.truerss.base.{BasePublishPlugin, Entry, PublishActions}
 import truerss.dto.FeedDto
 
-import scala.collection.mutable.ArrayBuffer
-
-
-
-class PublishPluginActor(plugins: ArrayBuffer[BasePublishPlugin])
+class PublishPluginActor(plugins: Vector[BasePublishPlugin])
   extends Actor with ActorLogging {
 
   import PublishActions.Favorite

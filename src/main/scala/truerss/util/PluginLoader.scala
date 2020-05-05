@@ -4,7 +4,7 @@ import java.io.File
 import java.net.{URL, URLClassLoader}
 import java.util.jar._
 
-import com.github.truerss.base._
+import com.github.truerss.base.{BaseFeedPlugin, _}
 import com.typesafe.config.Config
 
 import scala.collection.mutable.ArrayBuffer
@@ -12,12 +12,12 @@ import scala.language.existentials
 import scala.util.Try
 
 case class ApplicationPlugins(
-                               feedPlugins: ArrayBuffer[BaseFeedPlugin] = ArrayBuffer.empty,
-                               contentPlugins: ArrayBuffer[BaseContentPlugin] = ArrayBuffer.empty,
-                               publishPlugins: ArrayBuffer[BasePublishPlugin] = ArrayBuffer.empty,
-                               sitePlugins: ArrayBuffer[BaseSitePlugin] = ArrayBuffer.empty,
-                               css: ArrayBuffer[String] = ArrayBuffer.empty, // content of js files
-                               js: ArrayBuffer[String] = ArrayBuffer.empty
+                               feedPlugins: Vector[BaseFeedPlugin] = Vector.empty,
+                               contentPlugins: Vector[BaseContentPlugin] = Vector.empty,
+                               publishPlugins: Vector[BasePublishPlugin] = Vector.empty,
+                               sitePlugins: Vector[BaseSitePlugin] = Vector.empty,
+                               css: Vector[String] = Vector.empty, // content of js files
+                               js: Vector[String] = Vector.empty
 ) {
   def matchUrl(url: URL): Boolean = {
     feedPlugins.exists(_.matchUrl(url)) ||
@@ -27,6 +27,19 @@ case class ApplicationPlugins(
 
   def matchUrl(url: String): Boolean = {
     Try(matchUrl(new java.net.URL(url))).toOption.getOrElse(false)
+  }
+
+  def addPlugin(plugin: BasePlugin): ApplicationPlugins = {
+    plugin match {
+      case x: BaseFeedPlugin =>
+        copy(feedPlugins = feedPlugins :+ x)
+      case x: BaseContentPlugin =>
+        copy(contentPlugins = contentPlugins :+ x)
+      case x: BasePublishPlugin =>
+        copy(publishPlugins = publishPlugins :+ x)
+      case x: BaseSitePlugin =>
+        copy(sitePlugins = sitePlugins :+ x)
+    }
   }
 
 }
@@ -49,7 +62,13 @@ object PluginLoader {
 
   def load(dirName: String,
            pluginConfig: Config): ApplicationPlugins = {
-    val appPlugins = ApplicationPlugins()
+    val feedPlugins = ArrayBuffer[BaseFeedPlugin]()
+    val contentPlugins = ArrayBuffer[BaseContentPlugin]()
+    val publishPlugins = ArrayBuffer[BasePublishPlugin]()
+    val sitePlugins = ArrayBuffer[BaseSitePlugin]()
+    val cssFiles = ArrayBuffer[String]()
+    val jsFiles = ArrayBuffer[String]()
+
     val folder = new File(dirName)
 
     val jars = folder.listFiles().filter(f =>
@@ -80,33 +99,33 @@ object PluginLoader {
                 val instance = constructor.newInstance(pluginConfig)
                   .asInstanceOf[BaseContentPlugin]
 
-                appPlugins.contentPlugins += instance
-                read(instance, js).map(appPlugins.js += _)
-                read(instance, css).map(appPlugins.css += _)
+                contentPlugins += instance
+                read(instance, js).foreach(jsFiles += _)
+                read(instance, css).foreach(cssFiles += _)
 
               case `feedPluginName` =>
                 val constructor = clz.getConstructor(classOf[Config])
                 val instance = constructor.newInstance(pluginConfig)
                   .asInstanceOf[BaseFeedPlugin]
-                appPlugins.feedPlugins += instance
-                read(instance, js).map(appPlugins.js += _)
-                read(instance, css).map(appPlugins.css += _)
+                feedPlugins += instance
+                read(instance, js).foreach(jsFiles += _)
+                read(instance, css).foreach(cssFiles += _)
 
               case `publishPluginName` =>
                 val constructor = clz.getConstructor(classOf[Config])
                 val instance = constructor.newInstance(pluginConfig)
                   .asInstanceOf[BasePublishPlugin]
-                appPlugins.publishPlugins += instance
-                read(instance, js).map(appPlugins.js += _)
-                read(instance, css).map(appPlugins.css += _)
+                publishPlugins += instance
+                read(instance, js).foreach(jsFiles += _)
+                read(instance, css).foreach(cssFiles += _)
 
               case `sitePluginName` =>
                 val constructor = clz.getConstructor(classOf[Config])
                 val instance = constructor.newInstance(pluginConfig)
                   .asInstanceOf[BaseSitePlugin]
-                appPlugins.sitePlugins += instance
-                read(instance, js).map(appPlugins.js += _)
-                read(instance, css).map(appPlugins.css += _)
+                sitePlugins += instance
+                read(instance, js).foreach(jsFiles += _)
+                read(instance, css).foreach(cssFiles += _)
 
               case _ =>
             }
@@ -120,6 +139,13 @@ object PluginLoader {
       }
     }
 
-    appPlugins
+    ApplicationPlugins(
+      feedPlugins = feedPlugins.toVector,
+      contentPlugins = contentPlugins.toVector,
+      publishPlugins = publishPlugins.toVector,
+      sitePlugins = sitePlugins.toVector,
+      css = cssFiles.toVector,
+      js = jsFiles.toVector
+    )
   }
 }

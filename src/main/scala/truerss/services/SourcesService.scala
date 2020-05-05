@@ -8,7 +8,7 @@ import truerss.util.{ApplicationPlugins, Util}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class SourcesService(dbLayer: DbLayer, appPlugins: ApplicationPlugins)(implicit ec: ExecutionContext) {
+class SourcesService(dbLayer: DbLayer, val appPlugins: ApplicationPlugins)(implicit ec: ExecutionContext) {
 
   import FeedSourceDtoModelImplicits._
   import Util._

@@ -3,19 +3,18 @@ package truerss.services
 import akka.actor.SupervisorStrategy._
 import akka.actor.{Actor, ActorLogging, ActorRef, OneForOneStrategy, Props}
 import akka.event.EventStream
-import truerss.db.{DbLayer, PredefinedSettings}
+import truerss.db.DbLayer
 import truerss.dto.{Notify, NotifyLevels}
 import truerss.services.actors.sync.SourcesKeeperActor
 import truerss.util.TrueRSSConfig
-import truerss.util.Util.ResponseHelpers
 
 import scala.concurrent.duration._
 
 class MainActor(config: TrueRSSConfig,
+                applicationPluginsService: ApplicationPluginsService,
+                sourcesService: SourcesService,
                 dbLayer: DbLayer)
   extends Actor with ActorLogging {
-
-  import context.dispatcher
 
   override val supervisorStrategy =
     OneForOneStrategy(maxNrOfRetries = 10, withinTimeRange = 1 minute) {
@@ -30,9 +29,6 @@ class MainActor(config: TrueRSSConfig,
   }
 
   private val stream: EventStream = context.system.eventStream
-
-  private val sourcesService = new SourcesService(dbLayer, config.appPlugins)
-  private val applicationPluginsService = new ApplicationPluginsService(config.appPlugins)
 
   val dbHelperActorRef = context.actorOf(
     DbHelperActor.props(dbLayer),
@@ -68,7 +64,11 @@ class MainActor(config: TrueRSSConfig,
 
 object MainActor {
   def props(config: TrueRSSConfig,
+            applicationPluginsService: ApplicationPluginsService,
+            sourcesService: SourcesService,
             dbLayer: DbLayer) = {
-    Props(classOf[MainActor], config, dbLayer)
+    Props(classOf[MainActor], config, applicationPluginsService,
+      sourcesService,
+      dbLayer)
   }
 }
