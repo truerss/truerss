@@ -18,7 +18,6 @@ $ ->
     "/show/feeds/content/:feed": controller: FeedsController, action: "view_content"
     "/opml": controller: SourcesController, action: "download"
     "/settings" : controller: SettingsController, action: "show"
-    "settings:add": controller: SettingsController, action: "on_add"
     #"click a.feed-link": controller: FeedsController, action: "view0", data: "data-feed-id"
     "click a[href='#refresh']" : controller: SourcesController, action: "refresh_all"
     "click a.favorite": controller: FeedsController, action: "favorite", data: ["data-feed-id", "data-source-id"]

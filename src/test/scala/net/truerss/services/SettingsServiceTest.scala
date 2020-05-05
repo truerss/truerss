@@ -6,11 +6,13 @@ import org.specs2.mutable.SpecificationLike
 import truerss.db.{Predefined, UserSettings}
 import truerss.dto._
 import truerss.services.SettingsService
+import truerss.services.management.SettingsManagement
 
 class SettingsServiceTest(implicit ee: ExecutionEnv)
   extends FullDbHelper with SpecificationLike {
 
   import SettingsService._
+  import SettingsManagement._
 
   sequential
 
@@ -50,7 +52,7 @@ class SettingsServiceTest(implicit ee: ExecutionEnv)
 
     "update current setup" in {
 
-      val newSetup = NewSetup(default1.key, CurrentValue(v))
+      val newSetup = NewSetup(default1.key, CurrentValue(v)).toUserSetup
       val result = a(service.updateSetup(newSetup))
       result ==== 1
 
@@ -58,7 +60,7 @@ class SettingsServiceTest(implicit ee: ExecutionEnv)
       dbv.valueInt must beSome(v)
 
       //
-      a(service.updateSetup(NewSetup(default1.key, CurrentValue(Some(v))))) must throwA[IllegalStateException]
+      a(service.updateSetup(NewSetup(default1.key, CurrentValue(Some(v))).toUserSetup)) must throwA[IllegalStateException]
     }
 
     "return key" in {

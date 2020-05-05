@@ -3,27 +3,38 @@ SettingsController =
 
   _modal: null
 
+  _materializers: []
+
+  logger: Sirius.Application.get_logger("SettingsController")
+
   load: () ->
-    ajax.get_settings (arr) ->
+    ajax.get_settings (arr) =>
       arr.forEach (x) -> Settings.add(x)
-      # TODO bind Settings.Collection plz
       result = Templates.settings_template.render({settings: arr})
       Templates.settings_view.render(result).html()
 
-  on_add: (event, setting) ->
-    key = setting.key()
-    view = new Sirius.View("#settings-#{key}")
-    html_element = if setting.is_radio()
-      "input"
-    else
-      "select"
+      @_materializers.forEach (x) -> x.stop()
 
-#    Sirius.Materializer.build(view, setting)
-#      .field((v) -> v.zoom("#{html_element}[name='#{key}']"))
-#      .from_attribute("selected")
-#      .to((x) -> x.value)
-#      .transform((changes) -> changes.text) # or state
-#      .run()
+      Settings.map (settings) =>
+        key = settings.key()
+        @logger.debug("bind #{key}")
+        if settings.is_radio()
+
+          Templates.settings_view.on "#settings-#{key} a", "click", (e) =>
+            Sirius.Application.get_adapter().and_then (adapter) =>
+              value = parseInt(adapter.get_properties(e, ["data-value"])[0], 10)
+              settings.value(value == 1)
+
+        else
+          materializer = Sirius.Materializer.build(Templates.settings_view, settings)
+
+          materializer
+            .field((v) -> v.zoom("#settings-#{key} select"))
+            .to((m) -> m.value)
+            .transform((x) -> parseInt(x.text))
+
+          materializer.run()
+          @_materializers.push(materializer)
 
 
   show: () ->
@@ -32,7 +43,16 @@ SettingsController =
 
     @_modal.show()
 
-  save: () ->
-    c(123)
+    Templates.settings_view.on "#settings-save", "click", (e) =>
+      Settings.map (x) =>
+        json = x.ajaxify()
+        ajax.update_settings json,
+          (ok) =>
+            c("ok: #{ok}")
 
+          (err) =>
+            c("fail: #{JSON.stringify(err)}")
+
+
+  save: () ->
     @_modal.hide()

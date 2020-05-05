@@ -117,6 +117,7 @@ trait HttpHelper {
       case AppPluginsResponse(view) => ok(view)
       case ImportResponse(result) => ok(result)
       case SettingsResponse(result) => ok(result)
+      case SettingResponse(x) => ok(availableSetupWrites.writes(x)) // todo
 
       case Ok(x) => finish(OK, x.toString)
 

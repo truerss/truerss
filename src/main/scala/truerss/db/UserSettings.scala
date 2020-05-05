@@ -6,3 +6,4 @@ case class UserSettings(key: String,
                         valueBoolean: Option[Boolean],
                         valueString: Option[String]
                        )
+

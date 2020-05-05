@@ -22,13 +22,19 @@ class UserSettingsDao(val db: DatabaseDef)(implicit
       .map(_.headOption)
   }
 
-  def update[T: ClassTag](key: String, value: T): Future[Int] = {
-    val q = userSettings.filter(_.key === key)
-    val statement = value match {
-      case x: Int => q.map(_.valueInt).update(Some(x))
-      case x: Boolean => q.map(_.valueBoolean).update(Some(x))
-      case x: String => q.map(_.valueString).update(Some(x))
-      case _ => throw new IllegalStateException(s"Unexpected type, for $key, value: $value")
+  def update(settings: UserSettings): Future[Int] = {
+    val statement = settings match {
+      case UserSettings(key, description, Some(v), _, _) =>
+        userSettings.map(a => (a.key, a.description, a.valueInt))
+          .insertOrUpdate((key, description, Some(v)))
+      case UserSettings(key, description, _, Some(v), _) =>
+        userSettings.map(a => (a.key, a.description, a.valueBoolean))
+          .insertOrUpdate((key, description, Some(v)))
+      case UserSettings(key, description, _, _, Some(v)) =>
+        userSettings.map(a => (a.key, a.description, a.valueString))
+          .insertOrUpdate((key, description, Some(v)))
+      case _ =>
+        throw new IllegalStateException(s"Incorrect settings: $settings")
     }
     db.run(statement)
   }

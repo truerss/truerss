@@ -19,9 +19,8 @@ class SettingsService(dbLayer: DbLayer)(implicit ec: ExecutionContext) {
     }
   }
 
-  def updateSetup[T: ClassTag](newSetup: NewSetup[T]): Future[Int] = {
-    dbLayer.userSettingsDao.update(newSetup.key,
-      newSetup.value.value)
+  def updateSetup(userSettings: UserSettings): Future[Int] = {
+    dbLayer.userSettingsDao.update(userSettings)
   }
 
   // the application layer dependency

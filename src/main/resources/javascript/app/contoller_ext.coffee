@@ -83,10 +83,6 @@ class AjaxService
       (response) -> success(response.map (x) -> new Setting(x))
       @k)
 
-  update_settings: (success, error) ->
-    # TODO update impl
-    @_put("#{@settings_api}", success, error)
-
   update_settings: (params, success, error) ->
     @_put("#{@settings_api}", params, success, error)
 

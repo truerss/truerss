@@ -104,8 +104,11 @@ class Setting extends Sirius.BaseModel
   is_feeds_per_page: () ->
     @key() == "feeds_per_page"
 
+  ajaxify: () ->
+    JSON.stringify({key: @key(), value: @value()})
+
+
 Settings = new Sirius.Collection(Setting, {index: ["key"]})
-Settings.subscribe("add", "settings:add")
 
 Sources = new Sirius.Collection(Source, {index: ['id', 'name', 'normalized']})
 Sources.subscribe "add", (source) ->

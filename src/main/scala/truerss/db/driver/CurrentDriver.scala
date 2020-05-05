@@ -150,7 +150,7 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
   }
 
   class UserSettingsTable(tag: Tag) extends Table[UserSettings](tag, tableNames.userSettings) {
-    def key = column[String]("key", O.Unique)
+    def key = column[String]("key", O.Unique, O.PrimaryKey)
     def description = column[String]("description")
     def valueInt = column[Option[Int]]("valueInt")
     def valueBoolean = column[Option[Boolean]]("valueBoolean")
