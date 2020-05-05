@@ -18,7 +18,7 @@ UploadController =
     @_modal.show()
 
     clear_input = () ->
-      jQuery("#{Templates.modal_view.get_element()} input").val('')
+      jQuery("#{Templates.modal_view.get_element()} input[type='text']").val('')
 
     clear_input()
 
