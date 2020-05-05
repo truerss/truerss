@@ -200,7 +200,55 @@
 
     <div id="upload-modal" uk-modal>
         <div class="uk-modal-dialog uk-modal-body">
+            <button class="uk-modal-close-default" type="button" uk-close></button>
             <h2 class="uk-modal-title"></h2>
+
+            <form class="uk-form-stacked">
+                <div class="uk-margin uk-margin-remove-top">
+                    <div class="uk-form-controls">
+                        <input class="uk-input" name="title" type="text" placeholder="Title">
+                    </div>
+                </div>
+                <div class="uk-margin uk-margin-remove-top">
+                    <div class="uk-form-controls">
+                        <input class="uk-input" name="url" type="text" placeholder="Url">
+                    </div>
+                </div>
+
+                <div class="uk-margin uk-margin-remove-top">
+                    <div class="uk-form-controls" uk-form-custom="target: > * > span:first-child">
+                        <select>
+                            <option value="1" selected>Interval: 1 hour</option>
+                            <option value="2">Interval: 2 hours</option>
+                            <option value="3">Interval: 3 hours</option>
+                            <option value="6">Interval: 6 hours</option>
+                            <option value="8">Interval: 8 hours</option>
+                            <option value="12">Interval: 12 hours</option>
+                            <option value="16">Interval: 16 hours</option>
+                            <option value="24">Interval: 24 hours</option>
+                        </select>
+
+                        <button class="uk-button uk-button-default" type="button" tabindex="-1">
+                            <span></span>
+                            <span uk-icon="icon: chevron-down"></span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="uk-margin uk-margin-remove-top">
+                    <div class="uk-form-controls">
+                        <span style="color:red;" class="errors"></span>
+                    </div>
+                </div>
+
+                <div class="uk-margin uk-margin-remove-top">
+                    <div class="uk-form-controls">
+                        <input type="button" id="save-source" class="uk-button uk-button-default" value="Save"/>
+                    </div>
+                </div>
+
+            </form>
+
             <div id="upload" class="js-upload uk-placeholder uk-text-center">
                 <span uk-icon="icon: cloud-upload"></span>
                 <span class="uk-text-middle">Attach OPML by dropping them here or</span>

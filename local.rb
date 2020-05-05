@@ -1,8 +1,11 @@
 require 'sinatra'
 require 'rest-client'
+require 'json'
 
 set :public_folder, File.dirname(__FILE__) + '/src/main/resources'
 set :api_url, "http://localhost:8000"
+
+RestClient.log = STDOUT
 
 def self.any (url, &block)
   get(url, &block)
@@ -43,12 +46,20 @@ any '/api/*' do
   content_type 'application/json'
 
   if (http_method == "POST" || http_method == "PUT") && !request.body.read.empty?
-    req = RestClient::Request.execute(
+    request.body.rewind
+    body = request.body.read
+    begin
+      req = RestClient::Request.execute(
         method: http_method,
         url: "#{url}/api/#{path}",
-        body: JSON.parse(request.body.read)
-    )
-    req.body
+        headers: {content_type: :json, accept: :json},
+        payload: body
+      )
+      req.body
+    rescue RestClient::ExceptionWithResponse => ex
+      status ex.http_code
+      ex.response
+    end
   else
     req = RestClient::Request.execute(
         method: http_method,

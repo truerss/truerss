@@ -1,6 +1,6 @@
 package truerss.db.driver
 
-import java.time.{LocalDateTime, ZoneId, ZoneOffset, ZonedDateTime}
+import java.time.{Instant, LocalDateTime, ZoneId, ZoneOffset, ZonedDateTime}
 import java.util.Date
 
 import slick.jdbc.{JdbcProfile, JdbcType}
@@ -17,10 +17,11 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
   import profile.api._
 
   object DateSupport {
-    implicit val javaTimeMapper: JdbcType[LocalDateTime] with BaseTypedType[LocalDateTime] =
-      MappedColumnType.base[LocalDateTime, java.sql.Timestamp](
-        d => new java.sql.Timestamp(d.toInstant(ZoneOffset.UTC).getEpochSecond),
-        d => LocalDateTime.ofInstant(d.toInstant, ZoneOffset.UTC)
+    implicit val javaTimeMapper: JdbcType[LocalDateTime] =
+      MappedColumnType.base[LocalDateTime, Long](
+        d => d.toInstant(ZoneOffset.UTC).getEpochSecond,
+        d =>
+          LocalDateTime.ofInstant(Instant.ofEpochSecond(d), ZoneOffset.UTC)
       )
   }
 

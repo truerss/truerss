@@ -3,9 +3,6 @@ SourcesController =
 
   logger: Sirius.Application.get_logger("SourcesController")
 
-  refresh_all: () ->
-    ajax.refresh_all()
-
   show: (normalized, page) ->
     page ||= 1
     page = parseInt(page, 10)
@@ -41,6 +38,9 @@ SourcesController =
 
     else
       @logger.warn "source: #{normalized} does not exist"
+
+  refresh_all: () ->
+    ajax.refresh_all()
 
   refresh_one: (e, id) ->
     ajax.refresh_one id
@@ -148,11 +148,5 @@ SourcesController =
 
   fetch_unread: (e, source) ->
     ajax.get_unread source.id(), (feeds) ->
-      feeds = feeds.map (x) ->
-        pd = moment(x['publishedDate'])
-        x['publishedDate'] = pd
-        new Feed(x)
-
-      source.set('feeds', [])
-      source.count(feeds.length)
-      feeds.forEach (f) -> source.add_feed(f)
+      feeds = feeds.map (x) -> Feed.create(x)
+      source.add_feeds(feeds)

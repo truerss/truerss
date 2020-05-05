@@ -3,7 +3,6 @@ class Source extends Sirius.BaseModel
   @attrs: ["id", "url", "name", {"interval" : 1}, "state", "normalized",
     "lastUpdate", "count", {"feeds": []}, {"favorites_count": 0}]
 
-
   @skip : true
   @validate:
     url: url_validator : true
@@ -27,6 +26,7 @@ class Source extends Sirius.BaseModel
 
   add_feeds: (feeds) ->
     @feeds((@feeds() || []).concat(feeds))
+    @count(@feeds().length)
     @favorites_count(@feeds().filter((x) -> x.favorite()).length)
 
   add_feed: (feed) ->

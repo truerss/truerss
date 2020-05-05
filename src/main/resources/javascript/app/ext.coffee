@@ -38,7 +38,7 @@ class UrlValidator extends Sirius.Validator
   validate: (url, attrs) ->
     re = /^(http[s]?:\/\/){0,1}(www\.){0,1}[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,5}[\.]{0,1}/
     if !re.test(url)
-      @msg = "Url not valid"
+      @msg = "Url '#{url}' is not valid"
       false
     else
       true

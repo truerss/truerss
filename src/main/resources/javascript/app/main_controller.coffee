@@ -142,7 +142,7 @@ MainController =
               #TODO redirect(Sources.first().href())
 
 
-        @_bind_modal()
+        #@_bind_modal()
       delete_cookie("redirect")
     return
 
