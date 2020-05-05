@@ -10,7 +10,7 @@ object Tasks {
 
   val momentJsVersion = "2.17.1"
   //https://cdnjs.cloudflare.com/ajax/libs/uikit/3.0.0-beta.2/css/uikit.css
-  val uiKitVersion = "2.27.2" // 2.22.0
+  val uiKitVersion = "3.4.2" // 2.22.0
 
   val jsLibs = Seq(
     "https://code.jquery.com/jquery-2.1.4.min.js",
@@ -18,19 +18,19 @@ object Tasks {
     s"https://cdnjs.cloudflare.com/ajax/libs/moment.js/$momentJsVersion/moment.min.js",
     "https://raw.githubusercontent.com/fntz/sirius/master/sirius.min.js",
     "https://raw.githubusercontent.com/fntz/sirius/master/jquery_adapter.min.js",
-    s"$cdnjs/uikit/$uiKitVersion/js/components/notify.min.js",
+    s"$cdnjs/uikit/$uiKitVersion/js/components/notification.min.js",
     s"$cdnjs/uikit/$uiKitVersion/js/uikit.min.js",
     s"$cdnjs/uikit/$uiKitVersion/js/components/upload.min.js",
     "https://cdnjs.cloudflare.com/ajax/libs/tippy.js/3.0.6/tippy.standalone.min.js"
   )
 
   val cssLibs = Seq(
-    s"$cdnjs/uikit/$uiKitVersion/css/components/form-file.min.css",
-    s"$cdnjs/uikit/$uiKitVersion/css/components/notify.min.css",
-    s"$cdnjs/uikit/$uiKitVersion/css/components/placeholder.min.css",
-    s"$cdnjs/uikit/$uiKitVersion/css/components/upload.min.css",
-    s"$cdnjs/uikit/$uiKitVersion/css/components/search.min.css",
-    s"$cdnjs/uikit/$uiKitVersion/css/uikit.almost-flat.min.css",
+//    s"$cdnjs/uikit/$uiKitVersion/css/components/form-file.min.css",
+//    s"$cdnjs/uikit/$uiKitVersion/css/components/notify.min.css",
+//    s"$cdnjs/uikit/$uiKitVersion/css/components/placeholder.min.css",
+//    s"$cdnjs/uikit/$uiKitVersion/css/components/upload.min.css",
+//    s"$cdnjs/uikit/$uiKitVersion/css/components/search.min.css",
+    s"$cdnjs/uikit/$uiKitVersion/css/uikit.min.css",
     "https://cdnjs.cloudflare.com/ajax/libs/tippy.js/3.0.6/tippy.css"
   )
 
