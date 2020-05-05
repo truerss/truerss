@@ -48,7 +48,8 @@ SettingsController =
         json = x.ajaxify()
         ajax.update_settings json,
           (ok) =>
-            c("ok: #{ok}")
+            @logger.debug("setting: #{x.key()} updated to #{ok.value}")
+            x.value(ok.value)
 
           (err) =>
             c("fail: #{JSON.stringify(err)}")
