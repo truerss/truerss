@@ -7,6 +7,9 @@ class Source extends Sirius.BaseModel
   @validate:
     url: url_validator : true
 
+  last_update_in_tz: () ->
+    moment.utc(@last_update()).local()
+
   is_disable: () ->
     parseInt(@state()) is 2
 
@@ -68,7 +71,7 @@ class Feed extends Sirius.BaseModel
     @favorite(another_feed.favorite())
 
   @create: (json) ->
-    json['publishedDate'] = moment(json['publishedDate'])
+    json['publishedDate'] = moment.utc(json['publishedDate']).local()
     new Feed(json)
 
   anything: () ->

@@ -15,7 +15,7 @@
         </a>
     </li>
     <li>Updated every <%= source.interval() %> hour(s)</li>
-    <li>Last updated  <%= moment(source.last_update()).fromNow() %></li>
+    <li>Last updated  <%= moment(source.last_update_in_tz()).fromNow() %></li>
     <li>plugins?
         <% if (source.has_plugin()) { %>
             Yes
