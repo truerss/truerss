@@ -1,6 +1,6 @@
 package net.truerss.services
 
-import java.net.{URI, URL}
+import java.net.URL
 
 import com.github.truerss.base._
 import com.typesafe.config.Config
@@ -9,8 +9,6 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.SpecificationLike
 import truerss.services.ApplicationPluginsService
 import truerss.util.ApplicationPlugins
-
-import scala.collection.mutable.ArrayBuffer
 
 class ApplicationPluginsServiceTest extends SpecificationLike with Mockito {
 
@@ -30,9 +28,9 @@ class ApplicationPluginsServiceTest extends SpecificationLike with Mockito {
 
 
       val ap = ApplicationPlugins(
-        feedPlugins = ArrayBuffer(new TestFeedBasePlugin(testUrl1)),
-        contentPlugins = ArrayBuffer(new TestBaseContentPlugin(testUrl2)),
-        sitePlugins = ArrayBuffer(new TestSitePlugin(testUrl3))
+        feedPlugins = Vector(new TestFeedBasePlugin(testUrl1)),
+        contentPlugins = Vector(new TestBaseContentPlugin(testUrl2)),
+        sitePlugins = Vector(new TestSitePlugin(testUrl3))
       )
 
       val service = new ApplicationPluginsService(ap)
@@ -52,9 +50,9 @@ class ApplicationPluginsServiceTest extends SpecificationLike with Mockito {
       val c = new TestBaseContentPlugin(testUrl1)
 
       val ap = ApplicationPlugins(
-        feedPlugins = ArrayBuffer(f),
-        contentPlugins = ArrayBuffer(c),
-        sitePlugins = ArrayBuffer(s)
+        feedPlugins = Vector(f),
+        contentPlugins = Vector(c),
+        sitePlugins = Vector(s)
       )
 
       val service = new ApplicationPluginsService(ap)
@@ -70,9 +68,9 @@ class ApplicationPluginsServiceTest extends SpecificationLike with Mockito {
       val c = new TestBaseContentPlugin(testUrl1)
 
       val ap = ApplicationPlugins(
-        feedPlugins = ArrayBuffer(f),
-        contentPlugins = ArrayBuffer(c),
-        sitePlugins = ArrayBuffer(s)
+        feedPlugins = Vector(f),
+        contentPlugins = Vector(c),
+        sitePlugins = Vector(s)
       )
 
       val service = new ApplicationPluginsService(ap)
