@@ -16,11 +16,11 @@
                     <div class="uk-form-controls">
                         <% if (settings[i].is_radio()) { %>
                             <div class="uk-form-controls-text">
-                                <ul class="uk-subnav uk-subnav-pill" uk-switcher>
+                                <ul class="uk-subnav uk-subnav-pill settings-<%= settings[i].key() %>" uk-switcher>
                                     <li class="<% if (settings[i].is_eq(true)) { %> uk-active <% } %>">
                                         <a href="#" data-key="<%= settings[i].key() %>" data-value="1">yes</a>
                                     </li>
-                                    <li class="uk-margin-remove uk-padding-remove <% if (settings[i].is_eq(true)) { %> uk-active <% } %>">
+                                    <li class="uk-margin-remove uk-padding-remove <% if (settings[i].is_eq(false)) { %> uk-active <% } %>">
                                         <a href="#" data-key="<%= settings[i].key() %>" data-value="0">no</a>
                                     </li>
                                 </ul>

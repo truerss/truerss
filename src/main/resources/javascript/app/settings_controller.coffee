@@ -19,11 +19,12 @@ SettingsController =
         key = settings.key()
         @logger.debug("bind #{key}")
         if settings.is_radio()
-
           Templates.settings_view.on "#settings-#{key} a", "click", (e) =>
             Sirius.Application.get_adapter().and_then (adapter) =>
               value = parseInt(adapter.get_properties(e, ["data-value"])[0], 10)
               settings.value(value == 1)
+              new Sirius.View("ul.settings-#{key}").zoom("li").render("uk-active").remove_class()
+              $(e.target).parents("li").addClass("uk-active")
 
         else
           materializer = Sirius.Materializer.build(Templates.settings_view, settings)
@@ -50,6 +51,7 @@ SettingsController =
           (ok) =>
             @logger.debug("setting: #{x.key()} updated to #{ok.value}")
             x.value(ok.value)
+            @_modal.hide()
 
           (err) =>
             c("fail: #{JSON.stringify(err)}")
