@@ -53,7 +53,8 @@ MainController =
       ajax.load_ejs("tippy_tooltip")
       ajax.load_ejs("settings")
       ajax.load_ejs("source_overview")
-    ).done (sources, feeds_list, favorites, plugins, main, tippy_tooltip, settings, source_description) =>
+      ajax.load_ejs("about")
+    ).done (sources, feeds_list, favorites, plugins, main, tippy_tooltip, settings, source_description, about) =>
       # TODO use async loading in controllers
       Templates.source_list = new EJS(sources[0])
       Templates.feeds_list = new EJS(feeds_list[0])
@@ -63,6 +64,7 @@ MainController =
       Templates.tippy_template = new EJS(tippy_tooltip[0])
       Templates.settings_template = new EJS(settings[0])
       Templates.source_overview_template = new EJS(source_description[0])
+      Templates.about_template = new EJS(about[0])
 
       @_load_js_and_css(ajax)
       port = read_cookie("port")
@@ -82,6 +84,7 @@ MainController =
           adapter.fire(document, "plugins:load")
           adapter.fire(document, "settings:load")
           adapter.fire(document, "sources:load")
+          adapter.fire(document, "about:load")
           #TODO @_init_ws(@logger, adapter, port)
 
       delete_cookie("redirect")
@@ -92,11 +95,3 @@ MainController =
       source = Sources.first()
       if source
         redirect(source.href())
-
-  about: () ->
-    ajax.about (info) ->
-      Templates.article_view.render(info).html()
-      state.to(States.About)
-
-
-

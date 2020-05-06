@@ -24,4 +24,6 @@ Templates =
   settings_view: new Sirius.View("#settings-modal")
   source_overview_template: null
   source_overview_view: new Sirius.View("#source-overview")
+  about_view: new Sirius.View("#about-modal")
+  about_template: null
 

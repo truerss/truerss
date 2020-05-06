@@ -80,11 +80,9 @@ object RoutingEndpoint {
 
   final val about =
     """
-      <h1>About</h1>
-        <p>
           TrueRss is an open-source feed reader with a customizable plugin system for any content (atom, RSS, youtube channels...).
-          More info <a href='https://github.com/truerss/truerss'>Github page</a>
+          More info <a href='https://github.com/truerss/truerss'>Github page</a>.
+          <br/>
           Download plugins: <a href='https://github.com/truerss/plugins/releases'>plugins</a>
-        </p>
     """.stripMargin
 }
