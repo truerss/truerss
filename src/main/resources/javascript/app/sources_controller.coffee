@@ -3,6 +3,34 @@ SourcesController =
 
   logger: Sirius.Application.get_logger("SourcesController")
 
+  reload: () ->
+    ajax.sources_all (sources) =>
+      # just active. see @SearchController
+      for source in sources
+        x = Sources.find('id', source.id())
+        if x?
+          x.count(source.count())
+          x.feeds([])
+          x.active(true)
+        else
+          Sources.add(x)
+
+  load: () ->
+    ajax.sources_all (sources) =>
+      @logger.info("load #{sources.length} sources")
+      sources = sources.sort (a, b) -> parseInt(a.count()) - parseInt(b.count())
+
+      sources.forEach((x) -> Sources.add(x))
+
+      unless sources.is_empty()
+        sxs = Sources.all().filter (s) -> s.count() > 0
+        @logger.info "redirect to"
+        if sxs[0]
+          source = sxs[0]
+          #TODO redirect(source.href())
+        else
+          #TODO redirect(Sources.first().href())
+
   show: (normalized, page) ->
     page ||= 1
     page = parseInt(page, 10)
@@ -11,33 +39,36 @@ SourcesController =
     @logger.info("Show: #{normalized} source is exist? #{source != null}")
     # TODO do not fetch from server render feeds if already present
     if source?
-      ajax.get_unread source.id(), (feeds) =>
-        @logger.info("Load from source: #{source.id()}, #{feeds.length} feeds")
-        source.reset('feeds')
-        feeds = feeds.map((x) -> Feed.create(x))
-        source.add_feeds(feeds)
+      if source.has_feeds()
+        @_process_feeds(source, source.feeds(), page, false)
 
-        ajax.get_source_overview source.id(), (overview) =>
+      else
+        ajax.get_unread source.id(), (feeds) =>
+          @logger.info("Load from source: #{source.id()}, #{feeds.length} feeds")
+          source.reset('feeds')
+          feeds = feeds.map((x) -> Feed.create(x))
+          source.add_feeds(feeds)
 
-          source.favorites_count(overview.favoritesCount)
-          source.count(overview.unreadCount)
-
-          if feeds.length > 0
-            render_source_feeds_and_redirect_to_first(source, page, normalized, overview)
-          else
-            # if not unread
-            ajax.get_feeds source.id(), (feeds) ->
-              feeds = feeds.map ((x) -> Feed.create(x))
-              source.add_feeds(feeds)
-
-              render_source_feeds_and_redirect_to_first(source, page, normalized, overview)
-
-      state.to(States.Source)
-      posts.clear()
-      sources.set(source.id())
+          @_process_feeds(source, feeds, page, true)
 
     else
       @logger.warn "source: #{normalized} does not exist"
+
+  _process_feeds: (source, feeds, page, reset_count) ->
+    ajax.get_source_overview source.id(), (overview) =>
+      source.favorites_count(overview.favoritesCount)
+      if reset_count
+        source.count(overview.unreadCount)
+
+      if feeds.length > 0
+        render_source_feeds_and_redirect_to_first(source, page, source.normalized(), overview)
+      else
+        # if not unread
+        ajax.get_feeds source.id(), (feeds) ->
+          feeds = feeds.map ((x) -> Feed.create(x))
+          source.add_feeds(feeds)
+
+          render_source_feeds_and_redirect_to_first(source, page, source.normalized(), overview)
 
   refresh_all: () ->
     ajax.refresh_all()

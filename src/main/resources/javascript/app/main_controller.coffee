@@ -77,30 +77,12 @@ MainController =
           pos     : 'top-center'
 
       else
-        self = @
-        logger = @logger
-        ajax.sources_all (arr) ->
-          logger.info("load #{arr.length} sources")
-
-          Sirius.Application.get_adapter().and_then (adapter) ->
-            logger.info("initialize ws on #{port}")
-            adapter.fire(document, "plugins:load")
-            adapter.fire(document, "settings:load")
-            #TODO self._init_ws(@logger, adapter, port)
-
-          arr = arr.sort (a, b) -> parseInt(a.count) - parseInt(b.count)
-
-          arr.forEach((x) => Sources.add(new Source(x)))
-
-          if arr.length > 0
-            sxs = Sources.all().filter (s) -> s.count() > 0
-            logger.info "redirect to"
-            if sxs[0]
-              source = sxs[0]
-
-              #TODO redirect(source.href())
-            else
-              #TODO redirect(Sources.first().href())
+        Sirius.Application.get_adapter().and_then (adapter) =>
+          @logger.info("initialize ws on #{port}")
+          adapter.fire(document, "plugins:load")
+          adapter.fire(document, "settings:load")
+          adapter.fire(document, "sources:load")
+          #TODO @_init_ws(@logger, adapter, port)
 
       delete_cookie("redirect")
     return

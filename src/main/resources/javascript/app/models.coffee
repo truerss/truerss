@@ -1,7 +1,7 @@
 
 class Source extends Sirius.BaseModel
   @attrs: ["id", "url", "name", {"interval" : 1}, "state", "normalized",
-    "lastUpdate", "count", {"feeds": []}, {"favorites_count": 0}]
+    "lastUpdate", "count", {"active": true}, {"feeds": []}, {"favorites_count": 0}]
 
   @skip : true
   @validate:
@@ -10,7 +10,10 @@ class Source extends Sirius.BaseModel
   last_update_in_tz: () ->
     moment.utc(@last_update()).local()
 
-  is_disable: () ->
+  is_active: () ->
+    active() is true
+
+  is_plugin_disabled: () ->
     parseInt(@state()) is 2
 
   is_empty: () ->
@@ -34,6 +37,9 @@ class Source extends Sirius.BaseModel
 
   add_feed: (feed) ->
     @add_feeds([feed])
+
+  has_feeds: () ->
+    (@feeds() || []).length != 0
 
   unread_feeds: () ->
     @feeds().filter (f) -> !f.read()
@@ -114,16 +120,27 @@ class Setting extends Sirius.BaseModel
 Settings = new Sirius.Collection(Setting, {index: ["key"]})
 
 Sources = new Sirius.Collection(Source, {index: ['id', 'name', 'normalized']})
+
 Sources.subscribe "add", (source) ->
+  id = "#source-#{source.id()}"
   html = Templates.source_list.render({source: source})
   Templates.source_list_view.render(html).prepend()
-  source_view = new Sirius.View("#source-#{source.id()}")
+  source_view = new Sirius.View(id)
+
 
   Sirius.Materializer.build(source, source_view)
     .field((x) -> x.normalized)
     .to((v) -> v.zoom("a.source-url"))
     .transform((x) -> "/show/#{x}")
     .handle((view, value) -> view.render(value).swap("href"))
+    .field((x) -> x.active)
+    .to((v) -> v)
+    .handle((view, value) ->
+      if value
+        view.render("uk-hidden").remove_class()
+      else
+        view.render("uk-hidden").add_class()
+    )
     .field((x) -> x.count)
     .to((v) -> v.zoom("a.source-count"))
     .transform((x) ->

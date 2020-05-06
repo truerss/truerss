@@ -77,5 +77,11 @@ Array::add_to = (el) ->
 Array::contains = (el) ->
   @indexOf(el) != -1
 
+Array::is_empty = () ->
+  @length == 0
+
 String::contains = (str) ->
   @indexOf(str) != -1
+
+String::is_empty = () ->
+  @length == 0

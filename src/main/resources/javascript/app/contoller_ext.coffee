@@ -6,7 +6,7 @@ class AjaxService
     @feeds_api = "/api/v1/feeds"
     @plugin_api = "/api/v1/plugins"
     @settings_api = "/api/v1/settings"
-    @search_api = "api/v1/search"
+    @search_api = "/api/v1/search"
     @k = () ->
 
   plugins_all: (success, error) ->
@@ -19,7 +19,11 @@ class AjaxService
     @_get("#{@plugin_api}/css", success, @k)
 
   sources_all: (success, error) ->
-    @_get("#{@sources_api}/all", success, error)
+    @_get(
+      "#{@sources_api}/all",
+      (response) -> success(response.map((x) -> new Source(x))),
+      error
+    )
 
   get_unread: (sourceId, success) ->
     @_get("#{@sources_api}/unread/#{sourceId}", success, @k)
@@ -244,9 +248,7 @@ ControllerExt =
 
   _materializer: null
 
-  render_source_feeds_and_redirect_to_first: (source, current_page, source_name_normalized, overview) ->
-    # TODO from setup - feeds per page
-    feeds = source.feeds()
+  render_feeds: (feeds, current_page, start_page_name) ->
     length = feeds.length
 
     settings = Settings.takeFirst((x) -> x.is_feeds_per_page())
@@ -268,14 +270,16 @@ ControllerExt =
       current_page: current_page
       feeds_per_page: feeds_per_page
       pagination: pagination
-      source_name_normalized: source_name_normalized
+      source_name_normalized: start_page_name
 
     result = Templates.feeds_list.render(options)
     Templates.article_view.render(result).html()
+
+  render_source_feeds_and_redirect_to_first: (source, current_page, source_name_normalized, overview) ->
+    @render_feeds(source.feeds(), current_page, "/show/#{source_name_normalized}")
+
     if source.feeds().length > 0
       1
-
-    # overview
 
     description = Templates.source_overview_template.render({source: source, overview: overview})
     Templates.source_overview_view.render(description).html()
