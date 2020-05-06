@@ -79,7 +79,7 @@ FeedsController =
 
   view_content: (feed_id) ->
     ajax.get_feed_content feed_id, (response) ->
-      console.log(response)
+      Templates.article_view.render(response.content).html()
 
   view0: (e, id) -> # helper, if feeds have not uniq name need check it
     posts.set(id)

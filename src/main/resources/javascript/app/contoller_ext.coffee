@@ -281,6 +281,7 @@ ControllerExt =
       feeds_per_page: feeds_per_page
       pagination: pagination
       source_name_normalized: start_page_name
+    options
 
 
   render_feeds: (feeds, current_page, start_page_name) ->
