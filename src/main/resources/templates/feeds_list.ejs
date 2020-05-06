@@ -1,8 +1,8 @@
 <% for (i = 0; i < feeds.length; i ++) { %>
     <% if (i == 0) { %>
-        <div class="uk-section custom-padding">
+        <div class="feeds uk-section custom-padding" data-feed-id="<%= feeds[i].id() %>">
     <% } else { %>
-        <div class="uk-section custom-padding mt3">
+        <div class="feeds uk-section custom-padding mt3" data-feed-id="<%= feeds[i].id() %>">
     <% } %>
         <div uk-grid>
           <span class="uk-text-light uk-text-large uk-width-expand">

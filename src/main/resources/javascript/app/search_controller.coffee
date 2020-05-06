@@ -14,11 +14,7 @@ SearchController =
     @search_results = []
     query = jQuery(event.target).val()
 
-    # if favorites ...
-
-    # find by source
-
-    fav = window.location.href.endsWith("/favorites")
+    fav = is_favorite()
 
     request =
       inFavorites: fav

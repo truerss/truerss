@@ -23,7 +23,6 @@ $ ->
     "/search/page/:page": controller: SearchController, action: "show"
     "/opml": controller: SourcesController, action: "download"
     "/settings" : controller: SettingsController, action: "show"
-    #"click a.feed-link": controller: FeedsController, action: "view0", data: "data-feed-id"
     "click a[href='#refresh']" : controller: SourcesController, action: "refresh_all"
     "click a.favorite": controller: FeedsController, action: "favorite", data: ["data-feed-id", "data-source-id"]
     "click a.unfavorite": controller: FeedsController, action: "unfavorite", data: ["data-feed-id", "data-source-id"]

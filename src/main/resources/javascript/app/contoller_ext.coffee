@@ -220,6 +220,9 @@ ControllerExt =
   delete_cookie: (cn) ->
     document.cookie = cn + '=; Path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;'
 
+  is_favorite: () ->
+    window.location.href.endsWith("/favorites")
+
   _make_pagination: (length, per_page, current) ->
     tmp = parseInt(length / per_page, 10)
     additional = if per_page * tmp == length

@@ -70,11 +70,13 @@ SourcesController =
 
           render_source_feeds_and_redirect_to_first(source, page, source.normalized(), overview)
 
-  refresh_all: () ->
+  refresh_all: (e) ->
     ajax.refresh_all()
+    e.preventDefault()
 
   refresh_one: (e, id) ->
     ajax.refresh_one id
+    e.preventDefault()
 
   remove: (e, id) ->
     ajax.remove_source id

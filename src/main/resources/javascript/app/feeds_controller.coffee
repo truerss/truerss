@@ -7,11 +7,9 @@ FeedsController =
     page = parseInt(page || 1)
     ajax.favorites_feed (response) ->
       # extract sources
-      feeds = response.map (f) ->
-        feed = new Feed(f)
-        new FavoriteFeed(feed)
+      feeds = response.map (f) -> Feed.create(f)
 
-      render_favorites(feeds, page)
+      render_feeds(feeds, page, "/favorites")
 
   _change: (view, has_flag, available_classes, feed_id, source_id, f) =>
     feed_id = parseInt(feed_id, 10)
@@ -61,29 +59,44 @@ FeedsController =
     ajax.set_read id, (response) =>
       @logger.info("Feed #{id} mark as read")
       @_read_helper(id, source_id, true)
+    e.preventDefault()
 
   unread: (e, id, source_id) ->
     ajax.set_unread id, (response) =>
       @logger.info("Feed #{id} mark as unread")
       @_read_helper(id, source_id, false)
+    e.preventDefault()
 
   favorite: (e, id, source_id) ->
     ajax.set_favorite id, (response) =>
       @logger.info("Feed #{id} mark as favorite")
       @_favorite_helper(id, source_id, true)
+    e.preventDefault()
 
   unfavorite: (e, id, source_id) ->
     ajax.unset_favorite id, (response) =>
       @logger.info("Feed #{id} remove from favorite list")
       @_favorite_helper(id, source_id, false)
 
+      if is_favorite()
+        el = $("div.feeds[data-feed-id='#{id}']")
+        prev = el.prev()
+        if prev? && prev.hasClass("mt3")
+          prev.removeClass("mt3")
+        if prev.length == 0
+          next = el.next("hr").next("div.feeds")
+          c next
+          if next.length != 0
+            next.removeClass("mt3")
+        el.next("hr").remove()
+        el.remove()
+
+
+    e.preventDefault()
+
   view_content: (feed_id) ->
     ajax.get_feed_content feed_id, (response) ->
       Templates.article_view.render(response.content).html()
-
-  view0: (e, id) -> # helper, if feeds have not uniq name need check it
-    posts.set(id)
-
 
   _display_feed: (source, original_feed, feed) ->
 
