@@ -82,18 +82,9 @@ object RoutingEndpoint {
     """
       <h1>About</h1>
         <p>
-          TrueRss is open source feed reader with customizable plugin system
-          for any content (atom, rss, youtube channels...).
+          TrueRss is an open-source feed reader with a customizable plugin system for any content (atom, RSS, youtube channels...).
           More info <a href='https://github.com/truerss/truerss'>Github page</a>
           Download plugins: <a href='https://github.com/truerss/plugins/releases'>plugins</a>
         </p>
-        <ul>
-          <li><code>left-arrow</code> - next post</li>
-          <li><code>right-arrow</code> - previous post</li>
-          <li><code>shift+n</code> - next source</li>
-          <li><code>shift+p</code> - previous source</li>
-          <li><code>shift+f</code> - mark\\unmark as favorite</li>
-          <li><code>shift+m</code> - mark as read</li>
-        </ul>
     """.stripMargin
 }
