@@ -97,7 +97,6 @@ class FavoriteFeed
     @description = feed.description()
     @href = feed.href()
     @favorite = feed.favorite()
-    @source_name = feed.source().name()
 
 class Setting extends Sirius.BaseModel
   @attrs: ["key", "description", "value", "options"]

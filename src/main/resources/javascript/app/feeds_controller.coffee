@@ -3,16 +3,15 @@ FeedsController =
 
   logger: Sirius.Application.get_logger("FeedsController")
 
-  favorites: () ->
+  favorites: (page) ->
+    page = parseInt(page || 1)
     ajax.favorites_feed (response) ->
       # extract sources
       feeds = response.map (f) ->
         feed = new Feed(f)
         new FavoriteFeed(feed)
 
-      html = Templates.favorites_template.render({feeds: feeds})
-      Templates.article_view.render(html).html()
-      state.to(States.Favorites)
+      render_favorites(feeds, page)
 
   _change: (view, has_flag, available_classes, feed_id, source_id, f) =>
     feed_id = parseInt(feed_id, 10)

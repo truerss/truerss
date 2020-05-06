@@ -18,8 +18,10 @@ SearchController =
 
     # find by source
 
+    fav = window.location.href.endsWith("/favorites")
+
     request =
-      inFavorites: false
+      inFavorites: fav
       query: query
 
     if query.is_empty()
@@ -27,42 +29,50 @@ SearchController =
       Sirius.Application.get_adapter().and_then (adapter) ->
         adapter.fire(document, "sources:reload")
 
+      if fav
+        FeedsController.favorites(1)
+
     else
       # next find by feeds
       ajax.search JSON.stringify(request),
         (feeds) =>
-          obj = {}
-          sources = new Set()
-          for feed in feeds
-            source_id = feed.source_id()
-            sources.add(source_id)
-            if obj[source_id]?
-              obj[source_id].push(feed)
-            else
-              obj[source_id] = [feed]
+          if fav
+            feeds = feeds.map (f) ->
+              new FavoriteFeed(f)
 
-          sources = Array.from(sources)
+            render_favorites(feeds, 1)
 
-          full =
-            Sources.filter (x) ->
-              sources.contains(x.id()) ||  x.name().contains(query) || x.url().contains(query)
-          ids = full.map((x) -> x.id())
-          c "=========> #{ids}"
-          Sources.map((x) ->
-            unless ids.contains(x.id())
-              x.active(false)
-            else
-              x.feeds([])
-              if obj[x.id()]?
-                x.feeds(obj[x.id()])
-                x.count(obj[x.id()].length)
+          else
+
+            obj = {}
+            sources = new Set()
+            for feed in feeds
+              source_id = feed.source_id()
+              sources.add(source_id)
+              if obj[source_id]?
+                obj[source_id].push(feed)
               else
-                x.count(0)
-          )
-          @search_results = feeds
-          @_process(feeds, 1)
+                obj[source_id] = [feed]
 
+            sources = Array.from(sources)
 
+            full =
+              Sources.filter (x) ->
+                sources.contains(x.id()) ||  x.name().contains(query) || x.url().contains(query)
+            ids = full.map((x) -> x.id())
+            Sources.map((x) ->
+              unless ids.contains(x.id())
+                x.active(false)
+              else
+                x.feeds([])
+                if obj[x.id()]?
+                  x.feeds(obj[x.id()])
+                  x.count(obj[x.id()].length)
+                else
+                  x.count(0)
+            )
+            @search_results = feeds
+            @_process(feeds, 1)
 
         (err) =>
           @logger.warn("Failed to process search: #{JSON.stringify(err)}")

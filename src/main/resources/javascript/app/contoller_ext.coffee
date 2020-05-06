@@ -248,15 +248,25 @@ ControllerExt =
 
   _materializer: null
 
-  render_feeds: (feeds, current_page, start_page_name) ->
-    length = feeds.length
-
+  _get_per_page: () ->
     settings = Settings.takeFirst((x) -> x.is_feeds_per_page())
 
     feeds_per_page = 30
 
     if settings?
       feeds_per_page = parseInt(settings.value(), 10)
+    feeds_per_page
+
+  render_favorites: (feeds, current_page) ->
+    start_page_name = "/favorites"
+    options = @_make_options(feeds, current_page, start_page_name)
+
+    html = Templates.favorites_template.render(options)
+    Templates.article_view.render(html).html()
+
+  _make_options: (feeds, current_page, start_page_name) ->
+    length = feeds.length
+    feeds_per_page = @_get_per_page()
 
     pagination = @_make_pagination(length, feeds_per_page, current_page)
 
@@ -271,6 +281,10 @@ ControllerExt =
       feeds_per_page: feeds_per_page
       pagination: pagination
       source_name_normalized: start_page_name
+
+
+  render_feeds: (feeds, current_page, start_page_name) ->
+    options = @_make_options(feeds, current_page, start_page_name)
 
     result = Templates.feeds_list.render(options)
     Templates.article_view.render(result).html()

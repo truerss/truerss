@@ -12,6 +12,7 @@ $ ->
     "ws:notify": controller: WSController, action: "notify"
     "/" : controller: MainController, action: "view"
     "/favorites" : controller: FeedsController, action: "favorites"
+    "/favorites/page/:page" : controller: FeedsController, action: "favorites"
     "/plugins" : controller: PluginsController, action: "show"
     "/about" : controller: MainController, action: "about"
     "/show/:source-name/:feed-name": controller: FeedsController, action: "show"

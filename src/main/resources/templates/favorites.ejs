@@ -20,3 +20,15 @@
         </div>
     </div>
 <% } %>
+
+<ul class="uk-pagination uk-flex-center" uk-margin>
+    <% for (j = 0; j < pagination.length; j ++) { %>
+        <% if (pagination[j] == current_page) { %>
+            <li class="uk-active"><span><%= pagination[j] %></span></li>
+        <% } else if (pagination[j] == -1) { %>
+            <li class="uk-disabled"><span>...</span></li>
+        <% } else { %>
+            <li><a href="<%= source_name_normalized %>/page/<%= pagination[j] %>"><%= pagination[j] %></a></li>
+        <% } %>
+    <% } %>
+</ul>
