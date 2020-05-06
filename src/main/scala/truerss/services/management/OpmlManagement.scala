@@ -31,26 +31,10 @@ class OpmlManagement(opmlService: OpmlService,
           logger.info(s"Materialize ${xs.size} outlines from given file")
           val fs = xs.map { x =>
             from(x.link, x.title, interval)
-          }.zipWithIndex.map { case (x, index) =>
-            sourcesService.addSource(x).map {
-              case Left(errors) =>
-                index -> Left(
-                  NewSourceFromFileWithErrors(
-                    url = x.url,
-                    name = x.name,
-                    errors = errors
-                  )
-                )
-
-              case Right(source) =>
-                logger.info(s"New sources was created: ${source.url}")
-                stream.publish(SourcesKeeperActor.NewSource(source))
-                index -> Right(source)
-            }
           }
-
-          Future.sequence(fs).map { tmp =>
-            ImportResponse(tmp.toMap)
+          sourcesService.addSources(fs).map { xs =>
+            xs.foreach { x => stream.publish(SourcesKeeperActor.NewSource(x)) }
+            ImportResponse(xs.toVector)
           }
         }
       )

@@ -2,7 +2,7 @@ package truerss.db.validation
 
 import org.apache.commons.validator.routines.UrlValidator
 import truerss.db.DbLayer
-import truerss.dto.SourceDto
+import truerss.dto.{NewSourceDto, SourceDto}
 import truerss.util.{ApplicationPlugins, syntax}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -14,10 +14,35 @@ class SourceValidator(appPlugins: ApplicationPlugins)(implicit dbLayer: DbLayer,
 
   type R = Either[String, SourceDto]
   type RL = Either[List[String], SourceDto]
+  type RLI = Either[List[String], Iterable[SourceDto]]
 
   private val urlValidator = new UrlValidator()
 
   protected val sourceUrlValidator = new SourceUrlValidator()
+
+  def validateSources(sources: Iterable[NewSourceDto]): Future[Seq[NewSourceDto]] = {
+    val urls = sources.map(_.url).toSeq
+    val names = sources.map(_.name).toSeq
+
+    val notUniqUrlsF = dbLayer.sourceDao.findByUrls(urls)
+    val notUniqNamesF = dbLayer.sourceDao.findByNames(names)
+    for {
+      notUniqUrls <- notUniqUrlsF
+      notUniqNames <- notUniqNamesF
+      xs = sources
+        .filter(isValidInterval)
+        .filter(isValidUrl)
+        .filterNot { x =>
+          notUniqUrls.contains(x.url)
+        }.filterNot { x =>
+        notUniqNames.contains(x.name)
+      }
+      (plugins, notPlugins) = xs.partition(isPlugin)
+      validateUrls <- sourceUrlValidator.validateUrls(notPlugins.toSeq)
+    } yield {
+      plugins.toSeq ++ validateUrls.map(_.asInstanceOf[NewSourceDto])
+    }
+  }
 
   def validateSource(source: SourceDto): Future[RL] = {
     val vInterval = Future.successful(validateInterval(source))
@@ -54,11 +79,20 @@ class SourceValidator(appPlugins: ApplicationPlugins)(implicit dbLayer: DbLayer,
 
   // skip validation if it's
   private def validateRss(source: SourceDto): R = {
-    if (appPlugins.matchUrl(source.url)) {
+    if (isPlugin(source)) {
       // plugin, skip rss/atom check
       source.right
     } else {
       sourceUrlValidator.validateUrl(source)
+    }
+  }
+
+  private def isPlugin(source: SourceDto): Boolean = {
+    if (appPlugins.matchUrl(source.url)) {
+      // , skip rss/atom check
+      true
+    } else {
+      false
     }
   }
 
@@ -83,18 +117,34 @@ class SourceValidator(appPlugins: ApplicationPlugins)(implicit dbLayer: DbLayer,
   }
 
   private def validateInterval(source: SourceDto): R = {
-    if (source.interval > 0) {
+    if (isValidInterval(source)) {
       source.right
     } else {
       "Interval must be great than 0".left
     }
   }
 
+  private def isValidInterval(source: SourceDto): Boolean = {
+    if (source.interval > 0) {
+      true
+    } else {
+      false
+    }
+  }
+
   private def validateUrl(source: SourceDto): R = {
-    if (urlValidator.isValid(source.url)) {
+    if (isValidUrl(source)) {
       source.right
     } else {
       "Not valid url".left
+    }
+  }
+
+  private def isValidUrl(source: SourceDto): Boolean = {
+    if (urlValidator.isValid(source.url)) {
+      true
+    } else {
+      false
     }
   }
 

@@ -41,6 +41,29 @@ class SourceDao(val db: DatabaseDef)(implicit
     }
   }
 
+  def fetchByUrls(urls: Seq[String]): Future[Seq[Source]] = {
+    db.run {
+      sources.filter(s => s.url.inSet(urls))
+        .result
+    }
+  }
+
+  def findByUrls(urls: Seq[String]): Future[Seq[String]] = {
+    db.run {
+      sources.filter(s => s.url.inSet(urls))
+        .map(_.url)
+        .result
+    }
+  }
+
+  def findByNames(names: Seq[String]): Future[Seq[String]] = {
+    db.run {
+      sources.filter(s => s.name.inSet(names))
+        .map(_.url)
+        .result
+    }
+  }
+
   def findByUrl(url: String, id: Option[Long]): Future[Int] = {
     db.run {
       id

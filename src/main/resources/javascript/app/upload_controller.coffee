@@ -72,6 +72,8 @@ UploadController =
 
     @logger.debug "Start upload"
 
+    modal = @_modal
+
     UIkit.upload("#upload", {
       url: '/api/v1/sources/import',
       allow: '*.opml',
@@ -94,14 +96,16 @@ UploadController =
         bar.max = e.total
         bar.value = e.loaded
 
-      complete: (json) ->
-        console.log(json)
+      complete: (response) ->
+        if response.status == 200
+           arr = JSON.parse(response.responseText)
+           arr.forEach (x) -> Sources.add(new Source(x))
 
-      completeAll: () ->
+      completeAll: () =>
         setTimeout(
           () ->
             bar.setAttribute('hidden', 'hidden')
-            # TODO close modal
+            modal.hide()
           1000
         )
     })

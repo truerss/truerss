@@ -6,12 +6,16 @@ import truerss.dto.{NewSourceDto, SourceViewDto, UpdateSourceDto}
 import truerss.services.management.FeedSourceDtoModelImplicits
 import truerss.util.{ApplicationPlugins, Util}
 
+import org.slf4j.LoggerFactory
+
 import scala.concurrent.{ExecutionContext, Future}
 
 class SourcesService(dbLayer: DbLayer, val appPlugins: ApplicationPlugins)(implicit ec: ExecutionContext) {
 
   import FeedSourceDtoModelImplicits._
   import Util._
+
+  private val logger = LoggerFactory.getLogger(getClass)
 
   protected val sourceValidator = new SourceValidator(appPlugins)(dbLayer, ec)
 
@@ -58,6 +62,17 @@ class SourcesService(dbLayer: DbLayer, val appPlugins: ApplicationPlugins)(impli
       case None =>
         None
     }
+  }
+
+  def addSources(dtos: Iterable[NewSourceDto]): Future[Iterable[SourceViewDto]] = {
+    sourceValidator.validateSources(dtos).flatMap { valid =>
+      val sources = valid.map { x =>
+        x.toSource.withState(appPlugins.getState(x.url))
+      }
+      dbLayer.sourceDao.insertMany(sources).flatMap { _ =>
+        dbLayer.sourceDao.fetchByUrls(sources.map(_.url))
+      }
+    }.map { xs => xs.map(_.toView) }
   }
 
   def addSource(dto: NewSourceDto): Future[Either[scala.List[String], SourceViewDto]] = {
