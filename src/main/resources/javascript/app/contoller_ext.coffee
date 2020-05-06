@@ -6,6 +6,7 @@ class AjaxService
     @feeds_api = "/api/v1/feeds"
     @plugin_api = "/api/v1/plugins"
     @settings_api = "/api/v1/settings"
+    @search_api = "api/v1/search"
     @k = () ->
 
   plugins_all: (success, error) ->
@@ -83,9 +84,15 @@ class AjaxService
       (response) -> success(response.map (x) -> new Setting(x))
       @k)
 
+  search: (request, success) ->
+    @_post(
+      @search_api,
+      request,
+      (response) -> success(response.map (x) -> Feed.create(x)),
+      @k)
+
   update_settings: (params, success, error) ->
     @_put("#{@settings_api}", params, success, error)
-
 
   load_ejs: (url) ->
     jQuery.ajax

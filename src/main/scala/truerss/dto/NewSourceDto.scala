@@ -102,3 +102,5 @@ object SourceOverview {
     )
   }
 }
+
+case class SearchRequest(inFavorites: Boolean, query: String)

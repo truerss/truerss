@@ -193,4 +193,6 @@ object JsonFormats {
 
   implicit val feedContentFormat: Format[FeedContent] = Json.format[FeedContent]
 
+  implicit val searchRequestFormat: Format[SearchRequest] = Json.format[SearchRequest]
+
 }

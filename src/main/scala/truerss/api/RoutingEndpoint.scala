@@ -4,7 +4,7 @@ import akka.http.scaladsl.model.headers.{HttpCookie, RawHeader}
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.stream.Materializer
-import truerss.services.management.{FeedsManagement, OpmlManagement, PluginsManagement, SettingsManagement, SourcesManagement}
+import truerss.services.management.{FeedsManagement, OpmlManagement, PluginsManagement, SearchManagement, SettingsManagement, SourcesManagement}
 
 import scala.concurrent.ExecutionContext
 import scala.io.Source
@@ -15,6 +15,7 @@ class RoutingEndpoint(
                      opmlManagement: OpmlManagement,
                      pluginsManagement: PluginsManagement,
                      settingsManagement: SettingsManagement,
+                     searchManagement: SearchManagement,
                      wsPort: Int
                      )(implicit ec: ExecutionContext,
                        val materializer: Materializer) {
@@ -25,8 +26,13 @@ class RoutingEndpoint(
   val feedsApi = new FeedsApi(feedsManagement)
   val pluginsApi = new PluginsApi(pluginsManagement)
   val settingsApi = new SettingsApi(settingsManagement)
+  val searchApi = new SearchApi(searchManagement)
 
-  val apis = sourcesApi.route ~ feedsApi.route ~ pluginsApi.route ~ settingsApi.route
+  val apis = sourcesApi.route ~
+    feedsApi.route ~
+    pluginsApi.route ~
+    settingsApi.route ~
+    searchApi.route
 
   val fileName = "index.html"
 

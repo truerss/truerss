@@ -101,13 +101,13 @@ class FeedDao(val db: DatabaseDef)(implicit
     }.map(_.headOption)
   }
 
-  def modifyFav(feedId: Long, fav: Boolean) = {
+  def modifyFav(feedId: Long, fav: Boolean): Future[Int] = {
     db.run {
       feeds.filter(_.id === feedId).map(e => e.favorite).update(fav)
     }
   }
 
-  def modifyRead(feedId: Long, read: Boolean) = {
+  def modifyRead(feedId: Long, read: Boolean): Future[Int] = {
     db.run {
       feeds.filter(_.id === feedId).map(e => e.read).update(read)
     }
@@ -139,6 +139,21 @@ class FeedDao(val db: DatabaseDef)(implicit
   def findBySource(sourceId: Long): Future[Seq[Feed]] = {
     db.run {
       feeds.filter(_.sourceId === sourceId).result
+    }
+  }
+
+  def search(inFavorites: Boolean, query: String): Future[Seq[Feed]] = {
+    val exp = s"%$query%"
+    val f = feeds
+      .filter{x => (x.title like exp) || (x.normalized like exp) || (x.url like exp)}
+
+    val q = if (inFavorites) {
+      f.filter(x => x.favorite === true)
+    } else {
+      f
+    }
+    db.run {
+      q.result
     }
   }
 

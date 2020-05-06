@@ -70,3 +70,6 @@ Array::add_to = (el) ->
   if @length == 0 || @[@length-1] != el
     @push(el)
   @
+
+String::contains = (str) ->
+  @indexOf(str) != -1

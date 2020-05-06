@@ -25,11 +25,6 @@ object Tasks {
   )
 
   val cssLibs = Seq(
-//    s"$cdnjs/uikit/$uiKitVersion/css/components/form-file.min.css",
-//    s"$cdnjs/uikit/$uiKitVersion/css/components/notify.min.css",
-//    s"$cdnjs/uikit/$uiKitVersion/css/components/placeholder.min.css",
-//    s"$cdnjs/uikit/$uiKitVersion/css/components/upload.min.css",
-//    s"$cdnjs/uikit/$uiKitVersion/css/components/search.min.css",
     s"$cdnjs/uikit/$uiKitVersion/css/uikit.min.css",
     "https://cdnjs.cloudflare.com/ajax/libs/tippy.js/3.0.6/tippy.css"
   )
@@ -87,7 +82,7 @@ object Tasks {
 
     val files = "ext" :: "feeds_controller" :: "ws_controller" :: "contoller_ext" ::
       "main_controller" :: "models" :: "sources_controller" :: "settings_controller" ::
-      "plugins_controller" :: "upload_controller" ::
+      "plugins_controller" :: "upload_controller" :: "search_controller" ::
       "templates" :: "app" :: Nil
 
     val rfiles = files.map { f => s"$path/$f.coffee" }.mkString(" ")

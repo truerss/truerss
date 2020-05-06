@@ -32,15 +32,15 @@ trait FullDbHelper extends SpecificationLike with BeforeAfterAll {
 
   import driver.profile.api._
 
-  val x = db.run {
+  val tables = db.run {
     (driver.query.sources.schema ++ driver.query.feeds.schema ++
       driver.query.predefinedSettings.schema ++
       driver.query.userSettings.schema).create
   }
-  Await.result(x, initTime)
+
 
   override def beforeAll = {
-
+    Await.result(tables, initTime)
   }
 
   override def afterAll = {

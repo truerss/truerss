@@ -32,11 +32,11 @@ class SourcesApi(sourcesManagement: SourcesManagement,
       } ~ (get & pathPrefix("overview"/ LongNumber)) { sourceId =>
         call(sm.getSourceOverview(sourceId))
       } ~ (post & pathEndOrSingleSlash) {
-        create1[NewSourceDto](x => sm.addSource(x))
+        create[NewSourceDto](x => sm.addSource(x))
       } ~ (delete & pathPrefix(LongNumber)) { sourceId =>
         call(sm.deleteSource(sourceId))
       } ~ (put & pathPrefix(LongNumber)) { sourceId =>
-        create1[UpdateSourceDto](x => sm.updateSource(sourceId, x))
+        create[UpdateSourceDto](x => sm.updateSource(sourceId, x))
       } ~ (put & pathPrefix("markall")) {
         call(fm.markAll)
       } ~ (put & pathPrefix("mark" / LongNumber)) { sourceId =>

@@ -63,7 +63,7 @@ trait HttpHelper {
     }
   }
 
-  def create1[T : Reads : ClassTag](f: T => Future[Response]) = {
+  def create[T : Reads : ClassTag](f: T => Future[Response]) = {
     entity(as[String]) { json =>
       safeParse[T](json) match {
         case S(dto) =>

@@ -24,7 +24,7 @@ class SettingsApi(val settingsManagement: SettingsManagement)
           call(sm.getCurrentSetup)
         }
       } ~ put {
-        create1[NewSetup[_]](x => sm.updateSetup(x))
+        create[NewSetup[_]](x => sm.updateSetup(x))
       }
     }
   }

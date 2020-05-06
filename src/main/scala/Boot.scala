@@ -33,6 +33,7 @@ object Boot extends App {
       val opmlService = new OpmlService(sourcesService)
       val feedsService = new FeedsService(dbLayer)
       val contentReaderService = new ContentReaderService(applicationPluginsService)
+      val searchService = new SearchService(dbLayer)
 
       val stream = system.eventStream
 
@@ -43,6 +44,7 @@ object Boot extends App {
         contentReaderService, settingsService, stream)
       val pluginsManagement = new PluginsManagement(applicationPluginsService)
       val settingsManagement = new SettingsManagement(settingsService)
+      val searchManagement = new SearchManagement(searchService)
 
       system.actorOf(
         MainActor.props(actualConfig, applicationPluginsService, sourcesService,  dbLayer),
@@ -55,6 +57,7 @@ object Boot extends App {
         opmlManagement = opmlManagement,
         pluginsManagement = pluginsManagement,
         settingsManagement = settingsManagement,
+        searchManagement = searchManagement,
         wsPort = actualConfig.wsPort
       )
 
