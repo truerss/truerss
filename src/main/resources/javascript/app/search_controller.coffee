@@ -9,16 +9,18 @@ SearchController =
     # if favorites ...
 
     # find by source
-    xs = Sources.filter (x) -> x.name().contains(query) || x.url().contains(query)
 
     request =
       inFavorites: false
       query: query
 
     # next find by feeds
-    ajax.search request,
+    ajax.search JSON.stringify(request),
       (feeds) ->
-        #
+        sources = (feeds.map (x) -> x.source_id()).uniq()
+        full = Sources.filter (x) -> sources.contains(x.id()) ||  x.name().contains(query) || x.url().contains(query)
+        console.log(full)
+
 
       (err) =>
         @logger.warn("Failed to process search: #{JSON.stringify(err)}")
