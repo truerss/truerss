@@ -33,10 +33,7 @@ SearchController =
       ajax.search JSON.stringify(request),
         (feeds) =>
           if fav
-            feeds = feeds.map (f) ->
-              new FavoriteFeed(f)
-
-            render_favorites(feeds, 1)
+            render_feeds(feeds, 1, "/favorites")
 
           else
 

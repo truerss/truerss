@@ -32,7 +32,8 @@ class Source extends Sirius.BaseModel
 
   add_feeds: (feeds) ->
     @feeds((@feeds() || []).concat(feeds))
-    @count(@feeds().length)
+    unread = feeds.filter((x) -> !x.read()).length
+    @count(unread)
     @favorites_count(@feeds().filter((x) -> x.favorite()).length)
 
   add_feed: (feed) ->
@@ -88,16 +89,6 @@ class Feed extends Sirius.BaseModel
     else
       "<div>impossible extract content <a href='#{@url()}'>#{@title()}</a></div>"
 
-# just a wrapper on Feed + Source Name
-class FavoriteFeed
-  constructor: (feed) ->
-    @id = feed.id()
-    @url = feed.url()
-    @title = feed.title()
-    @description = feed.description()
-    @href = feed.href()
-    @favorite = feed.favorite()
-
 class Setting extends Sirius.BaseModel
   @attrs: ["key", "description", "value", "options"]
 
@@ -126,7 +117,6 @@ Sources.subscribe "add", (source) ->
   Templates.source_list_view.render(html).prepend()
   source_view = new Sirius.View(id)
 
-
   Sirius.Materializer.build(source, source_view)
     .field((x) -> x.normalized)
     .to((v) -> v.zoom("a.source-url"))
@@ -144,8 +134,8 @@ Sources.subscribe "add", (source) ->
     .to((v) -> v.zoom("a.source-count"))
     .transform((x) ->
       x = parseInt(x, 10)
-      if (isNaN(x)) or x <= 0
-        "0"
+      if isNaN(x) or x <= 0
+        "-"
       else
         "#{x}"
     )

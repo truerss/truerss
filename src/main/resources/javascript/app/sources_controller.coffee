@@ -57,6 +57,7 @@ SourcesController =
   _process_feeds: (source, feeds, page, reset_count) ->
     ajax.get_source_overview source.id(), (overview) =>
       source.favorites_count(overview.favoritesCount)
+
       if reset_count
         source.count(overview.unreadCount)
 
@@ -139,26 +140,6 @@ SourcesController =
       source.count(0)
     else
       @logger.warn("source with id=#{id} not found")
-
-  mark: (event, id) ->
-    unless !(state.hasState(States.Source) || state.hasState(States.Feed))
-      url = location.pathname
-      if url.startsWith("/show/")
-        normalized = decodeURIComponent(url.split("/")[2])
-        source = Sources.takeFirst (s) -> s.normalized() == normalized
-        if source
-          ajax.mark_as_read(source.id())
-          source.count(0)
-        else
-          @logger.warn("source not found with normalized: '#{normalized}' from '#{url}'")
-
-    event.preventDefault()
-
-  mark_all: (event) ->
-    ajax.mark_all_as_read()
-    Sources.all().forEach (s) -> s.count(0)
-    return
-
 
   download: (e) ->
     window.open("/api/v1/sources/opml")

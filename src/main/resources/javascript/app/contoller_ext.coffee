@@ -311,15 +311,18 @@ ControllerExt =
       .to((v) -> v.zoom('.source-overview-unread-count'))
       .transform((x) ->
         if x != 0
-          "#{x}"
+          "#{x} feeds"
         else
-          ""
+          "no feeds"
       )
       .field((x) -> x.favorites_count)
       .to((v) -> v.zoom('.source-overview-favorites-count'))
+      .transform((x) ->
+        if x != 0
+          "#{x} feeds"
+        else
+          "no feeds"
+      )
 
     @_materializer.run()
-
-      # TODO redirect(source.feeds()[0].href())
-
 
