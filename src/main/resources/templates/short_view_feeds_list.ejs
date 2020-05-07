@@ -1,0 +1,51 @@
+<% for (i = 0; i < feeds.length; i ++) { %>
+    <% if (i == 0) { %>
+    <div class="feeds uk-margin-remove uk-padding-remove custom-padding" data-feed-id="<%= feeds[i].id() %>">
+    <% } else { %>
+    <div class="feeds uk-margin-remove uk-padding-remove custom-padding mt3" data-feed-id="<%= feeds[i].id() %>">
+        <% } %>
+        <div uk-grid>
+          <span class="uk-text-light uk-text-small uk-width-expand">
+             <a href="<%= feeds[i].url() %>" class="uk-link-text" target="_blank"><%= feeds[i].title() %></a>
+          </span>
+            <span class="uk-text-light uk-text-right uk-text-large uk-width-auto">
+                <% if (feeds[i].favorite()) { %>
+                    <a data-feed-id="<%= feeds[i].id() %>"
+                       data-source-id="<%= feeds[i].source_id() %>"
+                       href="#"
+                       class="in-favorites unfavorite" title="remove from favorites" uk-icon="star"></a>
+                <% } else {  %>
+                    <a  data-feed-id="<%= feeds[i].id() %>"
+                        data-source-id="<%= feeds[i].source_id() %>"
+                        href="#"
+                        class="in-favorites favorite" title="mark as favorite" uk-icon="star"></a>
+                <% } %>
+
+                <% if (feeds[i].read()) { %>
+                    <a data-feed-id="<%= feeds[i].id() %>"
+                       data-source-id="<%= feeds[i].source_id() %>"
+                       href="#"
+                       class="in-read unread" title="as unread" uk-icon="check"></a>
+                <% } else {  %>
+                    <a  data-feed-id="<%= feeds[i].id() %>"
+                        data-source-id="<%= feeds[i].source_id() %>"
+                        href="#"
+                        class="in-read read" title="as read" uk-icon="check"></a>
+                <% } %>
+
+            </span>
+        </div>
+    </div>
+
+<% } %>
+<ul class="uk-pagination uk-flex-center" uk-margin>
+    <% for (j = 0; j < pagination.length; j ++) { %>
+        <% if (pagination[j] == current_page) { %>
+            <li class="uk-active"><span><%= pagination[j] %></span></li>
+        <% } else if (pagination[j] == -1) { %>
+            <li class="uk-disabled"><span>...</span></li>
+        <% } else { %>
+            <li><a href="<%= source_name_normalized %>/page/<%= pagination[j] %>"><%= pagination[j] %></a></li>
+        <% } %>
+    <% } %>
+</ul>

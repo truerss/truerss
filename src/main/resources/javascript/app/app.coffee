@@ -20,7 +20,6 @@ $ ->
     "/show/sources/:source-name/page/:page" : controller: SourcesController, action: "show"
     "/show/feeds/content/:feed": controller: FeedsController, action: "view_content"
     "/search/page/:page": controller: SearchController, action: "show"
-    "/opml": controller: SourcesController, action: "download"
     "/settings" : controller: SettingsController, action: "show"
     "click a[href='#refresh']" : controller: SourcesController, action: "refresh_all"
     "click a.favorite": controller: FeedsController, action: "favorite", data: ["data-feed-id", "data-source-id"]

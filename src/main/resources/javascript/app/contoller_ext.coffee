@@ -255,6 +255,13 @@ ControllerExt =
 
   _materializer: null
 
+  _is_short_view_enabled: () ->
+    settings = Settings.takeFirst((x) -> x.is_short_view())
+    if settings?
+      false
+
+    settings.value()
+
   _get_per_page: () ->
     settings = Settings.takeFirst((x) -> x.is_feeds_per_page())
 
@@ -292,9 +299,16 @@ ControllerExt =
 
 
   render_feeds: (feeds, current_page, start_page_name) ->
+    is_short_view = @_is_short_view_enabled()
+
     options = @_make_options(feeds, current_page, start_page_name)
 
-    result = Templates.feeds_list.render(options)
+    result = ""
+    if is_short_view
+      result = Templates.short_view_feeds_list_template.render(options)
+    else
+      result = Templates.feeds_list.render(options)
+
     Templates.article_view.render(result).html()
 
   render_source_feeds_and_redirect_to_first: (source, current_page, source_name_normalized, overview) ->

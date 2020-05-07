@@ -92,6 +92,9 @@ class Setting extends Sirius.BaseModel
   is_feeds_per_page: () ->
     @key() == "feeds_per_page"
 
+  is_short_view: () ->
+    @key() == "short_view"
+
   ajaxify: () ->
     JSON.stringify({key: @key(), value: @value()})
 

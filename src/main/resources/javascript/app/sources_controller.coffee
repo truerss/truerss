@@ -174,6 +174,3 @@ SourcesController =
       .zoom("#source-count-all")
       .render(count)
       .sum()
-
-  download: (e) ->
-    window.open("/api/v1/sources/opml")
