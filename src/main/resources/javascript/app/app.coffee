@@ -1,6 +1,17 @@
 `var c = function(m){console.log(m);};`
 
 $ ->
+
+  source_overview = document.getElementById("source-overview")
+  source_overview_offset_top = source_overview.offsetTop
+
+  window.onscroll = () ->
+    if window.pageYOffset > source_overview_offset_top
+      source_overview.classList.add("sticky")
+    else
+      source_overview.classList.remove("sticky");
+
+
   routes =
     "application:run" : controller: MainController, action: "start"
     "plugins:load": controller: PluginsController, action: "load"
@@ -17,9 +28,9 @@ $ ->
     "/about" : controller: AboutController, action: "show"
     "/show/all": controller: SourcesController, action: "show_all"
     "/show/sources/:source-name" : controller: SourcesController, action: "show"
-    "/show/sources/:source-name/page/:page" : controller: SourcesController, action: "show"
+    "/show/sources/:source-name/page/:page" : controller: SourcesController, action: "show", after: () -> scroll_to_top()
     "/show/feeds/content/:feed": controller: FeedsController, action: "view_content"
-    "/search/page/:page": controller: SearchController, action: "show"
+    "/search/page/:page": controller: SearchController, action: "show", after: () -> scroll_to_top()
     "/settings" : controller: SettingsController, action: "show"
     "click a[href='#refresh']" : controller: SourcesController, action: "refresh_all"
     "click a.favorite": controller: FeedsController, action: "favorite", data: ["data-feed-id", "data-source-id"]
@@ -32,7 +43,8 @@ $ ->
     "click a.source-count": controller: SourcesController, action: "mark_by_click_on_count_button", data: "data-source-id"
     "click a[href='#add-modal']": controller: UploadController, action: "upload"
     "input #search": controller: SearchController, action: "filter"
-#    "mouseenter .tippy-count": controller: FeedsController, action: 'draw_tooltip', data: "data-source-id"
+
+  #    "mouseenter .tippy-count": controller: FeedsController, action: 'draw_tooltip', data: "data-source-id"
 
   setup =
     enable_logging: true

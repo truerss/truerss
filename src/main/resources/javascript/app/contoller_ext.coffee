@@ -216,6 +216,10 @@ ControllerExt =
   state: new Steps()
   posts: new GlobalStateService()
   sources: new GlobalStateService()
+
+  scroll_to_top: () ->
+    $('html,body').animate({scrollTop: 0}, 1000);
+
   clean_route: () ->
     history.pushState("", document.title, window.location.pathname
       + window.location.search)

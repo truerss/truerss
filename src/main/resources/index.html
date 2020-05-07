@@ -110,6 +110,10 @@
                 padding: 3px;
             }
 
+            .sticky {
+                position: fixed;
+                top: 0;
+            }
 
 
         </style>
@@ -170,7 +174,7 @@
 
     <div class="uk-grid uk-padding-remove-top uk-margin-auto h100 mt1" uk-grid>
 
-        <div class="scrollable uk-sticky uk-width-1-6 uk-background-cover uk-height-max-large h100">
+        <div id="sources-container" class="scrollable uk-width-1-6 uk-background-cover uk-height-max-large h100">
             <div class="uk-text-left">
                 <ul class="uk-list uk-padding-small uk-padding-remove-bottom uk-margin-remove uk-margin-remove-bottom" id="source-list-all">
                     <li id="source-all" class="source-element">
@@ -197,8 +201,9 @@
 
 
         <div id="source-overview"
-             class="uk-sticky uk-width-1-5 uk-align-right uk-background-cover
-        uk-height-max-large uk-text-small right h100 uk-padding-remove-left">
+             class="uk-width-1-5 uk-align-right uk-background-cover
+        uk-height-max-large uk-text-small
+        right h100 uk-padding-remove-left">
         </div>
     </div>
 
