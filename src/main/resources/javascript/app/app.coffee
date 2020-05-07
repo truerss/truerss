@@ -16,7 +16,6 @@ $ ->
     "/favorites/page/:page" : controller: FeedsController, action: "favorites"
     "/plugins" : controller: PluginsController, action: "show"
     "/about" : controller: AboutController, action: "show"
-    "/show/:source-name/:feed-name": controller: FeedsController, action: "show"
     "/show/:source-name" : controller: SourcesController, action: "show"
     "/show/:source-name/page/:page" : controller: SourcesController, action: "show"
     "/show/feeds/content/:feed": controller: FeedsController, action: "view_content"

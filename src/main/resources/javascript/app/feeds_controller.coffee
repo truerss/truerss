@@ -98,60 +98,6 @@ FeedsController =
     ajax.get_feed_content feed_id, (response) ->
       Templates.article_view.render(response.content).html()
 
-  _display_feed: (source, original_feed, feed) ->
-
-    feed = new Feed(feed)
-
-    try
-      result = Templates.feed_template.render({feed: feed})
-      Templates.article_view.render(result).html()
-    catch error
-      @logger.error("error when insert feed #{error}")
-
-    original_feed.merge(feed)
-    unless feed.read()
-      ajax.set_read feed.id(), (x) ->
-        original_feed.read(true)
-        feed.read(true)
-        source.count(source.count() - 1)
-    state.to(States.Feed)
-    posts.set(original_feed.id())
-
-  show: (source_name, feed_name) ->
-    source_name = decodeURIComponent(source_name)
-    feed_name = decodeURIComponent(feed_name)
-
-    source = Sources.takeFirst (s) -> s.normalized() == source_name
-    if source
-      name = decodeURI(feed_name)
-      finder = (source, name) ->
-        source.feeds().filter (feed) -> feed.normalized() == name
-      feeds = if !posts.is_empty()
-        cf = posts.get()
-        xs = source.feeds().filter (feed) -> feed.id() == parseInt(cf)
-        if xs.length == 0
-          finder(source, name)
-        else
-          xs
-      else
-        finder(source, name)
-      if feeds.length > 0
-        self = @
-        original_feed = feeds[0]
-        ajax.show_feed feeds[0].id(),
-          (feed) ->
-            self._display_feed(source, original_feed, feed)
-
-          (error) ->
-            self._display_feed(source, original_feed, JSON.parse(original_feed.to_json()))
-            UIkit.notify
-              message : error.responseText,
-              status  : 'danger',
-              timeout : 4000,
-              pos     : 'top-right'
-    else
-      @logger.warn("Source not found #{source_name}")
-
   draw_tooltip: (e, source_id) ->
     # seems tippy does not work with uikit
     ew = $('.uk-offcanvas-bar-show').width()

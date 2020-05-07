@@ -10,7 +10,6 @@ Templates =
   source_list: null
   feeds_list: null
   source_list_view: new Sirius.View("#source-list")
-  feed_template: null
   article_view: new Sirius.View("#main")
   modal_element: "#add-modal"
   modal_view: new Sirius.View("#upload-modal")
