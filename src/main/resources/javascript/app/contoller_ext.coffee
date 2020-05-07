@@ -73,8 +73,8 @@ class AjaxService
   mark_as_read: (source_id) ->
     @_put("#{@sources_api}/mark/#{source_id}", @k, @k)
 
-  mark_all_as_read: () ->
-    @_put("#{@sources_api}/markall", @k, @k)
+  mark_all_as_read: (success) ->
+    @_put("#{@sources_api}/markall", {}, success, @k)
 
   get_source_overview: (sourceId, success) ->
     @_get("#{@sources_api}/overview/#{sourceId}", success, @k)
@@ -216,6 +216,10 @@ ControllerExt =
   state: new Steps()
   posts: new GlobalStateService()
   sources: new GlobalStateService()
+  clean_route: () ->
+    history.pushState("", document.title, window.location.pathname
+      + window.location.search)
+
   read_cookie: window.readCookie
   delete_cookie: (cn) ->
     document.cookie = cn + '=; Path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;'
@@ -294,7 +298,7 @@ ControllerExt =
     Templates.article_view.render(result).html()
 
   render_source_feeds_and_redirect_to_first: (source, current_page, source_name_normalized, overview) ->
-    @render_feeds(source.feeds(), current_page, "/show/#{source_name_normalized}")
+    @render_feeds(source.feeds(), current_page, "/show/sources/#{source_name_normalized}")
 
     if source.feeds().length > 0
       1

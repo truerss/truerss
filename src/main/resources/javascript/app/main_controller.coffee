@@ -87,9 +87,3 @@ MainController =
 
       delete_cookie("redirect")
     return
-
-  view: () ->
-    unless state.hasState(States.Main)
-      source = Sources.first()
-      if source
-        redirect(source.href())

@@ -62,6 +62,7 @@ UploadController =
             # todo hide modal
             @_modal.hide()
             clear_input()
+            clean_route()
 
           (err) =>
             @logger.warn("Failed to create a new source: #{JSON.stringify(err)}")
@@ -105,6 +106,7 @@ UploadController =
         setTimeout(
           () ->
             bar.setAttribute('hidden', 'hidden')
+            clean_route()
             modal.hide()
           1000
         )

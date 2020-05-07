@@ -9,11 +9,10 @@ class EJS
 Templates =
   source_list: null
   feeds_list: null
+  sources_all_view: new Sirius.View("#source-all") # li
   source_list_view: new Sirius.View("#source-list")
   article_view: new Sirius.View("#main")
-  modal_element: "#add-modal"
   modal_view: new Sirius.View("#upload-modal")
-  feeds_view: new Sirius.View("#feeds")               # deprecated
   favorites_template: null
   plugins_template: null
   plugins_view: new Sirius.View("#plugins-modal")

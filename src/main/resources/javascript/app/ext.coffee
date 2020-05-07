@@ -24,12 +24,32 @@ Sirius.View.register_strategy('toggle',
   transform: (oldvalue, newvalue) -> newvalue
   render: (adapter, element, result, attribute) ->
     klass = "count-hidden"
-    if parseInt(result) == 0
+    count = parseInt(result)
+    if count == 0 || isNaN(count)
       $(element).addClass(klass)
     else
       if $(element).hasClass(klass)
         $(element).removeClass(klass)
       adapter.swap(element, result)
+)
+
+Sirius.View.register_strategy('sum',
+  transform: (oldvalue, newvalue) ->
+    oldvalue = parseInt(oldvalue, 10)
+    newvalue = parseInt(newvalue, 10)
+    if isNaN(oldvalue)
+      newvalue
+    else
+      newvalue + oldvalue
+
+  render: (adapter, element, result, attribute) ->
+    hidden = "uk-hidden"
+    if parseInt(result) <= 0
+      $(element).addClass(hidden)
+    else
+      if $(element).hasClass(hidden)
+        $(element).removeClass(hidden)
+    adapter.swap(element, result)
 )
 
 

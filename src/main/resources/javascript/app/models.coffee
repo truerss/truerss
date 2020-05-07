@@ -23,7 +23,7 @@ class Source extends Sirius.BaseModel
     (parseInt(@state()) is 1) || (parseInt(@state()) is 2)
 
   href: () ->
-    "/show/#{@normalized()}"
+    "/show/sources/#{@normalized()}"
 
   ajaxify: () ->
     JSON.stringify({url: @url(), interval: parseInt(@interval()), name: @name(), id: @id()})
@@ -66,9 +66,6 @@ class Feed extends Sirius.BaseModel
       @_source ?= Sources.takeFirst((s) -> s.id() == source_id)
       @_source
 
-  source_name: () -> @source().name()
-  source_url : () -> @source().url()
-
   is_read: () ->
     @read()
 
@@ -80,14 +77,6 @@ class Feed extends Sirius.BaseModel
   @create: (json) ->
     json['publishedDate'] = moment.utc(json['publishedDate']).local()
     new Feed(json)
-
-  anything: () ->
-    if @content()
-      @content()
-    else if @description()
-      @description()
-    else
-      "<div>impossible extract content <a href='#{@url()}'>#{@title()}</a></div>"
 
 class Setting extends Sirius.BaseModel
   @attrs: ["key", "description", "value", "options"]
@@ -120,7 +109,7 @@ Sources.subscribe "add", (source) ->
   Sirius.Materializer.build(source, source_view)
     .field((x) -> x.normalized)
     .to((v) -> v.zoom("a.source-url"))
-    .transform((x) -> "/show/#{x}")
+    .transform((x) -> "/show/sources/#{x}")
     .handle((view, value) -> view.render(value).swap("href"))
     .field((x) -> x.active)
     .to((v) -> v)
@@ -145,12 +134,9 @@ Sources.subscribe "add", (source) ->
   return
 
 Sources.subscribe "add", (source) ->
-  Sirius.Application.get_adapter().and_then (adapter) ->
-    if source.count() > 0
-      adapter.fire(document, "sources:fetch", source)
+  SourcesController.change_count(source.count())
 
 Sources.subscribe "remove", (source) ->
-  # TODO unbind
   jQuery("#source-#{source.id()}").remove()
 
 

@@ -59,12 +59,14 @@ FeedsController =
     ajax.set_read id, (response) =>
       @logger.info("Feed #{id} mark as read")
       @_read_helper(id, source_id, true)
+    SourcesController.change_count(-1)
     e.preventDefault()
 
   unread: (e, id, source_id) ->
     ajax.set_unread id, (response) =>
       @logger.info("Feed #{id} mark as unread")
       @_read_helper(id, source_id, false)
+    SourcesController.change_count(1)
     e.preventDefault()
 
   favorite: (e, id, source_id) ->

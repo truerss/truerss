@@ -31,9 +31,15 @@ SourcesController =
         else
           #TODO redirect(Sources.first().href())
 
+  show_all: (page) ->
+    page = parseInt(page || 1, 10)
+    sources = Sources.all().sort (a, b) -> parseInt(a.count()) - parseInt(b.count())
+
+    Sirius.redirect(sources[0].href())
+
+
   show: (normalized, page) ->
-    page ||= 1
-    page = parseInt(page, 10)
+    page = parseInt(page || 1, 10)
     normalized = decodeURIComponent(normalized)
     source = Sources.takeFirst (s) -> s.normalized() == normalized
     @logger.info("Show: #{normalized} source is exist? #{source != null}")
@@ -59,6 +65,9 @@ SourcesController =
       source.favorites_count(overview.favoritesCount)
 
       if reset_count
+        current = source.count()
+        diff = overview.unreadCount - current
+        @change_count(diff)
         source.count(overview.unreadCount)
 
       if feeds.length > 0
@@ -83,6 +92,7 @@ SourcesController =
     ajax.remove_source id
     source = Sources.find("id", id)
     if source
+      @change_count(-source.count())
       Sources.remove(source)
       # TODO current table. does sirius do it?
       jQuery("#all-sources tr.source-#{id}").remove()
@@ -132,19 +142,38 @@ SourcesController =
 #        (e) ->
 #            logger.error("error on update source: #{e}")
 
-  mark_by_click_on_count_button: (_, id) ->
+  mark_by_click_on_count_button: (e, id) ->
     id = parseInt(id, 10)
-    source = Sources.takeFirst (s) -> s.id() == id
-    if source
-      ajax.mark_as_read(id)
-      source.count(0)
+
+    if isNaN(id)
+      @mark_all()
     else
-      @logger.warn("source with id=#{id} not found")
+      source = Sources.takeFirst (s) -> s.id() == id
+      if source
+        current_count = source.count()
+        ajax.mark_as_read(id)
+        source.count(0)
+        @change_count(-current_count)
+      else
+        @logger.warn("source with id=#{id} not found")
+
+    e.preventDefault()
+
+  mark_all: () ->
+    ajax.mark_all_as_read()
+    @logger.debug("Mark all sources as read")
+    count = 0
+    Sources.map (x) ->
+      count = count + x.count()
+      x.count(0)
+
+    @change_count(-count)
+
+  change_count: (count) ->
+    Templates.sources_all_view
+      .zoom("#source-count-all")
+      .render(count)
+      .sum()
 
   download: (e) ->
     window.open("/api/v1/sources/opml")
-
-  fetch_unread: (e, source) ->
-    ajax.get_unread source.id(), (feeds) ->
-      feeds = feeds.map (x) -> Feed.create(x)
-      source.add_feeds(feeds)
