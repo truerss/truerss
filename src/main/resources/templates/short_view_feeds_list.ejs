@@ -45,7 +45,7 @@
         <% } else if (pagination[j] == -1) { %>
             <li class="uk-disabled"><span>...</span></li>
         <% } else { %>
-            <li><a href="<%= source_name_normalized %>/page/<%= pagination[j] %>"><%= pagination[j] %></a></li>
+            <li><a href="<%= page_url %>/page/<%= pagination[j] %>"><%= pagination[j] %></a></li>
         <% } %>
     <% } %>
 </ul>

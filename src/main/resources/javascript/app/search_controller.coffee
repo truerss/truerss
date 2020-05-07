@@ -4,7 +4,7 @@ SearchController =
 
   search_results: []
 
-  search_page: "search"
+  search_page: "/search"
 
   show: (page) ->
     page = parseInt(page || 1)
