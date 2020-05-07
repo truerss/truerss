@@ -31,26 +31,17 @@ class OpmlManagementTest(implicit val ee: ExecutionEnv) extends Specification wi
   private val dto = Gen.genView
   os.parse(validOpml) returns Right(Iterable(o1, o2))
 
-  ss.addSource(any[NewSourceDto])
-    .returns(f(Right(dto)))
-    .thenReturns(f(Left(List("boom"))))
+  ss.addSources(any[Iterable[NewSourceDto]])
+    .returns(f(Iterable(dto)))
 
   private val om = new OpmlManagement(os, ss, es)
 
   "opml" should {
-    "return errors on partially valid opml" in {
+    "return only valid sources" in {
       om.createFrom(validOpml) must be_==(
-        ImportResponse(Map(
-          0 -> Right(dto),
-          1 -> Left(NewSourceFromFileWithErrors(
-            url = o2.link,
-            name = o2.title,
-            errors = List("boom")
-          ))
-        ))
-      ).await
+        ImportResponse(Vector(dto))).await
 
-      there was two(ss).addSource(any[NewSourceDto])
+      there was one(ss).addSources(any[Iterable[NewSourceDto]])
       there was one(es).publish(SourcesKeeperActor.NewSource(dto))
     }
   }

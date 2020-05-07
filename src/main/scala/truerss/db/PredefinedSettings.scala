@@ -42,6 +42,7 @@ object Predefined {
   val fFeedParallelism = "parallelism"
   val fReadContent = "read_content"
   val fFeedsPerPage = "feeds_per_page"
+  val fShortView = "short_view"
 
   val parallelism = PredefinedSettings(
     key = fFeedParallelism,
@@ -61,5 +62,11 @@ object Predefined {
     value = SelectableValue(Iterable(10, 20, 30, 50, 100), 10)
   )
 
-  val predefined = parallelism :: read :: feedsPerPage :: Nil
+  val shortView = PredefinedSettings(
+    key = fShortView,
+    description = "Display only feeds titles",
+    value = RadioValue(false)
+  )
+
+  val predefined = parallelism :: read :: feedsPerPage :: shortView :: Nil
 }

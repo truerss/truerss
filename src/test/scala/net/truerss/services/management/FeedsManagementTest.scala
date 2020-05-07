@@ -93,7 +93,7 @@ class FeedsManagementTest(implicit val ee: ExecutionEnv) extends Specification w
       "404 if feed was not found" in {
         f.getFeed(feedId1) must be_==(ResponseHelpers.feedNotFound).await
 
-        there was one(fs).findOne(feedId1)
+        there was one(fs)
         there was no(cr)
       }
     }

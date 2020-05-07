@@ -14,6 +14,7 @@ case class AppPluginsResponse(view: PluginsViewDto) extends Response
 case class ImportResponse(result: Vector[SourceViewDto]) extends Response
 case class SettingsResponse[_](result: Iterable[AvailableSetup[_]]) extends Response
 case class SettingResponse[T](settings: AvailableSetup[T]) extends Response
+case class OpmlResponse(content: String) extends Response
 //
 
 case class Ok(msg: String) extends Response

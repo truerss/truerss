@@ -8,6 +8,8 @@ import akka.http.scaladsl.server._
 import akka.http.scaladsl.model.{ContentType => C, _}
 import akka.http.scaladsl.server.directives.BasicDirectives.extractRequestContext
 import akka.http.scaladsl.server.directives.LoggingMagnet
+import akka.stream.scaladsl.Source
+import akka.util.ByteString
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
@@ -118,6 +120,14 @@ trait HttpHelper {
       case ImportResponse(result) => ok(result)
       case SettingsResponse(result) => ok(result)
       case SettingResponse(x) => ok(availableSetupWrites.writes(x)) // todo
+      case OpmlResponse(content) =>
+        RouteResult.Complete {
+          HttpResponse(
+            entity = HttpEntity.Chunked.fromData(ContentTypes.`application/octet-stream`,
+              Source.single(ByteString(content))))
+        }
+
+
 
       case Ok(x) => finish(OK, x.toString)
 

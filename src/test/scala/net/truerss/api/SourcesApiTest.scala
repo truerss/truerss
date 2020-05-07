@@ -55,7 +55,7 @@ class SourcesApiTest extends BaseApiTest {
   fm.fetchBySource(anyLong, anyInt, anyInt) returns f(FeedsResponse(Vector()))
 
   om.getOpml returns f(Ok(opml))
-  om.createFrom(opml) returns f(ImportResponse(Map.empty))
+  om.createFrom(opml) returns f(ImportResponse(Vector.empty))
 
   override protected val r: Route = new SourcesApi(sm, fm, om).route
 

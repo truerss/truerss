@@ -1,7 +1,7 @@
 package truerss.services.management
 
 import akka.event.EventStream
-import truerss.api.{BadRequestResponse, ImportResponse, Ok, Response}
+import truerss.api.{BadRequestResponse, ImportResponse, Ok, OpmlResponse, Response}
 import truerss.dto.{NewSourceDto, NewSourceFromFileWithErrors}
 import truerss.services.actors.sync.SourcesKeeperActor
 import truerss.services.{OpmlService, SourcesService}
@@ -17,7 +17,7 @@ class OpmlManagement(opmlService: OpmlService,
   import OpmlManagement._
 
   def getOpml: R = {
-    opmlService.build.map(Ok)
+    opmlService.build.map(OpmlResponse)
   }
 
   def createFrom(opml: String): R = {
