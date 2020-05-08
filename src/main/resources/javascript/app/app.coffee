@@ -27,6 +27,7 @@ $ ->
     "/plugins" : controller: PluginsController, action: "show"
     "/about" : controller: AboutController, action: "show"
     "/show/all": controller: SourcesController, action: "show_all"
+    "/show/all/page/:page": controller: SourcesController, action: "show_all"
     "/show/sources/:source-name" : controller: SourcesController, action: "show"
     "/show/sources/:source-name/page/:page" : controller: SourcesController, action: "show", after: () -> scroll_to_top()
     "/show/sources/:source-name/all": controller: SourcesController, action: "show_all_in_source"

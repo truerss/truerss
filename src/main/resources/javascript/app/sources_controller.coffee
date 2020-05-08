@@ -3,15 +3,35 @@ SourcesController =
 
   logger: Sirius.Application.get_logger("SourcesController")
 
+  current_unread_feeds: []
+
+  clear_current_feeds: () ->
+    @current_unread_feeds = []
+
   show_all: (page) ->
     page = parseInt(page || 1, 10)
     sources = Sources.all().sort (a, b) -> parseInt(a.count()) - parseInt(b.count())
 
-    Sirius.redirect(sources[0].href())
+    # TODO call server here
+    if @current_unread_feeds.is_empty()
+      @current_unread_feeds =
+        Sources.all().map((x) -> x.feeds()).flat().filter (z) -> !z.read()
+
+    if @current_unread_feeds.is_empty()
+      if Sources.all().is_empty()
+        @logger.debug("No sources")
+        clean_main_page()
+      else
+        Sirius.redirect(sources[0].href())
+    else
+      c(@current_unread_feeds)
+      render_feeds(@current_unread_feeds, page, "/show/all")
+      Sirius.redirect(sources[0].href())
 
   show_all_in_source: (normalized, page) ->
     page = parseInt(page || 1, 10)
     normalized = decodeURIComponent(normalized)
+    @clear_current_feeds()
     source = Sources.find('normalized', normalized)
 
     if source?
@@ -27,11 +47,10 @@ SourcesController =
     else
       @logger.warn "Source #{normalized} was not found"
 
-
-
   show: (normalized, page) ->
     page = parseInt(page || 1, 10)
     normalized = decodeURIComponent(normalized)
+    @clear_current_feeds()
     source = Sources.find('normalized', normalized)
     @logger.info("Show: #{normalized} source is exist? #{source != null}")
     # TODO do not fetch from server render feeds if already present
@@ -85,50 +104,13 @@ SourcesController =
     if source
       @change_count(-source.count())
       Sources.remove(source)
+      $("#source-overview-#{source.id()}").remove()
+      Sirius.redirect("/show/all")
 
   edit: (e, id) ->
     @logger.info("update #{id} source")
     source = Sources.find('id', id)
-    if source
-      hidden_class = "uk-hidden"
-      el = "span#source-name-#{source.id()}"
-
-      view = new Sirius.View(el)
-      view.render(hidden_class).zoom("span").add_class()
-      view.render(hidden_class).zoom("input").remove_class()
-#      view.render(hidden_class).zoom("td button").remove_class()
-#
-#      to_view_transformer = Sirius.Transformer.draw({
-#        'name': {
-#          to: 'span.source-name'
-#        },
-#        'interval': {
-#          to: 'span.source-interval'
-#        }
-#      })
-#
-#      source.bind(view, to_view_transformer)
-#
-#      to_model_transformer = Sirius.Transformer.draw({
-#        "input[name='name']": {
-#          to: 'name'
-#        },
-#        "input[name='interval']": {
-#          to: 'interval'
-#        }
-#      })
-#
-#      view.bind(source, to_model_transformer)
-#      view.on "button", "click", (e) ->
-#        ajax.update_source source.id(), source.ajaxify(),
-#          (s) ->
-#            logger.info("update source #{source.id()}")
-#            view.render(hidden_class).zoom("td input").add_class()
-#            view.render(hidden_class).zoom("td button").add_class()
-#            view.render(hidden_class).zoom("td > span").remove_class()
-#            view.render(hidden_class).zoom("td a.source-link").remove_class()
-#        (e) ->
-#            logger.error("error on update source: #{e}")
+    # TODO
 
   mark_by_click_on_count_button: (e, id) ->
     id = parseInt(id, 10)

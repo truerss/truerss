@@ -258,6 +258,8 @@ ControllerExt =
       page_url: start_page_name
     options
 
+  clean_main_page: () ->
+    Templates.article_view.render("").swap()
 
   render_feeds: (feeds, current_page, start_page_name) ->
     is_short_view = @_is_short_view_enabled()
