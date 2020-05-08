@@ -4,7 +4,7 @@ import java.io.File
 import java.util.concurrent.Executors
 
 import org.specs2.mutable.SpecificationLike
-import org.specs2.specification.BeforeAfterAll
+import org.specs2.specification.{BeforeAfterAll, BeforeAfterEach}
 import slick.jdbc.JdbcBackend
 import truerss.db.{DbLayer, Source}
 import truerss.db.driver.{CurrentDriver, DBProfile, Sqlite, TableNames}
@@ -28,7 +28,7 @@ trait FullDbHelper extends SpecificationLike with BeforeAfterAll {
 
   private implicit lazy val driver = CurrentDriver(dbProfile.profile, TableNames.withPrefix(dbName))
 
-  lazy val dbLayer: DbLayer = new DbLayer(db, driver)(ExecutionContext.fromExecutor(Executors.newFixedThreadPool(1)))
+  lazy val dbLayer: DbLayer = DbLayer(db, driver)(ExecutionContext.fromExecutor(Executors.newFixedThreadPool(1)))
 
   import driver.profile.api._
 
@@ -37,7 +37,6 @@ trait FullDbHelper extends SpecificationLike with BeforeAfterAll {
       driver.query.predefinedSettings.schema ++
       driver.query.userSettings.schema).create
   }
-
 
   override def beforeAll = {
     Await.result(tables, initTime)

@@ -39,7 +39,15 @@ class SourceDaoTest(implicit ee: ExecutionEnv) extends FullDbHelper
       val source = Gen.genSource()
       val id = insert(source)
 
-      sourceDao.findOne(id) must beSome(source.copy(id = Some(id))).await
+      sourceDao.findOne(id).map { x =>
+        x must beSome
+
+        val result = x.get
+
+        result.url ==== source.url
+        result.name ==== source.name
+        result.state ==== source.state
+      }
 
       sourceDao.findOne(10000L) must beNone.await
     }
@@ -71,7 +79,7 @@ class SourceDaoTest(implicit ee: ExecutionEnv) extends FullDbHelper
 
     "update last date" in {
       val id = a(sourceDao.insert(Gen.genSource()))
-      val date = LocalDateTime.now(ZoneOffset.UTC)
+      val date = Gen.now
 
       sourceDao.updateLastUpdateDate(id, date) must be_==(1).await
 

@@ -19,9 +19,10 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
   object DateSupport {
     implicit val javaTimeMapper: JdbcType[LocalDateTime] =
       MappedColumnType.base[LocalDateTime, Long](
-        d => d.toInstant(ZoneOffset.UTC).getEpochSecond,
+        d => d.withNano(0).toInstant(ZoneOffset.UTC).getEpochSecond,
         d =>
           LocalDateTime.ofInstant(Instant.ofEpochSecond(d), ZoneOffset.UTC)
+            .withNano(0)
       )
   }
 

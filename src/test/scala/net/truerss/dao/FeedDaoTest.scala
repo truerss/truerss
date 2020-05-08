@@ -81,7 +81,9 @@ class FeedDaoTest(implicit ee: ExecutionEnv)
 
     "page for source" in new FeedsSpec(10) {
       val n = feeds.sortBy(_.publishedDate).reverse.slice(7, 100)
-      feedDao.pageForSource(id, 7, 100) must contain(allOf(n : _*)).await
+      feedDao.pageForSource(id, 7, 100).map { xs =>
+        xs.flatMap(_.id)
+      } must contain(allOf(n.flatMap(_.id) : _*)).await
     }
 
     "favorites" in new FeedsSpec(3) {
@@ -143,8 +145,9 @@ class FeedDaoTest(implicit ee: ExecutionEnv)
 
     val ids = scala.collection.mutable.ArrayBuffer[Long]()
 
-    val feeds = (0 until count).map { _ =>
+    val feeds = (0 until count).map { index =>
       val feed = Gen.genFeed(id, source.url)
+        .copy(publishedDate = Gen.now.plusDays(index))
       val tmpId = insertFeed(feed)
       ids += tmpId
       feed.copy(id = Some(tmpId))

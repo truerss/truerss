@@ -29,6 +29,8 @@ $ ->
     "/show/all": controller: SourcesController, action: "show_all"
     "/show/sources/:source-name" : controller: SourcesController, action: "show"
     "/show/sources/:source-name/page/:page" : controller: SourcesController, action: "show", after: () -> scroll_to_top()
+    "/show/sources/:source-name/all": controller: SourcesController, action: "show_all_in_source"
+    "/show/sources/:source-name/all/page/:page": controller: SourcesController, action: "show_all_in_source", after: () -> scroll_to_top()
     "/show/feeds/content/:feed": controller: FeedsController, action: "view_content"
     "/search/page/:page": controller: SearchController, action: "show", after: () -> scroll_to_top()
     "/settings" : controller: SettingsController, action: "show"

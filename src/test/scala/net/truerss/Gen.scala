@@ -11,6 +11,8 @@ object Gen {
 
   def genId = UUID.randomUUID().toString
 
+  def now: LocalDateTime = LocalDateTime.now().withNano(0)
+
   def genName(xs: Vector[String]): String = {
     val name: String = genName
     if (xs.contains(name))
@@ -69,7 +71,7 @@ object Gen {
       interval = genInt,
       state = SourceStates.Neutral,
       normalized = name.normalize,
-      lastUpdate = z.plusDays(1)
+      lastUpdate = now.plusDays(1)
     )
   }
 
@@ -82,7 +84,7 @@ object Gen {
       interval = genInt,
       state = SourceStates.Neutral,
       normalized = n.normalize,
-      lastUpdate = LocalDateTime.now()
+      lastUpdate = now
     )
   }
 
@@ -94,7 +96,7 @@ object Gen {
       url = s"$sourceUrl/feed/$genId",
       title = title,
       author = genAuthor,
-      publishedDate = LocalDateTime.now(),
+      publishedDate = now,
       description = Some(genText),
       content = None,
       normalized = title.normalize,
@@ -111,7 +113,7 @@ object Gen {
       url = genUrl,
       title = Gen.genName,
       author = Gen.genName,
-      publishedDate = LocalDateTime.now(),
+      publishedDate = now,
       description = None,
       content = None,
       normalized = Gen.genName

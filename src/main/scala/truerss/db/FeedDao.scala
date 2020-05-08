@@ -83,6 +83,7 @@ class FeedDao(val db: DatabaseDef)(implicit
         .sortBy(_.publishedDate.desc)
         .drop(from)
         .take(limit)
+        .sortBy(_.publishedDate)
         .result
     }
   }

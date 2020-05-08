@@ -3,45 +3,36 @@ SourcesController =
 
   logger: Sirius.Application.get_logger("SourcesController")
 
-  reload: () ->
-    ajax.sources_all (sources) =>
-      # just active. see @SearchController
-      for source in sources
-        x = Sources.find('id', source.id())
-        if x?
-          x.count(source.count())
-          x.feeds([])
-          x.active(true)
-        else
-          Sources.add(x)
-
-  load: () ->
-    ajax.sources_all (sources) =>
-      @logger.info("load #{sources.length} sources")
-      sources = sources.sort (a, b) -> parseInt(a.count()) - parseInt(b.count())
-
-      sources.forEach((x) -> Sources.add(x))
-
-      unless sources.is_empty()
-        sxs = Sources.all().filter (s) -> s.count() > 0
-        @logger.info "redirect to"
-        if sxs[0]
-          source = sxs[0]
-          #TODO redirect(source.href())
-        else
-          #TODO redirect(Sources.first().href())
-
   show_all: (page) ->
     page = parseInt(page || 1, 10)
     sources = Sources.all().sort (a, b) -> parseInt(a.count()) - parseInt(b.count())
 
     Sirius.redirect(sources[0].href())
 
+  show_all_in_source: (normalized, page) ->
+    page = parseInt(page || 1, 10)
+    normalized = decodeURIComponent(normalized)
+    source = Sources.find('normalized', normalized)
+
+    if source?
+      ajax.get_feeds source.id(),
+        (feeds) =>
+          source.feeds([])
+          source.add_feeds(feeds)
+          @_process_feeds(source, source.feeds(), page, true, true)
+
+        (err) =>
+          @logger.warn "Unexpected error: #{JSON.stringify(err)}"
+
+    else
+      @logger.warn "Source #{normalized} was not found"
+
+
 
   show: (normalized, page) ->
     page = parseInt(page || 1, 10)
     normalized = decodeURIComponent(normalized)
-    source = Sources.takeFirst (s) -> s.normalized() == normalized
+    source = Sources.find('normalized', normalized)
     @logger.info("Show: #{normalized} source is exist? #{source != null}")
     # TODO do not fetch from server render feeds if already present
     if source?
@@ -52,7 +43,6 @@ SourcesController =
         ajax.get_unread source.id(), (feeds) =>
           @logger.info("Load from source: #{source.id()}, #{feeds.length} feeds")
           source.reset('feeds')
-          feeds = feeds.map((x) -> Feed.create(x))
           source.add_feeds(feeds)
 
           @_process_feeds(source, feeds, page, true)
@@ -60,7 +50,7 @@ SourcesController =
     else
       @logger.warn "source: #{normalized} does not exist"
 
-  _process_feeds: (source, feeds, page, reset_count) ->
+  _process_feeds: (source, feeds, page, reset_count, is_loaded_all = false) ->
     ajax.get_source_overview source.id(), (overview) =>
       source.favorites_count(overview.favoritesCount)
 
@@ -70,15 +60,16 @@ SourcesController =
         @change_count(diff)
         source.count(overview.unreadCount)
 
+      overview.is_loaded_all = is_loaded_all
+
       if feeds.length > 0
-        render_source_feeds_and_redirect_to_first(source, page, source.normalized(), overview)
+        render_feeds_and_source_overview(source, page, overview)
       else
         # if not unread
         ajax.get_feeds source.id(), (feeds) ->
-          feeds = feeds.map ((x) -> Feed.create(x))
           source.add_feeds(feeds)
 
-          render_source_feeds_and_redirect_to_first(source, page, source.normalized(), overview)
+          render_feeds_and_source_overview(source, page, overview)
 
   refresh_all: (e) ->
     ajax.refresh_all()
@@ -94,9 +85,6 @@ SourcesController =
     if source
       @change_count(-source.count())
       Sources.remove(source)
-      # TODO current table. does sirius do it?
-      jQuery("#all-sources tr.source-#{id}").remove()
-
 
   edit: (e, id) ->
     @logger.info("update #{id} source")
@@ -174,3 +162,31 @@ SourcesController =
       .zoom("#source-count-all")
       .render(count)
       .sum()
+
+  reload: () ->
+    ajax.sources_all (sources) =>
+      # just active. see @SearchController
+      for source in sources
+        x = Sources.find('id', source.id())
+        if x?
+          x.count(source.count())
+          x.feeds([])
+          x.active(true)
+        else
+          Sources.add(x)
+
+  load: () ->
+    ajax.sources_all (sources) =>
+      @logger.info("load #{sources.length} sources")
+      sources = sources.sort (a, b) -> parseInt(a.count()) - parseInt(b.count())
+
+      sources.forEach((x) -> Sources.add(x))
+
+      unless sources.is_empty()
+        sxs = Sources.all().filter (s) -> s.count() > 0
+        @logger.info "redirect to"
+        if sxs[0]
+          source = sxs[0]
+#TODO redirect(source.href())
+        else
+#TODO redirect(Sources.first().href())

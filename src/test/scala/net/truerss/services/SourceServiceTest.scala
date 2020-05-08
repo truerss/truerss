@@ -17,6 +17,8 @@ class SourceServiceTest(implicit ee: ExecutionEnv)
 
   override def dbName: String = "source_service_test"
 
+  private val time = 3 seconds
+
   import FeedSourceDtoModelImplicits._
 
   sequential
@@ -46,15 +48,14 @@ class SourceServiceTest(implicit ee: ExecutionEnv)
       result.map { xs =>
         xs.size ==== 2
         xs.map(_.name) must contain(allOf(sx.map(_.name).toSeq : _*))
-      }.await
+      }.await(3, time)
 
-      service.getAllForOpml.map(_.size ==== 2).await
+      service.getAllForOpml.map(_.size ==== 2).await(3, time)
     }
 
     "get source by id" in {
       val source = Gen.genSource()
       val id = insert(source)
-      println(s"-------------------------------> ${id}")
       val result = a(service.getSource(id))
       result must beSome(source.withId(id).toView)
     }
@@ -85,10 +86,10 @@ class SourceServiceTest(implicit ee: ExecutionEnv)
 
       val feedId = a(dbLayer.feedDao.insert(feed))
 
-      service.delete(id).map(_ must beSome).await(3, 3 seconds)
+      service.delete(id).map(_ must beSome).await(3, time)
 
       service.getSource(id).map(_ must beNone).await
-      dbLayer.feedDao.findBySource(feedId).map(_ must have size 0).await
+      dbLayer.feedDao.findBySource(feedId).map(_ must have size 0).await(3, time)
     }
 
     "add source" in {

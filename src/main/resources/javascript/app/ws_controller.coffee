@@ -14,7 +14,7 @@ WSController =
         else
           if state.isState(States.Source) || state.isState(States.Feed)
             if sources && sources.get() && sources.get() == source.id()
-              render_source_feeds_and_redirect_to_first(source)
+              render_feeds_and_source_overview(source)
 
 
         UIkit.notify

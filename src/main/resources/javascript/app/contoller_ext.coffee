@@ -26,7 +26,11 @@ class AjaxService
     )
 
   get_unread: (sourceId, success) ->
-    @_get("#{@sources_api}/unread/#{sourceId}", success, @k)
+    @_get(
+      "#{@sources_api}/unread/#{sourceId}",
+      (response) -> success(response.map((x) -> Feed.create(x))),
+      @k
+    )
 
   latest: (count, success, error) ->
     @_get("#{@sources_api}/latest/#{count}", success, error)
@@ -38,7 +42,11 @@ class AjaxService
     @_put("#{@sources_api}/refresh", @k , @k)
 
   get_feeds: (source_id, success, error) ->
-    @_get("#{@sources_api}/feeds/#{source_id}", success, error)
+    @_get(
+      "#{@sources_api}/feeds/#{source_id}",
+      (response) -> success(response.map((x) -> Feed.create(x))),
+      error
+    )
 
   refresh_one: (num, success, error) ->
     @_put("#{@sources_api}/refresh/#{num}", {}, @k, @k)
@@ -138,43 +146,6 @@ class AjaxService
       error : error
 
 
-States =
-  Main: 0
-  Sources: 1
-  Plugins: 2
-  Favorites: 3
-  About: 4
-  Plugins: 5
-  List: 6
-  Source: 7
-  Feed: 8
-  Settings: 9
-
-class Steps
-  constructor: (state = States.Main) ->
-    @_supported = Object.keys(States).map (k) -> States[k]
-    @_swap = {}
-    for k, v of States
-      @_swap[v] = k
-    @_state = @_swap[state]
-
-  set: (state) ->
-    if @_supported.indexOf(state) == -1
-      alert("Unexpected state: #{state}, supported: #{@_supported}")
-    else
-      @_state = @_swap[state]
-
-  to: (state) -> @set(state)
-  current: () -> @_state
-  get: () -> @current()
-
-  hasState: (state) ->
-    @_swap[state] is @_state
-
-  isState: (state) ->
-    @_swap[state] is @_state
-
-
 `
 // source http://stackoverflow.com/a/5639455/1581531
 (function(){
@@ -198,24 +169,9 @@ class Steps
 })();
 `
 
-class GlobalStateService
-  constructor: () ->
-    @current = null
-  set: (id) ->
-    @current = id
-    return
-  is_empty: () -> @current is null
-  get: () -> @current
-  clear: () ->
-    @current = null
-    return
-
 
 ControllerExt =
   ajax: new AjaxService()
-  state: new Steps()
-  posts: new GlobalStateService()
-  sources: new GlobalStateService()
 
   scroll_to_top: () ->
     $('html,body').animate({scrollTop: 0}, 1000);
@@ -225,6 +181,7 @@ ControllerExt =
       + window.location.search)
 
   read_cookie: window.readCookie
+
   delete_cookie: (cn) ->
     document.cookie = cn + '=; Path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;'
 
@@ -315,8 +272,12 @@ ControllerExt =
 
     Templates.article_view.render(result).html()
 
-  render_source_feeds_and_redirect_to_first: (source, current_page, source_name_normalized, overview) ->
-    @render_feeds(source.feeds(), current_page, "/show/sources/#{source_name_normalized}")
+  render_feeds_and_source_overview: (source, current_page, overview) ->
+    href = if overview.is_loaded_all
+      source.href_all()
+    else
+      source.href()
+    @render_feeds(source.feeds(), current_page, href)
 
     if source.feeds().length > 0
       1

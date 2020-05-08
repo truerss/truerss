@@ -33,7 +33,7 @@ object Util {
 
   implicit class LocalDateExt(ld: LocalDateTime) {
     def toDate: Date = {
-      Date.from(ld.atZone(ZoneId.systemDefault()).toInstant)
+      Date.from(ld.atZone(ZoneOffset.UTC).toInstant)
     }
   }
 
