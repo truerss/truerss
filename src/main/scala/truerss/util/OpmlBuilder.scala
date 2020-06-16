@@ -16,8 +16,7 @@ object OpmlBuilder {
           |<opml version="1.0">
           |<head>TrueRSS Feed List Export</head>
           |<body>
-          |<outline title="$exportText" text="$exportText" description="$exportText
-" type="folder">
+          |<outline title="$exportText" text="$exportText" description="$exportText" type="folder">
           |$outlines
           |</outline>
           |</body>

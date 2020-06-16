@@ -3,7 +3,7 @@ package truerss.dto
 import java.time.LocalDateTime
 import java.util.Date
 
-import truerss.db.SourceState
+import truerss.db.{SourceState, SourceStates}
 
 
 sealed trait SourceDto {
@@ -34,6 +34,10 @@ case class SourceViewDto(id: Long,
                          lastUpdate: LocalDateTime,
                          count: Int = 0) {
   def recount(x: Int): SourceViewDto = copy(count = x)
+
+  def isEnabled: Boolean = {
+    state != SourceStates.Disable
+  }
 }
 
 case class NewSourceFromFileWithErrors(url: String, name: String, errors: Iterable[String])

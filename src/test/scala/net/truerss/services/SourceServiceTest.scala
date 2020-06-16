@@ -15,9 +15,9 @@ import scala.concurrent.duration._
 class SourceServiceTest(implicit ee: ExecutionEnv)
   extends FullDbHelper with SpecificationLike {
 
-  override def dbName: String = "source_service_test"
+  import net.truerss.FutureTestExt._
 
-  private val time = 3 seconds
+  override def dbName: String = "source_service_test"
 
   import FeedSourceDtoModelImplicits._
 
@@ -42,41 +42,34 @@ class SourceServiceTest(implicit ee: ExecutionEnv)
       val source1 = Gen.genSource()
       val source2 = Gen.genSource()
       val sx = Iterable(source1, source2)
-      dao.insertMany(sx)
+      dao.insertMany(sx) ~> { _ => success }
 
-      val result = service.getAll
-      result.map { xs =>
+      service.getAll ~> { xs =>
         xs.size ==== 2
         xs.map(_.name) must contain(allOf(sx.map(_.name).toSeq : _*))
-      }.await(3, time)
+      }
 
-      service.getAllForOpml.map(_.size ==== 2).await(3, time)
+      service.getAllForOpml ~> {_.size ==== 2}
     }
 
     "get source by id" in {
       val source = Gen.genSource()
       val id = insert(source)
-      val result = a(service.getSource(id))
-      result must beSome(source.withId(id).toView)
+      service.getSource(id) ~> { _ must beSome(source.withId(id).toView) }
     }
 
     "mark as read" in {
       val source = Gen.genSource()
       val id = insert(source)
-      val feed = Gen.genFeed(id, source.url)
+      val feed = Gen.genFeed(id, source.url).copy(read = false)
 
-      feed.read must beFalse
-
-      val feedId = a(dbLayer.feedDao.insert(feed))
-
-      service.markAsRead(id).map(_ must beSome).await
-
-      w
-
-      dbLayer.feedDao.findOne(feedId).map { x =>
-        x must beSome
-        x.get.read must beTrue
-      }.await
+      dbLayer.feedDao.insert(feed) ~> { feedId =>
+        service.markAsRead(id) ~> {_ must beSome }
+        dbLayer.feedDao.findOne(feedId) ~> { x =>
+          x must beSome
+          x.get.read must beTrue
+        }
+      }
     }
 
     "delete source: should delete feeds and source" in {
@@ -86,16 +79,16 @@ class SourceServiceTest(implicit ee: ExecutionEnv)
 
       val feedId = a(dbLayer.feedDao.insert(feed))
 
-      service.delete(id).map(_ must beSome).await(3, time)
+      service.delete(id) ~> (_ must beSome)
 
-      service.getSource(id).map(_ must beNone).await
-      dbLayer.feedDao.findBySource(feedId).map(_ must have size 0).await(3, time)
+      service.getSource(id) ~> (_ must beNone)
+      dbLayer.feedDao.findBySource(feedId) ~> (_ must have size 0)
     }
 
     "add source" in {
       val source = Gen.genNewSource
 
-      service.addSource(source).map(_ must beRight).await
+      service.addSource(source) ~> (_ must beRight)
     }
 
     "update source" in {
@@ -110,7 +103,7 @@ class SourceServiceTest(implicit ee: ExecutionEnv)
         name = newName,
         interval = interval
       )
-      service.updateSource(id, dto).map { x =>
+      service.updateSource(id, dto) ~> { x =>
         x must beRight
 
         val z = x.toOption.get
@@ -119,7 +112,7 @@ class SourceServiceTest(implicit ee: ExecutionEnv)
         z.url ==== url
         z.interval ==== interval
 
-      }.await
+      }
     }
   }
 

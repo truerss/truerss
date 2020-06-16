@@ -1,21 +1,17 @@
 package net.truerss.dao
 
-import java.time.{LocalDateTime, ZoneId, ZoneOffset}
-import java.util.Date
-
 import net.truerss.Gen
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mutable.SpecificationLike
 import org.specs2.specification.BeforeAfterAll
 import truerss.db.{SourceState, SourceStates}
-import truerss.services.SourceOverviewService
 
 import scala.concurrent.duration._
 
 class SourceDaoTest(implicit ee: ExecutionEnv) extends FullDbHelper
   with SpecificationLike with BeforeAfterAll {
 
-  import SourceOverviewService._
+  import net.truerss.FutureTestExt._
 
   override def dbName = "source_dao_spec"
 
@@ -25,21 +21,20 @@ class SourceDaoTest(implicit ee: ExecutionEnv) extends FullDbHelper
 
   val sourceDao = dbLayer.sourceDao
 
-  section("dao")
   "source dao" should {
     "return all sources in db" in {
-      sourceDao.all must empty.await
+      sourceDao.all ~> { _ must empty }
 
-      sourceDao.insert(Gen.genSource()) must be_>(0L).await
+      sourceDao.insert(Gen.genSource()) ~> { _ must be_>(0L) }
 
-      sourceDao.all must not be empty.await
+      sourceDao.all ~> { _ must not be empty }
     }
 
     "find one source" in {
       val source = Gen.genSource()
       val id = insert(source)
 
-      sourceDao.findOne(id).map { x =>
+      sourceDao.findOne(id) ~> { x =>
         x must beSome
 
         val result = x.get
@@ -49,15 +44,14 @@ class SourceDaoTest(implicit ee: ExecutionEnv) extends FullDbHelper
         result.state ==== source.state
       }
 
-      sourceDao.findOne(10000L) must beNone.await
+      sourceDao.findOne(10000L) ~> { _ must beNone }
     }
 
     "delete source" in {
       val id = a(sourceDao.insert(Gen.genSource()))
-      println(s"===> delete id:$id")
-      sourceDao.delete(id) must be_==(1).await
+      sourceDao.delete(id) ~> { _ must be_==(1) }
 
-      sourceDao.findOne(id) must beNone.await
+      sourceDao.findOne(id) ~> { _ must beNone }
     }
 
     "update source" in {
@@ -72,30 +66,30 @@ class SourceDaoTest(implicit ee: ExecutionEnv) extends FullDbHelper
         url = newUrl
       )
 
-      sourceDao.updateSource(updSource) must be_==(1).await
+      sourceDao.updateSource(updSource) ~> { _ must be_==(1) }
 
-      sourceDao.findOne(id) must beSome(updSource).await
+      sourceDao.findOne(id) ~> { _ must beSome(updSource) }
     }
 
     "update last date" in {
       val id = a(sourceDao.insert(Gen.genSource()))
       val date = Gen.now
 
-      sourceDao.updateLastUpdateDate(id, date) must be_==(1).await
+      sourceDao.updateLastUpdateDate(id, date) ~> { _ must be_==(1) }
 
-      sourceDao.findOne(id).map(s => s.map(_.lastUpdate)) must beSome(date).await
+      sourceDao.findOne(id).map(s => s.map(_.lastUpdate)) ~> { _ must beSome(date) }
 
       // when source missed
-      sourceDao.updateLastUpdateDate(10000L, date) must be_==(0).await
+      sourceDao.updateLastUpdateDate(10000L, date) ~> { _ must be_==(0) }
     }
 
     "update state" in {
       val id = a(sourceDao.insert(Gen.genSource()))
       val state: SourceState = SourceStates.Enable
 
-      sourceDao.updateState(id, state) must be_==(1).await
+      sourceDao.updateState(id, state) ~> { _ must be_==(1) }
 
-      sourceDao.findOne(id).map(s => s.map(_.state)) must beSome(state).await
+      sourceDao.findOne(id).map(s => s.map(_.state)) ~> { _ must beSome(state) }
     }
 
     "find source by url" in {
@@ -103,12 +97,12 @@ class SourceDaoTest(implicit ee: ExecutionEnv) extends FullDbHelper
       val id = insert(source)
 
       val source1 = source
-      val id1 = insert(source1)
+      val _ = insert(source1)
 
       // when `id` is present
-      sourceDao.findByUrl(source.url, Some(id)) must be_==(1).await
+      sourceDao.findByUrl(source.url, Some(id)) ~> { _ must be_==(1) }
       // when `id` is missed
-      sourceDao.findByUrl(source.url, None) must be_==(2).await
+      sourceDao.findByUrl(source.url, None) ~> { _ must be_==(2) }
     }
 
     "find by name" in {
@@ -116,12 +110,12 @@ class SourceDaoTest(implicit ee: ExecutionEnv) extends FullDbHelper
       val id = insert(source)
 
       val source1 = source
-      val id1 = insert(source1)
+      val _ = insert(source1)
 
       // when `id` is present
-      sourceDao.findByName(source.name, Some(id)) must be_==(1).await
+      sourceDao.findByName(source.name, Some(id)) ~> { _ must be_==(1) }
       // when `id` is missed
-      sourceDao.findByName(source.name, None) must be_==(2).await
+      sourceDao.findByName(source.name, None) ~> { _ must be_==(2) }
     }
 
   }

@@ -10,6 +10,8 @@ import truerss.services.FeedsService
 class FeedsServiceTest(implicit ee: ExecutionEnv)
   extends FullDbHelper with SpecificationLike {
 
+  import net.truerss.FutureTestExt._
+
   override def dbName = "feeds_service_test"
 
   sequential
@@ -23,54 +25,38 @@ class FeedsServiceTest(implicit ee: ExecutionEnv)
       val f = Gen.genFeed(sourceId, Gen.genUrl).copy(read = false)
       val feedId = a(dao.insert(f))
 
-      service.markAllAsRead.map(_ ==== 1).await
+      service.markAllAsRead ~> { _ ==== 1 }
 
-      dao.findOne(feedId).map { x =>
+      dao.findOne(feedId) ~> { x =>
         x must beSome
         x.get.read must beTrue
-      }.await
+      }
     }
 
     "add/remove ~ favorites" in new MyTest {
       val f = Gen.genFeed(sourceId, Gen.genUrl).copy(favorite = false)
       val feedId = a(dao.insert(f))
 
-      service.addToFavorites(feedId)
+      service.addToFavorites(feedId) ~> { x => x must beSome }
 
-      w
+      dao.findOne(feedId) ~> { x => x.get.favorite must beTrue }
 
-      dao.findOne(feedId).map { x =>
-        x.get.favorite must beTrue
-      }.await
+      service.removeFromFavorites(feedId) ~> { x => x must beSome }
 
-      service.removeFromFavorites(feedId)
-
-      w
-
-      dao.findOne(feedId).map { x =>
-        x.get.favorite must beFalse
-      }.await
+      dao.findOne(feedId) ~> { x => x.get.favorite must beFalse }
     }
 
     "mark/unmark ~ read" in new MyTest {
       val f = Gen.genFeed(sourceId, Gen.genUrl).copy(read = false)
       val feedId = a(dao.insert(f))
 
-      service.markAsRead(feedId)
+      service.markAsRead(feedId) ~> { x => x must beSome }
 
-      w
+      dao.findOne(feedId) ~> { x => x.get.read must beTrue }
 
-      dao.findOne(feedId).map { x =>
-        x.get.read must beTrue
-      }.await
+      service.markAsUnread(feedId) ~> { x => x must beSome }
 
-      service.markAsUnread(feedId)
-
-      w
-
-      dao.findOne(feedId).map { x =>
-        x.get.read must beFalse
-      }.await
+      dao.findOne(feedId) ~> { x => x.get.read must beFalse }
     }
 
     "find all unread, find by source, favorites" in new MyTest {
@@ -84,27 +70,27 @@ class FeedsServiceTest(implicit ee: ExecutionEnv)
       val id3 = a(dao.insert(f3))
       val id4 = a(dao.insert(f4))
 
-      service.findUnread(sourceId).map { xs =>
+      service.findUnread(sourceId) ~> { xs =>
         xs must have size 3
-        xs.map(_.id) must contain(allOf(id1, id3, id4))
+        xs.map(_.id) must contain(exactly(id1, id3, id4))
       }
 
-      service.findBySource(sourceId, 0, 1).map { tpl =>
+      service.findBySource(sourceId, false, 0, 1) ~> { tpl =>
         val xs = tpl._1
         xs must have size 1
         tpl._2 ==== 4
-      }.await
+      }
 
-      service.findBySource(sourceId, 10, 1).map { tpl =>
+      service.findBySource(sourceId, false, 10, 1) ~> { tpl =>
         val xs = tpl._1
         xs must be empty
 
         tpl._2 ==== 4
-      }.await
+      }
 
-      service.favorites.map { xs =>
+      service.favorites ~> { xs =>
         xs must have size 3
-        xs.map(_.id) must contain(allOf(id1, id3, id4))
+        xs.map(_.id) must contain(exactly(id1, id3, id4))
       }
     }
   }

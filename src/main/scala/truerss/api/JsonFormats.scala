@@ -195,4 +195,19 @@ object JsonFormats {
 
   implicit val searchRequestFormat: Format[SearchRequest] = Json.format[SearchRequest]
 
+
+
+  implicit def pageWriter[T](implicit f: Writes[T]): Writes[Page[T]] = new Writes[Page[T]] {
+    override def writes(o: Page[T]): JsValue = {
+      JsObject(
+        Seq(
+          "total" -> JsNumber(o.total),
+          "resources" -> JsArray(o.resources.map(x => f.writes(x)).toSeq)
+        )
+      )
+    }
+  }
+
+  implicit val pageFeedsWriter = pageWriter[FeedDto]
+
 }

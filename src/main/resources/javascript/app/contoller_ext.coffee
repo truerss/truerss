@@ -43,7 +43,14 @@ class AjaxService
 
   get_feeds: (source_id, success, error) ->
     @_get(
-      "#{@sources_api}/feeds/#{source_id}",
+      "#{@sources_api}/#{source_id}/feeds",
+      (response) -> success(response.map((x) -> Feed.create(x))),
+      error
+    )
+
+  get_page_of_feeds: (source_id, offset, limit, unread_only, success, error) ->
+    @_get(
+      "#{@sources_api}/#{source_id}/feeds?offset=#{offset}&limit=#{limit}&unreadOnly=#{unread_only}",
       (response) -> success(response.map((x) -> Feed.create(x))),
       error
     )

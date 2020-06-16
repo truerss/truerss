@@ -36,7 +36,7 @@ object Boot extends App {
       val searchService = new SearchService(dbLayer)
 
       val stream = system.eventStream
-
+      // todo pass custom executor
       val opmlManagement = new OpmlManagement(opmlService, sourcesService, stream)
       val sourcesManagement = new SourcesManagement(sourcesService,
         opmlService, sourceOverviewService, stream)
@@ -61,7 +61,8 @@ object Boot extends App {
         wsPort = actualConfig.wsPort
       )
 
-      Http().bindAndHandle(endpoint.route,
+      Http().bindAndHandle(
+        endpoint.route,
         actualConfig.host,
         actualConfig.port
       ).foreach { _ =>

@@ -24,7 +24,7 @@ class DefaultSiteReader(config: Config)
 
   import Errors._
 
-  implicit def exception2error(x: Throwable) = x match {
+  implicit def exception2error(x: Throwable): Either[Error, Nothing] = x match {
     case x: RuntimeException => ConnectionError(x.getMessage).left
     case x: Exception => UnexpectedError(x.getMessage).left
   }
@@ -34,13 +34,13 @@ class DefaultSiteReader(config: Config)
   override val pluginName = "Default"
   override val version = "0.0.3"
   override val contentType = Text
-  override val contentTypeParam = ContentTypeParam.URL
+  override val contentTypeParam: ContentTypeParam.URL.type = ContentTypeParam.URL
 
-  override val priority = -1
+  override val priority: Int = -1
 
   override def matchUrl(url: URL) = true
 
-  override def newEntries(url: String) = {
+  override def newEntries(url: String): Error \/ Vector[Entry] = {
     catching(classOf[Exception]) either extract(url) fold(
       err => {
         logger.error(s"new entries error -> $url", err)
@@ -95,7 +95,7 @@ class DefaultSiteReader(config: Config)
     }
   }
 
-  override def content(urlOrContent: ContentTypeParam.RequestParam) = {
+  override def content(urlOrContent: ContentTypeParam.RequestParam): Error \/ Option[String] = {
     urlOrContent match {
       case UrlRequest(url) =>
         catching(classOf[Exception]) either extractContent(url.toString) fold(

@@ -17,6 +17,7 @@ class FeedDaoTest(implicit ee: ExecutionEnv)
   extends FullDbHelper with SpecificationLike with BeforeAfterAll {
 
   import SourceOverviewService._
+  import net.truerss.FutureTestExt._
 
   override def dbName = "fee_dao_spec"
 
@@ -27,27 +28,35 @@ class FeedDaoTest(implicit ee: ExecutionEnv)
   val feedDao = dbLayer.feedDao
   val sourceDao = dbLayer.sourceDao
 
-  section("feedDao")
   "feed dao" should {
     "find unread" in new FeedsSpec(3) {
-      feedDao.findUnread(id) must contain(atLeast(feeds : _*)).await
-      val feedId = Await.result(feedDao.findBySource(id).map(_.head), duration).id.get
+      feedDao.findUnread(id) ~> { _ must contain(atLeast(feeds : _*)) }
+      feedDao.findBySource(id) ~> { feedOpt =>
+        feedOpt must not be empty
 
-      feedDao.modifyRead(feedId, true) must be_==(1).await
+        val feedId = feedOpt.head.id.get
 
-      feedDao.findUnread(id) must contain(atLeast(feeds.slice(1, 3) : _*)).await
+        feedDao.modifyRead(feedId, true) ~> { _ must be_==(1) }
+        feedDao.findUnread(id) ~> { _ must contain(atLeast(feeds.slice(1, 3) : _*)) }
+      }
     }
 
     "find count" in new FeedsSpec(10) {
-      feedDao.feedCountBySourceId(id) must be_==(10).await
+      feedDao.feedCountBySourceId(id, false) ~> { count =>
+        count must be_==(10)
+
+        feedDao.feedCountBySourceId(id, true) ~> { countUnread =>
+          countUnread !=== 10   // todo
+        }
+      }
     }
 
     "delete feeds" in new FeedsSpec(10) {
-      feedDao.feedCountBySourceId(id) must be_==(10).await
+      feedDao.feedCountBySourceId(id, false) ~> { _ must be_==(10) }
 
-      feedDao.deleteFeedsBySource(id) must be_==(10).await
+      feedDao.deleteFeedsBySource(id) ~> { _ must be_==(10) }
 
-      feedDao.feedCountBySourceId(id) must be_==(0).await
+      feedDao.feedCountBySourceId(id, false) ~> { _ must be_==(0) }
     }
 
     "mark all" in new FeedsSpec(9) {
@@ -56,11 +65,11 @@ class FeedDaoTest(implicit ee: ExecutionEnv)
       insertFeed(Gen.genFeed(anotherSourceId, "some-url"))
 
       // 9 + 1 = 10 + from another specs
-      feedDao.markAll must be_>(10).await
+      feedDao.markAll ~> { _ must be_>(10) }
 
-      feedDao.findUnread(id).map(_.size) must be_==(0).await
+      feedDao.findUnread(id).map(_.size) ~> { _ must be_==(0) }
 
-      feedDao.findUnread(anotherSourceId).map(_.size) must be_==(0).await
+      feedDao.findUnread(anotherSourceId).map(_.size) ~> { _ must be_==(0) }
     }
 
     "mark by source" in new FeedsSpec(10) {
@@ -68,27 +77,27 @@ class FeedDaoTest(implicit ee: ExecutionEnv)
       insertSource(Gen.genSource(Some(anotherSourceId)))
       insertFeed(Gen.genFeed(anotherSourceId, "some-url"))
 
-      feedDao.markBySource(id) must be_==(10).await
+      feedDao.markBySource(id) ~> { _ must be_==(10) }
 
-      feedDao.findUnread(id).map(_.size) must be_==(0).await
+      feedDao.findUnread(id).map(_.size) ~> { _ must be_==(0) }
 
-      feedDao.findUnread(anotherSourceId).map(_.size) must be_==(1).await
+      feedDao.findUnread(anotherSourceId).map(_.size) ~> { _ must be_==(1) }
     }
 
     "last n" in new FeedsSpec(10) {
-      feedDao.lastN(1).map(_.size) must be_==(1).await
+      feedDao.lastN(1).map(_.size) ~> { _ must be_==(1) }
     }
 
     "page for source" in new FeedsSpec(10) {
       val n = feeds.sortBy(_.publishedDate).reverse.slice(7, 100)
-      feedDao.pageForSource(id, 7, 100).map { xs =>
+      feedDao.pageForSource(id, false, 7, 100).map { xs =>
         xs.flatMap(_.id)
-      } must contain(allOf(n.flatMap(_.id) : _*)).await
+      } ~> { _ must contain(allOf(n.flatMap(_.id) : _*)) }
     }
 
     "favorites" in new FeedsSpec(3) {
-      feedDao.modifyFav(ids.head, true) must be_==(1).await
-      feedDao.favorites.map(_.map(_.id)) must contain(feeds.head.id).await
+      feedDao.modifyFav(ids.head, true) ~> { _ must be_==(1) }
+      feedDao.favorites.map(_.map(_.id)) ~> { _ must contain(feeds.head.id) }
     }
 
     "update content" in new FeedsSpec(1) {
@@ -96,13 +105,15 @@ class FeedDaoTest(implicit ee: ExecutionEnv)
 
       val content = "foo bar baz"
 
-      feedDao.updateContent(feedId, content) must be_==(1).await
+      feedDao.updateContent(feedId, content) ~> { _ must be_==(1) }
 
-      feedDao.findOne(feedId).map(x => x.map(_.content)) must beSome(Option(content)).await
+      feedDao.findOne(feedId).map(x => x.map(_.content)) ~> { _ must beSome(Option(content)) }
     }
 
     "feeds by source" in new FeedsSpec(1) {
-      feedDao.feedBySourceCount(false).map{ xs => xs.toMap.get(id).get } must be_==(1).await
+      feedDao.feedBySourceCount(false).map{ xs =>
+        xs.toMap.get(id)
+      } ~> { _ must beSome(1) }
     }
 
     "merge feeds - update old feeds and insert new" in new FeedsSpec(3) {
@@ -128,10 +139,10 @@ class FeedDaoTest(implicit ee: ExecutionEnv)
       )
 
       feedDao.mergeFeeds(id, entry :: newEntry :: Nil)
-        .map(xs => xs.size) must be_==(1).await
+        .map(xs => xs.size) ~> { _ must be_==(1) }
 
       feedDao.findOne(ids.head)
-        .map(x => x.map(_.description)) must beSome(entry.description).await
+        .map(x => x.map(_.description)) ~> { _ must beSome(entry.description) }
     }
 
   }

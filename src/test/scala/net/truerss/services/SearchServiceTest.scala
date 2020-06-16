@@ -8,12 +8,13 @@ import truerss.db.Feed
 import truerss.dto.SearchRequest
 import truerss.services.SearchService
 
-import scala.concurrent.duration._
+import scala.concurrent.Future
 
 class SearchServiceTest(implicit ee: ExecutionEnv)
   extends FullDbHelper with SpecificationLike {
 
   import SearchServiceTest._
+  import net.truerss.FutureTestExt._
 
   override def dbName = "search_service_test"
 
@@ -40,45 +41,42 @@ class SearchServiceTest(implicit ee: ExecutionEnv)
 
   "SearchService" should {
     "find with favorites" in {
-      service.search(SearchRequest(true, "test"))
-        .map(xs => xs.map(_.id))
-          .map { xs => xs must contain(exactly(feedId1)) }.await
+      find(SearchRequest(true, "test")) ~> { xs =>
+        xs must contain(exactly(feedId1))
+      }
 
-      service.search(SearchRequest(true, "ba"))
-        .map(xs => xs.map(_.id))
-        .map { xs => xs must contain(exactly(feedId3)) }.await
+      find(SearchRequest(true, "ba")) ~> { xs =>
+        xs must contain(exactly(feedId3))
+      }
 
-
-      service.search(SearchRequest(true, "foo"))
-        .map(xs => xs.map(_.id))
-        .map { xs =>
-          xs must be empty
-        }.await
-
+      find(SearchRequest(true, "foo")) ~> { xs =>
+        xs must be empty
+      }
     }
 
     "find without favorites" in {
-      service.search(SearchRequest(false, "test"))
-        .map(xs => xs.map(_.id))
-        .map { xs => xs must contain(exactly(feedId1, feedId4)) }.await
+      find(SearchRequest(false, "test")) ~> { xs =>
+        xs must contain(exactly(feedId1, feedId4))
+      }
 
-      service.search(SearchRequest(false, "ba"))
-        .map(xs => xs.map(_.id))
-        .map { xs => xs must contain(exactly(feedId3, feedId4)) }.await
+      find(SearchRequest(false, "ba")) ~> { xs =>
+        xs must contain(exactly(feedId3, feedId4))
+      }
 
 
-      service.search(SearchRequest(false, "foo"))
-        .map(xs => xs.map(_.id))
-        .map { xs =>
-          xs must contain(exactly(feedId2))
-        }.await
+      find(SearchRequest(false, "foo")) ~> { xs =>
+        xs must contain(exactly(feedId2))
+      }
 
-      service.search(SearchRequest(false, "boom"))
-        .map(xs => xs.map(_.id))
-        .map { xs =>
-          xs must be empty
-        }.await
+      find(SearchRequest(false, "boom")) ~> { xs =>
+        xs must be empty
+      }
     }
+  }
+
+  private def find(req: SearchRequest): Future[Vector[Long]] = {
+    service.search(req)
+      .map(xs => xs.map(_.id))
   }
 
 }

@@ -13,12 +13,12 @@ class FeedDao(val db: DatabaseDef)(implicit
 
   import driver.DateSupport._
   import driver.profile.api._
-  import driver.query.feeds
+  import driver.query.{feeds, bySource}
   import truerss.util.Util._
 
   def findUnread(sourceId: Long): Future[Seq[Feed]] = {
     db.run {
-      feeds.filter(_.sourceId === sourceId)
+      bySource(sourceId)
         .filter(_.read === false)
         .sortBy(_.publishedDate.desc)
         .result
@@ -36,17 +36,17 @@ class FeedDao(val db: DatabaseDef)(implicit
     }
   }
 
-  def feedCountBySourceId(sourceId: Long): Future[Int] = {
+  def feedCountBySourceId(sourceId: Long, unreadOnly: Boolean): Future[Int] = {
     db.run {
-      feeds
-        .filter(_.sourceId === sourceId)
+      bySource(sourceId)
+        .filter(_.read inSet getReadValues(unreadOnly))
         .length.result
     }
   }
 
   def deleteFeedsBySource(sourceId: Long): Future[Int] = {
     db.run {
-      feeds.filter(_.sourceId === sourceId).delete
+      bySource(sourceId).delete
     }
   }
 
@@ -61,7 +61,7 @@ class FeedDao(val db: DatabaseDef)(implicit
 
   def markBySource(sourceId: Long): Future[Int] = {
     db.run {
-      feeds.filter(_.sourceId === sourceId)
+      bySource(sourceId)
         .map(f => f.read).update(true)
     }
   }
@@ -76,12 +76,12 @@ class FeedDao(val db: DatabaseDef)(implicit
     }
   }
 
-  def pageForSource(sourceId: Long, from: Int, limit: Int): Future[Seq[Feed]] = {
+  def pageForSource(sourceId: Long, unreadOnly: Boolean, offset: Int, limit: Int): Future[Seq[Feed]] = {
     db.run {
-      feeds
-        .filter(_.sourceId === sourceId)
+      bySource(sourceId)
+        .filter(_.read inSet getReadValues(unreadOnly))
         .sortBy(_.publishedDate.desc)
-        .drop(from)
+        .drop(offset)
         .take(limit)
         .sortBy(_.publishedDate)
         .result
@@ -139,7 +139,7 @@ class FeedDao(val db: DatabaseDef)(implicit
 
   def findBySource(sourceId: Long): Future[Seq[Feed]] = {
     db.run {
-      feeds.filter(_.sourceId === sourceId).result
+      bySource(sourceId).result
     }
   }
 
@@ -160,8 +160,7 @@ class FeedDao(val db: DatabaseDef)(implicit
 
   def mergeFeeds(sourceId: Long, xs: Iterable[Entry]): Future[Seq[Feed]] = {
     val urls = xs.map(_.url)
-    val q = feeds.filter(_.sourceId === sourceId)
-      .filter(_.url inSet urls)
+    val q = bySource(sourceId).filter(_.url inSet urls)
     db.run {
       q.result
     }.flatMap { inDb =>
@@ -190,6 +189,14 @@ class FeedDao(val db: DatabaseDef)(implicit
           .filter(_.url inSet newUrls)
           .result
       }
+    }
+  }
+
+  private def getReadValues(unreadOnly: Boolean): Vector[Boolean] = {
+    if (unreadOnly) {
+      Vector(false)
+    } else {
+      Vector(true, false)
     }
   }
 

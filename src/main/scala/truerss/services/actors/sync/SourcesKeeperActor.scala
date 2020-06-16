@@ -3,9 +3,7 @@ package truerss.services.actors.sync
 import akka.actor.SupervisorStrategy.Resume
 import akka.actor._
 import akka.pattern.pipe
-import akka.util.Timeout
 import org.slf4j.LoggerFactory
-import truerss.db.SourceStates
 import truerss.dto.SourceViewDto
 import truerss.services.{ApplicationPluginsService, SourcesService}
 import truerss.util.TrueRSSConfig
@@ -20,10 +18,7 @@ class SourcesKeeperActor(config: SourcesKeeperActor.SourcesSettings,
   import SourcesKeeperActor._
   import context.dispatcher
 
-  implicit val timeout = Timeout(30 seconds)
-
-  val stream = context.system.eventStream
-  val ticket = new Ticker[ActorRef](config.parallelFeedUpdate)
+  val ticker = new Ticker[ActorRef](config.parallelFeedUpdate)
 
   override val supervisorStrategy = OneForOneStrategy() {
     case x: Throwable =>
@@ -33,12 +28,6 @@ class SourcesKeeperActor(config: SourcesKeeperActor.SourcesSettings,
 
   log.info(s"Feed parallelism: ${config.parallelFeedUpdate}")
 
-  def nextTick = {
-    if (ticket.nonEmpty) {
-      context.system.scheduler.scheduleOnce(15 seconds, self, Tick)
-    }
-  }
-
   override def preStart(): Unit = {
     sourcesService.getAllForOpml.map(Sources) pipeTo self
   }
@@ -46,10 +35,7 @@ class SourcesKeeperActor(config: SourcesKeeperActor.SourcesSettings,
   def uninitialized: Receive = {
     case Sources(xs) =>
       log.info("Start actor per source")
-      xs.filter(_.state match {
-        case SourceStates.Disable => false
-        case _ => true
-      }).foreach(startSourceActor)
+      xs.filter(_.isEnabled).foreach(startSourceActor)
 
       context.become(initialized)
 
@@ -66,7 +52,7 @@ class SourcesKeeperActor(config: SourcesKeeperActor.SourcesSettings,
       context.children.foreach{ _ ! Update }
 
     case UpdateMe(ref) =>
-      ticket.push(ref) match {
+      ticker.push(ref) match {
         case Some(_) =>
           ref ! Update
 
@@ -75,10 +61,10 @@ class SourcesKeeperActor(config: SourcesKeeperActor.SourcesSettings,
       }
 
     case Updated =>
-      ticket.down()
+      ticker.down()
 
     case Tick =>
-      ticket.pop() match {
+      ticker.pop() match {
         case Some(xs) =>
           xs.foreach(_ ! Update)
 
@@ -87,22 +73,23 @@ class SourcesKeeperActor(config: SourcesKeeperActor.SourcesSettings,
       }
 
     case UpdateOne(num) =>
-      ticket.getOne(num).foreach(_ ! Update)
+      ticker.getOne(num).foreach(_ ! Update)
 
     case SourceDeleted(source) =>
       log.info(s"Stop ${source.name} actor")
-      ticket.deleteOne(source.id).foreach { ref =>
+      ticker.deleteOne(source.id).foreach { ref =>
         context.stop(ref)
       }
 
     case ReloadSource(source) =>
-      ticket.deleteOne(source.id).foreach { ref =>
+      ticker.deleteOne(source.id).foreach { ref =>
         context.stop(ref)
       }
       startSourceActor(source)
 
     case x => log.warning(s"Unhandled message $x")
   }
+
 
   def receive: Receive = uninitialized
 
@@ -111,13 +98,21 @@ class SourcesKeeperActor(config: SourcesKeeperActor.SourcesSettings,
     log.info(s"Start source actor for ${source.normalized} -> ${source.id}, state=${source.state}")
     val props = SourceActor.props(source, feedReader)
     val ref = context.actorOf(props)
-    ticket.addOne(source.id, ref)
+    ticker.addOne(source.id, ref)
+  }
+
+  private def nextTick = {
+    if (ticker.nonEmpty) {
+      context.system.scheduler.scheduleOnce(defaultDelay, self, Tick)
+    }
   }
 }
 
 object SourcesKeeperActor {
 
   protected val logger = LoggerFactory.getLogger(getClass)
+
+  private val defaultDelay = 15 seconds
 
   def props(config: SourcesSettings,
             appPluginService: ApplicationPluginsService,

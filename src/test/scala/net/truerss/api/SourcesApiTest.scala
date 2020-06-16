@@ -7,7 +7,7 @@ import akka.http.scaladsl.server.Route
 import net.truerss.Gen
 import play.api.libs.json._
 import truerss.api._
-import truerss.dto.{FeedDto, SourceOverview}
+import truerss.dto.{FeedDto, Page, SourceOverview}
 import truerss.services.management.{FeedSourceDtoModelImplicits, FeedsManagement, OpmlManagement, SourcesManagement}
 import truerss.util.Util.ResponseHelpers
 
@@ -52,7 +52,7 @@ class SourcesApiTest extends BaseApiTest {
   fm.markAll returns f(ResponseHelpers.ok)
   fm.findUnreadBySource(id_200) returns f(FeedsResponse(Vector(unreadFeed)))
   fm.latest(count) returns f(FeedsResponse(Vector(unreadFeed)))
-  fm.fetchBySource(anyLong, anyInt, anyInt) returns f(FeedsResponse(Vector()))
+  fm.fetchBySource(anyLong, anyBoolean, anyInt, anyInt) returns f(FeedsPageResponse(Page.empty[FeedDto]))
 
   om.getOpml returns f(Ok(opml))
   om.createFrom(opml) returns f(ImportResponse(Vector.empty))
@@ -134,10 +134,30 @@ class SourcesApiTest extends BaseApiTest {
       there was one(fm).latest(count)
     }
 
-    "fetch by source" in {
-      checkR(Get(s"$url/feeds/$sId1"), Vector.empty[FeedDto])
+    "fetch by source" should {
+      "pass default parameters" in {
+        checkR(Get(s"$url$sId1/feeds"), Page.empty[FeedDto])
 
-      there was one(fm).fetchBySource(anyLong, anyInt, anyInt)
+        there was one(fm).fetchBySource(sId1, true, 0, 100)
+      }
+
+      "pass limit parameter" in {
+        checkR(Get(s"$url$sId1/feeds?limit=123"), Page.empty[FeedDto])
+
+        there was one(fm).fetchBySource(sId1, true, 0, 123)
+      }
+
+      "pass offset parameter" in {
+        checkR(Get(s"$url$sId1/feeds?offset=10"), Page.empty[FeedDto])
+
+        there was one(fm).fetchBySource(sId1, true, 10, 100)
+      }
+
+      "pass unreadOnly parameter" in {
+        checkR(Get(s"$url$sId1/feeds?unreadOnly=false"), Page.empty[FeedDto])
+
+        there was one(fm).fetchBySource(sId1, false, 0, 100)
+      }
     }
 
     "refresh all" in {

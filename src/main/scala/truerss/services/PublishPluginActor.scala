@@ -13,7 +13,7 @@ class PublishPluginActor(plugins: Vector[BasePublishPlugin])
   import PublishActions.Favorite
   import PublishPluginActor._
 
-  def receive = {
+  def receive: Receive = {
     case PublishEvent(feed) =>
       plugins.foreach { pp =>
         log.info(s"Publish to ${pp.pluginName}")

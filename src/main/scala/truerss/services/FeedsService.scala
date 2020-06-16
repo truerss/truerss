@@ -55,10 +55,10 @@ class FeedsService(dbLayer: DbLayer)(implicit val ec: ExecutionContext) {
     dbLayer.feedDao.findUnread(sourceId).map(t)
   }
 
-  def findBySource(sourceId: Long, from: Int, limit: Int): Future[(Vector[FeedDto], Int)] = {
+  def findBySource(sourceId: Long, unreadOnly: Boolean, offset: Int, limit: Int): Future[(Vector[FeedDto], Int)] = {
     for {
-      feeds <- dbLayer.feedDao.pageForSource(sourceId, from, limit)
-      total <- dbLayer.feedDao.feedCountBySourceId(sourceId)
+      feeds <- dbLayer.feedDao.pageForSource(sourceId, unreadOnly, offset, limit)
+      total <- dbLayer.feedDao.feedCountBySourceId(sourceId, unreadOnly)
     } yield (t(feeds), total)
   }
 

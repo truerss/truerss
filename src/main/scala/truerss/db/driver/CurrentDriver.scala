@@ -163,6 +163,9 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
   object query {
     lazy val sources = TableQuery[Sources]
     lazy val feeds = TableQuery[Feeds]
+    def bySource(sourceId: Long): Query[Feeds, Feed, Seq] = {
+      TableQuery[Feeds].filter(_.sourceId === sourceId)
+    }
     lazy val versions = TableQuery[Versions]
     lazy val predefinedSettings = TableQuery[PredefinedSettingsTable]
     lazy val userSettings = TableQuery[UserSettingsTable]

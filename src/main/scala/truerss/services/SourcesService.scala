@@ -1,11 +1,10 @@
 package truerss.services
 
-import truerss.db.DbLayer
+import truerss.db.{DbLayer, Source}
 import truerss.db.validation.SourceValidator
-import truerss.dto.{NewSourceDto, SourceViewDto, UpdateSourceDto}
+import truerss.dto.{NewSourceDto, SourceDto, SourceViewDto, UpdateSourceDto}
 import truerss.services.management.FeedSourceDtoModelImplicits
 import truerss.util.{ApplicationPlugins, Util}
-
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -37,33 +36,25 @@ class SourcesService(dbLayer: DbLayer, val appPlugins: ApplicationPlugins)(impli
   }
 
   def getSource(sourceId: Long): Future[Option[SourceViewDto]] = {
-    dbLayer.sourceDao.findOne(sourceId).map {
-      case Some(source) =>
-        Some(source.toView)
-      case None =>
-        None
-    }
+    fetchOne(sourceId) { _.toView }
   }
 
   def markAsRead(sourceId: Long): Future[Option[SourceViewDto]] = {
-    dbLayer.sourceDao.findOne(sourceId).map { source =>
+    fetchOne(sourceId) { source =>
       dbLayer.feedDao.markBySource(sourceId)
-      source.map(_.toView)
+      source.toView
     }
   }
 
   def delete(sourceId: Long): Future[Option[SourceViewDto]] = {
-    dbLayer.sourceDao.findOne(sourceId).map {
-      case Some(source) =>
-        dbLayer.sourceDao.delete(sourceId)
-        dbLayer.feedDao.deleteFeedsBySource(sourceId)
-        Some(source.toView)
-
-      case None =>
-        None
+    fetchOne(sourceId) { source =>
+      dbLayer.sourceDao.delete(sourceId)
+      dbLayer.feedDao.deleteFeedsBySource(sourceId)
+      source.toView
     }
   }
 
+  // opml
   def addSources(dtos: Iterable[NewSourceDto]): Future[Iterable[SourceViewDto]] = {
     sourceValidator.validateSources(dtos).flatMap { valid =>
       val sources = valid.map { x =>
@@ -75,34 +66,41 @@ class SourcesService(dbLayer: DbLayer, val appPlugins: ApplicationPlugins)(impli
     }.map { xs => xs.map(_.toView) }
   }
 
+  //
   def addSource(dto: NewSourceDto): Future[Either[scala.List[String], SourceViewDto]] = {
+    processBeforeUpsert(dto) {
+      val source = dto.toSource
+      val state = appPlugins.getState(source.url)
+      val newSource = source.withState(state)
+      dbLayer.sourceDao.insert(newSource).map { id =>
+        newSource.withId(id).toView
+      }
+    }
+  }
+
+  def updateSource(sourceId: Long, dto: UpdateSourceDto): Future[Either[scala.List[String], SourceViewDto]] = {
+    processBeforeUpsert(dto) {
+      val source = dto.toSource.withId(sourceId)
+      val state = appPlugins.getState(source.url)
+      val updatedSource = source.withState(state).withId(sourceId)
+      dbLayer.sourceDao.updateSource(updatedSource).map { _ =>
+        updatedSource.toView
+      }
+    }
+  }
+
+  private def processBeforeUpsert(dto: SourceDto)(f: => Future[SourceViewDto]): Future[Either[scala.List[String], SourceViewDto]] = {
     sourceValidator.validateSource(dto).flatMap {
       case Right(_) =>
-        val source = dto.toSource
-        val state = appPlugins.getState(source.url)
-        val newSource = source.withState(state)
-        dbLayer.sourceDao.insert(newSource).map { id =>
-          Right(newSource.withId(id).toView)
-        }
+        f.map(Right(_))
 
       case Left(errors) =>
         Future.successful(Left(errors))
     }
   }
 
-  def updateSource(sourceId: Long, dto: UpdateSourceDto): Future[Either[scala.List[String], SourceViewDto]] = {
-    sourceValidator.validateSource(dto).flatMap {
-      case Right(_) =>
-        val source = dto.toSource.withId(sourceId)
-        val state = appPlugins.getState(source.url)
-        val updatedSource = source.withState(state).withId(sourceId)
-        dbLayer.sourceDao.updateSource(updatedSource).map { _ =>
-          Right(updatedSource.toView)
-        }
-
-      case Left(errors) =>
-        Future.successful(Left(errors))
-    }
+  private def fetchOne(sourceId: Long)(f: Source => SourceViewDto): Future[Option[SourceViewDto]] = {
+    dbLayer.sourceDao.findOne(sourceId).map { x => x.map(f) }
   }
 
 }

@@ -45,9 +45,9 @@ class SourcesApi(sourcesManagement: SourcesManagement,
         call(fm.findUnreadBySource(sourceId))
       } ~ (get & pathPrefix("latest" / IntNumber)) { count =>
         call(fm.latest(count))
-      } ~ (get & pathPrefix("feeds" / LongNumber)) { sourceId =>
-        parameters('from ? "0", 'limit ? "100") { (from, limit) =>
-          call(fm.fetchBySource(sourceId, safeToInt(from, 0), safeToInt(limit, 100)))
+      } ~ (get & pathPrefix(LongNumber / "feeds")) { sourceId =>
+        parameters('unreadOnly ? true, 'offset ? "0", 'limit ? "100") { (unreadOnly, from, limit) =>
+          call(fm.fetchBySource(sourceId, unreadOnly, safeToInt(from, 0), safeToInt(limit, 100)))
         }
       } ~ (put & pathPrefix("refresh" / LongNumber)) { sourceId =>
         call(sm.forceRefreshSource(sourceId))

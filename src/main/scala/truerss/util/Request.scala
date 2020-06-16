@@ -1,12 +1,58 @@
 package truerss.util
 
+import scalaj.http._
+
 trait Request {
 
-  import scalaj.http._
+  import DefaultParameters._
 
   // TODO for settings
   protected val connectionTimeout = 10000
   protected val readTimeout = 10000
+  protected val retryCount = 3
+
+  def getResponse(url: String): HttpResponse[String] = {
+    handle(defaultRequest(url))
+  }
+
+  def getRequestHeaders(url: String): Map[String, String] = {
+    handle(defaultRequest(url))
+      .headers.map { x => x._1 -> x._2.mkString }
+  }
+
+  private def handle(req: HttpRequest): HttpResponse[String] = {
+    runRequest(req, retryCount)
+  }
+
+  private def runRequest(req: HttpRequest, count: Int): HttpResponse[String] = {
+    if (count == 0) {
+      makeResponse(req)
+    } else {
+      val response = req.asString
+
+      if (response.is3xx) {
+        runRequest(defaultRequest(response.location.get), count - 1)
+        handle(defaultRequest(response.location.get))
+      } else {
+        response
+      }
+    }
+  }
+
+  private def defaultRequest(url: String): HttpRequest = {
+    scalaj.http.Http(url)
+      .option(HttpOptions.connTimeout(connectionTimeout))
+      .option(HttpOptions.readTimeout(readTimeout))
+      .option(HttpOptions.allowUnsafeSSL)
+      .option(HttpOptions.followRedirects(true))
+      .header("Accept", "*/*")
+      .compress(true)
+      .header("User-Agent", userAgent)
+  }
+
+}
+
+object DefaultParameters {
   val userAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.153 Safari/537.36"
 
   val userAgents = Vector(
@@ -22,39 +68,8 @@ trait Request {
     "Opera/9.80 (X11; Linux i686; Ubuntu/14.10) Presto/2.12.388 Version/12.16"
   )
 
-
-  def getResponse(url: String): HttpResponse[String] = {
-    handle(defaultRequest(url))
-  }
-
-  def getRequestHeaders(url: String): Map[String, String] = {
-    handle(defaultRequest(url))
-      .headers.map { x => x._1 -> x._2.mkString }
-  }
-
-  private def handle(req: HttpRequest): HttpResponse[String] = {
-    val response = req.asString
-
-    if (response.is3xx) {
-      handle(defaultRequest(response.location.get))
-    } else {
-      response
-    }
-  }
-
-
-
-  private def defaultRequest(url: String): HttpRequest = {
-    scalaj.http.Http(url)
-      .option(HttpOptions.connTimeout(connectionTimeout))
-      .option(HttpOptions.readTimeout(readTimeout))
-      .option(HttpOptions.allowUnsafeSSL)
-      .option(HttpOptions.followRedirects(true))
-      .header("Accept", "*/*")
-      .compress(true)
-      .header("User-Agent", userAgent)
-  }
-
+  val makeResponse: HttpRequest => HttpResponse[String] = (req: HttpRequest) =>
+    new HttpResponse[String](body = s"Can not handle request: ${req.url}", code = 504, Map.empty)
 }
 
 object Request extends Request

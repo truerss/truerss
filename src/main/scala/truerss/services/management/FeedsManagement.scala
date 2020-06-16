@@ -3,7 +3,7 @@ package truerss.services.management
 import akka.event.EventStream
 import truerss.api._
 import truerss.db.Predefined
-import truerss.dto.{FeedContent, FeedDto}
+import truerss.dto.{FeedContent, FeedDto, Page}
 import truerss.services.DbHelperActor.FeedContentUpdate
 import truerss.services.{ContentReaderService, FeedsService, PublishPluginActor, SettingsService}
 import truerss.util.Util.ResponseHelpers
@@ -128,9 +128,9 @@ class FeedsManagement(feedsService: FeedsService,
     feedsService.findUnread(sourceId).map(FeedsResponse)
   }
 
-  def fetchBySource(sourceId: Long, from: Int, limit: Int): R = {
-    feedsService.findBySource(sourceId, from, limit).map { tmp =>
-      FeedsPageResponse(tmp._1, tmp._2)
+  def fetchBySource(sourceId: Long, unreadOnly: Boolean, offset: Int, limit: Int): R = {
+    feedsService.findBySource(sourceId, unreadOnly, offset, limit).map { tmp =>
+      FeedsPageResponse(Page[FeedDto](tmp._2, tmp._1))
     }
   }
 

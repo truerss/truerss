@@ -17,7 +17,7 @@ class DbHelperActor(dbLayer: DbLayer)
 
   val stream: EventStream = context.system.eventStream
 
-  def receive = {
+  def receive: Receive = {
     case SourceLastUpdate(sourceId) =>
       dbLayer.sourceDao.updateLastUpdateDate(sourceId)
 
