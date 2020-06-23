@@ -1,6 +1,5 @@
 package truerss.api
 
-import akka.stream.Materializer
 import akka.http.scaladsl.server.Directives._
 import truerss.dto.NewSetup
 import truerss.services.management.SettingsManagement
@@ -9,11 +8,11 @@ import scala.concurrent.ExecutionContext
 
 class SettingsApi(val settingsManagement: SettingsManagement)
                  (
-                   implicit override val ec: ExecutionContext,
-                   val materializer: Materializer
+                   implicit val ec: ExecutionContext
                  ) extends HttpHelper {
 
   import JsonFormats.newSetupFormat
+  import ApiImplicits._
 
   private val sm = settingsManagement
 
@@ -21,7 +20,7 @@ class SettingsApi(val settingsManagement: SettingsManagement)
     pathPrefix("settings") {
       get {
         pathPrefix("current") {
-          call(sm.getCurrentSetup)
+          sm.getCurrentSetup
         }
       } ~ put {
         create[NewSetup[_]](x => sm.updateSetup(x))

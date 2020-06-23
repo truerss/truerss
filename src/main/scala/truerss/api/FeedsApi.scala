@@ -1,6 +1,5 @@
 package truerss.api
 
-import akka.stream.Materializer
 import akka.http.scaladsl.server.Directives._
 import truerss.services.management.FeedsManagement
 
@@ -8,29 +7,32 @@ import scala.concurrent.ExecutionContext
 
 class FeedsApi(val feedsManagement: FeedsManagement)
               (
-                implicit override val ec: ExecutionContext,
-                val materializer: Materializer
+                implicit val ec: ExecutionContext
               ) extends HttpHelper {
 
-  val fm = feedsManagement
+  import ApiImplicits._
+
+  private val fm = feedsManagement
 
   val route = api {
     pathPrefix("feeds") {
-      (get & pathPrefix("favorites")) {
-        call(fm.favorites)
-      } ~ (get & pathPrefix(LongNumber)) { feedId =>
-        call(fm.getFeed(feedId))
-      } ~ (get & pathPrefix("content" / LongNumber)) { feedId =>
-        call(fm.getFeedContent(feedId))
+      get {
+        pathPrefix("favorites") {
+          fm.favorites
+        } ~ pathPrefix(LongNumber) { feedId =>
+          fm.getFeed(feedId)
+        } ~ pathPrefix("content" / LongNumber) { feedId =>
+          fm.getFeedContent(feedId)
+        }
       } ~ put {
         pathPrefix("mark" / LongNumber) { feedId =>
-          call(fm.addToFavorites(feedId))
+          fm.addToFavorites(feedId)
         } ~ pathPrefix("unmark" / LongNumber) { feedId =>
-          call(fm.removeFromFavorites(feedId))
+          fm.removeFromFavorites(feedId)
         } ~ pathPrefix("read" / LongNumber) { feedId =>
-          call(fm.markAsRead(feedId))
+          fm.markAsRead(feedId)
         } ~ pathPrefix("unread" / LongNumber) { feedId =>
-          call(fm.markAsUnread(feedId))
+          fm.markAsUnread(feedId)
         }
       }
     }

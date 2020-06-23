@@ -2,63 +2,74 @@ package truerss.api
 
 import akka.http.scaladsl.model.Multipart
 import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Route
 import akka.stream.Materializer
 import truerss.dto.{NewSourceDto, UpdateSourceDto}
 import truerss.services.management.{FeedsManagement, OpmlManagement, SourcesManagement}
 import truerss.util.Util
 
-import scala.concurrent.ExecutionContext
-
+import scala.concurrent.{ExecutionContext, Future}
 
 class SourcesApi(sourcesManagement: SourcesManagement,
                  feedsManagement: FeedsManagement,
                  opmlManagement: OpmlManagement,
                 )(
-  implicit override val ec: ExecutionContext,
+  implicit val ec: ExecutionContext,
   val materializer: Materializer
 ) extends HttpHelper {
 
   import JsonFormats._
   import Util.StringExt
+  import ApiImplicits._
 
   val sm = sourcesManagement
   val fm = feedsManagement
   val om = opmlManagement
 
+
+
   val route = api {
     pathPrefix("sources") {
-      (get & pathPrefix("all")) {
-        call(sm.all)
-      } ~ (get & pathPrefix(LongNumber)) { sourceId =>
-        call(sm.getSource(sourceId))
-      } ~ (get & pathPrefix("overview"/ LongNumber)) { sourceId =>
-        call(sm.getSourceOverview(sourceId))
-      } ~ (post & pathEndOrSingleSlash) {
-        create[NewSourceDto](x => sm.addSource(x))
-      } ~ (delete & pathPrefix(LongNumber)) { sourceId =>
-        call(sm.deleteSource(sourceId))
-      } ~ (put & pathPrefix(LongNumber)) { sourceId =>
-        create[UpdateSourceDto](x => sm.updateSource(sourceId, x))
-      } ~ (put & pathPrefix("markall")) {
-        call(fm.markAll)
-      } ~ (put & pathPrefix("mark" / LongNumber)) { sourceId =>
-        call(sm.markSource(sourceId))
-      } ~ (get & pathPrefix("unread" / LongNumber)) { sourceId =>
-        call(fm.findUnreadBySource(sourceId))
-      } ~ (get & pathPrefix("latest" / IntNumber)) { count =>
-        call(fm.latest(count))
-      } ~ (get & pathPrefix(LongNumber / "feeds")) { sourceId =>
-        parameters('unreadOnly ? true, 'offset ? "0", 'limit ? "100") { (unreadOnly, from, limit) =>
-          call(fm.fetchBySource(sourceId, unreadOnly, from.toIntOr(0), limit.toIntOr(0)))
+      get {
+        pathPrefix("all") {
+          sm.all
+        } ~ pathPrefix(LongNumber) { sourceId =>
+          sm.getSource(sourceId)
+        } ~ pathPrefix("overview"/ LongNumber) { sourceId =>
+          sm.getSourceOverview(sourceId)
+        } ~ pathPrefix("latest" / IntNumber) { count =>
+          fm.latest(count)
+        } ~ pathPrefix(LongNumber / "feeds") { sourceId =>
+          parameters('unreadOnly ? true, 'offset ? "0", 'limit ? "100") { (unreadOnly, from, limit) =>
+            fm.fetchBySource(sourceId, unreadOnly, from.toIntOr(0), limit.toIntOr(100))
+          }
+        } ~ pathPrefix("unread" / LongNumber) { sourceId =>
+          fm.findUnreadBySource(sourceId)
+        } ~ pathPrefix("opml") {
+          om.getOpml
         }
-      } ~ (put & pathPrefix("refresh" / LongNumber)) { sourceId =>
-        call(sm.forceRefreshSource(sourceId))
-      } ~ (put & pathPrefix("refresh")) {
-        call(sm.forceRefresh)
-      } ~ (post & pathPrefix("import")) {
-        makeImport
-      } ~ (get & pathPrefix("opml")) {
-        call(om.getOpml)
+      } ~ post {
+        pathPrefix("import") {
+          makeImport
+        } ~ pathEndOrSingleSlash {
+          create[NewSourceDto](x => sm.addSource(x))
+        }
+      } ~ put {
+        pathPrefix(LongNumber) { sourceId =>
+          create[UpdateSourceDto](x => sm.updateSource(sourceId, x))
+        } ~ pathPrefix("markall") {
+          fm.markAll
+        } ~ pathPrefix("mark" / LongNumber) { sourceId =>
+          sm.markSource(sourceId)
+        } ~ pathPrefix("refresh" / LongNumber) { sourceId =>
+          sm.forceRefreshSource(sourceId)
+        } ~ pathPrefix("refresh") {
+          sm.forceRefresh
+        }
+      } ~ delete {
+        pathPrefix(LongNumber) { sourceId =>
+          sm.deleteSource(sourceId)
+        }
       }
     }
   }

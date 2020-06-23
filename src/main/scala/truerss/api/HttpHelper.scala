@@ -25,8 +25,8 @@ trait HttpHelper {
   import StatusCodes._
   import RouteResult._
 
-  implicit val ec: ExecutionContext
-  implicit val materializer: Materializer
+//  implicit val ec: ExecutionContext
+//  implicit val materializer: Materializer
 
   val utf8 = Charset.forName("UTF-8")
 
@@ -65,7 +65,7 @@ trait HttpHelper {
     }
   }
 
-  def create[T : Reads : ClassTag](f: T => Future[Response]) = {
+  def create[T : Reads : ClassTag](f: T => Future[Response])(implicit ec: ExecutionContext) = {
     entity(as[String]) { json =>
       safeParse[T](json) match {
         case S(dto) =>
@@ -90,15 +90,15 @@ trait HttpHelper {
     )
   }
 
-  def call(f: Response): Route = {
+  def call(f: Response)(implicit ec: ExecutionContext): Route = {
     call(Future.successful(f))
   }
 
-  def call(f: Future[Response]): Route = {
+  def call(f: Future[Response])(implicit ec: ExecutionContext): Route = {
     andWait(f)
   }
 
-  def andWait(f: Future[Response]): Route = {
+  def andWait(f: Future[Response])(implicit ec: ExecutionContext): Route = {
     standardComplete(f.map(responseHandler))
   }
 
@@ -157,3 +157,5 @@ trait HttpHelper {
     }
   }
 }
+
+object HttpHelper extends HttpHelper
