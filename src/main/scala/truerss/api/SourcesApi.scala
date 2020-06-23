@@ -5,9 +5,10 @@ import akka.http.scaladsl.server.Directives._
 import akka.stream.Materializer
 import truerss.dto.{NewSourceDto, UpdateSourceDto}
 import truerss.services.management.{FeedsManagement, OpmlManagement, SourcesManagement}
+import truerss.util.Util
 
 import scala.concurrent.ExecutionContext
-import scala.util.Try
+
 
 class SourcesApi(sourcesManagement: SourcesManagement,
                  feedsManagement: FeedsManagement,
@@ -18,6 +19,7 @@ class SourcesApi(sourcesManagement: SourcesManagement,
 ) extends HttpHelper {
 
   import JsonFormats._
+  import Util.StringExt
 
   val sm = sourcesManagement
   val fm = feedsManagement
@@ -47,7 +49,7 @@ class SourcesApi(sourcesManagement: SourcesManagement,
         call(fm.latest(count))
       } ~ (get & pathPrefix(LongNumber / "feeds")) { sourceId =>
         parameters('unreadOnly ? true, 'offset ? "0", 'limit ? "100") { (unreadOnly, from, limit) =>
-          call(fm.fetchBySource(sourceId, unreadOnly, safeToInt(from, 0), safeToInt(limit, 100)))
+          call(fm.fetchBySource(sourceId, unreadOnly, from.toIntOr(0), limit.toIntOr(0)))
         }
       } ~ (put & pathPrefix("refresh" / LongNumber)) { sourceId =>
         call(sm.forceRefreshSource(sourceId))
@@ -61,10 +63,7 @@ class SourcesApi(sourcesManagement: SourcesManagement,
     }
   }
 
-  def safeToInt(possibleInt: String, recover: Int) = {
-    Try(possibleInt.toInt).getOrElse(recover)
-  }
-
+  // custom thread !!! TODO
   def makeImport = {
     entity(as[Multipart.FormData]) { formData =>
       val r = formData.parts.mapAsync(1) { p =>

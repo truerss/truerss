@@ -5,7 +5,6 @@ import truerss.api.{BadRequestResponse, NotFoundResponse, SourceOverViewResponse
 import truerss.dto.{NewSourceDto, UpdateSourceDto}
 import truerss.services.{OpmlService, SourceOverviewService, SourcesService}
 import truerss.services.actors.sync.SourcesKeeperActor
-import truerss.util.Util.ResponseHelpers.sourceNotFound
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -15,6 +14,8 @@ class SourcesManagement(sourcesService: SourcesService,
                         stream: EventStream
                        )
                        (implicit ec: ExecutionContext) extends BaseManagement {
+
+  import ResponseHelpers.{sourceNotFound, ok}
 
   def all: R = {
     sourcesService.getAll.map(SourcesResponse)

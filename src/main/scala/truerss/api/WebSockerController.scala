@@ -3,14 +3,14 @@ package truerss.api
 import akka.actor.{Actor, ActorLogging}
 import org.java_websocket.WebSocket
 import truerss.dto.WSMessage
-import truerss.dto.{FeedDto, Notify, SourceViewDto}
+import truerss.dto.{FeedDto, Notify}
 
 class WebSockerController(ws: WebSocket) extends Actor with ActorLogging {
 
   import JsonFormats._
   import WebSockerController._
 
-  def receive = {
+  def receive: Receive = {
     case NewFeeds(xs) =>
       ws.send(s"${J(WSMessage("new", J(xs)))}")
     case msg: Notify =>

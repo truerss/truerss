@@ -7,10 +7,18 @@ import com.github.truerss.base.Entry
 import truerss.api.{NotFoundResponse, Ok}
 import truerss.db.{Feed, SourceState, SourceStates}
 
+import scala.util.Try
+
 
 object Util {
-  implicit class StringExt(s: String) {
-    def normalize = s.replaceAll("[^\\p{L}\\p{Nd}]+", "-")
+  implicit class StringExt(val s: String) extends AnyVal {
+    def normalize: String = {
+      s.replaceAll("[^\\p{L}\\p{Nd}]+", "-")
+    }
+
+    def toIntOr(recover: Int): Int = {
+      Try(s.toInt).getOrElse(recover)
+    }
   }
 
   implicit class EntryExt(entry: Entry) {
@@ -48,11 +56,7 @@ object Util {
     }
   }
 
-  object ResponseHelpers {
-    val ok = Ok("ok")
-    val sourceNotFound = NotFoundResponse("Source not found")
-    val feedNotFound = NotFoundResponse("Feed not found")
-  }
+
 
 
 }

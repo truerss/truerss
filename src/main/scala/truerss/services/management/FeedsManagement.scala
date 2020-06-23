@@ -6,7 +6,6 @@ import truerss.db.Predefined
 import truerss.dto.{FeedContent, FeedDto, Page}
 import truerss.services.DbHelperActor.FeedContentUpdate
 import truerss.services.{ContentReaderService, FeedsService, PublishPluginActor, SettingsService}
-import truerss.util.Util.ResponseHelpers
 import truerss.util.syntax.future._
 import truerss.util.syntax.ext._
 
@@ -20,6 +19,7 @@ class FeedsManagement(feedsService: FeedsService,
                      )
                      (implicit ec: ExecutionContext) extends BaseManagement {
 
+  import ResponseHelpers.ok
 
   private val read = Predefined.read
   private val readContent = read.toKey

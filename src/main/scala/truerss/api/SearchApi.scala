@@ -17,7 +17,7 @@ class SearchApi(val searchManagement: SearchManagement)(
   val route = api {
     pathPrefix("search") {
       post {
-        create[SearchRequest](x => searchManagement.search(x))
+        create[SearchRequest](searchManagement.search)
       }
     }
   }

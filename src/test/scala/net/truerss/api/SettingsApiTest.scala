@@ -4,8 +4,7 @@ import akka.http.scaladsl.model.StatusCodes
 import net.truerss.Gen
 import truerss.api._
 import truerss.dto.{AvailableSelect, AvailableSetup, CurrentValue, NewSetup}
-import truerss.services.management.SettingsManagement
-import truerss.util.Util.ResponseHelpers
+import truerss.services.management.{ResponseHelpers, SettingsManagement}
 
 class SettingsApiTest extends BaseApiTest {
 

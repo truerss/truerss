@@ -16,9 +16,9 @@ class ApplicationPluginsService(appPlugins: ApplicationPlugins) {
   // move to app plugins TODO
   protected val defaultPlugin = new DefaultSiteReader(ConfigFactory.empty())
 
-  val plugins = appPlugins.contentPlugins.toVector
+  private val plugins = appPlugins.contentPlugins
 
-  val contentReaders: Vector[CR] = appPlugins.contentPlugins.toVector ++ Vector(defaultPlugin)
+  private val contentReaders: Vector[CR] = appPlugins.contentPlugins ++ Vector(defaultPlugin)
 
   def js: String = appPlugins.js.mkString
 
@@ -48,10 +48,10 @@ class ApplicationPluginsService(appPlugins: ApplicationPlugins) {
 
   def view: PluginsViewDto = {
     PluginsViewDto(
-      feed = appPlugins.feedPlugins.map(baseToDto).toVector,
-      content = appPlugins.contentPlugins.map(baseToDto).toVector,
-      publish = appPlugins.publishPlugins.map(baseToDto).toVector,
-      site = appPlugins.sitePlugins.map(baseToDto).toVector
+      feed = appPlugins.feedPlugins.map(baseToDto),
+      content = appPlugins.contentPlugins.map(baseToDto),
+      publish = appPlugins.publishPlugins.map(baseToDto),
+      site = appPlugins.sitePlugins.map(baseToDto)
     )
   }
 

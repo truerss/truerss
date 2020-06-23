@@ -8,8 +8,7 @@ import net.truerss.Gen
 import play.api.libs.json._
 import truerss.api._
 import truerss.dto.{FeedDto, Page, SourceOverview}
-import truerss.services.management.{FeedSourceDtoModelImplicits, FeedsManagement, OpmlManagement, SourcesManagement}
-import truerss.util.Util.ResponseHelpers
+import truerss.services.management.{FeedSourceDtoModelImplicits, FeedsManagement, OpmlManagement, ResponseHelpers, SourcesManagement}
 
 class SourcesApiTest extends BaseApiTest {
 

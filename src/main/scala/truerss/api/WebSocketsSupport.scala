@@ -9,14 +9,14 @@ import org.java_websocket.handshake.ClientHandshake
 import org.java_websocket.server.WebSocketServer
 import truerss.dto.Notify
 
-class WebSockersSupport(val port: Int) extends Actor with ActorLogging {
+class WebSocketsSupport(val port: Int) extends Actor with ActorLogging {
 
   log.info("WS Api start...")
 
   implicit val system = context.system
   val stream = system.eventStream
 
-  val socketServer = new SocketServer(port, context, stream, log)
+  val socketServer = SocketServer(port, context, stream, log)
   socketServer.start()
 
   def receive = { case x => log.warning(s"Unexpected message ${x}") }
@@ -65,8 +65,8 @@ case class SocketServer(port: Int,
 
 }
 
-object WebSockersSupport {
+object WebSocketsSupport {
   def props(port: Int) = {
-    Props(classOf[WebSockersSupport], port)
+    Props(classOf[WebSocketsSupport], port)
   }
 }

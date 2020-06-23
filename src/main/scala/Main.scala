@@ -1,8 +1,7 @@
-package truerss
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import truerss.api.{RoutingEndpoint, WebSockersSupport}
+import truerss.api.{RoutingEndpoint, WebSocketsSupport}
 import truerss.db.driver.SupportedDb
 import truerss.services._
 import truerss.services.management._
@@ -10,7 +9,7 @@ import truerss.util.TrueRSSConfig
 
 import scala.language.postfixOps
 
-object Boot extends App {
+object Main extends App {
 
   val parser = TrueRSSConfig.parser
 
@@ -23,28 +22,29 @@ object Boot extends App {
       import system.dispatcher
 
       val dbEc = system.dispatchers.lookup("dispatchers.db-dispatcher")
+      val servicesEc = system.dispatchers.lookup("dispatchers.services-dispatcher")
 
       val dbLayer = SupportedDb.load(dbConf, isUserConf)(dbEc)
 
-      val settingsService = new SettingsService(dbLayer)
-      val sourceOverviewService = new SourceOverviewService(dbLayer)
-      val sourcesService = new SourcesService(dbLayer, actualConfig.appPlugins)
+      val settingsService = new SettingsService(dbLayer)(servicesEc)
+      val sourceOverviewService = new SourceOverviewService(dbLayer)(servicesEc)
+      val sourcesService = new SourcesService(dbLayer, actualConfig.appPlugins)(servicesEc)
       val applicationPluginsService = new ApplicationPluginsService(actualConfig.appPlugins)
-      val opmlService = new OpmlService(sourcesService)
-      val feedsService = new FeedsService(dbLayer)
+      val opmlService = new OpmlService(sourcesService)(servicesEc)
+      val feedsService = new FeedsService(dbLayer)(servicesEc)
       val contentReaderService = new ContentReaderService(applicationPluginsService)
-      val searchService = new SearchService(dbLayer)
+      val searchService = new SearchService(dbLayer)(servicesEc)
 
       val stream = system.eventStream
-      // todo pass custom executor
-      val opmlManagement = new OpmlManagement(opmlService, sourcesService, stream)
+
+      val opmlManagement = new OpmlManagement(opmlService, sourcesService, stream)(servicesEc)
       val sourcesManagement = new SourcesManagement(sourcesService,
-        opmlService, sourceOverviewService, stream)
+        opmlService, sourceOverviewService, stream)(servicesEc)
       val feedsManagement = new FeedsManagement(feedsService,
-        contentReaderService, settingsService, stream)
+        contentReaderService, settingsService, stream)(servicesEc)
       val pluginsManagement = new PluginsManagement(applicationPluginsService)
-      val settingsManagement = new SettingsManagement(settingsService)
-      val searchManagement = new SearchManagement(searchService)
+      val settingsManagement = new SettingsManagement(settingsService)(servicesEc)
+      val searchManagement = new SearchManagement(searchService)(servicesEc)
 
       system.actorOf(
         MainActor.props(actualConfig, applicationPluginsService, sourcesService,  dbLayer),
@@ -69,7 +69,7 @@ object Boot extends App {
         system.log.info(s"Http Server: ${actualConfig.url}")
       }
 
-      system.actorOf(WebSockersSupport.props(actualConfig.wsPort), "ws-api")
+      system.actorOf(WebSocketsSupport.props(actualConfig.wsPort), "ws-api")
 
     case None =>
       Console.err.println("Unknown argument")

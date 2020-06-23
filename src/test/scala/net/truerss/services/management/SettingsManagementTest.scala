@@ -9,7 +9,6 @@ import truerss.db.UserSettings
 import truerss.dto.{AvailableSelect, AvailableSetup, CurrentValue}
 import truerss.services.SettingsService
 import truerss.services.management.SettingsManagement
-import truerss.util.Util.ResponseHelpers
 
 import scala.concurrent.Future
 

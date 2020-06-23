@@ -4,8 +4,7 @@ import akka.http.scaladsl.model.StatusCodes
 import net.truerss.Gen
 import truerss.api._
 import truerss.dto.FeedContent
-import truerss.services.management.FeedsManagement
-import truerss.util.Util.ResponseHelpers
+import truerss.services.management.{FeedsManagement, ResponseHelpers}
 
 
 class FeedsApiTest extends BaseApiTest {
