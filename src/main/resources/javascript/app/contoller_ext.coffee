@@ -51,7 +51,10 @@ class AjaxService
   get_page_of_feeds: (source_id, offset, limit, unread_only, success, error) ->
     @_get(
       "#{@sources_api}/#{source_id}/feeds?offset=#{offset}&limit=#{limit}&unreadOnly=#{unread_only}",
-      (response) -> success(response.map((x) -> Feed.create(x))),
+      (response) ->
+               total = response["total"]
+               xs = response["resources"]
+               success(xs.map((x) -> Feed.create(x)), total)
       error
     )
 
@@ -65,7 +68,9 @@ class AjaxService
     @_put("#{@sources_api}/#{id}", params, success, error)
 
   favorites_feed: (success, error) ->
-    @_get("#{@feeds_api}/favorites", success, error)
+    @_get("#{@feeds_api}/favorites",
+      (xs) -> success(xs.map (f) -> Feed.create(f)),
+      error)
 
   set_favorite: (num, success, error) ->
     @_put("#{@feeds_api}/mark/#{num}", {}, success, error)
@@ -92,7 +97,10 @@ class AjaxService
     @_put("#{@sources_api}/markall", {}, success, @k)
 
   get_source_overview: (sourceId, success) ->
-    @_get("#{@sources_api}/overview/#{sourceId}", success, @k)
+    @_get(
+      "#{@sources_api}/overview/#{sourceId}",
+      (response) -> success(SourceOverview.create(response)),
+      @k)
 
   get_feed_content: (feedId, success) ->
     @_get("#{@feeds_api}/content/#{feedId}", success, @k)
@@ -117,8 +125,6 @@ class AjaxService
     jQuery.ajax
       type: "GET"
       url: "templates/#{url}.ejs"
-
-  count_header: () -> "XCount"
 
   _delete: (url, success, error = @k ) ->
     $.ajax
@@ -177,8 +183,31 @@ class AjaxService
 `
 
 
+
 ControllerExt =
+
+  _materializer: null
+
   ajax: new AjaxService()
+
+  get_source_overview: (source_id) ->
+    new Promise((resolve, reject) ->
+      result = SourceOverviews.find('id', source_id)
+      if result == null
+        @ajax.get_source_overview(source_id,
+          (result) ->
+            SourceOverviews.add(result)
+            resolve(result)
+        )
+      else
+        resolve(result)
+    )
+
+  change_count: (count) ->
+    Templates.sources_all_view
+      .zoom("#source-count-all")
+      .render(count)
+      .sum()
 
   scroll_to_top: () ->
     $('html,body').animate({scrollTop: 0}, 1000);
@@ -221,8 +250,6 @@ ControllerExt =
         results.add_to(a).add_to(b)
     results
 
-  _materializer: null
-
   _is_short_view_enabled: () ->
     settings = Settings.takeFirst((x) -> x.is_short_view())
     if settings?
@@ -239,6 +266,12 @@ ControllerExt =
       feeds_per_page = parseInt(settings.value(), 10)
     feeds_per_page
 
+  get_limit: () ->
+    @_get_per_page()
+
+  get_offset: (page_num) ->
+    (page_num - 1) * @get_limit()
+
   render_favorites: (feeds, current_page) ->
     start_page_name = "/favorites"
     options = @_make_options(feeds, current_page, start_page_name)
@@ -246,16 +279,13 @@ ControllerExt =
     html = Templates.favorites_template.render(options)
     Templates.article_view.render(html).html()
 
-  _make_options: (feeds, current_page, start_page_name) ->
-    length = feeds.length
+  _make_options: (feeds, current_page, total_feeds, start_page_name) ->
+    length = total_feeds
     feeds_per_page = @_get_per_page()
 
     pagination = @_make_pagination(length, feeds_per_page, current_page)
 
-    start = (current_page - 1) * feeds_per_page
-    end = start + feeds_per_page
-
-    needed_feeds = feeds.slice(start, end)
+    needed_feeds = feeds
 
     options =
       feeds: needed_feeds
@@ -268,10 +298,10 @@ ControllerExt =
   clean_main_page: () ->
     Templates.article_view.render("").swap()
 
-  render_feeds: (feeds, current_page, start_page_name) ->
+  render_feeds: (feeds, current_page, total_feeds, start_page_name) ->
     is_short_view = @_is_short_view_enabled()
 
-    options = @_make_options(feeds, current_page, start_page_name)
+    options = @_make_options(feeds, current_page, total_feeds, start_page_name)
 
     result = ""
     if is_short_view
@@ -281,15 +311,12 @@ ControllerExt =
 
     Templates.article_view.render(result).html()
 
-  render_feeds_and_source_overview: (source, current_page, overview) ->
-    href = if overview.is_loaded_all
+  render_feeds_and_source_overview: (source, overview, feeds, current_page, total_feeds) ->
+    href = if overview.is_loaded_all()
       source.href_all()
     else
       source.href()
-    @render_feeds(source.feeds(), current_page, href)
-
-    if source.feeds().length > 0
-      1
+    @render_feeds(feeds, current_page, total_feeds, href)
 
     description = Templates.source_overview_template.render({source: source, overview: overview})
     Templates.source_overview_view.render(description).html()
@@ -298,8 +325,8 @@ ControllerExt =
     if @_materializer?
       @_materializer.stop()
 
-    @_materializer = Sirius.Materializer.build(source, overview_view)
-      .field((x) -> x.count)
+    @_materializer = Sirius.Materializer.build(overview, overview_view)
+      .field((x) -> x.unread_count)
       .to((v) -> v.zoom('.source-overview-unread-count'))
       .transform((x) ->
         if x != 0

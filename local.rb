@@ -42,6 +42,8 @@ any '/api/*' do
   path = params["splat"].first
   http_method = request.env["REQUEST_METHOD"]
   url = settings.api_url
+  url = "#{url}/api/#{path}"
+  url = "#{url}?#{request.query_string}" unless request.query_string.empty?
 
   content_type 'application/json'
 
@@ -51,7 +53,7 @@ any '/api/*' do
     begin
       req = RestClient::Request.execute(
         method: http_method,
-        url: "#{url}/api/#{path}",
+        url: url,
         headers: {content_type: :json, accept: :json},
         payload: body
       )
@@ -63,7 +65,7 @@ any '/api/*' do
   else
     req = RestClient::Request.execute(
         method: http_method,
-        url: "#{url}/api/#{path}"
+        url: url
     )
     req.body
   end

@@ -1,3 +1,7 @@
+<% if (feeds.length == 0) { %>
+    <h3>no unread feeds</h3>
+<% } %>
+
 <% for (i = 0; i < feeds.length; i ++) { %>
     <% if (i == 0) { %>
         <div class="feeds uk-section custom-padding" data-feed-id="<%= feeds[i].id() %>">

@@ -22,18 +22,17 @@ class SourcesApi(sourcesManagement: SourcesManagement,
   import Util.StringExt
   import ApiImplicits._
 
-  val sm = sourcesManagement
-  val fm = feedsManagement
-  val om = opmlManagement
-
-
+  // just aliases
+  private val sm = sourcesManagement
+  private val fm = feedsManagement
+  private val om = opmlManagement
 
   val route = api {
     pathPrefix("sources") {
       get {
         pathPrefix("all") {
           sm.all
-        } ~ pathPrefix(LongNumber) { sourceId =>
+        } ~ (pathPrefix(LongNumber) & pathEnd) { sourceId =>
           sm.getSource(sourceId)
         } ~ pathPrefix("overview"/ LongNumber) { sourceId =>
           sm.getSourceOverview(sourceId)
@@ -75,7 +74,7 @@ class SourcesApi(sourcesManagement: SourcesManagement,
   }
 
   // custom thread !!! TODO
-  def makeImport = {
+  protected def makeImport: Route = {
     entity(as[Multipart.FormData]) { formData =>
       val r = formData.parts.mapAsync(1) { p =>
         p.entity.dataBytes.runFold("") { (a, b) =>

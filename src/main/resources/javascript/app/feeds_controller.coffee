@@ -5,10 +5,7 @@ FeedsController =
 
   favorites: (page) ->
     page = parseInt(page || 1)
-    ajax.favorites_feed (response) ->
-      # extract sources
-      feeds = response.map (f) -> Feed.create(f)
-
+    ajax.favorites_feed (feeds) ->
       render_feeds(feeds, page, "/favorites")
 
   _change: (view, has_flag, available_classes, feed_id, source_id, f) =>
@@ -21,37 +18,35 @@ FeedsController =
 
     view.render(remove).remove_class()
     view.render(add).add_class()
-
-    source = Sources.takeFirst (s) -> s.id() == source_id
-    if source?
-      feed = source.feeds().filter (f) -> f.id() == feed_id
-      if feed? && feed.length > 0
-        f(feed[0], source)
+    source = Sources.find('id', source_id)
+    get_source_overview(source_id).then((overview) ->
+      f(overview, source)
+    )
 
   _favorite_helper: (id, source_id, is_favorite) ->
     @_change(new Sirius.View("a[data-feed-id='#{id}'].in-favorites"),
       is_favorite, ["favorite", "unfavorite"], id, source_id,
-        (feed, source) ->
-            current = source.favorites_count()
+        (source_overview, _) ->
+            current = source_overview.favorites_count()
             count = if is_favorite
               current + 1
             else
               current - 1
-            source.favorites_count(count)
-            feed.favorite(is_favorite))
+            source_overview.favorites_count(count)
+    )
 
 
   _read_helper: (id, source_id, is_read) ->
     @_change(new Sirius.View("a[data-feed-id='#{id}'].in-read"), is_read,
       ["read", "unread"], id, source_id,
-      (feed, source) ->
-          current = source.count()
+      (source_overview, source) ->
+          current = source_overview.unread_count()
           count = if is_read
             current - 1
           else
             current + 1
           source.count(count)
-          feed.read(is_read)
+          source_overview.unread_count(count)
     )
 
 
@@ -59,14 +54,14 @@ FeedsController =
     ajax.set_read id, (response) =>
       @logger.info("Feed #{id} mark as read")
       @_read_helper(id, source_id, true)
-    SourcesController.change_count(-1)
+    change_count(-1)
     e.preventDefault()
 
   unread: (e, id, source_id) ->
     ajax.set_unread id, (response) =>
       @logger.info("Feed #{id} mark as unread")
       @_read_helper(id, source_id, false)
-    SourcesController.change_count(1)
+    change_count(1)
     e.preventDefault()
 
   favorite: (e, id, source_id) ->
@@ -87,7 +82,6 @@ FeedsController =
           prev.removeClass("mt3")
         if prev.length == 0
           next = el.next("hr").next("div.feeds")
-          c next
           if next.length != 0
             next.removeClass("mt3")
         el.next("hr").remove()
@@ -106,7 +100,6 @@ FeedsController =
     id = e.target.id
 
     if id
-
       span = document.getElementById(id)
       source_id = parseInt(source_id)
       source = Sources.takeFirst (s) -> s.id() == source_id

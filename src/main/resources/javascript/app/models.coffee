@@ -1,7 +1,7 @@
 
 class Source extends Sirius.BaseModel
   @attrs: ["id", "url", "name", {"interval" : 1}, "state", "normalized",
-    "lastUpdate", "count", {"active": true}, {"feeds": []}, {"favorites_count": 0}]
+    "lastUpdate", "count", {"active": true}, {"favorites_count": 0}]
 
   @skip : true
   @validate:
@@ -10,14 +10,14 @@ class Source extends Sirius.BaseModel
   last_update_in_tz: () ->
     moment.utc(@last_update()).local()
 
+  is_empty: () ->
+    @count() == 0
+
   is_active: () ->
     active() is true
 
   is_plugin_disabled: () ->
     parseInt(@state()) is 2
-
-  is_empty: () ->
-    @count() == 0
 
   has_plugin: () ->
     (parseInt(@state()) is 1) || (parseInt(@state()) is 2)
@@ -33,24 +33,19 @@ class Source extends Sirius.BaseModel
 
   compare: (other) -> @id() == other.id()
 
-  add_feeds: (feeds) ->
-    @feeds((@feeds() || []).concat(feeds))
-    unread = feeds.filter((x) -> !x.read()).length
-    @count(unread)
-    @favorites_count(@feeds().filter((x) -> x.favorite()).length)
+class SourceOverview extends Sirius.BaseModel
+  @attrs: ["id",
+    {"unread_count": 0}, {"favorites_count": 0},
+    {"feeds_count": 0}, "frequency", {"is_loaded_all": false}]
 
-  add_feed: (feed) ->
-    @add_feeds([feed])
-
-  has_feeds: () ->
-    (@feeds() || []).length != 0
-
-  unread_feeds: () ->
-    @feeds().filter (f) -> !f.read()
-
-  feeds_count: () ->
-    @feeds().length
-
+  @create: (json) ->
+    new SourceOverview({
+      id: json["sourceId"],
+      unread_count: json["unreadCount"],
+      favorites_count: json["favoritesCount"],
+      feeds_count: json["feedsCount"],
+      frequency: json["frequency"]
+    })
 
 class Feed extends Sirius.BaseModel
   @attrs: ["id", "sourceId", "url",
@@ -106,6 +101,8 @@ Settings = new Sirius.Collection(Setting, {index: ["key"]})
 
 Sources = new Sirius.Collection(Source, {index: ['id', 'name', 'normalized']})
 
+SourceOverviews = new Sirius.Collection(SourceOverview, {index: ["id"]})
+
 Sources.subscribe "add", (source) ->
   id = "#source-#{source.id()}"
   html = Templates.source_list.render({source: source})
@@ -140,7 +137,7 @@ Sources.subscribe "add", (source) ->
   return
 
 Sources.subscribe "add", (source) ->
-  SourcesController.change_count(source.count())
+  ControllerExt.change_count(source.count())
 
 Sources.subscribe "remove", (source) ->
   jQuery("#source-#{source.id()}").remove()
