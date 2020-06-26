@@ -30,6 +30,8 @@ class SourcesApiTest extends BaseApiTest {
   private val notValidUpdateDto = Gen.genUpdSource(id_404)
   private val unreadFeed = Gen.genFeedDto
   private val count = 1000
+  private val offset = 0
+  private val limit = 100
 
   private val fm = mock[FeedsManagement]
   private val om = mock[OpmlManagement]
@@ -50,7 +52,7 @@ class SourcesApiTest extends BaseApiTest {
 
   fm.markAll returns f(ResponseHelpers.ok)
   fm.findUnreadBySource(id_200) returns f(FeedsResponse(Vector(unreadFeed)))
-  fm.latest(count) returns f(FeedsResponse(Vector(unreadFeed)))
+  fm.latest(anyInt, anyInt) returns f(FeedsResponse(Vector(unreadFeed)))
   fm.fetchBySource(anyLong, anyBoolean, anyInt, anyInt) returns f(FeedsPageResponse(Page.empty[FeedDto]))
 
   om.getOpml returns f(Ok(opml))
@@ -129,8 +131,14 @@ class SourcesApiTest extends BaseApiTest {
     }
 
     "latest" in {
-      checkR(Get(s"$url/latest/$count"), Vector(unreadFeed))
-      there was one(fm).latest(count)
+      checkR(Get(s"$url/latest?offset=0&limit=100"), Vector(unreadFeed))
+      there was one(fm).latest(0, 100)
+
+      checkR(Get(s"$url/latest?offset=10"), Vector(unreadFeed))
+      there was one(fm).latest(10, 100)
+
+      checkR(Get(s"$url/latest?limit=10"), Vector(unreadFeed))
+      there was one(fm).latest(0, 100)
     }
 
     "fetch by source" should {

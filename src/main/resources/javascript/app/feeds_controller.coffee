@@ -35,7 +35,6 @@ FeedsController =
             source_overview.favorites_count(count)
     )
 
-
   _read_helper: (id, source_id, is_read) ->
     @_change(new Sirius.View("a[data-feed-id='#{id}'].in-read"), is_read,
       ["read", "unread"], id, source_id,

@@ -1,10 +1,9 @@
 package truerss.util
 
-import java.time.{LocalDateTime, ZoneId, ZoneOffset}
+import java.time.{LocalDateTime, ZoneOffset}
 import java.util.Date
 
 import com.github.truerss.base.Entry
-import truerss.api.{NotFoundResponse, Ok}
 import truerss.db.{Feed, SourceState, SourceStates}
 
 import scala.util.Try

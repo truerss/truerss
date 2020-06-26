@@ -19,6 +19,7 @@ class FeedsManagement(feedsService: FeedsService,
                      )
                      (implicit ec: ExecutionContext) extends BaseManagement {
 
+  import FeedsManagement._
   import ResponseHelpers.ok
 
   private val read = Predefined.read
@@ -129,15 +130,12 @@ class FeedsManagement(feedsService: FeedsService,
   }
 
   def fetchBySource(sourceId: Long, unreadOnly: Boolean, offset: Int, limit: Int): R = {
-    feedsService.findBySource(sourceId, unreadOnly, offset, limit).map { tmp =>
-      FeedsPageResponse(Page[FeedDto](tmp._2, tmp._1))
-    }
+    feedsService.findBySource(sourceId, unreadOnly, offset, limit).map(convert)
   }
 
-  def latest(count: Int): R = {
-    feedsService.latest(count).map(FeedsResponse)
+  def latest(offset: Int, limit: Int): R = {
+    feedsService.latest(offset, limit).map(convert)
   }
-
 
   private def feedHandler(feed: Option[FeedDto]) = {
     feed match {
@@ -146,4 +144,10 @@ class FeedsManagement(feedsService: FeedsService,
     }
   }
 
+}
+
+object FeedsManagement {
+  def convert(tmp: (Vector[FeedDto], Int)): FeedsPageResponse = {
+    FeedsPageResponse(Page[FeedDto](tmp._2, tmp._1))
+  }
 }

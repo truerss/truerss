@@ -46,7 +46,7 @@ class FeedDaoTest(implicit ee: ExecutionEnv)
         count must be_==(10)
 
         feedDao.feedCountBySourceId(id, true) ~> { countUnread =>
-          countUnread !=== 10   // todo
+          countUnread must be_!=(10)
         }
       }
     }
@@ -85,7 +85,7 @@ class FeedDaoTest(implicit ee: ExecutionEnv)
     }
 
     "last n" in new FeedsSpec(10) {
-      feedDao.lastN(1).map(_.size) ~> { _ must be_==(1) }
+      feedDao.lastN(0, 1).map(_.size) ~> { _ must be_==(1) }
     }
 
     "page for source" in new FeedsSpec(10) {

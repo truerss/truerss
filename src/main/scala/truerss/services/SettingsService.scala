@@ -23,6 +23,10 @@ class SettingsService(dbLayer: DbLayer)(implicit ec: ExecutionContext) {
     dbLayer.userSettingsDao.update(userSettings)
   }
 
+  def updateSetups(userSettings: Iterable[UserSettings]): Future[Int] = {
+    dbLayer.userSettingsDao.bulkUpdate(userSettings)
+  }
+
   // the application layer dependency
   // we should use that in the application layer: for checking user-defined setup in every feature
   //

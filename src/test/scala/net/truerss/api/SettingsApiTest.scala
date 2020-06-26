@@ -15,7 +15,7 @@ class SettingsApiTest extends BaseApiTest {
 
   private val sm = mock[SettingsManagement]
   sm.getCurrentSetup returns f(SettingsResponse(Iterable(setup)))
-  sm.updateSetup(newSetup) returns f(ResponseHelpers.ok)
+  sm.updateSetups(Iterable(newSetup)) returns f(ResponseHelpers.ok)
 
   protected override val r = new SettingsApi(sm).route
 

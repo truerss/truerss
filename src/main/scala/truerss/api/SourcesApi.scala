@@ -36,8 +36,10 @@ class SourcesApi(sourcesManagement: SourcesManagement,
           sm.getSource(sourceId)
         } ~ pathPrefix("overview"/ LongNumber) { sourceId =>
           sm.getSourceOverview(sourceId)
-        } ~ pathPrefix("latest" / IntNumber) { count =>
-          fm.latest(count)
+        } ~ pathPrefix("latest") {
+          parameters('offset ? "0", 'limit ? "100") { (from, to) =>
+            fm.latest(from.toIntOr(0), to.toIntOr(100))
+          }
         } ~ pathPrefix(LongNumber / "feeds") { sourceId =>
           parameters('unreadOnly ? true, 'offset ? "0", 'limit ? "100") { (unreadOnly, from, limit) =>
             fm.fetchBySource(sourceId, unreadOnly, from.toIntOr(0), limit.toIntOr(100))

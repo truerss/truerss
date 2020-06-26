@@ -1,10 +1,10 @@
 package truerss.db
 
 import slick.jdbc.JdbcBackend.DatabaseDef
+import slick.sql.FixedSqlAction
 import truerss.db.driver.CurrentDriver
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.reflect.ClassTag
 
 class UserSettingsDao(val db: DatabaseDef)(implicit
                                            val ec: ExecutionContext,
@@ -23,7 +23,22 @@ class UserSettingsDao(val db: DatabaseDef)(implicit
   }
 
   def update(settings: UserSettings): Future[Int] = {
-    val statement = settings match {
+    db.run(toStatement(settings))
+  }
+
+  def bulkUpdate(settings: Iterable[UserSettings]): Future[Int] = {
+    val xs = settings.map(toStatement)
+    Future.sequence(xs.map { o => db.run(o) }).map(_.sum)
+  }
+
+  def insert(xs: Iterable[UserSettings]): Future[Option[Int]] = {
+    db.run {
+      userSettings ++= xs
+    }
+  }
+
+  private def toStatement(settings: UserSettings): FixedSqlAction[Int, NoStream, Effect.Write] = {
+    settings match {
       case UserSettings(key, description, Some(v), _, _) =>
         userSettings.map(a => (a.key, a.description, a.valueInt))
           .insertOrUpdate((key, description, Some(v)))
@@ -35,13 +50,6 @@ class UserSettingsDao(val db: DatabaseDef)(implicit
           .insertOrUpdate((key, description, Some(v)))
       case _ =>
         throw new IllegalStateException(s"Incorrect settings: $settings")
-    }
-    db.run(statement)
-  }
-
-  def insert(xs: Iterable[UserSettings]): Future[Option[Int]] = {
-    db.run {
-      userSettings ++= xs
     }
   }
 

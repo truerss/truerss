@@ -2,12 +2,16 @@
 class AjaxService
 
   constructor: () ->
+    logger = Sirius.Application.get_logger("AjaxService")
     @sources_api = "/api/v1/sources"
     @feeds_api = "/api/v1/feeds"
     @plugin_api = "/api/v1/plugins"
     @settings_api = "/api/v1/settings"
     @search_api = "/api/v1/search"
-    @k = () ->
+    @k = (err) ->
+      c(JSON.stringify(err))
+      logger.warn(JSON.stringify(err))
+
 
   plugins_all: (success, error) ->
     @_get("#{@plugin_api}/all", success, error)
@@ -32,8 +36,13 @@ class AjaxService
       @k
     )
 
-  latest: (count, success, error) ->
-    @_get("#{@sources_api}/latest/#{count}", success, error)
+  latest: (offset, limit, success) ->
+    @_get("#{@sources_api}/latest?offset=#{offset}&limit=#{limit}",
+      (response) ->
+                total = response["total"]
+                xs = response["resources"]
+                success(xs.map((x) -> Feed.create(x)), total)
+    )
 
   source_create: (params, success, error) ->
     @_post("#{@sources_api}", params, success, error)
@@ -118,8 +127,12 @@ class AjaxService
       (response) -> success(response.map (x) -> Feed.create(x)),
       @k)
 
-  update_settings: (params, success, error) ->
-    @_put("#{@settings_api}", params, success, error)
+  update_settings: (params, success) ->
+    @_put(
+      "#{@settings_api}",
+      params,
+      success,
+      @k)
 
   load_ejs: (url) ->
     jQuery.ajax
@@ -310,6 +323,7 @@ ControllerExt =
       result = Templates.feeds_list.render(options)
 
     Templates.article_view.render(result).html()
+
 
   render_feeds_and_source_overview: (source, overview, feeds, current_page, total_feeds) ->
     href = if overview.is_loaded_all()

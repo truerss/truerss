@@ -13,13 +13,13 @@ class FeedDao(val db: DatabaseDef)(implicit
 
   import driver.DateSupport._
   import driver.profile.api._
-  import driver.query.{feeds, bySource}
+  import driver.query.{feeds, bySource, byFeed, FeedsTQExt, FeedsQExt}
   import truerss.util.Util._
 
   def findUnread(sourceId: Long): Future[Seq[Feed]] = {
     db.run {
       bySource(sourceId)
-        .filter(_.read === false)
+        .unreadOnly
         .sortBy(_.publishedDate.desc)
         .result
     }
@@ -53,7 +53,7 @@ class FeedDao(val db: DatabaseDef)(implicit
   def markAll: Future[Int] = {
     db.run {
       feeds
-        .filter(_.read === false)
+        .unreadOnly
         .map(_.read)
         .update(true)
     }
@@ -62,28 +62,32 @@ class FeedDao(val db: DatabaseDef)(implicit
   def markBySource(sourceId: Long): Future[Int] = {
     db.run {
       bySource(sourceId)
-        .map(f => f.read).update(true)
+        .map(f => f.read)
+        .update(true)
     }
   }
 
-  def lastN(count: Long): Future[Seq[Feed]] = {
+  def lastN(offset: Int, limit: Int): Future[Seq[Feed]] = {
+    db.run {
+      commonPaging(feeds, offset, limit)
+        .unreadOnly
+        .result
+    }
+  }
+
+  def lastNCount(): Future[Int] = {
     db.run {
       feeds
-        .filter(_.read === false)
-        .take(count)
-        .sortBy(_.publishedDate.desc)
+        .unreadOnly
+        .length
         .result
     }
   }
 
   def pageForSource(sourceId: Long, unreadOnly: Boolean, offset: Int, limit: Int): Future[Seq[Feed]] = {
     db.run {
-      bySource(sourceId)
+      commonPaging(bySource(sourceId), offset, limit)
         .filter(_.read inSet getReadValues(unreadOnly))
-        .sortBy(_.publishedDate.desc)
-        .drop(offset)
-        .take(limit)
-        .sortBy(_.publishedDate)
         .result
     }
   }
@@ -91,32 +95,32 @@ class FeedDao(val db: DatabaseDef)(implicit
   def favorites: Future[Seq[Feed]] = {
     db.run {
       feeds
-        .filter(_.favorite === true)
+        .isFavorite
         .result
     }
   }
 
   def findOne(feedId: Long): Future[Option[Feed]] = {
     db.run {
-      feeds.filter(_.id === feedId).take(1).result
+      byFeed(feedId).take(1).result
     }.map(_.headOption)
   }
 
   def modifyFav(feedId: Long, fav: Boolean): Future[Int] = {
     db.run {
-      feeds.filter(_.id === feedId).map(e => e.favorite).update(fav)
+      byFeed(feedId).map(e => e.favorite).update(fav)
     }
   }
 
   def modifyRead(feedId: Long, read: Boolean): Future[Int] = {
     db.run {
-      feeds.filter(_.id === feedId).map(e => e.read).update(read)
+      byFeed(feedId).map(e => e.read).update(read)
     }
   }
 
   def updateContent(feedId: Long, content: String): Future[Int] = {
     db.run {
-      feeds.filter(_.id === feedId).map(_.content).update(content)
+      byFeed(feedId).map(_.content).update(content)
     }
   }
 
@@ -185,7 +189,7 @@ class FeedDao(val db: DatabaseDef)(implicit
 
         val newUrls = forceUpdateXs.map(_.url) ++ newFeeds.map(_.url)
 
-        feeds.filter(_.sourceId === sourceId)
+        bySource(sourceId)
           .filter(_.url inSet newUrls)
           .result
       }
@@ -199,5 +203,13 @@ class FeedDao(val db: DatabaseDef)(implicit
       Vector(true, false)
     }
   }
+
+  private def commonPaging(tq: Query[driver.Feeds, Feed, Seq], offset: Int, limit: Int) = {
+    tq
+      .sortBy(_.publishedDate.desc)
+      .drop(offset)
+      .take(limit)
+  }
+
 
 }

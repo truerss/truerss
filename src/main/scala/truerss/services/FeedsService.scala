@@ -37,7 +37,7 @@ class FeedsService(dbLayer: DbLayer)(implicit val ec: ExecutionContext) {
 
   def markAsRead(feedId: Long): Future[Option[FeedDto]] = {
     findAndModify(feedId) { feed =>
-      dbLayer.feedDao.modifyRead(feedId, true).map { _ =>
+      dbLayer.feedDao.modifyRead(feedId, read = true).map { _ =>
         feed.map(f => f.copy(read = true))
       }
     }
@@ -45,36 +45,44 @@ class FeedsService(dbLayer: DbLayer)(implicit val ec: ExecutionContext) {
 
   def markAsUnread(feedId: Long): Future[Option[FeedDto]] = {
     findAndModify(feedId) {feed =>
-      dbLayer.feedDao.modifyRead(feedId, false).map { _ =>
+      dbLayer.feedDao.modifyRead(feedId, read = false).map { _ =>
         feed.map(f => f.copy(read = false))
       }
     }
   }
 
   def findUnread(sourceId: Long): Future[Vector[FeedDto]] = {
-    dbLayer.feedDao.findUnread(sourceId).map(t)
+    dbLayer.feedDao.findUnread(sourceId).map(convert)
   }
 
   def findBySource(sourceId: Long, unreadOnly: Boolean, offset: Int, limit: Int): Future[(Vector[FeedDto], Int)] = {
-    for {
-      feeds <- dbLayer.feedDao.pageForSource(sourceId, unreadOnly, offset, limit)
-      total <- dbLayer.feedDao.feedCountBySourceId(sourceId, unreadOnly)
-    } yield (t(feeds), total)
+    fetchPage(
+      dbLayer.feedDao.pageForSource(sourceId, unreadOnly, offset, limit),
+      dbLayer.feedDao.feedCountBySourceId(sourceId, unreadOnly)
+    )
   }
 
-  def latest(count: Int): Future[Vector[FeedDto]] = {
-    dbLayer.feedDao.lastN(count).map(t)
+  def latest(offset: Int, limit: Int): Future[(Vector[FeedDto], Int)] = {
+    fetchPage(
+      dbLayer.feedDao.lastN(offset, limit),
+      dbLayer.feedDao.lastNCount()
+    )
   }
 
   def favorites: Future[Vector[FeedDto]] = {
-    dbLayer.feedDao.favorites.map(t)
+    dbLayer.feedDao.favorites.map(convert)
   }
 
+  private def fetchPage(feedsF: Future[Seq[Feed]], totalF: Future[Int]): Future[(Vector[FeedDto], Int)] = {
+    for {
+      feeds <- feedsF
+      total <- totalF
+    } yield (convert(feeds), total)
+  }
 
-  private def t(xs: Seq[Feed]): Vector[FeedDto] = {
+  private def convert(xs: Seq[Feed]): Vector[FeedDto] = {
     xs.map(_.toDto).toVector
   }
-
 
   private def findAndModify(feedId: Long)(f: Option[Feed] => Future[Option[Feed]]): Future[Option[FeedDto]] = {
     dbLayer.feedDao.findOne(feedId).flatMap(f).map { x => x.map(_.toDto) }

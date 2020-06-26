@@ -93,8 +93,8 @@ class Setting extends Sirius.BaseModel
   is_short_view: () ->
     @key() == "short_view"
 
-  ajaxify: () ->
-    JSON.stringify({key: @key(), value: @value()})
+  to_object: () ->
+    {key: @key(), value: @value()}
 
 
 Settings = new Sirius.Collection(Setting, {index: ["key"]})

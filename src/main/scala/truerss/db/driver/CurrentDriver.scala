@@ -166,9 +166,29 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
     def bySource(sourceId: Long): Query[Feeds, Feed, Seq] = {
       TableQuery[Feeds].filter(_.sourceId === sourceId)
     }
+    def byFeed(feedId: Long): Query[Feeds, Feed, Seq] = {
+      TableQuery[Feeds].filter(_.id === feedId)
+    }
+
     lazy val versions = TableQuery[Versions]
     lazy val predefinedSettings = TableQuery[PredefinedSettingsTable]
     lazy val userSettings = TableQuery[UserSettingsTable]
+
+    implicit class FeedsTQExt(val x: TableQuery[Feeds]) {
+      def unreadOnly: Query[Feeds, Feed, Seq] = {
+        x.filter(_.read === false)
+      }
+
+      def isFavorite: Query[Feeds, Feed, Seq] = {
+        x.filter(_.favorite === true)
+      }
+    }
+
+    implicit class FeedsQExt(val x: Query[Feeds, Feed, Seq]) {
+      def unreadOnly: Query[Feeds, Feed, Seq] = {
+        x.filter(_.read === false)
+      }
+    }
   }
 
 }

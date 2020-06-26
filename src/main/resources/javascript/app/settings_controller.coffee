@@ -45,16 +45,9 @@ SettingsController =
     @_modal.show()
 
     Templates.settings_view.on "#settings-save", "click", (e) =>
-      Settings.map (x) =>
-        json = x.ajaxify()
-        ajax.update_settings json,
-          (ok) =>
-            @logger.debug("setting: #{x.key()} updated to #{ok.value}")
-            x.value(ok.value)
-            @_modal.hide()
+      setups = Settings.map (x) -> x.to_object()
 
-          (err) =>
-            c("fail: #{JSON.stringify(err)}")
+      ajax.update_settings JSON.stringify(setups), (_) => @_modal.hide()
 
 
   save: () ->

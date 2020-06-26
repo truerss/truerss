@@ -1,6 +1,6 @@
 package truerss.services.management
 
-import truerss.api.{BadRequestResponse, SettingResponse, SettingsResponse}
+import truerss.api.{BadRequestResponse, Ok, SettingResponse, SettingsResponse}
 import truerss.db.UserSettings
 import truerss.dto.{AvailableSelect, AvailableSetup, CurrentValue, NewSetup}
 import truerss.services.SettingsService
@@ -16,6 +16,30 @@ class SettingsManagement(val settingsService: SettingsService)
 
   def getCurrentSetup: R = {
     settingsService.getCurrentSetup.map(SettingsResponse(_))
+  }
+
+  def updateSetups(newSetups: Iterable[NewSetup[_]]): R = {
+    settingsService.getCurrentSetup.flatMap { xs =>
+      val result = newSetups.foldLeft(Reducer.empty) { case (r, newSetup) =>
+        xs.find(_.key == newSetup.key).map { result =>
+          if (newSetup.isValidAgainst(result)) {
+            val setup = newSetup.toUserSetup.withDescription(result.description)
+            r.withSetup(setup)
+          } else {
+            logger.warn(s"Incorrect value: ${newSetup.key}:${newSetup.value}, options: ${result.options}")
+            r.withError(s"Incorrect value: ${newSetup.value}")
+          }
+        }.getOrElse(r)
+      }
+      if (result.isEmpty) {
+        BadRequestResponse(result.errors.mkString(", ")).toF
+      } else {
+        settingsService.updateSetups(result.setups).map { x =>
+          logger.debug(s"Updated: $x setups")
+          Ok("Updated")
+        }
+      }
+    }
   }
 
   def updateSetup[T: ClassTag](newSetup: NewSetup[T]): R = {
@@ -38,6 +62,24 @@ class SettingsManagement(val settingsService: SettingsService)
 }
 
 object SettingsManagement {
+
+  case class Reducer(setups: Vector[UserSettings], errors: Vector[String]) {
+    def withError(error: String): Reducer = {
+      copy(errors = errors :+ error)
+    }
+
+    def withSetup(setup: UserSettings): Reducer = {
+      copy(setups = setups :+ setup)
+    }
+
+    def isEmpty: Boolean = {
+      setups.isEmpty
+    }
+  }
+
+  object Reducer {
+    val empty = Reducer(Vector.empty, Vector.empty)
+  }
 
   implicit class NewSetupExt[T: ClassTag](val x: NewSetup[T]) {
     def isValidAgainst[R](availableSetup: AvailableSetup[R]): Boolean = {
