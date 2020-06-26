@@ -11,6 +11,8 @@ class FeedsService(dbLayer: DbLayer)(implicit val ec: ExecutionContext) {
 
   import FeedSourceDtoModelImplicits._
 
+  type FPage = Future[(Vector[FeedDto], Int)]
+
   def findOne(feedId: Long): Future[Option[FeedDto]] = {
     dbLayer.feedDao.findOne(feedId).map { x => x.map(_.toDto) }
   }
@@ -62,18 +64,21 @@ class FeedsService(dbLayer: DbLayer)(implicit val ec: ExecutionContext) {
     )
   }
 
-  def latest(offset: Int, limit: Int): Future[(Vector[FeedDto], Int)] = {
+  def latest(offset: Int, limit: Int): FPage = {
     fetchPage(
       dbLayer.feedDao.lastN(offset, limit),
       dbLayer.feedDao.lastNCount()
     )
   }
 
-  def favorites: Future[Vector[FeedDto]] = {
-    dbLayer.feedDao.favorites.map(convert)
+  def favorites(offset: Int, limit: Int): FPage = {
+    fetchPage(
+      dbLayer.feedDao.favorites(offset, limit),
+      dbLayer.feedDao.favoritesCount()
+    )
   }
 
-  private def fetchPage(feedsF: Future[Seq[Feed]], totalF: Future[Int]): Future[(Vector[FeedDto], Int)] = {
+  private def fetchPage(feedsF: Future[Seq[Feed]], totalF: Future[Int]): FPage = {
     for {
       feeds <- feedsF
       total <- totalF

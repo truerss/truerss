@@ -29,8 +29,8 @@ class FeedsManagement(feedsService: FeedsService,
     feedsService.markAllAsRead.map { _ => ok }
   }
 
-  def favorites: R = {
-    feedsService.favorites.map(FeedsResponse)
+  def favorites(offset: Int, limit: Int): R = {
+    feedsService.favorites(offset, limit).map(toPage)
   }
 
   def getFeedContent(feedId: Long): R = {
@@ -130,11 +130,11 @@ class FeedsManagement(feedsService: FeedsService,
   }
 
   def fetchBySource(sourceId: Long, unreadOnly: Boolean, offset: Int, limit: Int): R = {
-    feedsService.findBySource(sourceId, unreadOnly, offset, limit).map(convert)
+    feedsService.findBySource(sourceId, unreadOnly, offset, limit).map(toPage)
   }
 
   def latest(offset: Int, limit: Int): R = {
-    feedsService.latest(offset, limit).map(convert)
+    feedsService.latest(offset, limit).map(toPage)
   }
 
   private def feedHandler(feed: Option[FeedDto]) = {
@@ -147,7 +147,7 @@ class FeedsManagement(feedsService: FeedsService,
 }
 
 object FeedsManagement {
-  def convert(tmp: (Vector[FeedDto], Int)): FeedsPageResponse = {
+  def toPage(tmp: (Vector[FeedDto], Int)): FeedsPageResponse = {
     FeedsPageResponse(Page[FeedDto](tmp._2, tmp._1))
   }
 }

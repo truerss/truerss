@@ -97,7 +97,7 @@ class FeedDaoTest(implicit ee: ExecutionEnv)
 
     "favorites" in new FeedsSpec(3) {
       feedDao.modifyFav(ids.head, true) ~> { _ must be_==(1) }
-      feedDao.favorites.map(_.map(_.id)) ~> { _ must contain(feeds.head.id) }
+      feedDao.favorites(0, 100).map(_.map(_.id)) ~> { _ must contain(feeds.head.id) }
     }
 
     "update content" in new FeedsSpec(1) {

@@ -17,7 +17,7 @@ class FeedsApiTest extends BaseApiTest {
   private val id_500 = 100L
   private val cnt = FeedContent(Some("test"))
   private val fm = mock[FeedsManagement]
-  fm.favorites returns f(FeedsResponse(Vector(dto)))
+  fm.favorites(anyInt, anyInt) returns f(FeedsResponse(Vector(dto)))
   fm.getFeed(id_200) returns f(FeedResponse(dto))
   fm.getFeedContent(id_200) returns f(FeedContentResponse(cnt))
   fm.getFeed(id_404) returns f(ResponseHelpers.feedNotFound)
@@ -38,7 +38,16 @@ class FeedsApiTest extends BaseApiTest {
   "feeds api" should {
     "get favorites" in {
       checkR(Get(s"$url/favorites"), Vector(dto), StatusCodes.OK)
-      there was one(fm).favorites
+      there was one(fm).favorites(0, 100)
+
+      checkR(Get(s"$url/favorites?offset=10&limit=10"), Vector(dto), StatusCodes.OK)
+      there was one(fm).favorites(10, 10)
+
+      checkR(Get(s"$url/favorites?limit=10"), Vector(dto), StatusCodes.OK)
+      there was one(fm).favorites(0, 10)
+
+      checkR(Get(s"$url/favorites?offset=10"), Vector(dto), StatusCodes.OK)
+      there was one(fm).favorites(0, 10)
     }
     "get feed#ok" in {
       checkR(Get(s"$url/$id_200"), dto)

@@ -88,9 +88,9 @@ class FeedsServiceTest(implicit ee: ExecutionEnv)
         tpl._2 ==== 4
       }
 
-      service.favorites ~> { xs =>
-        xs must have size 3
-        xs.map(_.id) must contain(exactly(id1, id3, id4))
+      service.favorites(0, 100) ~> { xs =>
+        xs._1 must have size 3
+        xs._1.map(_.id) must contain(exactly(id1, id3, id4))
       }
     }
   }

@@ -92,10 +92,21 @@ class FeedDao(val db: DatabaseDef)(implicit
     }
   }
 
-  def favorites: Future[Seq[Feed]] = {
+  def favorites(offset: Int, limit: Int): Future[Seq[Feed]] = {
+    db.run {
+    feeds
+      .isFavorite
+      .drop(offset)
+      .take(limit)
+      .result
+    }
+  }
+
+  def favoritesCount(): Future[Int] = {
     db.run {
       feeds
         .isFavorite
+        .length
         .result
     }
   }

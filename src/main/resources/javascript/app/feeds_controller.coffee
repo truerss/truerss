@@ -5,8 +5,12 @@ FeedsController =
 
   favorites: (page) ->
     page = parseInt(page || 1)
-    ajax.favorites_feed (feeds) ->
-      render_feeds(feeds, page, "/favorites")
+    offset = get_offset(page)
+    limit = get_limit()
+
+    ajax.favorites_feed(offset, limit, (feeds, total) ->
+      render_feeds(feeds, page, total, "/favorites")
+    )
 
   _change: (view, has_flag, available_classes, feed_id, source_id, f) =>
     feed_id = parseInt(feed_id, 10)

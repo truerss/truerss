@@ -38,10 +38,7 @@ class AjaxService
 
   latest: (offset, limit, success) ->
     @_get("#{@sources_api}/latest?offset=#{offset}&limit=#{limit}",
-      (response) ->
-                total = response["total"]
-                xs = response["resources"]
-                success(xs.map((x) -> Feed.create(x)), total)
+      (r) => @_feeds_transform(r, success)
     )
 
   source_create: (params, success, error) ->
@@ -60,10 +57,7 @@ class AjaxService
   get_page_of_feeds: (source_id, offset, limit, unread_only, success, error) ->
     @_get(
       "#{@sources_api}/#{source_id}/feeds?offset=#{offset}&limit=#{limit}&unreadOnly=#{unread_only}",
-      (response) ->
-               total = response["total"]
-               xs = response["resources"]
-               success(xs.map((x) -> Feed.create(x)), total)
+      (r) => @_feeds_transform(r, success),
       error
     )
 
@@ -76,9 +70,14 @@ class AjaxService
   update_source: (id, params, success, error) ->
     @_put("#{@sources_api}/#{id}", params, success, error)
 
-  favorites_feed: (success, error) ->
-    @_get("#{@feeds_api}/favorites",
-      (xs) -> success(xs.map (f) -> Feed.create(f)),
+  _feeds_transform: (response, success_f) ->
+    total = response["total"]
+    xs = response["resources"]
+    success_f(xs.map((x) -> Feed.create(x)), total)
+
+  favorites_feed: (offset, limit, success, error) ->
+    @_get("#{@feeds_api}/favorites?offset=#{offset}&limit=#{limit}",
+      (r) => @_feeds_transform(r, success),
       error)
 
   set_favorite: (num, success, error) ->

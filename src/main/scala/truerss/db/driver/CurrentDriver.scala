@@ -188,6 +188,9 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
       def unreadOnly: Query[Feeds, Feed, Seq] = {
         x.filter(_.read === false)
       }
+      def isFavorite: Query[Feeds, Feed, Seq] = {
+        x.filter(_.favorite === true)
+      }
     }
   }
 
