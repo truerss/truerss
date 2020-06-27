@@ -70,11 +70,6 @@ class AjaxService
   update_source: (id, params, success, error) ->
     @_put("#{@sources_api}/#{id}", params, success, error)
 
-  _feeds_transform: (response, success_f) ->
-    total = response["total"]
-    xs = response["resources"]
-    success_f(xs.map((x) -> Feed.create(x)), total)
-
   favorites_feed: (offset, limit, success, error) ->
     @_get("#{@feeds_api}/favorites?offset=#{offset}&limit=#{limit}",
       (r) => @_feeds_transform(r, success),
@@ -137,6 +132,11 @@ class AjaxService
     jQuery.ajax
       type: "GET"
       url: "templates/#{url}.ejs"
+
+  _feeds_transform: (response, success_f) ->
+    total = response["total"]
+    xs = response["resources"]
+    success_f(xs.map((x) -> Feed.create(x)), total)
 
   _delete: (url, success, error = @k ) ->
     $.ajax

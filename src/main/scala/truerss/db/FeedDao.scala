@@ -74,9 +74,9 @@ class FeedDao(val db: DatabaseDef)(implicit
   }
 
   def pageForSource(sourceId: Long, unreadOnly: Boolean, offset: Int, limit: Int): FPage = {
-    fetchPage(
-      bySource(sourceId)
-      .filter(_.read inSet getReadValues(unreadOnly)), offset, limit)
+    val f = bySource(sourceId)
+      .filter(_.read inSet getReadValues(unreadOnly))
+    fetchPage(f, offset, limit)
   }
 
   def favorites(offset: Int, limit: Int): FPage = {
@@ -196,9 +196,11 @@ class FeedDao(val db: DatabaseDef)(implicit
 
   private def fetchPage(q: Query[driver.Feeds, Feed, Seq], offset: Int, limit: Int): FPage = {
     val act = for {
-      resources <- q.take(limit).drop(offset).result
+      resources <- q.drop(offset).take(limit).result
       total <- q.length.result
-    } yield (resources, total)
+    } yield {
+      (resources, total)
+    }
     db.run(act)
   }
 

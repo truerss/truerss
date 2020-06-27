@@ -23,6 +23,8 @@ $ ->
     "ws:new": controller: WSController, action: "fresh"
     "ws:notify": controller: WSController, action: "notify"
     "/favorites" : controller: FeedsController, action: "favorites"
+    "/favorites/search": controller: SearchController, action: "show", after: () -> scroll_to_top()
+    "/favorites/search/page/:page": controller: SearchController, action: "show", after: () -> scroll_to_top()
     "/favorites/page/:page" : controller: FeedsController, action: "favorites"
     "/plugins" : controller: PluginsController, action: "show"
     "/about" : controller: AboutController, action: "show"
