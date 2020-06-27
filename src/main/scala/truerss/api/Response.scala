@@ -17,7 +17,7 @@ case class SettingResponse[T](settings: AvailableSetup[T]) extends Response
 case class OpmlResponse(content: String) extends Response
 //
 
-case class Ok(msg: String) extends Response
+case object Ok extends Response
 case class CssResponse(content: String) extends Response
 case class JsResponse(content: String) extends Response
 case class NotFoundResponse(msg: String) extends Response

@@ -45,6 +45,9 @@ trait HttpHelper {
       case StatusCodes.OK =>
         HttpEntity.apply(ContentTypes.`application/json`, msg)
 
+      case StatusCodes.NoContent =>
+        HttpEntity.empty(ContentTypes.`application/json`)
+
       case _ => HttpEntity.apply(ContentTypes.`application/json`, s"""{"error": "$msg"}""")
     }
     HttpResponse(
@@ -56,6 +59,12 @@ trait HttpHelper {
   def finish(status: StatusCode, msg: String): RouteResult = {
     RouteResult.Complete(
       response(status, msg)
+    )
+  }
+
+  def finish(status: StatusCode): RouteResult = {
+    RouteResult.Complete(
+      response(status, "")
     )
   }
 
@@ -127,9 +136,7 @@ trait HttpHelper {
               Source.single(ByteString(content))))
         }
 
-
-
-      case Ok(x) => finish(OK, x.toString)
+      case Ok => finish(NoContent, "")
 
       case CssResponse(content) =>
         flush(ContentTypes.`text/plain(UTF-8)`, content)

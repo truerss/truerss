@@ -36,7 +36,7 @@ class SettingsManagement(val settingsService: SettingsService)
       } else {
         settingsService.updateSetups(result.setups).map { x =>
           logger.debug(s"Updated: $x setups")
-          Ok("Updated")
+          Ok
         }
       }
     }

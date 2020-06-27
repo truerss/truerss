@@ -149,7 +149,7 @@ class AjaxService
     $.ajax
       url: url
       type: "PUT"
-      dataType: "json"
+      dataType: "text" # json
       data: params
       success: success
       error: error
