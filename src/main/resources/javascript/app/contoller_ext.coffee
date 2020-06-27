@@ -123,7 +123,7 @@ class AjaxService
     @_post(
       @search_api,
       request,
-      (response) -> success(response.map (x) -> Feed.create(x)),
+      (r) => @_feeds_transform(r, success),
       @k)
 
   update_settings: (params, success) ->

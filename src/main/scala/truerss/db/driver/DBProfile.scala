@@ -1,13 +1,12 @@
 package truerss.db.driver
 
-import java.util.Date
 import java.nio.file.Paths
 import java.time.{Clock, LocalDateTime}
 import java.util.Properties
 
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 import slick.jdbc._
-import slick.jdbc.meta.{MIndexInfo, MTable}
+import slick.jdbc.meta.MTable
 import slick.migration.api._
 import truerss.db._
 import truerss.util.DbConfig
@@ -27,7 +26,7 @@ object SupportedDb {
   def load(dbConf: DbConfig, isUserConf: Boolean)(
           implicit ec: ExecutionContext
   ): DbLayer = {
-    val backend: Option[SupportedDb] = DBProfile.get(dbConf.dbBackend)//Some(H2)
+    val backend: Option[SupportedDb] = DBProfile.get(dbConf.dbBackend)
 
     if (backend.isEmpty) {
       Console.err.println(s"Unsupported database backend: ${dbConf.dbBackend}")
@@ -43,7 +42,7 @@ object SupportedDb {
         } else {
           s"jdbc:${dbConf.dbBackend}:/${Paths.get("").toAbsolutePath}/${dbConf.dbName}"
         }
-        JdbcBackend.Database.forURL(url, driver=dbProfile.driver)
+        JdbcBackend.Database.forURL(url, driver = dbProfile.driver)
       case Postgresql | Mysql =>
         val props = new Properties()
         props.setProperty("dataSourceClassName", dbProfile.sourceClassName)
@@ -217,13 +216,14 @@ trait DBProfile {
 
 object DBProfile {
 
+  private val dbMap = Map(
+    "postgresql" -> Postgresql,
+    "sqlite" -> Sqlite,
+    "mysql" -> Mysql
+  )
+
   def get(x: String): Option[SupportedDb] = {
-    x.toLowerCase match {
-      case "postgresql" => Some(Postgresql)
-      case "sqlite" => Some(Sqlite)
-      case "mysql" => Some(Mysql)
-      case _ => None
-    }
+    dbMap.get(x.toLowerCase)
   }
 
   def create(db: SupportedDb) = {
@@ -238,7 +238,7 @@ object DBProfile {
         override val profile: JdbcProfile = SQLiteProfile
         override val driver = "org.sqlite.JDBC"
         override val isSqlite: Boolean = true
-        override val sourceClassName = ""
+        override val sourceClassName: String = ""
       }
 
       case Mysql => new DBProfile {

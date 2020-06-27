@@ -14,7 +14,7 @@ class SearchApiTest extends BaseApiTest {
   import JsonFormats._
 
   private val sm = mock[SearchManagement]
-  private val request = SearchRequest(inFavorites = false, query = "test")
+  private val request = SearchRequest(inFavorites = false, query = "test", offset = 0, limit = 10)
   private val feed = Gen.genFeed(1, "dsa").toDto
   sm.search(request) returns Future.successful(FeedsResponse(Vector(feed)))
 

@@ -10,8 +10,9 @@ import scala.concurrent.{ExecutionContext, Future}
 class FeedsService(dbLayer: DbLayer)(implicit val ec: ExecutionContext) {
 
   import FeedSourceDtoModelImplicits._
+  import FeedsService._
 
-  type FPage = Future[(Vector[FeedDto], Int)]
+
 
   def findOne(feedId: Long): Future[Option[FeedDto]] = {
     dbLayer.feedDao.findOne(feedId).map { x => x.map(_.toDto) }
@@ -58,40 +59,32 @@ class FeedsService(dbLayer: DbLayer)(implicit val ec: ExecutionContext) {
   }
 
   def findBySource(sourceId: Long, unreadOnly: Boolean, offset: Int, limit: Int): Future[(Vector[FeedDto], Int)] = {
-    fetchPage(
-      dbLayer.feedDao.pageForSource(sourceId, unreadOnly, offset, limit),
-      dbLayer.feedDao.feedCountBySourceId(sourceId, unreadOnly)
-    )
+    dbLayer.feedDao.pageForSource(sourceId, unreadOnly, offset, limit).map(toPage)
   }
 
   def latest(offset: Int, limit: Int): FPage = {
-    fetchPage(
-      dbLayer.feedDao.lastN(offset, limit),
-      dbLayer.feedDao.lastNCount()
-    )
+    dbLayer.feedDao.lastN(offset, limit).map(toPage)
   }
 
   def favorites(offset: Int, limit: Int): FPage = {
-    fetchPage(
-      dbLayer.feedDao.favorites(offset, limit),
-      dbLayer.feedDao.favoritesCount()
-    )
-  }
-
-  private def fetchPage(feedsF: Future[Seq[Feed]], totalF: Future[Int]): FPage = {
-    for {
-      feeds <- feedsF
-      total <- totalF
-    } yield (convert(feeds), total)
-  }
-
-  private def convert(xs: Seq[Feed]): Vector[FeedDto] = {
-    xs.map(_.toDto).toVector
+    dbLayer.feedDao.favorites(offset, limit).map(toPage)
   }
 
   private def findAndModify(feedId: Long)(f: Option[Feed] => Future[Option[Feed]]): Future[Option[FeedDto]] = {
     dbLayer.feedDao.findOne(feedId).flatMap(f).map { x => x.map(_.toDto) }
   }
+}
 
+object FeedsService {
+  import FeedSourceDtoModelImplicits._
 
+  type FPage = Future[(Vector[FeedDto], Int)]
+
+  def toPage(tmp: (Seq[Feed], Int)) = {
+    (tmp._1.map(_.toDto).toVector, tmp._2)
+  }
+
+  def convert(xs: Seq[Feed]): Vector[FeedDto] = {
+    xs.map(_.toDto).toVector
+  }
 }

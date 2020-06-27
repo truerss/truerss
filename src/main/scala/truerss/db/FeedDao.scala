@@ -16,6 +16,8 @@ class FeedDao(val db: DatabaseDef)(implicit
   import driver.query.{feeds, bySource, byFeed, FeedsTQExt, FeedsQExt}
   import truerss.util.Util._
 
+  private type FPage = Future[(Seq[Feed], Int)]
+
   def findUnread(sourceId: Long): Future[Seq[Feed]] = {
     db.run {
       bySource(sourceId)
@@ -67,48 +69,20 @@ class FeedDao(val db: DatabaseDef)(implicit
     }
   }
 
-  def lastN(offset: Int, limit: Int): Future[Seq[Feed]] = {
-    db.run {
-      commonPaging(feeds, offset, limit)
-        .unreadOnly
-        .result
-    }
+  def lastN(offset: Int, limit: Int): FPage = {
+    fetchPage(feeds.unreadOnly, offset, limit)
   }
 
-  def lastNCount(): Future[Int] = {
-    db.run {
-      feeds
-        .unreadOnly
-        .length
-        .result
-    }
+  def pageForSource(sourceId: Long, unreadOnly: Boolean, offset: Int, limit: Int): FPage = {
+    fetchPage(
+      bySource(sourceId)
+      .filter(_.read inSet getReadValues(unreadOnly)), offset, limit)
   }
 
-  def pageForSource(sourceId: Long, unreadOnly: Boolean, offset: Int, limit: Int): Future[Seq[Feed]] = {
-    db.run {
-      commonPaging(bySource(sourceId), offset, limit)
-        .filter(_.read inSet getReadValues(unreadOnly))
-        .result
-    }
-  }
-
-  def favorites(offset: Int, limit: Int): Future[Seq[Feed]] = {
-    db.run {
-    feeds
-      .isFavorite
-      .drop(offset)
-      .take(limit)
-      .result
-    }
-  }
-
-  def favoritesCount(): Future[Int] = {
-    db.run {
-      feeds
-        .isFavorite
-        .length
-        .result
-    }
+  def favorites(offset: Int, limit: Int): FPage = {
+    fetchPage(
+      feeds.isFavorite, offset, limit
+    )
   }
 
   def findOne(feedId: Long): Future[Option[Feed]] = {
@@ -158,7 +132,7 @@ class FeedDao(val db: DatabaseDef)(implicit
     }
   }
 
-  def search(inFavorites: Boolean, query: String): Future[Seq[Feed]] = {
+  def search(inFavorites: Boolean, query: String, offset: Int, limit: Int): FPage = {
     val exp = s"%$query%"
     val f = feeds
       .filter{x => (x.title like exp) || (x.normalized like exp) || (x.url like exp)}
@@ -168,9 +142,7 @@ class FeedDao(val db: DatabaseDef)(implicit
     } else {
       f
     }
-    db.run {
-      q.result
-    }
+    fetchPage(q, offset, limit)
   }
 
   def mergeFeeds(sourceId: Long, xs: Iterable[Entry]): Future[Seq[Feed]] = {
@@ -220,6 +192,14 @@ class FeedDao(val db: DatabaseDef)(implicit
       .sortBy(_.publishedDate.desc)
       .drop(offset)
       .take(limit)
+  }
+
+  private def fetchPage(q: Query[driver.Feeds, Feed, Seq], offset: Int, limit: Int): FPage = {
+    val act = for {
+      resources <- q.take(limit).drop(offset).result
+      total <- q.length.result
+    } yield (resources, total)
+    db.run(act)
   }
 
 

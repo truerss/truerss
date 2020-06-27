@@ -26,18 +26,18 @@ object Main extends App {
 
       val dbLayer = SupportedDb.load(dbConf, isUserConf)(dbEc)
 
+      val stream = system.eventStream
+
       val settingsService = new SettingsService(dbLayer)(servicesEc)
       val sourceOverviewService = new SourceOverviewService(dbLayer)(servicesEc)
       val sourcesService = new SourcesService(dbLayer, actualConfig.appPlugins)(servicesEc)
       val applicationPluginsService = new ApplicationPluginsService(actualConfig.appPlugins)
-      val opmlService = new OpmlService(sourcesService)(servicesEc)
+      val opmlService = new OpmlService(sourcesService, stream)(servicesEc)
       val feedsService = new FeedsService(dbLayer)(servicesEc)
       val contentReaderService = new ContentReaderService(applicationPluginsService)
       val searchService = new SearchService(dbLayer)(servicesEc)
 
-      val stream = system.eventStream
-
-      val opmlManagement = new OpmlManagement(opmlService, sourcesService, stream)(servicesEc)
+      val opmlManagement = new OpmlManagement(opmlService)(servicesEc)
       val sourcesManagement = new SourcesManagement(sourcesService,
         opmlService, sourceOverviewService, stream)(servicesEc)
       val feedsManagement = new FeedsManagement(feedsService,

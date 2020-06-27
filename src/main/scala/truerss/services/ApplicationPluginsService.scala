@@ -11,39 +11,29 @@ import truerss.util.ApplicationPlugins
 
 class ApplicationPluginsService(appPlugins: ApplicationPlugins) {
 
+  import ApplicationPluginsService._
   private type CR = BaseContentReader with UrlMatcher with Priority with PluginInfo
-
-  // move to app plugins TODO
-  protected val defaultPlugin = new DefaultSiteReader(ConfigFactory.empty())
-
-  private val plugins = appPlugins.contentPlugins
-
-  private val contentReaders: Vector[CR] = appPlugins.contentPlugins ++ Vector(defaultPlugin)
 
   def js: String = appPlugins.js.mkString
 
   def css: String = appPlugins.css.mkString
 
   def matchUrl(url: URL): Boolean = {
-    appPlugins.feedPlugins.exists(_.matchUrl(url)) ||
-      appPlugins.contentPlugins.exists(_.matchUrl(url)) ||
-      appPlugins.sitePlugins.exists(_.matchUrl(url))
+    appPlugins.inFeed(url) ||
+      appPlugins.inContent(url) ||
+      appPlugins.inSite(url)
   }
 
   def getFeedReader(url: URL): Option[BasePlugin] = {
-    (appPlugins.feedPlugins.filter(_.matchUrl(url)) ++
-      appPlugins.sitePlugins.filter(_.matchUrl(url)))
-      .sortBy(_.priority).reverse.headOption
+    appPlugins.getFeedReader(url)
   }
 
   def getContentReader(url: URL): Option[BasePlugin] = {
-    (appPlugins.contentPlugins.filter(_.matchUrl(url)) ++
-      appPlugins.sitePlugins.filter(_.matchUrl(url)))
-      .sortBy(_.priority).reverse.headOption
+    appPlugins.getContentReader(url)
   }
 
   def getContentReaderOrDefault(url: URL): BasePlugin = {
-    getContentReader(url).getOrElse(defaultPlugin)
+    appPlugins.getContentReaderOrDefault(url)
   }
 
   def view: PluginsViewDto = {
@@ -59,26 +49,29 @@ class ApplicationPluginsService(appPlugins: ApplicationPlugins) {
     val url = new URL(source.url)
     source.state match {
       case SourceStates.Neutral =>
-        defaultPlugin
+        appPlugins.defaultPlugin
       case SourceStates.Enable =>
         val feedReader = getFeedReader(url)
         val contentReader = getContentReader(url)
 
         (feedReader, contentReader) match {
           case (None, None) =>
-            defaultPlugin
+            appPlugins.defaultPlugin
           case (f, _) =>
-            val f0 = f.getOrElse(defaultPlugin)
+            val f0 = f.getOrElse(appPlugins.defaultPlugin)
             f0.asInstanceOf[BaseFeedReader]
           case _ =>
-            defaultPlugin
+            appPlugins.defaultPlugin
         }
 
       case SourceStates.Disable =>
-        defaultPlugin
+        appPlugins.defaultPlugin
     }
   }
 
+}
+
+object ApplicationPluginsService {
   private def baseToDto[T <: PluginInfo](x: T): PluginDto = {
     PluginDto(
       author = x.author,
@@ -87,5 +80,4 @@ class ApplicationPluginsService(appPlugins: ApplicationPlugins) {
       pluginName = x.pluginName
     )
   }
-
 }

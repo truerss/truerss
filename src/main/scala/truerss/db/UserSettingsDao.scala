@@ -49,7 +49,7 @@ class UserSettingsDao(val db: DatabaseDef)(implicit
         userSettings.map(a => (a.key, a.description, a.valueString))
           .insertOrUpdate((key, description, Some(v)))
       case _ =>
-        throw new IllegalStateException(s"Incorrect settings: $settings")
+        throw new IllegalArgumentException(s"Unknown settings: $settings")
     }
   }
 

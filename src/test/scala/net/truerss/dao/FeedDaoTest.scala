@@ -85,19 +85,19 @@ class FeedDaoTest(implicit ee: ExecutionEnv)
     }
 
     "last n" in new FeedsSpec(10) {
-      feedDao.lastN(0, 1).map(_.size) ~> { _ must be_==(1) }
+      feedDao.lastN(0, 1).map(_._1.size) ~> { _ must be_==(1) }
     }
 
     "page for source" in new FeedsSpec(10) {
       val n = feeds.sortBy(_.publishedDate).reverse.slice(7, 100)
       feedDao.pageForSource(id, false, 7, 100).map { xs =>
-        xs.flatMap(_.id)
+        xs._1.flatMap(_.id)
       } ~> { _ must contain(allOf(n.flatMap(_.id) : _*)) }
     }
 
     "favorites" in new FeedsSpec(3) {
       feedDao.modifyFav(ids.head, true) ~> { _ must be_==(1) }
-      feedDao.favorites(0, 100).map(_.map(_.id)) ~> { _ must contain(feeds.head.id) }
+      feedDao.favorites(0, 100).map(_._1.map(_.id)) ~> { _ must contain(feeds.head.id) }
     }
 
     "update content" in new FeedsSpec(1) {

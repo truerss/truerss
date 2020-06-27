@@ -45,6 +45,10 @@ class SearchServiceTest(implicit ee: ExecutionEnv)
         xs must contain(exactly(feedId1))
       }
 
+      find(SearchRequest(true, "test", 10, 10)) ~> { xs =>
+        xs must be empty
+      }
+
       find(SearchRequest(true, "ba")) ~> { xs =>
         xs must contain(exactly(feedId3))
       }
@@ -63,6 +67,9 @@ class SearchServiceTest(implicit ee: ExecutionEnv)
         xs must contain(exactly(feedId3, feedId4))
       }
 
+      find(SearchRequest(false, "ba", 1, 2)) ~> { xs =>
+        xs must contain(exactly(feedId4))
+      }
 
       find(SearchRequest(false, "foo")) ~> { xs =>
         xs must contain(exactly(feedId2))
@@ -76,7 +83,7 @@ class SearchServiceTest(implicit ee: ExecutionEnv)
 
   private def find(req: SearchRequest): Future[Vector[Long]] = {
     service.search(req)
-      .map(xs => xs.map(_.id))
+      .map(xs => xs._1.map(_.id))
   }
 
 }

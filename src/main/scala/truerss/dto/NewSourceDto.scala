@@ -107,4 +107,10 @@ object SourceOverview {
   }
 }
 
-case class SearchRequest(inFavorites: Boolean, query: String)
+case class SearchRequest(inFavorites: Boolean, query: String, offset: Int, limit: Int)
+
+object SearchRequest {
+  def apply(inFavorites: Boolean, query: String): SearchRequest = {
+    new SearchRequest(inFavorites, query, 0, 100)
+  }
+}

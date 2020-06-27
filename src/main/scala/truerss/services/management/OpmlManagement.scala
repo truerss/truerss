@@ -1,56 +1,24 @@
 package truerss.services.management
 
-import akka.event.EventStream
-import truerss.api.{BadRequestResponse, ImportResponse, Ok, OpmlResponse, Response}
-import truerss.dto.{NewSourceDto, NewSourceFromFileWithErrors}
-import truerss.services.actors.sync.SourcesKeeperActor
-import truerss.services.{OpmlService, SourcesService}
+import truerss.api.{BadRequestResponse, ImportResponse, OpmlResponse}
+import truerss.services.OpmlService
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
-class OpmlManagement(opmlService: OpmlService,
-                     sourcesService: SourcesService,
-                     stream: EventStream
-                    )
+class OpmlManagement(opmlService: OpmlService)
                     (implicit ec: ExecutionContext) extends BaseManagement {
-
-  import OpmlManagement._
 
   def getOpml: R = {
     opmlService.build.map(OpmlResponse)
   }
 
   def createFrom(opml: String): R = {
-    Future {
-      opmlService.parse(opml).fold(
-        error => {
-          logger.warn(s"Failed to parse given text as opml: $error")
-          Future.successful(BadRequestResponse(error))
-        },
-        xs => {
-          logger.info(s"Materialize ${xs.size} outlines from given file")
-          val fs = xs.map { x =>
-            from(x.link, x.title, interval)
-          }
-          sourcesService.addSources(fs).map { xs =>
-            xs.foreach { x => stream.publish(SourcesKeeperActor.NewSource(x)) }
-            ImportResponse(xs.toVector)
-          }
-        }
+    opmlService.create(opml).map { result =>
+      result.fold(
+        BadRequestResponse,
+        ImportResponse
       )
-    }.flatMap(identity)
+    }
   }
 
-}
-
-object OpmlManagement {
-  val interval = 8
-
-  def from(url: String, name: String, interval: Int): NewSourceDto = {
-    NewSourceDto(
-      url = url,
-      name = name,
-      interval = interval
-    )
-  }
 }
