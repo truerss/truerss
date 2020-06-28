@@ -8,8 +8,9 @@ import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import truerss.api.{FeedResponse, InternalServerErrorResponse}
 import truerss.dto.Setup
+import truerss.services.actors.events.PublishPluginActor
 import truerss.services.management.{FeedsManagement, ResponseHelpers}
-import truerss.services.{ContentReaderService, FeedsService, PublishPluginActor, SettingsService}
+import truerss.services.{ContentReaderService, FeedsService, SettingsService}
 
 import scala.concurrent.Future
 

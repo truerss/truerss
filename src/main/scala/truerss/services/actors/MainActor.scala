@@ -1,11 +1,12 @@
-package truerss.services
+package truerss.services.actors
 
 import akka.actor.SupervisorStrategy._
 import akka.actor.{Actor, ActorLogging, ActorRef, OneForOneStrategy, Props}
 import akka.event.EventStream
-import truerss.db.DbLayer
 import truerss.dto.{Notify, NotifyLevels}
+import truerss.services.actors.events.{EventHandlerActor, PublishPluginActor}
 import truerss.services.actors.sync.SourcesKeeperActor
+import truerss.services.{ApplicationPluginsService, FeedsService, SourcesService}
 import truerss.util.TrueRSSConfig
 
 import scala.concurrent.duration._

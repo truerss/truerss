@@ -4,6 +4,7 @@ import akka.http.scaladsl.Http
 import truerss.api.{RoutingEndpoint, WebSocketsSupport}
 import truerss.db.driver.SupportedDb
 import truerss.services._
+import truerss.services.actors.MainActor
 import truerss.services.management._
 import truerss.util.TrueRSSConfig
 

@@ -1,9 +1,10 @@
-package truerss.services
+package truerss.services.actors.events
 
 import akka.actor.{Actor, ActorLogging, Props}
 import akka.event.EventStream
 import com.github.truerss.base.Entry
 import truerss.api.WebSockerController
+import truerss.services.{FeedsService, SourcesService}
 
 class EventHandlerActor(private val sourcesService: SourcesService,
                         feedsService: FeedsService)

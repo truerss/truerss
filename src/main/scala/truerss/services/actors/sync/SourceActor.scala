@@ -7,7 +7,7 @@ import akka.actor.{Actor, ActorLogging, Props}
 import com.github.truerss.base._
 import org.jsoup.Jsoup
 import truerss.dto.{Notify, NotifyLevels, SourceViewDto}
-import truerss.services.EventHandlerActor
+import truerss.services.actors.events.EventHandlerActor
 import truerss.services.actors.sync.SourcesKeeperActor.{Update, UpdateMe, Updated}
 
 import scala.concurrent.duration._

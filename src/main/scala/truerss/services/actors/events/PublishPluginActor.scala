@@ -1,4 +1,4 @@
-package truerss.services
+package truerss.services.actors.events
 
 import java.time.ZoneOffset
 import java.util.Date
