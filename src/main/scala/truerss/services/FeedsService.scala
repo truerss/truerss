@@ -1,5 +1,6 @@
 package truerss.services
 
+import com.github.truerss.base.Entry
 import truerss.db.DbLayer
 import truerss.dto.FeedDto
 import truerss.db.Feed
@@ -11,8 +12,6 @@ class FeedsService(dbLayer: DbLayer)(implicit val ec: ExecutionContext) {
 
   import FeedSourceDtoModelImplicits._
   import FeedsService._
-
-
 
   def findOne(feedId: Long): Future[Option[FeedDto]] = {
     dbLayer.feedDao.findOne(feedId).map { x => x.map(_.toDto) }
@@ -68,6 +67,16 @@ class FeedsService(dbLayer: DbLayer)(implicit val ec: ExecutionContext) {
 
   def favorites(offset: Int, limit: Int): FPage = {
     dbLayer.feedDao.favorites(offset, limit).map(toPage)
+  }
+
+  def registerNewFeeds(sourceId: Long, feeds: Vector[Entry]): Future[Vector[FeedDto]] = {
+    dbLayer.feedDao.mergeFeeds(sourceId, feeds)
+      .map(_.toVector)
+      .map(xs => xs.map(_.toDto))
+  }
+
+  def updateContent(feedId: Long, content: String): Unit = {
+    dbLayer.feedDao.updateContent(feedId, content).foreach(identity)
   }
 
   private def findAndModify(feedId: Long)(f: Option[Feed] => Future[Option[Feed]]): Future[Option[FeedDto]] = {

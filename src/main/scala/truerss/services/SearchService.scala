@@ -11,9 +11,14 @@ class SearchService(dbLayer: DbLayer)(implicit val ec: ExecutionContext) {
 
   private val dao = dbLayer.feedDao
 
-
   def search(request: SearchRequest): FPage = {
-    dao.search(request.inFavorites, request.query, request.offset, request.limit).map(toPage)
+    dbLayer.feedDao
+      .search(
+        inFavorites = request.inFavorites,
+        query = request.query,
+        offset = request.offset,
+        limit = request.limit
+      ).map(toPage)
   }
 
 }

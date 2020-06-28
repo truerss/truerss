@@ -11,6 +11,7 @@ trait Request {
   protected val readTimeout = 10000
   protected val retryCount = 3
 
+  // todo queue plz, thread limitation, border
   def getResponse(url: String): HttpResponse[String] = {
     handle(defaultRequest(url))
   }

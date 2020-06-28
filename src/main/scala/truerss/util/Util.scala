@@ -5,6 +5,7 @@ import java.util.Date
 
 import com.github.truerss.base.Entry
 import truerss.db.{Feed, SourceState, SourceStates}
+import truerss.dto.ApplicationPlugins
 
 import scala.util.Try
 

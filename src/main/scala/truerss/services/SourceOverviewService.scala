@@ -25,8 +25,8 @@ class SourceOverviewService(val dbLayer: DbLayer)(implicit ec: ExecutionContext)
 
 object SourceOverviewService {
 
-  implicit val localDateTimeOrdering: Ordering[LocalDateTime] = new Ordering[LocalDateTime] {
-    override def compare(x: LocalDateTime, y: LocalDateTime): Int = {
+  implicit val localDateTimeOrdering: Ordering[LocalDateTime] =
+    (x: LocalDateTime, y: LocalDateTime) => {
       if (x.isBefore(y)) {
         -1
       } else if (x.isAfter(y)) {
@@ -34,7 +34,6 @@ object SourceOverviewService {
       } else {
         0
       }
-    }
   }
 
   def calculate(sourceId: Long, feeds: Seq[Feed]): SourceOverview = {
@@ -63,9 +62,9 @@ object SourceOverviewService {
       val diff = scala.math.abs(end - start)
       val daysDiff = TimeUnit.SECONDS.toDays(diff) * 1.0
 
-      val perDay = count/daysDiff
-      val perWeek = count/(daysDiff/7.0)
-      val perMonth = count/(daysDiff/30.0)
+      val perDay = count / daysDiff
+      val perWeek = count / (daysDiff / 7.0)
+      val perMonth = count / (daysDiff / 30.0)
 
       FeedsFrequency(
         perDay = perDay,

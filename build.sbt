@@ -26,8 +26,13 @@ val setup = Seq(
   javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
 )
 
+
+rpmVendor in Rpm := "fntz"
+
 lazy val mainProject = Project("truerss", file(".")).settings(
-  setup ++ Seq(installTask, buildCoffeeTask) ++ Seq(
+    rpmVendor in Rpm := "fntz",
+    rpmVendor := "test",
+    setup ++ Seq(installTask, buildCoffeeTask) ++ Seq(
     //(compile in Compile) := (compile in Compile).dependsOn(buildCoffee).value,
     organization := "net.truerss",
     classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.ScalaLibrary,
@@ -59,4 +64,4 @@ lazy val mainProject = Project("truerss", file(".")).settings(
     packageOptions := Seq(ManifestAttributes(("Built-By", s"${new Date()}"))),
     libraryDependencies ++= deps
   )
-)
+).enablePlugins(JavaAppPackaging).enablePlugins(RpmPlugin).enablePlugins(JDKPackagerPlugin)

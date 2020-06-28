@@ -13,9 +13,10 @@ import scala.concurrent.duration._
 class MainActor(config: TrueRSSConfig,
                 applicationPluginsService: ApplicationPluginsService,
                 sourcesService: SourcesService,
-                dbLayer: DbLayer)
+                feedsService: FeedsService)
   extends Actor with ActorLogging {
 
+  // todo
   override val supervisorStrategy =
     OneForOneStrategy(maxNrOfRetries = 10, withinTimeRange = 1 minute) {
       case x: java.sql.SQLException =>
@@ -30,9 +31,9 @@ class MainActor(config: TrueRSSConfig,
 
   private val stream: EventStream = context.system.eventStream
 
-  val dbHelperActorRef = context.actorOf(
-    DbHelperActor.props(dbLayer),
-    "db-helper-actor")
+  val eventHandlerActor = context.actorOf(
+    EventHandlerActor.props(sourcesService, feedsService),
+    "event-handler-actor")
 
   val sourcesRef = context.actorOf(SourcesKeeperActor.props(
     SourcesKeeperActor.SourcesSettings(config),
@@ -45,7 +46,7 @@ class MainActor(config: TrueRSSConfig,
     "publish-plugin-actor")
 
   stream.subscribe(publishActor, classOf[PublishPluginActor.PublishEvent])
-  stream.subscribe(dbHelperActorRef, classOf[DbHelperActor.DbHelperActorMessage])
+  stream.subscribe(eventHandlerActor, classOf[EventHandlerActor.EventHandlerActorMessage])
   stream.subscribe(sourcesRef, classOf[SourcesKeeperActor.NewSource])
   stream.subscribe(sourcesRef, classOf[SourcesKeeperActor.SourceDeleted])
   stream.subscribe(sourcesRef, classOf[SourcesKeeperActor.ReloadSource])
@@ -66,9 +67,9 @@ object MainActor {
   def props(config: TrueRSSConfig,
             applicationPluginsService: ApplicationPluginsService,
             sourcesService: SourcesService,
-            dbLayer: DbLayer) = {
+            feedsService: FeedsService) = {
     Props(classOf[MainActor], config, applicationPluginsService,
       sourcesService,
-      dbLayer)
+      feedsService)
   }
 }

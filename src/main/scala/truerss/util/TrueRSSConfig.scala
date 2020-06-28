@@ -4,6 +4,7 @@ import java.io.File
 
 import com.typesafe.config.{Config, ConfigException, ConfigFactory}
 import scopt.OptionParser
+import truerss.dto.ApplicationPlugins
 import truerss.plugins.YoutubePlugin
 
 import scala.util.control.Exception._

@@ -5,8 +5,7 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import truerss.db.{DbLayer, SourceDao}
 import truerss.db.validation.{SourceUrlValidator, SourceValidator}
-import truerss.dto.SourceDto
-import truerss.util.ApplicationPlugins
+import truerss.dto.{ApplicationPlugins, SourceDto}
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._

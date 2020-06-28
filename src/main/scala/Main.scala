@@ -47,7 +47,7 @@ object Main extends App {
       val searchManagement = new SearchManagement(searchService)(servicesEc)
 
       system.actorOf(
-        MainActor.props(actualConfig, applicationPluginsService, sourcesService,  dbLayer),
+        MainActor.props(actualConfig, applicationPluginsService, sourcesService,  feedsService),
         "main-actor"
       )
 

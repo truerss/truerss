@@ -8,7 +8,7 @@ import net.truerss.Gen
 import play.api.libs.json._
 import truerss.api._
 import truerss.dto.{FeedDto, Page, SourceOverview}
-import truerss.services.management.{FeedSourceDtoModelImplicits, FeedsManagement, OpmlManagement, ResponseHelpers, SourcesManagement}
+import truerss.services.management._
 
 class SourcesApiTest extends BaseApiTest {
 
@@ -55,7 +55,7 @@ class SourcesApiTest extends BaseApiTest {
   fm.latest(anyInt, anyInt) returns f(FeedsResponse(Vector(unreadFeed)))
   fm.fetchBySource(anyLong, anyBoolean, anyInt, anyInt) returns f(FeedsPageResponse(Page.empty[FeedDto]))
 
-  om.getOpml returns f(Ok(opml))
+  om.getOpml returns f(Ok)
   om.createFrom(opml) returns f(ImportResponse(Vector.empty))
 
   override protected val r: Route = new SourcesApi(sm, fm, om).route
@@ -178,7 +178,7 @@ class SourcesApiTest extends BaseApiTest {
     }
 
     "get opml" in {
-      checkR(Get(s"$url/opml"), StatusCodes.OK)
+      checkR(Get(s"$url/opml"), StatusCodes.NoContent)
       there was one(om).getOpml
     }
 

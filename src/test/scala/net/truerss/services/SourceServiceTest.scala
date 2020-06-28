@@ -5,10 +5,9 @@ import net.truerss.dao.FullDbHelper
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mutable.SpecificationLike
 import truerss.db.validation.{SourceUrlValidator, SourceValidator}
-import truerss.dto.{SourceDto, UpdateSourceDto}
+import truerss.dto.{ApplicationPlugins, SourceDto, UpdateSourceDto}
 import truerss.services.SourcesService
 import truerss.services.management.FeedSourceDtoModelImplicits
-import truerss.util.ApplicationPlugins
 
 import scala.concurrent.duration._
 

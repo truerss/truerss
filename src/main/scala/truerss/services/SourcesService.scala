@@ -2,9 +2,9 @@ package truerss.services
 
 import truerss.db.{DbLayer, Source}
 import truerss.db.validation.SourceValidator
-import truerss.dto.{NewSourceDto, SourceDto, SourceViewDto, UpdateSourceDto}
+import truerss.dto.{ApplicationPlugins, NewSourceDto, SourceDto, SourceViewDto, UpdateSourceDto}
 import truerss.services.management.FeedSourceDtoModelImplicits
-import truerss.util.{ApplicationPlugins, Util}
+import truerss.util.Util
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -23,10 +23,13 @@ class SourcesService(dbLayer: DbLayer, val appPlugins: ApplicationPlugins)(impli
   }
 
   def getAll: Future[Vector[SourceViewDto]] = {
+    val feedsF = dbLayer.feedDao
+      .feedBySourceCount(false)
+      .map(_.toVector.toMap)
+    val sourcesF = dbLayer.sourceDao.all.map(_.toVector)
     val result = for {
-      feedsBySource <- dbLayer.feedDao.feedBySourceCount(false)
-        .map(_.toVector.toMap)
-      sources <- dbLayer.sourceDao.all.map(_.toVector)
+      feedsBySource <- feedsF
+      sources <- sourcesF
     } yield {
       sources.map { s =>
         s.toView.recount(feedsBySource.getOrElse(s.id.get, 0))
@@ -87,6 +90,10 @@ class SourcesService(dbLayer: DbLayer, val appPlugins: ApplicationPlugins)(impli
         updatedSource.toView
       }
     }
+  }
+
+  def changeLastUpdateTime(sourceId: Long): Future[Int] = {
+    dbLayer.sourceDao.updateLastUpdateDate(sourceId)
   }
 
   private def processBeforeUpsert(dto: SourceDto)(f: => Future[SourceViewDto]): Future[Either[scala.List[String], SourceViewDto]] = {

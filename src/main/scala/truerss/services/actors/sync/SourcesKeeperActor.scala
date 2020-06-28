@@ -5,7 +5,7 @@ import akka.actor._
 import akka.pattern.pipe
 import org.slf4j.LoggerFactory
 import truerss.dto.SourceViewDto
-import truerss.services.{ApplicationPluginsService, SourcesService}
+import truerss.services.{ApplicationPluginsService, FeedsService, SourcesService}
 import truerss.util.TrueRSSConfig
 
 import scala.concurrent.duration._
@@ -18,7 +18,7 @@ class SourcesKeeperActor(config: SourcesKeeperActor.SourcesSettings,
   import SourcesKeeperActor._
   import context.dispatcher
 
-  val ticker = new Ticker[ActorRef](config.parallelFeedUpdate)
+  private val ticker = new Ticker[ActorRef](config.parallelFeedUpdate)
 
   override val supervisorStrategy = OneForOneStrategy() {
     case x: Throwable =>
@@ -86,8 +86,6 @@ class SourcesKeeperActor(config: SourcesKeeperActor.SourcesSettings,
         context.stop(ref)
       }
       startSourceActor(source)
-
-    case x => log.warning(s"Unhandled message $x")
   }
 
 

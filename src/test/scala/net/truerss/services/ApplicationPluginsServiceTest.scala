@@ -7,8 +7,8 @@ import com.typesafe.config.Config
 import net.truerss.Gen
 import org.specs2.mock.Mockito
 import org.specs2.mutable.SpecificationLike
+import truerss.dto.ApplicationPlugins
 import truerss.services.ApplicationPluginsService
-import truerss.util.ApplicationPlugins
 
 class ApplicationPluginsServiceTest extends SpecificationLike with Mockito {
 

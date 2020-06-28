@@ -11,9 +11,11 @@ class SettingsService(dbLayer: DbLayer)(implicit ec: ExecutionContext) {
   import SettingsService._
 
   def getCurrentSetup: Future[Iterable[AvailableSetup[_]]] = {
+    val globalSettingsF = dbLayer.settingsDao.getSettings
+    val userSettingsF = dbLayer.userSettingsDao.getSettings
     for {
-      global <- dbLayer.settingsDao.getSettings
-      user <- dbLayer.userSettingsDao.getSettings
+      global <- globalSettingsF
+      user <- userSettingsF
     } yield {
       makeAvailableSetup(global, user)
     }

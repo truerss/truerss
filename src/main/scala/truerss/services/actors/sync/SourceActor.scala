@@ -7,12 +7,13 @@ import akka.actor.{Actor, ActorLogging, Props}
 import com.github.truerss.base._
 import org.jsoup.Jsoup
 import truerss.dto.{Notify, NotifyLevels, SourceViewDto}
-import truerss.services.DbHelperActor.{AddFeeds, SourceLastUpdate}
+import truerss.services.EventHandlerActor
 import truerss.services.actors.sync.SourcesKeeperActor.{Update, UpdateMe, Updated}
 
 import scala.concurrent.duration._
 
-class SourceActor(source: SourceViewDto, feedReader: BaseFeedReader)
+class SourceActor(source: SourceViewDto,
+                  feedReader: BaseFeedReader)
   extends Actor with ActorLogging {
 
   import SourceActor._
@@ -37,15 +38,15 @@ class SourceActor(source: SourceViewDto, feedReader: BaseFeedReader)
   def receive = {
     case Update =>
       log.info(s"Update ${source.normalized}")
-      stream.publish(SourceLastUpdate(source.id))
       feedReader.newEntries(source.url) match {
         case Right(xs) =>
-          stream.publish(AddFeeds(source.id, xs))
+          stream.publish(EventHandlerActor.RegisterNewFeeds(source.id, xs))
         case Left(error) =>
           log.warning(s"Error when update source $error")
           stream.publish(Notify(NotifyLevels.Danger, error.error))
       }
       context.parent ! Updated
+      stream.publish(EventHandlerActor.ModifySource(source.id))
   }
 
 

@@ -2,8 +2,8 @@ package truerss.db.validation
 
 import org.apache.commons.validator.routines.UrlValidator
 import truerss.db.DbLayer
-import truerss.dto.{NewSourceDto, SourceDto}
-import truerss.util.{ApplicationPlugins, syntax}
+import truerss.dto.{ApplicationPlugins, NewSourceDto, SourceDto}
+import truerss.util.syntax
 
 import scala.concurrent.{ExecutionContext, Future}
 

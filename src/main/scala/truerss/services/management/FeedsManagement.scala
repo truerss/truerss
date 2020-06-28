@@ -4,7 +4,7 @@ import akka.event.EventStream
 import truerss.api._
 import truerss.db.Predefined
 import truerss.dto.{FeedContent, FeedDto, Page}
-import truerss.services.DbHelperActor.FeedContentUpdate
+import truerss.services.EventHandlerActor.FeedContentUpdate
 import truerss.services.{ContentReaderService, FeedsService, PublishPluginActor, SettingsService}
 import truerss.util.syntax.future._
 import truerss.util.syntax.ext._

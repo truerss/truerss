@@ -21,9 +21,7 @@ class ContentReaderService(applicationPluginsService: ApplicationPluginsService)
     if (c.needUrl) {
       pass(c.content(ContentTypeParam.UrlRequest(tmp)))
     } else {
-      Try {
-        extractContent(url)
-      } match {
+      extractContent(url) match {
         case Success(value) =>
           pass(c.content(ContentTypeParam.HtmlRequest(value)))
 
@@ -31,26 +29,25 @@ class ContentReaderService(applicationPluginsService: ApplicationPluginsService)
           Left(exception.getMessage)
       }
     }
-
-  }
-
-  private def pass(result: Either[Errors.Error, Option[String]]): Either[String, Option[String]] = {
-    result.fold(
-      err => Left(err.error),
-      x => Right(x)
-    )
   }
 
 }
 
 object ContentReaderService {
-  def extractContent(url: String): String = {
+  def extractContent(url: String): Try[String] = {
     val response = Request.getResponse(url)
 
     if (response.isError) {
-      throw new RuntimeException(s"Connection error for $url")
+      Failure(new RuntimeException(s"Connection error for $url"))
+    } else {
+      Success(Jsoup.parse(response.body).body().html())
     }
+  }
 
-    Jsoup.parse(response.body).body().html()
+  def pass(result: Either[Errors.Error, Option[String]]): Either[String, Option[String]] = {
+    result.fold(
+      err => Left(err.error),
+      x => Right(x)
+    )
   }
 }
