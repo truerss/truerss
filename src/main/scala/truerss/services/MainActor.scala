@@ -31,17 +31,17 @@ class MainActor(config: TrueRSSConfig,
 
   private val stream: EventStream = context.system.eventStream
 
-  val eventHandlerActor = context.actorOf(
+  val eventHandlerActor = create(
     EventHandlerActor.props(sourcesService, feedsService),
     "event-handler-actor")
 
-  val sourcesRef = context.actorOf(SourcesKeeperActor.props(
+  val sourcesRef = create(SourcesKeeperActor.props(
     SourcesKeeperActor.SourcesSettings(config),
     applicationPluginsService,
     sourcesService
   ), "sources-root-actor")
 
-  val publishActor = context.actorOf(Props(
+  val publishActor = create(Props(
     classOf[PublishPluginActor], config.appPlugins.publishPlugins),
     "publish-plugin-actor")
 
@@ -57,8 +57,8 @@ class MainActor(config: TrueRSSConfig,
       log.warning(s"Unhandled message: $x, from: $sender")
   }
 
-  private def create(props: Props): ActorRef = {
-    context.actorOf(props.withDispatcher("dispatchers.truerss-dispatcher"))
+  private def create(props: Props, name: String): ActorRef = {
+    context.actorOf(props.withDispatcher("dispatchers.truerss-dispatcher"), name)
   }
 
 }

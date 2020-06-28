@@ -30,13 +30,13 @@ class FeedsApi(val feedsManagement: FeedsManagement)
         }
       } ~ put {
         pathPrefix("mark" / LongNumber) { feedId =>
-          fm.addToFavorites(feedId)
+          fm.changeFavorites(feedId, favFlag = true)
         } ~ pathPrefix("unmark" / LongNumber) { feedId =>
-          fm.removeFromFavorites(feedId)
+          fm.changeFavorites(feedId, favFlag = false)
         } ~ pathPrefix("read" / LongNumber) { feedId =>
-          fm.markAsRead(feedId)
+          fm.changeRead(feedId, readFlag = true)
         } ~ pathPrefix("unread" / LongNumber) { feedId =>
-          fm.markAsUnread(feedId)
+          fm.changeRead(feedId, readFlag = false)
         }
       }
     }

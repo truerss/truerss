@@ -15,9 +15,6 @@ class EventHandlerActor(private val sourcesService: SourcesService,
   val stream: EventStream = context.system.eventStream
 
   def receive: Receive = {
-    case FeedContentUpdate(feedId, content) =>
-      feedsService.updateContent(feedId, content)
-
     case RegisterNewFeeds(sourceId, entries) =>
       feedsService.registerNewFeeds(sourceId, entries)
         .map(WebSockerController.NewFeeds)
@@ -36,7 +33,6 @@ object EventHandlerActor {
   }
 
   sealed trait EventHandlerActorMessage
-  case class FeedContentUpdate(feedId: Long, content: String) extends EventHandlerActorMessage
   case class RegisterNewFeeds(sourceId: Long, entries: Vector[Entry]) extends EventHandlerActorMessage
   case class ModifySource(sourceId: Long) extends EventHandlerActorMessage
 }

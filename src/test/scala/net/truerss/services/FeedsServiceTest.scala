@@ -37,11 +37,11 @@ class FeedsServiceTest(implicit ee: ExecutionEnv)
       val f = Gen.genFeed(sourceId, Gen.genUrl).copy(favorite = false)
       val feedId = a(dao.insert(f))
 
-      service.addToFavorites(feedId) ~> { x => x must beSome }
+      service.changeFav(feedId, favFlag = true) ~> { x => x must beSome }
 
       dao.findOne(feedId) ~> { x => x.get.favorite must beTrue }
 
-      service.removeFromFavorites(feedId) ~> { x => x must beSome }
+      service.changeFav(feedId, favFlag = false) ~> { x => x must beSome }
 
       dao.findOne(feedId) ~> { x => x.get.favorite must beFalse }
     }
@@ -50,11 +50,11 @@ class FeedsServiceTest(implicit ee: ExecutionEnv)
       val f = Gen.genFeed(sourceId, Gen.genUrl).copy(read = false)
       val feedId = a(dao.insert(f))
 
-      service.markAsRead(feedId) ~> { x => x must beSome }
+      service.changeRead(feedId, readFlag = true) ~> { x => x must beSome }
 
       dao.findOne(feedId) ~> { x => x.get.read must beTrue }
 
-      service.markAsUnread(feedId) ~> { x => x must beSome }
+      service.changeRead(feedId, readFlag = false) ~> { x => x must beSome }
 
       dao.findOne(feedId) ~> { x => x.get.read must beFalse }
     }

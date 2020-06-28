@@ -3,11 +3,9 @@ package truerss.services.management
 import akka.event.EventStream
 import truerss.api._
 import truerss.db.Predefined
-import truerss.dto.{FeedContent, FeedDto, Page}
-import truerss.services.EventHandlerActor.FeedContentUpdate
+import truerss.dto.{FeedContent, FeedDto, Page, SetupKey}
 import truerss.services.{ContentReaderService, FeedsService, PublishPluginActor, SettingsService}
-import truerss.util.syntax.future._
-import truerss.util.syntax.ext._
+import truerss.util.syntax
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -21,9 +19,7 @@ class FeedsManagement(feedsService: FeedsService,
 
   import FeedsManagement._
   import ResponseHelpers.ok
-
-  private val read = Predefined.read
-  private val readContent = read.toKey
+  import syntax.future._
 
   def markAll: R = {
     feedsService.markAllAsRead.map { _ => ok }
@@ -34,95 +30,31 @@ class FeedsManagement(feedsService: FeedsService,
   }
 
   def getFeedContent(feedId: Long): R = {
-    fetchFeedOrError(feedId) { feed =>
-      feed.content match {
-        case Some(content) =>
-          FeedContentResponse(FeedContent(content.some)).toF
-
-        case None =>
-          fetchContentOrError(feed.url) { maybeContent =>
-            maybeContent.foreach { content =>
-              stream.publish(FeedContentUpdate(feedId, content))
-            }
-            FeedContentResponse(FeedContent(maybeContent))
-          }.toF
-      }
+    fetchFeed(feedId, forceReadContent = true).map {
+      case FeedResponse(dto) =>
+        FeedContentResponse(FeedContent(dto.content))
+      case x => x
     }
   }
 
   def getFeed(feedId: Long): R = {
-    fetchFeedOrError(feedId) { feed =>
-      feed.content match {
-        case Some(_) =>
-          FeedResponse(feed).toF
-
-        case None =>
-          processContent(feedId, feed)
-      }
-    }
+    fetchFeed(feedId, forceReadContent = false)
   }
 
-  private def fetchFeedOrError(feedId: Long)(f: FeedDto => Future[Response]): R = {
-    feedsService.findOne(feedId).flatMap {
+  def changeFavorites(feedId: Long, favFlag: Boolean): R = {
+    feedsService.changeFav(feedId, favFlag).map {
       case Some(feed) =>
-        f.apply(feed)
-
-      case None =>
-        ResponseHelpers.feedNotFound.toF
-    }.recover {
-      case ex: Throwable =>
-        logger.warn(s"Failed to get content for feed=$feedId: $ex")
-        InternalServerErrorResponse("Something went wrong")
-    }
-  }
-
-  private def processContent(feedId: Long, feed: FeedDto): Future[Response] = {
-    settingsService.where[Boolean](readContent, true).map { setup =>
-      if (setup.value) {
-        logger.debug(s"Need to read content for $feedId")
-        fetchContentOrError(feed.url) { value =>
-          val x = value.map { content =>
-            stream.publish(FeedContentUpdate(feedId, content))
-            feed.copy(content = Some(content))
-          }.getOrElse(feed)
-          FeedResponse(x)
+        if (favFlag) {
+          stream.publish(PublishPluginActor.PublishEvent(feed))
         }
-      } else {
-        FeedResponse(feed)
-      }
-    }
-  }
-
-  private def fetchContentOrError(url: String)(f: Option[String] => Response): Response = {
-    contentReaderService.read(url).fold(
-      error =>
-        InternalServerErrorResponse(error),
-      value => {
-        f(value)
-      }
-    )
-  }
-
-  def addToFavorites(feedId: Long): R = {
-    feedsService.addToFavorites(feedId).map {
-      case Some(feed) =>
-        stream.publish(PublishPluginActor.PublishEvent(feed))
         FeedResponse(feed)
       case None =>
         ResponseHelpers.feedNotFound
     }
   }
 
-  def removeFromFavorites(feedId: Long): R = {
-    feedsService.removeFromFavorites(feedId).map(feedHandler)
-  }
-
-  def markAsRead(feedId: Long): R = {
-    feedsService.markAsRead(feedId).map(feedHandler)
-  }
-
-  def markAsUnread(feedId: Long): R = {
-    feedsService.markAsUnread(feedId).map(feedHandler)
+  def changeRead(feedId: Long, readFlag: Boolean): R = {
+    feedsService.changeRead(feedId, readFlag).map(feedHandler)
   }
 
   def findUnreadBySource(sourceId: Long): R = {
@@ -144,10 +76,60 @@ class FeedsManagement(feedsService: FeedsService,
     }
   }
 
+  private def fetchFeed(feedId: Long, forceReadContent: Boolean): R = {
+    feedsService.findOne(feedId).flatMap {
+      case Some(feed) =>
+        feed.content match {
+          case Some(_) => FeedResponse(feed).toF
+
+          case None =>
+            // should read anyway
+            if (forceReadContent) {
+              processContent(feedId, feed)
+            } else {
+              settingsService.where[Boolean](readContentKey, defaultIsRead).flatMap { setup =>
+                logger.debug(s"${readContentKey.name} is ${setup.value}")
+                // skip then
+                if (setup.value) {
+                  FeedResponse(feed).toF
+                } else {
+                  processContent(feedId, feed)
+                }
+              }
+            }
+        }
+
+      case None =>
+        ResponseHelpers.feedNotFound.toF
+    }
+  }
+
+  private def processContent(feedId: Long, feed: FeedDto): Future[Response] = {
+    logger.debug(s"Need to read content for $feedId")
+    fetchContentOrError(feed.url) { value =>
+      val x = value.map { content =>
+        updateContent(feedId, content)
+        feed.copy(content = Some(content))
+      }.getOrElse(feed)
+      FeedResponse(x)
+    }.toF
+  }
+
+  private def updateContent(feedId: Long, content: String): Unit = {
+    feedsService.updateContent(feedId, content)
+  }
+
+  private def fetchContentOrError(url: String)(f: Option[String] => Response): Response = {
+    contentReaderService.read(url).fold(InternalServerErrorResponse, f)
+  }
+
 }
 
 object FeedsManagement {
   def toPage(tmp: (Vector[FeedDto], Int)): FeedsPageResponse = {
     FeedsPageResponse(Page[FeedDto](tmp._2, tmp._1))
   }
+
+  val readContentKey: SetupKey = Predefined.read.toKey
+  val defaultIsRead: Boolean = Predefined.read.value.defaultValue.asInstanceOf[Boolean]
 }

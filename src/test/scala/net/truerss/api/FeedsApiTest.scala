@@ -22,14 +22,14 @@ class FeedsApiTest extends BaseApiTest {
   fm.getFeedContent(id_200) returns f(FeedContentResponse(cnt))
   fm.getFeed(id_404) returns f(ResponseHelpers.feedNotFound)
   fm.getFeed(id_500) returns f(InternalServerErrorResponse("boom"))
-  fm.addToFavorites(id_200) returns f(FeedResponse(dto))
-  fm.addToFavorites(id_404) returns f(ResponseHelpers.feedNotFound)
-  fm.removeFromFavorites(id_200) returns f(FeedResponse(dto))
-  fm.removeFromFavorites(id_404) returns f(ResponseHelpers.feedNotFound)
-  fm.markAsRead(id_200) returns f(FeedResponse(dto))
-  fm.markAsRead(id_404) returns f(ResponseHelpers.feedNotFound)
-  fm.markAsUnread(id_200) returns f(FeedResponse(dto))
-  fm.markAsUnread(id_404) returns f(ResponseHelpers.feedNotFound)
+  fm.changeFavorites(id_200, true) returns f(FeedResponse(dto))
+  fm.changeFavorites(id_404, true) returns f(ResponseHelpers.feedNotFound)
+  fm.changeFavorites(id_200, false) returns f(FeedResponse(dto))
+  fm.changeFavorites(id_404, false) returns f(ResponseHelpers.feedNotFound)
+  fm.changeRead(id_200, true) returns f(FeedResponse(dto))
+  fm.changeRead(id_404, true) returns f(ResponseHelpers.feedNotFound)
+  fm.changeRead(id_200, false) returns f(FeedResponse(dto))
+  fm.changeRead(id_404, false) returns f(ResponseHelpers.feedNotFound)
 
   protected override val r = new FeedsApi(fm).route
 
@@ -71,42 +71,42 @@ class FeedsApiTest extends BaseApiTest {
 
     "mark#ok" in {
       checkR(Put(s"$url/mark/$id_200"), dto)
-      there was one(fm).addToFavorites(id_200)
+      there was one(fm).changeFavorites(id_200, true)
     }
 
     "mark#404" in {
       checkR(Put(s"$url/mark/$id_404"), StatusCodes.NotFound)
-      there was one(fm).addToFavorites(id_404)
+      there was one(fm).changeFavorites(id_404, true)
     }
 
     "unmark#ok" in {
       checkR(Put(s"$url/unmark/$id_200"), dto)
-      there was one(fm).removeFromFavorites(id_200)
+      there was one(fm).changeFavorites(id_200, false)
     }
 
     "unmark#404" in {
       checkR(Put(s"$url/unmark/$id_404"), StatusCodes.NotFound)
-      there was one(fm).removeFromFavorites(id_404)
+      there was one(fm).changeFavorites(id_404, false)
     }
 
     "read#ok" in {
       checkR(Put(s"$url/read/$id_200"), dto)
-      there was one(fm).markAsRead(id_200)
+      there was one(fm).changeRead(id_200, true)
     }
 
     "read#404" in {
       checkR(Put(s"$url/read/$id_404"), StatusCodes.NotFound)
-      there was one(fm).markAsRead(id_404)
+      there was one(fm).changeRead(id_404, true)
     }
 
     "unread#ok" in {
       checkR(Put(s"$url/unread/$id_200"), dto)
-      there was one(fm).markAsUnread(id_200)
+      there was one(fm).changeRead(id_200, false)
     }
 
     "unread#404" in {
       checkR(Put(s"$url/unread/$id_404"), StatusCodes.NotFound)
-      there was one(fm).markAsUnread(id_404)
+      there was one(fm).changeRead(id_404, false)
     }
   }
 
