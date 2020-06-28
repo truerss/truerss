@@ -11,7 +11,7 @@ object FutureTestExt extends FutureMatchers {
 
   implicit class FutureTestExt[T](f: => Future[T])(implicit ee: ExecutionEnv, asResult: AsResult[T]) {
     def await1: Result = {
-      f.await(1, 1 seconds)
+      f.await(3, 3 seconds)
     }
 
     def ~>(f1: T => Result): Result = {

@@ -96,7 +96,7 @@ class SourcesApiTest extends BaseApiTest {
     }
 
     "delete source#ok" in {
-      checkR(Delete(s"$url/$id_200"), StatusCodes.OK)
+      checkR(Delete(s"$url/$id_200"), StatusCodes.NoContent)
     }
 
     "delete source#404" in {
@@ -116,12 +116,12 @@ class SourcesApiTest extends BaseApiTest {
     }
 
     "markall" in {
-      checkR(Put(s"$url/markall"), StatusCodes.OK)
+      checkR(Put(s"$url/markall"), StatusCodes.NoContent)
       there was one(fm).markAll
     }
 
     "mark one" in {
-      checkR(Put(s"$url/mark/$id_200"), StatusCodes.OK)
+      checkR(Put(s"$url/mark/$id_200"), StatusCodes.NoContent)
       there was one(sm).markSource(id_200)
     }
 
@@ -168,12 +168,12 @@ class SourcesApiTest extends BaseApiTest {
     }
 
     "refresh all" in {
-      checkR(Put(s"$url/refresh"), StatusCodes.OK)
+      checkR(Put(s"$url/refresh"), StatusCodes.NoContent)
       there was one(sm).forceRefresh
     }
 
     "refresh single" in {
-      checkR(Put(s"$url/refresh/$sId1"), StatusCodes.OK)
+      checkR(Put(s"$url/refresh/$sId1"), StatusCodes.NoContent)
       there was one(sm).forceRefreshSource(sId1)
     }
 
