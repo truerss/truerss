@@ -5,8 +5,7 @@ import akka.actor._
 import akka.pattern.pipe
 import org.slf4j.LoggerFactory
 import truerss.dto.SourceViewDto
-import truerss.services.{ApplicationPluginsService, FeedsService, SourcesService}
-import truerss.util.TrueRSSConfig
+import truerss.services.{ApplicationPluginsService, SourcesService}
 
 import scala.concurrent.duration._
 
@@ -137,12 +136,6 @@ object SourcesKeeperActor {
   case class SourcesSettings(
                             parallelFeedUpdate: Int
                             )
-  object SourcesSettings {
-    def apply(config: TrueRSSConfig): SourcesSettings = {
-      SourcesSettings(
-        parallelFeedUpdate = config.parallelFeedUpdate
-      )
-    }
-  }
+
 
 }

@@ -54,7 +54,7 @@ object SupportedDb {
         val hc = new HikariConfig(props)
         hc.setConnectionTestQuery("SELECT 1;")
         hc.setMaximumPoolSize(10)
-        hc.setInitializationFailFast(true)
+        hc.setInitializationFailTimeout(1000)
         try {
           val ds = new HikariDataSource(hc)
           JdbcBackend.Database.forDataSource(ds, None)

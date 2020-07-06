@@ -15,12 +15,16 @@ case class TrueRSSConfig(
   host: String = "localhost",
   port: Int = 8000,
   wsPort: Int = 8080,
-  parallelFeedUpdate: Int = 10, // update-parallelism
+  feedParallelism: Int = 10, // update-parallelism
   appPlugins: ApplicationPlugins = ApplicationPlugins()
 ) {
   require(port != wsPort)
 
   val url = s"$host:$port"
+
+  def withParallelism(count: Int): TrueRSSConfig = {
+    copy(feedParallelism = count)
+  }
 }
 
 case class DbConfig(
@@ -138,8 +142,6 @@ object TrueRSSConfig {
     val appConfig = conf.getConfig(fRoot)
 
     val pluginConf = appConfig.getConfig(fPlugins)
-    val parallelFeed = catching(classOf[ConfigException]) either
-      appConfig.getInt(fUpdateParallelism) fold(e => 10, pf => pf)
 
     val port = catching(classOf[ConfigException]) either
       appConfig.getInt(fPort) fold(_ => trueRSSConfig.port, identity)
@@ -158,7 +160,6 @@ object TrueRSSConfig {
       port = port,
       host = host,
       wsPort = wsPort,
-      parallelFeedUpdate = parallelFeed,
       appPlugins = appPlugins
     ), dbConfig, isUserConf)
   }

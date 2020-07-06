@@ -4,31 +4,29 @@ object Libs {
   object Versions {
     val scalaVersion = "2.12.4"
     val scalajVersion = "2.4.1"
-    val h2Version = "1.3.173"
-    val postgresqlVersion = "9.1-901-1.jdbc4"
-    val mysqlVersion = "5.1.36"
-    val sqliteVersion = "3.8.7"
+    val postgresqlVersion = "42.2.14"
+    val mysqlVersion = "8.0.20"
+    val sqliteVersion = "3.32.3"
     val commonValidatorVersion = "1.6"
-    val ceVersion = "0.0.3"
+    val truerssBaseVersion = "0.0.3"
     val akkaVersion  = "2.6.3"
-    val slickVersion = "3.2.3"
+    val slickVersion = "3.3.2"
     val configVersion = "1.3.0"
     val scoptVersion = "3.7.0"
-    val hikariCPVersion = "2.4.7"
+    val hikariCPVersion = "3.4.5"
     val jwsVersion = "1.3.9"
     val logbackVersion = "1.1.2"
     val baseVersion = "0.0.6"
     val jsoupVersion = "1.8.3"
     val akkaHttpVersion = "10.1.11"
-    val specsVersion = "4.8.3"
+    val specsVersion = "4.10.0"
     val playJsonVersion = "2.8.1"
   }
 
   import Versions._
 
   val db = Seq(
-    "com.h2database" % "h2" % h2Version,
-    "postgresql" % "postgresql" % postgresqlVersion,
+    "org.postgresql" % "postgresql" % postgresqlVersion,
     "mysql" % "mysql-connector-java" % mysqlVersion,
     "org.xerial" % "sqlite-jdbc" % sqliteVersion,
     "com.zaxxer" % "HikariCP" % hikariCPVersion,
@@ -42,7 +40,7 @@ object Libs {
   val scalaLib = "org.scala-lang" % "scala-library" % scalaVersion
 
   val truerss = Seq(
-    "com.github.truerss" % "content-extractor" % ceVersion,
+    "com.github.truerss" % "content-extractor" % truerssBaseVersion,
     "com.github.truerss" %% "base" % baseVersion
   )
 

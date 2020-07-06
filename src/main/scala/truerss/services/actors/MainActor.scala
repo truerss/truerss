@@ -3,7 +3,8 @@ package truerss.services.actors
 import akka.actor.SupervisorStrategy._
 import akka.actor.{Actor, ActorLogging, ActorRef, OneForOneStrategy, Props}
 import akka.event.EventStream
-import truerss.dto.{Notify, NotifyLevels}
+import truerss.api.WebSockerController
+import truerss.dto.{Notify, NotifyLevel}
 import truerss.services.actors.events.{EventHandlerActor, PublishPluginActor}
 import truerss.services.actors.sync.SourcesKeeperActor
 import truerss.services.{ApplicationPluginsService, FeedsService, SourcesService}
@@ -22,8 +23,8 @@ class MainActor(config: TrueRSSConfig,
     OneForOneStrategy(maxNrOfRetries = 10, withinTimeRange = 1 minute) {
       case x: java.sql.SQLException =>
         log.error(x, x.getMessage)
-        context.system.eventStream.publish(Notify(NotifyLevels.Danger,
-          "Db Error. System will be stopped"))
+        context.system.eventStream.publish(WebSockerController.NotifyMessage(
+            Notify("Db Error. System will be stopped", NotifyLevel.Danger)))
         Stop
       case x: Throwable =>
         log.error(x, x.getMessage)
@@ -37,7 +38,7 @@ class MainActor(config: TrueRSSConfig,
     "event-handler-actor")
 
   val sourcesRef = create(SourcesKeeperActor.props(
-    SourcesKeeperActor.SourcesSettings(config),
+    SourcesKeeperActor.SourcesSettings(config.feedParallelism),
     applicationPluginsService,
     sourcesService
   ), "sources-root-actor")

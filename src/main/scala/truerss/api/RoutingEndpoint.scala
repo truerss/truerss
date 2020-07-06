@@ -3,7 +3,9 @@ package truerss.api
 import akka.http.scaladsl.model.headers.{HttpCookie, RawHeader}
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.directives.LoggingMagnet
 import akka.stream.Materializer
+import org.slf4j.LoggerFactory
 import truerss.services.management.{FeedsManagement, OpmlManagement, PluginsManagement, SearchManagement, SettingsManagement, SourcesManagement}
 
 import scala.concurrent.ExecutionContext
@@ -28,11 +30,21 @@ class RoutingEndpoint(
   val settingsApi = new SettingsApi(settingsManagement)
   val searchApi = new SearchApi(searchManagement)
 
-  val apis = sourcesApi.route ~
+  protected val logger = LoggerFactory.getLogger(getClass)
+
+  private def logIncomingRequest(req: HttpRequest): Unit = {
+    logger.debug(s"${req.method.value} ${req.uri}")
+  }
+
+  private val log = logRequest(LoggingMagnet(_ => logIncomingRequest))
+
+  val apis = log {
+    sourcesApi.route ~
     feedsApi.route ~
     pluginsApi.route ~
     settingsApi.route ~
     searchApi.route
+  }
 
   val fileName = "index.html"
 

@@ -37,9 +37,9 @@ lazy val mainProject = Project("truerss", file(".")).settings(
     organization := "net.truerss",
     classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.ScalaLibrary,
     name := "truerss",
-    version := "0.0.3.4-pre.6",
+    version := "0.0.3.4.pre.6",
     parallelExecution in Test := false,
-    assemblyJarName in assembly := s"truerss-${version.value}.jar",
+    assemblyJarName in assembly := s"truerss_${version.value}.jar",
     mainClass in assembly := Some("Main"),
     assemblyMergeStrategy in assembly := {
       case x if x.toString.contains(".conf") => MergeStrategy.concat
@@ -64,4 +64,6 @@ lazy val mainProject = Project("truerss", file(".")).settings(
     packageOptions := Seq(ManifestAttributes(("Built-By", s"${new Date()}"))),
     libraryDependencies ++= deps
   )
-).enablePlugins(JavaAppPackaging).enablePlugins(RpmPlugin).enablePlugins(JDKPackagerPlugin)
+).enablePlugins(JavaAppPackaging)
+.enablePlugins(RpmPlugin)
+.enablePlugins(JDKPackagerPlugin)

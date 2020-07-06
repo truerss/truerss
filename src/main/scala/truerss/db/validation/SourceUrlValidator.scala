@@ -25,7 +25,9 @@ class SourceUrlValidator extends Request {
   override protected val readTimeout: Int = 1000
 
   // todo configuration plz
-  private implicit val ec = ExecutionContexts.fromExecutor(Executors.newFixedThreadPool(10))
+  private implicit val ec = ExecutionContexts.fromExecutor(
+    Executors.newFixedThreadPool(10)
+  )
 
   def validateUrl(dto: SourceDto): Either[String, SourceDto] = {
     logger.debug(s"Validate: ${dto.url}")

@@ -38,7 +38,6 @@ case class SocketServer(port: Int,
     log.info(s"ws connection open")
     val socketActor = ctx.actorOf(Props(classOf[WebSockerController], ws))
     stream.subscribe(socketActor, classOf[WebSockerController.WSMessage])
-    stream.subscribe(socketActor, classOf[Notify])
     connectionMap(ws) = socketActor
   }
 

@@ -39,6 +39,7 @@ class SettingsService(dbLayer: DbLayer)(implicit ec: ExecutionContext) {
     )
     getCurrentSetup.map { xs =>
       xs.find(_.key == key.name).map { available =>
+
         Setup(
           key = key,
           value = available.value.value.asInstanceOf[T]

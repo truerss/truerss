@@ -2,12 +2,15 @@
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import truerss.api.{RoutingEndpoint, WebSocketsSupport}
+import truerss.db.Predefined
 import truerss.db.driver.SupportedDb
 import truerss.services._
 import truerss.services.actors.MainActor
 import truerss.services.management._
 import truerss.util.TrueRSSConfig
 
+import scala.concurrent.Await
+import scala.concurrent.duration._
 import scala.language.postfixOps
 
 object Main extends App {
@@ -47,8 +50,16 @@ object Main extends App {
       val settingsManagement = new SettingsManagement(settingsService)(servicesEc)
       val searchManagement = new SearchManagement(searchService)(servicesEc)
 
+      val feedParallelism = Await.result(
+        settingsService.where[Int](
+          Predefined.parallelism.toKey, 100
+        ),
+        3 seconds
+      ).value
+
       system.actorOf(
-        MainActor.props(actualConfig, applicationPluginsService, sourcesService,  feedsService),
+        MainActor.props(actualConfig.withParallelism(feedParallelism),
+          applicationPluginsService, sourcesService,  feedsService),
         "main-actor"
       )
 

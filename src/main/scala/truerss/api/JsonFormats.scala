@@ -8,8 +8,6 @@ import truerss.dto.{Notify, _}
 
 object JsonFormats {
 
-  def J[T: Writes](x: T): String = Json.stringify(Json.toJson(x))
-
   implicit class StringExtJson(val x: String) extends AnyVal {
     def j: JsString = JsString(x)
   }
@@ -42,7 +40,7 @@ object JsonFormats {
         case JsNumber(value) if value == SourceStates.Disable.number =>
           JsSuccess(SourceStates.Disable)
 
-        case JsNumber(value) =>
+        case JsNumber(_) =>
           JsError("Invalid state")
 
         case _ =>
@@ -59,8 +57,6 @@ object JsonFormats {
   implicit lazy val updateSourceDtoFormat = Json.format[UpdateSourceDto]
   implicit lazy val sourceDtoFormat = Json.format[SourceDto]
   implicit lazy val sourceViewDtoFormat = Json.format[SourceViewDto]
-
-  implicit lazy val wsMessageFormat = Json.format[WSMessage]
 
   implicit lazy val pluginDtoFormat = Json.format[PluginDto]
   implicit lazy val pluginsViewDto = Json.format[PluginsViewDto]
@@ -79,17 +75,6 @@ object JsonFormats {
       }
 
       JsObject(r)
-    }
-  }
-
-  implicit val notifyLevelWrites: Writes[Notify] = new Writes[Notify] {
-    override def writes(o: Notify): JsValue = {
-      JsObject(
-        Seq(
-          "level" -> o.level.name.j,
-          "message" -> o.message.j
-        )
-      )
     }
   }
 
