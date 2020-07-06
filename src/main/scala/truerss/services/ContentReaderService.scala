@@ -25,7 +25,7 @@ class ContentReaderService(
 
   protected val logger = LoggerFactory.getLogger(getClass)
 
-  def readFeed(feedId: Long, feed: FeedDto, forceReadContent: Boolean): Future[ReadResult] = {
+  def readFeedContent(feedId: Long, feed: FeedDto, forceReadContent: Boolean): Future[ReadResult] = {
     feed.content match {
       case Some(_) => ReadResult(feed).toF
 

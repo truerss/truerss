@@ -70,7 +70,7 @@ class FeedsManagement(feedsService: FeedsService,
   private def fetchFeed(feedId: Long, forceReadContent: Boolean): R = {
     feedsService.findOne(feedId).flatMap {
       case Some(feed) =>
-        contentReaderService.readFeed(feedId, feed, forceReadContent).map { result =>
+        contentReaderService.readFeedContent(feedId, feed, forceReadContent).map { result =>
           if (forceReadContent && result.hasError) {
             InternalServerErrorResponse(result.error.getOrElse(""))
           } else {

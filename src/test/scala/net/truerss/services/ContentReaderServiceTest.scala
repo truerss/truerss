@@ -27,7 +27,7 @@ class ContentReaderServiceTest(implicit ee: ExecutionEnv)
   "content reader" should {
     "just return if content is present" in new MyTest(content.some.right, false) {
       val tmp = dto.copy(content = content.some)
-      service.readFeed(feedId, tmp, forceReadContent = false) ~> { res =>
+      service.readFeedContent(feedId, tmp, forceReadContent = false) ~> { res =>
         res.error must beNone
 
         res.feedDto ==== tmp
@@ -38,7 +38,7 @@ class ContentReaderServiceTest(implicit ee: ExecutionEnv)
 
     "process if setup enabled" in new MyTest(content.some.right, false) {
       val tmp = dto.copy(content = None)
-      service.readFeed(feedId, tmp, forceReadContent = false) ~> { res =>
+      service.readFeedContent(feedId, tmp, forceReadContent = false) ~> { res =>
         res.error must beNone
 
         res.feedDto ==== tmp.copy(content = content.some)
@@ -54,7 +54,7 @@ class ContentReaderServiceTest(implicit ee: ExecutionEnv)
 
     "do not process if setup disabled" in new MyTest(content.some.right, true) {
       val tmp = dto.copy(content = None)
-      service.readFeed(feedId, tmp, forceReadContent = false) ~> { res =>
+      service.readFeedContent(feedId, tmp, forceReadContent = false) ~> { res =>
         res.error must beNone
 
         res.feedDto ==== tmp
@@ -68,7 +68,7 @@ class ContentReaderServiceTest(implicit ee: ExecutionEnv)
 
     "force process" in new MyTest(content.some.right, false) {
       val tmp = dto.copy(content = None)
-      service.readFeed(feedId, tmp, forceReadContent = true) ~> { res =>
+      service.readFeedContent(feedId, tmp, forceReadContent = true) ~> { res =>
         res.error must beNone
 
         res.feedDto ==== tmp.copy(content = content.some)
