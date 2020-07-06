@@ -38,14 +38,15 @@ object Main extends App {
       val applicationPluginsService = new ApplicationPluginsService(actualConfig.appPlugins)
       val opmlService = new OpmlService(sourcesService, stream)(servicesEc)
       val feedsService = new FeedsService(dbLayer)(servicesEc)
-      val contentReaderService = new ContentReaderService(applicationPluginsService)
+      val contentReaderService = new ContentReaderService(feedsService,
+        applicationPluginsService, settingsService)(servicesEc)
       val searchService = new SearchService(dbLayer)(servicesEc)
 
       val opmlManagement = new OpmlManagement(opmlService)(servicesEc)
       val sourcesManagement = new SourcesManagement(sourcesService,
         opmlService, sourceOverviewService, stream)(servicesEc)
       val feedsManagement = new FeedsManagement(feedsService,
-        contentReaderService, settingsService, stream)(servicesEc)
+        contentReaderService, stream)(servicesEc)
       val pluginsManagement = new PluginsManagement(applicationPluginsService)
       val settingsManagement = new SettingsManagement(settingsService)(servicesEc)
       val searchManagement = new SearchManagement(searchService)(servicesEc)

@@ -3,12 +3,12 @@ package truerss.api
 import truerss.dto._
 
 sealed trait Response
-case class SourcesResponse(xs: Vector[SourceViewDto]) extends Response
-case class SourceResponse(x: SourceViewDto) extends Response
+case class SourcesResponse(sources: Vector[SourceViewDto]) extends Response
+case class SourceResponse(dto: SourceViewDto) extends Response
 case class SourceOverViewResponse(overview: SourceOverview) extends Response
-case class FeedResponse(x: FeedDto) extends Response
+case class FeedResponse(dto: FeedDto) extends Response
 case class FeedContentResponse(content: FeedContent) extends Response
-case class FeedsResponse(xs: Vector[FeedDto]) extends Response
+case class FeedsResponse(feeds: Vector[FeedDto]) extends Response
 case class FeedsPageResponse(page: Page[FeedDto]) extends Response
 case class AppPluginsResponse(view: PluginsViewDto) extends Response
 case class ImportResponse(result: Iterable[SourceViewDto]) extends Response

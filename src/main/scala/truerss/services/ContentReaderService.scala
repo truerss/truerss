@@ -5,15 +5,65 @@ import java.net.URL
 import com.github.truerss.base.{ContentTypeParam, Errors}
 import com.github.truerss.base.aliases.WithContent
 import org.jsoup.Jsoup
-import truerss.util.Request
+import org.slf4j.LoggerFactory
+import truerss.db.Predefined
+import truerss.dto.{FeedDto, SetupKey}
+import truerss.util.{Request, syntax}
 
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
-class ContentReaderService(applicationPluginsService: ApplicationPluginsService) {
+class ContentReaderService(
+                            feedsService: FeedsService,
+                            applicationPluginsService: ApplicationPluginsService,
+                            settingsService: SettingsService
+                          )(implicit ec: ExecutionContext) {
 
   import ContentReaderService._
+  import syntax.future._
+  import syntax.ext._
 
-  def read(url: String): Either[String, Option[String]] = {
+  protected val logger = LoggerFactory.getLogger(getClass)
+
+  def readFeed(feedId: Long, feed: FeedDto, forceReadContent: Boolean): Future[ReadResult] = {
+    feed.content match {
+      case Some(_) => ReadResult(feed).toF
+
+      case None =>
+        // should read anyway
+        if (forceReadContent) {
+          processContent(feedId, feed)
+        } else {
+          settingsService.where[Boolean](readContentKey, defaultIsRead).flatMap { setup =>
+            logger.debug(s"${readContentKey.name} is ${setup.value}")
+            // skip then
+            if (setup.value) {
+              ReadResult(feed).toF
+            } else {
+              processContent(feedId, feed)
+            }
+          }
+        }
+    }
+  }
+
+  private def processContent(feedId: Long, feed: FeedDto): Future[ReadResult] = {
+    logger.debug(s"Need to read content for $feedId")
+    read(feed.url).fold(
+      error => {
+        logger.warn(s"Failed to fetch content: $error for the feed: $feedId")
+        ReadResult(error.some, feed).toF
+      },
+      contentOpt => {
+        contentOpt.map { content =>
+          feedsService.updateContent(feedId, content)
+          ReadResult(feed.copy(content = Some(content))).toF
+        }.getOrElse(ReadResult(feed).toF)
+      }
+    )
+  }
+
+  protected def read(url: String): Either[String, Option[String]] = {
     val tmp = new URL(url)
     val c = applicationPluginsService.getContentReaderOrDefault(tmp)
       .asInstanceOf[WithContent]
@@ -34,7 +84,22 @@ class ContentReaderService(applicationPluginsService: ApplicationPluginsService)
 }
 
 object ContentReaderService {
-  def extractContent(url: String): Try[String] = {
+
+  val readContentKey: SetupKey = Predefined.read.toKey
+  val defaultIsRead: Boolean = Predefined.read.value.defaultValue.asInstanceOf[Boolean]
+
+  case class ReadResult(error: Option[String], feedDto: FeedDto) {
+    def hasError: Boolean = {
+      error.isDefined
+    }
+  }
+  object ReadResult {
+    def apply(feedDto: FeedDto): ReadResult = {
+      new ReadResult(None, feedDto)
+    }
+  }
+
+  private def extractContent(url: String): Try[String] = {
     val response = Request.getResponse(url)
 
     if (response.isError) {
@@ -44,10 +109,12 @@ object ContentReaderService {
     }
   }
 
-  def pass(result: Either[Errors.Error, Option[String]]): Either[String, Option[String]] = {
+  private def pass(result: Either[Errors.Error, Option[String]]): Either[String, Option[String]] = {
     result.fold(
       err => Left(err.error),
       x => Right(x)
     )
   }
+
+
 }

@@ -62,8 +62,8 @@ class FeedsService(dbLayer: DbLayer)(implicit val ec: ExecutionContext) {
       .map(xs => xs.map(_.toDto))
   }
 
-  def updateContent(feedId: Long, content: String): Unit = {
-    feedDao.updateContent(feedId, content).foreach(identity)
+  def updateContent(feedId: Long, content: String): Future[Unit] = {
+    feedDao.updateContent(feedId, content).map(_ => ())
   }
 
   private def findAndModify(feedId: Long)(f: Feed => Future[Feed]): Future[Option[FeedDto]] = {
