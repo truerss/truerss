@@ -9,8 +9,8 @@ import truerss.api.SourceResponse
 import truerss.services.actors.sync.SourcesKeeperActor
 import truerss.services.management.{FeedSourceDtoModelImplicits, ResponseHelpers, SourcesManagement}
 import truerss.services.{OpmlService, SourceOverviewService, SourcesService}
+import truerss.util.syntax
 
-import scala.concurrent.Future
 import scala.concurrent.duration._
 
 class SourcesManagementTest(implicit val ee: ExecutionEnv) extends Specification with Mockito {
@@ -18,6 +18,7 @@ class SourcesManagementTest(implicit val ee: ExecutionEnv) extends Specification
   sequential
 
   import FeedSourceDtoModelImplicits._
+  import syntax.future._
 
   private val sourceId = 1L
   private val dto = Gen.genSource(Some(sourceId)).toView
@@ -28,9 +29,9 @@ class SourcesManagementTest(implicit val ee: ExecutionEnv) extends Specification
   private val som = mock[SourceOverviewService]
   private val es = mock[EventStream]
   private val s = new SourcesManagement(sm, om, som, es)
-  sm.delete(sourceId) returns f(Some(dto))
-  sm.addSource(newSource) returns f(Right(dto))
-  sm.updateSource(sourceId, updateSource) returns f(Right(dto))
+  sm.delete(sourceId) returns Some(dto).toF
+  sm.addSource(newSource) returns Right(dto).toF
+  sm.updateSource(sourceId, updateSource) returns Right(dto).toF
 
   "sources management" should {
     "delete source" in {
@@ -68,7 +69,4 @@ class SourcesManagementTest(implicit val ee: ExecutionEnv) extends Specification
       there was no(sm)
     }
   }
-
-  private def f[T](x: T) = Future.successful(x)
-
 }

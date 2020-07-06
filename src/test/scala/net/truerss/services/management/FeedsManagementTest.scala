@@ -11,10 +11,13 @@ import truerss.dto.Setup
 import truerss.services.actors.events.PublishPluginActor
 import truerss.services.management.{FeedsManagement, ResponseHelpers}
 import truerss.services.{ContentReaderService, FeedsService, SettingsService}
+import truerss.util.syntax
 
 import scala.concurrent.Future
 
 class FeedsManagementTest(implicit val ee: ExecutionEnv) extends Specification with Mockito {
+
+  import syntax.future._
 
   private val feedId = 1L
   private val feedId1 = 10L
@@ -54,9 +57,9 @@ class FeedsManagementTest(implicit val ee: ExecutionEnv) extends Specification w
         val readerServiceM = mock[ContentReaderService]
         val settingsM = mock[SettingsService]
         val streamM = mock[EventStream]
-        feedsServiceM.findOne(feedId) returns f(Some(dto.copy(content = None)))
+        feedsServiceM.findOne(feedId) returns Some(dto.copy(content = None)).toF
         settingsM.where[Boolean](FeedsManagement.readContentKey,
-          FeedsManagement.defaultIsRead) returns f(Setup[Boolean](FeedsManagement.readContentKey, true))
+          FeedsManagement.defaultIsRead) returns Setup[Boolean](FeedsManagement.readContentKey, true).toF
 
         val service = new FeedsManagement(feedsServiceM, readerServiceM, settingsM, streamM)
 
@@ -98,20 +101,17 @@ class FeedsManagementTest(implicit val ee: ExecutionEnv) extends Specification w
     val settingsM = mock[SettingsService]
     val streamM = mock[EventStream]
     val feedM = new FeedsManagement(feedsServiceM, readerServiceM, settingsM, streamM)
-    feedsServiceM.changeFav(feedId, favFlag = true) returns f(Some(dto))
-    feedsServiceM.changeFav(feedId, favFlag = false) returns f(Some(dto))
-    feedsServiceM.findOne(feedId) returns f(Some(dto))
+    feedsServiceM.changeFav(feedId, favFlag = true) returns Some(dto).toF
+    feedsServiceM.changeFav(feedId, favFlag = false) returns Some(dto).toF
+    feedsServiceM.findOne(feedId) returns Some(dto).toF
 
-    feedsServiceM.findOne(feedId1) returns f(None)
-    feedsServiceM.findOne(feedId2) returns f(Some(noContentDto))
-    feedsServiceM.findOne(feedId3) returns f(Some(noContentDto1))
+    feedsServiceM.findOne(feedId1) returns None.toF
+    feedsServiceM.findOne(feedId2) returns Some(noContentDto).toF
+    feedsServiceM.findOne(feedId3) returns Some(noContentDto1).toF
 
     readerServiceM.read(noContentDto.url) returns Left(boom)
     readerServiceM.read(noContentDto1.url) returns Right(Some(content))
     val setup = Future.successful(Setup[Boolean](FeedsManagement.readContentKey, false))
     settingsM.where(FeedsManagement.readContentKey, FeedsManagement.defaultIsRead) returns setup
   }
-
-  def f[T](x: T) = Future.successful(x)
-
 }

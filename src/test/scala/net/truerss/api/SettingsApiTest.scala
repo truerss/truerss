@@ -1,21 +1,22 @@
 package net.truerss.api
 
-import akka.http.scaladsl.model.StatusCodes
 import net.truerss.Gen
 import truerss.api._
-import truerss.dto.{AvailableSelect, AvailableSetup, CurrentValue, NewSetup}
+import truerss.dto.AvailableSetup
+import truerss.util.syntax
 import truerss.services.management.{ResponseHelpers, SettingsManagement}
 
 class SettingsApiTest extends BaseApiTest {
 
   import JsonFormats._
+  import syntax.future._
 
   private val setup = Gen.genSetup
   private val newSetup = Gen.genNewSetup
 
   private val sm = mock[SettingsManagement]
-  sm.getCurrentSetup returns f(SettingsResponse(Iterable(setup)))
-  sm.updateSetups(Iterable(newSetup)) returns f(ResponseHelpers.ok)
+  sm.getCurrentSetup returns SettingsResponse(Iterable(setup)).toF
+  sm.updateSetups(Iterable(newSetup)) returns ResponseHelpers.ok.toF
 
   protected override val r = new SettingsApi(sm).route
 

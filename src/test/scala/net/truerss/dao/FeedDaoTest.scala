@@ -186,11 +186,11 @@ class FeedDaoTest(implicit ee: ExecutionEnv)
   }
 
 
-  def insertSource(source: Source = Gen.genSource()) = {
+  private def insertSource(source: Source = Gen.genSource()) = {
     Await.result(sourceDao.insertMany(source :: Nil), duration)
   }
 
-  def insertFeed(feed: Feed) = {
+  private def insertFeed(feed: Feed) = {
     Await.result(feedDao.insert(feed), duration)
   }
 

@@ -8,12 +8,14 @@ import net.truerss.Gen
 import play.api.libs.json._
 import truerss.api._
 import truerss.dto.{FeedDto, Page, SourceOverview}
+import truerss.util.syntax
 import truerss.services.management._
 
 class SourcesApiTest extends BaseApiTest {
 
   sequential
 
+  import syntax.future._
   import FeedSourceDtoModelImplicits._
   import JsonFormats._
 
@@ -36,27 +38,27 @@ class SourcesApiTest extends BaseApiTest {
   private val fm = mock[FeedsManagement]
   private val om = mock[OpmlManagement]
   private val sm = mock[SourcesManagement]
-  sm.all returns f(SourcesResponse(Vector(dto)))
-  sm.getSource(id_200) returns f(SourceResponse(dto))
-  sm.getSource(id_404) returns f(ResponseHelpers.sourceNotFound)
-  sm.addSource(newDto) returns f(SourceResponse(dto))
-  sm.addSource(notValidNewDto) returns f(BadRequestResponse("boom"))
-  sm.deleteSource(id_200) returns f(ResponseHelpers.ok)
-  sm.deleteSource(id_404) returns f(ResponseHelpers.sourceNotFound)
-  sm.updateSource(validUpdateDto.id, validUpdateDto) returns f(SourceResponse(dto))
-  sm.updateSource(notValidUpdateDto.id, notValidUpdateDto) returns f(BadRequestResponse("boom"))
-  sm.markSource(id_200) returns f(ResponseHelpers.ok)
-  sm.forceRefreshSource(sId1) returns f(ResponseHelpers.ok)
-  sm.forceRefresh returns f(ResponseHelpers.ok)
-  sm.getSourceOverview(id_200) returns f(SourceOverViewResponse(SourceOverview.empty(id_200)))
+  sm.all returns SourcesResponse(Vector(dto)).toF
+  sm.getSource(id_200) returns SourceResponse(dto).toF
+  sm.getSource(id_404) returns ResponseHelpers.sourceNotFound.toF
+  sm.addSource(newDto) returns SourceResponse(dto).toF
+  sm.addSource(notValidNewDto) returns BadRequestResponse("boom").toF
+  sm.deleteSource(id_200) returns ResponseHelpers.ok.toF
+  sm.deleteSource(id_404) returns ResponseHelpers.sourceNotFound.toF
+  sm.updateSource(validUpdateDto.id, validUpdateDto) returns SourceResponse(dto).toF
+  sm.updateSource(notValidUpdateDto.id, notValidUpdateDto) returns BadRequestResponse("boom").toF
+  sm.markSource(id_200) returns ResponseHelpers.ok.toF
+  sm.forceRefreshSource(sId1) returns ResponseHelpers.ok.toF
+  sm.forceRefresh returns ResponseHelpers.ok.toF
+  sm.getSourceOverview(id_200) returns SourceOverViewResponse(SourceOverview.empty(id_200)).toF
 
-  fm.markAll returns f(ResponseHelpers.ok)
-  fm.findUnreadBySource(id_200) returns f(FeedsResponse(Vector(unreadFeed)))
-  fm.latest(anyInt, anyInt) returns f(FeedsResponse(Vector(unreadFeed)))
-  fm.fetchBySource(anyLong, anyBoolean, anyInt, anyInt) returns f(FeedsPageResponse(Page.empty[FeedDto]))
+  fm.markAll returns ResponseHelpers.ok.toF
+  fm.findUnreadBySource(id_200) returns FeedsResponse(Vector(unreadFeed)).toF
+  fm.latest(anyInt, anyInt) returns FeedsResponse(Vector(unreadFeed)).toF
+  fm.fetchBySource(anyLong, anyBoolean, anyInt, anyInt) returns FeedsPageResponse(Page.empty[FeedDto]).toF
 
-  om.getOpml returns f(Ok)
-  om.createFrom(opml) returns f(ImportResponse(Vector.empty))
+  om.getOpml returns Ok.toF
+  om.createFrom(opml) returns ImportResponse(Vector.empty).toF
 
   override protected val r: Route = new SourcesApi(sm, fm, om).route
 

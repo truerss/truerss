@@ -4,11 +4,13 @@ import akka.http.scaladsl.model.StatusCodes
 import net.truerss.Gen
 import truerss.api._
 import truerss.dto.FeedContent
+import truerss.util.syntax
 import truerss.services.management.{FeedsManagement, ResponseHelpers}
 
 
 class FeedsApiTest extends BaseApiTest {
 
+  import syntax.future._
   import JsonFormats._
 
   private val dto = Gen.genFeedDto
@@ -17,19 +19,19 @@ class FeedsApiTest extends BaseApiTest {
   private val id_500 = 100L
   private val cnt = FeedContent(Some("test"))
   private val fm = mock[FeedsManagement]
-  fm.favorites(anyInt, anyInt) returns f(FeedsResponse(Vector(dto)))
-  fm.getFeed(id_200) returns f(FeedResponse(dto))
-  fm.getFeedContent(id_200) returns f(FeedContentResponse(cnt))
-  fm.getFeed(id_404) returns f(ResponseHelpers.feedNotFound)
-  fm.getFeed(id_500) returns f(InternalServerErrorResponse("boom"))
-  fm.changeFavorites(id_200, true) returns f(FeedResponse(dto))
-  fm.changeFavorites(id_404, true) returns f(ResponseHelpers.feedNotFound)
-  fm.changeFavorites(id_200, false) returns f(FeedResponse(dto))
-  fm.changeFavorites(id_404, false) returns f(ResponseHelpers.feedNotFound)
-  fm.changeRead(id_200, true) returns f(FeedResponse(dto))
-  fm.changeRead(id_404, true) returns f(ResponseHelpers.feedNotFound)
-  fm.changeRead(id_200, false) returns f(FeedResponse(dto))
-  fm.changeRead(id_404, false) returns f(ResponseHelpers.feedNotFound)
+  fm.favorites(anyInt, anyInt) returns FeedsResponse(Vector(dto)).toF
+  fm.getFeed(id_200) returns FeedResponse(dto).toF
+  fm.getFeedContent(id_200) returns FeedContentResponse(cnt).toF
+  fm.getFeed(id_404) returns ResponseHelpers.feedNotFound.toF
+  fm.getFeed(id_500) returns InternalServerErrorResponse("boom").toF
+  fm.changeFavorites(id_200, true) returns FeedResponse(dto).toF
+  fm.changeFavorites(id_404, true) returns ResponseHelpers.feedNotFound.toF
+  fm.changeFavorites(id_200, false) returns FeedResponse(dto).toF
+  fm.changeFavorites(id_404, false) returns ResponseHelpers.feedNotFound.toF
+  fm.changeRead(id_200, true) returns FeedResponse(dto).toF
+  fm.changeRead(id_404, true) returns ResponseHelpers.feedNotFound.toF
+  fm.changeRead(id_200, false) returns FeedResponse(dto).toF
+  fm.changeRead(id_404, false) returns ResponseHelpers.feedNotFound.toF
 
   protected override val r = new FeedsApi(fm).route
 

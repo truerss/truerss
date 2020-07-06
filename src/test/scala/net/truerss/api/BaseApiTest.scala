@@ -16,8 +16,6 @@ abstract class BaseApiTest extends RouteTest
   with Specs2FrameworkInterface.Specs2
   with Mockito {
 
-  protected def f[T](x: T) = Future.successful(x)
-
   protected val r: Route
 
   protected val nf = StatusCodes.NotFound
