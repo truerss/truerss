@@ -1,3 +1,4 @@
+import sbt.Tests.Exclude
 import sbt._
 
 object Libs {
@@ -14,13 +15,13 @@ object Libs {
     val configVersion = "1.3.0"
     val scoptVersion = "3.7.0"
     val hikariCPVersion = "3.4.5"
-    val jwsVersion = "1.3.9"
+    val jwsVersion = "1.5.1"
     val logbackVersion = "1.1.2"
     val baseVersion = "0.0.6"
     val jsoupVersion = "1.8.3"
     val akkaHttpVersion = "10.1.11"
     val specsVersion = "4.10.0"
-    val playJsonVersion = "2.8.1"
+    val playJsonVersion = "2.9.0"
   }
 
   import Versions._
@@ -51,7 +52,7 @@ object Libs {
   val jsoup = "org.jsoup" % "jsoup" % jsoupVersion
 
   val akka = Seq(
-    "com.typesafe.akka" %% "akka-actor" % akkaVersion,
+    "com.typesafe.akka" %% "akka-actor" % akkaVersion exclude("com.typesafe.akka", "akka-protobuf-v3"),
     "com.typesafe.akka" %% "akka-stream" % akkaVersion,
     "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
     "com.typesafe.akka" %% "akka-http-core" % akkaHttpVersion,
