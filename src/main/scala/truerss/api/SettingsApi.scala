@@ -23,7 +23,7 @@ class SettingsApi(val settingsManagement: SettingsManagement)
           sm.getCurrentSetup
         }
       } ~ put {
-        create[Iterable[NewSetup[_]]](x => sm.updateSetups(x))
+        createT[Iterable[NewSetup[_]]](x => sm.updateSetups(x))
       }
     }
   }

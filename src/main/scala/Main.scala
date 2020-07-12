@@ -51,11 +51,10 @@ object Main extends App {
       val settingsManagement = new SettingsManagement(settingsService)(servicesEc)
       val searchManagement = new SearchManagement(searchService)(servicesEc)
 
-      val feedParallelism = Await.result(
+      val feedParallelism = zio.Runtime.default.unsafeRun(
         settingsService.where[Int](
           Predefined.parallelism.toKey, 100
-        ),
-        3 seconds
+        )
       ).value
 
       system.actorOf(
