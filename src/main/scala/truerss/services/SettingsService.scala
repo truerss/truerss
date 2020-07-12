@@ -2,6 +2,7 @@ package truerss.services
 
 import truerss.db.{DbLayer, PredefinedSettings, RadioValue, SelectableValue, UserSettings}
 import truerss.dto.{AvailableRadio, AvailableSelect, AvailableSetup, AvailableValue, CurrentValue, NewSetup, Setup, SetupKey}
+import zio.Task
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
@@ -10,29 +11,25 @@ class SettingsService(dbLayer: DbLayer)(implicit ec: ExecutionContext) {
 
   import SettingsService._
 
-  def getCurrentSetup: Future[Iterable[AvailableSetup[_]]] = {
-    val globalSettingsF = dbLayer.settingsDao.getSettings
-    val userSettingsF = dbLayer.userSettingsDao.getSettings
+  def getCurrentSetup: Task[Iterable[AvailableSetup[_]]] = {
     for {
-      global <- globalSettingsF
-      user <- userSettingsF
-    } yield {
-      makeAvailableSetup(global, user)
-    }
+      global <- dbLayer.settingsDao.getSettings
+      user <- dbLayer.userSettingsDao.getSettings
+    } yield makeAvailableSetup(global, user)
   }
 
-  def updateSetup(userSettings: UserSettings): Future[Int] = {
+  def updateSetup(userSettings: UserSettings): Task[Int] = {
     dbLayer.userSettingsDao.update(userSettings)
   }
 
-  def updateSetups(userSettings: Iterable[UserSettings]): Future[Int] = {
+  def updateSetups(userSettings: Iterable[UserSettings]): Task[Int] = {
     dbLayer.userSettingsDao.bulkUpdate(userSettings)
   }
 
   // the application layer dependency
   // we should use that in the application layer: for checking user-defined setup in every feature
   //
-  def where[T: ClassTag](key: SetupKey, defaultValue: T): Future[Setup[T]] = {
+  def where[T: ClassTag](key: SetupKey, defaultValue: T): Task[Setup[T]] = {
     val default: Setup[T] = Setup[T](
       key = key,
       value = defaultValue

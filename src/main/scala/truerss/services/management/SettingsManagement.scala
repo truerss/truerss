@@ -1,12 +1,12 @@
 package truerss.services.management
 
-import truerss.api.{BadRequestResponse, Ok, SettingResponse, SettingsResponse}
+import truerss.api.{BadRequestResponse, Ok, SettingsResponse}
 import truerss.db.UserSettings
 import truerss.dto.{AvailableSelect, AvailableSetup, CurrentValue, NewSetup}
 import truerss.services.SettingsService
-import truerss.util.syntax.future._
+import zio.Task
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 import scala.reflect.ClassTag
 
 class SettingsManagement(val settingsService: SettingsService)
@@ -14,11 +14,11 @@ class SettingsManagement(val settingsService: SettingsService)
 
   import SettingsManagement._
 
-  def getCurrentSetup: R = {
+  def getCurrentSetup: Z = {
     settingsService.getCurrentSetup.map(SettingsResponse(_))
   }
 
-  def updateSetups(newSetups: Iterable[NewSetup[_]]): R = {
+  def updateSetups(newSetups: Iterable[NewSetup[_]]): Z = {
     settingsService.getCurrentSetup.flatMap { xs =>
       val result = newSetups.foldLeft(Reducer.empty) { case (r, newSetup) =>
         xs.find(_.key == newSetup.key).map { result =>
@@ -32,30 +32,13 @@ class SettingsManagement(val settingsService: SettingsService)
         }.getOrElse(r)
       }
       if (result.isEmpty) {
-        BadRequestResponse(result.errors.mkString(", ")).toF
+        Task.succeed(BadRequestResponse(result.errors.mkString(", ")))
       } else {
         settingsService.updateSetups(result.setups).map { x =>
           logger.debug(s"Updated: $x setups")
           Ok
         }
       }
-    }
-  }
-
-  def updateSetup[T: ClassTag](newSetup: NewSetup[T]): R = {
-    settingsService.getCurrentSetup.flatMap { xs =>
-      xs.find(_.key == newSetup.key).map { result =>
-        if (newSetup.isValidAgainst(result)) {
-          val setup = newSetup.toUserSetup.withDescription(result.description)
-          settingsService.updateSetup(setup).map { x =>
-            logger.debug(s"Update setup: ${newSetup.key} with ${newSetup.value}")
-            SettingResponse(result.copy(value = newSetup.value))
-          }
-        } else {
-          logger.warn(s"Incorrect value: ${newSetup.key}:${newSetup.value}, options: ${result.options}")
-          BadRequestResponse(s"Incorrect value: ${newSetup.value}").toF
-        }
-      }.getOrElse(BadRequestResponse(s"Unknown key: ${newSetup.key}").toF)
     }
   }
 

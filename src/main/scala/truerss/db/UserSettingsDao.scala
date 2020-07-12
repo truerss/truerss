@@ -3,6 +3,7 @@ package truerss.db
 import slick.jdbc.JdbcBackend.DatabaseDef
 import slick.sql.FixedSqlAction
 import truerss.db.driver.CurrentDriver
+import zio.Task
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -13,27 +14,35 @@ class UserSettingsDao(val db: DatabaseDef)(implicit
   import driver.profile.api._
   import driver.query.userSettings
 
-  def getSettings: Future[Iterable[UserSettings]] = {
-    db.run(userSettings.result)
+  def getSettings: Task[Iterable[UserSettings]] = {
+    Task.fromFuture { implicit ec => db.run(userSettings.result) }
   }
 
-  def getByKey(key: String): Future[Option[UserSettings]] = {
-    db.run(userSettings.filter(_.key === key).take(1).result)
-      .map(_.headOption)
+  def getByKey(key: String): Task[Option[UserSettings]] = {
+    Task.fromFuture { implicit ec =>
+      db.run(userSettings.filter(_.key === key).take(1).result)
+        .map(_.headOption)
+    }
   }
 
-  def update(settings: UserSettings): Future[Int] = {
-    db.run(toStatement(settings))
+  def update(settings: UserSettings): Task[Int] = {
+    Task.fromFuture { implicit ec =>
+      db.run(toStatement(settings))
+    }
   }
 
-  def bulkUpdate(settings: Iterable[UserSettings]): Future[Int] = {
+  def bulkUpdate(settings: Iterable[UserSettings]): Task[Int] = {
     val xs = settings.map(toStatement)
-    Future.sequence(xs.map { o => db.run(o) }).map(_.sum)
+    Task.fromFuture { implicit ec =>
+      Future.sequence(xs.map { o => db.run(o) }).map(_.sum)
+    }
   }
 
-  def insert(xs: Iterable[UserSettings]): Future[Option[Int]] = {
-    db.run {
-      userSettings ++= xs
+  def insert(xs: Iterable[UserSettings]): Task[Option[Int]] = {
+    Task.fromFuture { implicit ec =>
+      db.run {
+        userSettings ++= xs
+      }
     }
   }
 

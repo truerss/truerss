@@ -32,9 +32,7 @@ class ContentReaderService(
           processContent(feedId, feed)
         } else {
           for {
-            setup <- Task.fromFuture { implicit ec =>
-              settingsService.where[Boolean](readContentKey, defaultIsRead)
-            }
+            setup <- settingsService.where[Boolean](readContentKey, defaultIsRead)
             // logger.debug(s"${readContentKey.name} is ${setup.value}")
             result <- if (setup.value) {
               Task.succeed(ReadResult(feed))

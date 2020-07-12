@@ -2,6 +2,7 @@ package truerss.db
 
 import slick.jdbc.JdbcBackend.DatabaseDef
 import truerss.db.driver.CurrentDriver
+import zio.Task
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -11,14 +12,16 @@ class PredefinedSettingsDao(val db: DatabaseDef)(implicit
   import driver.profile.api._
   import driver.query.predefinedSettings
 
-  def getSettings: Future[Iterable[PredefinedSettings]] = {
-    db.run(predefinedSettings.result)
+  def getSettings: Task[Iterable[PredefinedSettings]] = {
+    Task.fromFuture { implicit ec => db.run(predefinedSettings.result) }
   }
 
   // for testing
-  def insert(xs: Iterable[PredefinedSettings]): Future[Option[Int]] = {
-    db.run {
-      predefinedSettings ++= xs
+  def insert(xs: Iterable[PredefinedSettings]): Task[Option[Int]] = {
+    Task.fromFuture { implicit ec =>
+      db.run {
+        predefinedSettings ++= xs
+      }
     }
   }
 
