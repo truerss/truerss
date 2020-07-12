@@ -4,23 +4,18 @@ import akka.event.EventStream
 import org.slf4j.LoggerFactory
 import truerss.dto.{NewSourceDto, SourceViewDto}
 import truerss.services.actors.sync.SourcesKeeperActor
-import truerss.util.{OpmlBuilder, OpmlParser, Outline, syntax}
-import zio.{IO, Task, ZIO}
+import truerss.util.{OpmlBuilder, OpmlParser, Outline}
+import zio.Task
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class OpmlService(sourcesService: SourcesService, eventStream: EventStream)
                  (implicit ec: ExecutionContext) {
 
   import OpmlService._
-  import syntax.{\/, ext, future}
-  import ext._
-  import future._
-
-  private val logger = LoggerFactory.getLogger(getClass)
 
   def build: Task[String] = {
-    Task.fromFuture{implicit ec => sourcesService.getAllForOpml}.map(OpmlBuilder.build)
+    sourcesService.getAllForOpml.map(OpmlBuilder.build)
   }
 
   def create(text: String): Task[Iterable[SourceViewDto]] = {

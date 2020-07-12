@@ -28,7 +28,8 @@ class SourcesKeeperActor(config: SourcesKeeperActor.SourcesSettings,
   log.info(s"Feed parallelism: ${config.parallelFeedUpdate}")
 
   override def preStart(): Unit = {
-    sourcesService.getAllForOpml.map(Sources) pipeTo self
+    zio.Runtime.default.unsafeRunToFuture(sourcesService.getAllForOpml)
+      .map(Sources) pipeTo self
   }
 
   def uninitialized: Receive = {

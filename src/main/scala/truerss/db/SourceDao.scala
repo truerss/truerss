@@ -1,7 +1,6 @@
 package truerss.db
 
-import java.time.{Clock, Instant, LocalDateTime}
-import java.util.Date
+import java.time.{Clock, LocalDateTime}
 
 import slick.jdbc.JdbcBackend.DatabaseDef
 import truerss.db.driver.CurrentDriver
@@ -14,36 +13,43 @@ class SourceDao(val db: DatabaseDef)(implicit
                                      driver: CurrentDriver
 ) {
 
-  import driver.DateSupport._
   import driver.StateSupport._
   import driver.profile.api._
   import driver.query.sources
 
-  def all: Future[Seq[Source]] = db.run(sources.result)
-
-  def findOne(sourceId: Long): Future[Option[Source]] = {
-    db.run(sources.filter(_.id === sourceId).take(1).result)
-      .map(_.headOption)
+  def all: Task[Seq[Source]] = {
+    ft(db.run(sources.result))
   }
 
-  def delete(sourceId: Long): Future[Int] = {
-    db.run(sources.filter(_.id === sourceId).delete)
+  def findOne(sourceId: Long): Task[Option[Source]] = {
+    ft {
+      db.run(sources.filter(_.id === sourceId).take(1).result)
+        .map(_.headOption)
+    }
   }
 
-  def insert(source: Source): Future[Long] = {
-    db.run {
-      (sources returning sources.map(_.id)) += source
+  def delete(sourceId: Long): Task[Int] = {
+    ft(db.run(sources.filter(_.id === sourceId).delete))
+  }
+
+  def insert(source: Source): Task[Long] = {
+    ft {
+      db.run {
+        (sources returning sources.map(_.id)) += source
+      }
     }
   }
 
   def insertMany(xs: Iterable[Source]) = {
-    db.run {
-      sources ++= xs
+    ft {
+      db.run {
+        sources ++= xs
+      }
     }
   }
 
   def findByUrls(urls: Seq[String]): Task[Seq[String]] = {
-    Task.fromFuture { implicit ec =>
+    ft {
       db.run {
         sources.filter(s => s.url.inSet(urls))
           .map(_.url)
@@ -92,29 +98,39 @@ class SourceDao(val db: DatabaseDef)(implicit
     Task.fromFuture { implicit ec => f }
   }
 
-  def updateSource(source: Source): Future[Int] = {
-    db.run {
-      sources.filter(_.id === source.id)
-        .map(s => (s.url, s.name, s.interval, s.state, s.normalized))
-        .update(source.url, source.name, source.interval,
-          source.state, source.normalized)
+  def updateSource(source: Source): Task[Int] = {
+    ft {
+      db.run {
+        sources.filter(_.id === source.id)
+          .map(s => (s.url, s.name, s.interval, s.state, s.normalized))
+          .update(source.url, source.name, source.interval,
+            source.state, source.normalized)
+      }
     }
   }
 
   def updateLastUpdateDate(sourceId: Long,
-                           date: LocalDateTime = LocalDateTime.now(Clock.systemUTC())): Future[Int] = {
-    db.run {
-      sources.filter(_.id === sourceId)
-        .map(s => s.lastUpdate).update(date)
+                           date: LocalDateTime = LocalDateTime.now(Clock.systemUTC())): Task[Int] = {
+    ft {
+      db.run {
+        sources.filter(_.id === sourceId)
+          .map(s => s.lastUpdate).update(date)
+      }
     }
   }
 
-  def updateState(sourceId: Long, state: SourceState): Future[Int] = {
-    db.run {
-      sources.filter(_.id === sourceId)
-        .map(_.state)
-        .update(state)
+  def updateState(sourceId: Long, state: SourceState): Task[Int] = {
+    ft {
+      db.run {
+        sources.filter(_.id === sourceId)
+          .map(_.state)
+          .update(state)
+      }
     }
+  }
+
+  private def ft[T](f: Future[T]): Task[T] = {
+    Task.fromFuture { implicit ec => f }
   }
 
 }

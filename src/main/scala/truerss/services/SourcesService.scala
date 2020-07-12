@@ -18,24 +18,20 @@ class SourcesService(dbLayer: DbLayer,
 
   protected val sourceValidator = new SourceValidator(appPlugins)(dbLayer, ec)
 
-  def getAllForOpml: Future[Vector[SourceViewDto]] = {
+  def getAllForOpml: Task[Vector[SourceViewDto]] = {
     dbLayer.sourceDao.all.map { xs => xs.map(_.toView).toVector }
   }
 
   def getAll: Task[Vector[SourceViewDto]] = {
-    val feedsF = dbLayer.feedDao
-      .feedBySourceCount(false)
-      .map(_.toVector.toMap)
-    val sourcesF = dbLayer.sourceDao.all.map(_.toVector)
-    val result = for {
-      feedsBySource <- feedsF
-      sources <- sourcesF
-    } yield {
-      sources.map { s =>
-        s.toView.recount(feedsBySource.getOrElse(s.id.get, 0))
-      }
+    // TODO join
+    for {
+      feedsBySource <- dbLayer.feedDao
+        .feedBySourceCount(false)
+        .map(_.toVector.toMap)
+      sources <- dbLayer.sourceDao.all.map(_.toVector)
+    } yield sources.map { s =>
+      s.toView.recount(feedsBySource.getOrElse(s.id.get, 0))
     }
-    ft(result)
   }
 
   def getSource(sourceId: Long): Task[Option[SourceViewDto]] = {
@@ -64,7 +60,7 @@ class SourcesService(dbLayer: DbLayer,
       sources = valid.map { x =>
         x.toSource.withState(appPlugins.getState(x.url))
       }
-      _ <- ft(dbLayer.sourceDao.insertMany(sources))
+      _ <- dbLayer.sourceDao.insertMany(sources)
       sources <- dbLayer.sourceDao.fetchByUrls(sources.map(_.url).toSeq)
     } yield sources.map(_.toView)
   }
@@ -76,7 +72,7 @@ class SourcesService(dbLayer: DbLayer,
       source = dto.toSource
       state = appPlugins.getState(source.url)
       newSource = source.withState(state)
-      id <- ft(dbLayer.sourceDao.insert(newSource)).orDie
+      id <- dbLayer.sourceDao.insert(newSource).orDie
     } yield newSource.withId(id).toView
   }
 
@@ -86,16 +82,16 @@ class SourcesService(dbLayer: DbLayer,
       source = dto.toSource
       state = appPlugins.getState(source.url)
       updatedSource = source.withState(state).withId(sourceId)
-      _ <- ft(dbLayer.sourceDao.updateSource(updatedSource)).orDie
+      _ <- dbLayer.sourceDao.updateSource(updatedSource).orDie
     } yield updatedSource.toView
   }
 
   def changeLastUpdateTime(sourceId: Long): Task[Int] = {
-    ft(dbLayer.sourceDao.updateLastUpdateDate(sourceId))
+    dbLayer.sourceDao.updateLastUpdateDate(sourceId)
   }
 
   private def fetchOne(sourceId: Long)(f: Source => SourceViewDto): Task[Option[SourceViewDto]] = {
-    ft(dbLayer.sourceDao.findOne(sourceId).map { x => x.map(f) })
+    dbLayer.sourceDao.findOne(sourceId).map { x => x.map(f) }
   }
 
   private def ft[T](x: Future[T]): Task[T] = {

@@ -3,6 +3,7 @@ package truerss.db
 import com.github.truerss.base.Entry
 import slick.jdbc.JdbcBackend.DatabaseDef
 import truerss.db.driver.CurrentDriver
+import zio.Task
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -27,14 +28,16 @@ class FeedDao(val db: DatabaseDef)(implicit
     }
   }
 
-  def feedBySourceCount(read: Boolean): Future[Seq[(Long, Int)]] = {
-    db.run {
-      feeds
-        .filter(_.read === read)
-        .groupBy(_.sourceId)
-        .map {
-          case (sourceId, xs) => sourceId -> xs.size
-        }.result
+  def feedBySourceCount(read: Boolean): Task[Seq[(Long, Int)]] = {
+    ft {
+      db.run {
+        feeds
+          .filter(_.read === read)
+          .groupBy(_.sourceId)
+          .map {
+            case (sourceId, xs) => sourceId -> xs.size
+          }.result
+      }
     }
   }
 
@@ -204,5 +207,8 @@ class FeedDao(val db: DatabaseDef)(implicit
     db.run(act)
   }
 
+  private def ft[T](f: Future[T]): Task[T] = {
+    Task.fromFuture { implicit ec => f }
+  }
 
 }
