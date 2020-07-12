@@ -5,8 +5,9 @@ import java.util.concurrent.TimeUnit
 
 import truerss.db.{DbLayer, Feed}
 import truerss.dto.{FeedsFrequency, SourceOverview}
+import zio.Task
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class SourceOverviewService(val dbLayer: DbLayer)(implicit ec: ExecutionContext) {
 
@@ -14,9 +15,9 @@ class SourceOverviewService(val dbLayer: DbLayer)(implicit ec: ExecutionContext)
 
   private val dao = dbLayer.feedDao
 
-  def getSourceOverview(sourceId: Long): Future[SourceOverview] = {
+  def getSourceOverview(sourceId: Long): Task[SourceOverview] = {
     // todo compare in-memory vs diff in-db functions
-    dao.findBySource(sourceId).map { feeds =>
+    Task.fromFuture { implicit ec => dao.findBySource(sourceId) }.map { feeds =>
       calculate(sourceId, feeds)
     }
   }

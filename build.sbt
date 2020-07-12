@@ -5,6 +5,7 @@ import Libs._
 import Tasks._
 
 val setup = Seq(
+  resolvers += Resolver.sonatypeRepo("snapshots"),
   resolvers += "Typesafe Releases" at "https://repo.typesafe.com/typesafe/releases",
   resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
   resolvers += "JCenter" at "https://jcenter.bintray.com/",

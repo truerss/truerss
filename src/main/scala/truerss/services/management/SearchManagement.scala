@@ -9,7 +9,7 @@ class SearchManagement(val searchService: SearchService)
                       (implicit val ec: ExecutionContext) extends BaseManagement {
 
 
-  def search(request: SearchRequest): R = {
+  def search(request: SearchRequest): Z = {
     searchService.search(request).map(FeedsManagement.toPage)
   }
 

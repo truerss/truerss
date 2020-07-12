@@ -1,10 +1,11 @@
 package truerss.services.management
 
 import akka.event.EventStream
-import truerss.api.{BadRequestResponse, NotFoundResponse, SourceOverViewResponse, SourceResponse, SourcesResponse}
+import truerss.api.{BadRequestResponse, NotFoundResponse, Response, SourceOverViewResponse, SourceResponse, SourcesResponse}
 import truerss.dto.{NewSourceDto, UpdateSourceDto}
-import truerss.services.{OpmlService, SourceOverviewService, SourcesService}
+import truerss.services.{OpmlService, SourceOverviewService, SourcesService, ValidationError}
 import truerss.services.actors.sync.SourcesKeeperActor
+import zio.Task
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -17,37 +18,37 @@ class SourcesManagement(sourcesService: SourcesService,
 
   import ResponseHelpers.{sourceNotFound, ok}
 
-  def all: R = {
+  def all: Z = {
     sourcesService.getAll.map(SourcesResponse)
   }
 
-  def getSource(sourceId: Long): R = {
+  def getSource(sourceId: Long): Z = {
     sourcesService.getSource(sourceId).map {
       case Some(s) => SourceResponse(s)
       case _ => NotFoundResponse(s"Source $sourceId was not found")
     }
   }
 
-  def getSourceOverview(sourceId: Long): R = {
+  def getSourceOverview(sourceId: Long): Z = {
     sourceOverviewService.getSourceOverview(sourceId)
       .map(SourceOverViewResponse)
   }
 
-  def markSource(sourceId: Long): R = {
+  def markSource(sourceId: Long): Z = {
     sourcesService.markAsRead(sourceId).map(_ => ok)
   }
 
-  def forceRefreshSource(sourceId: Long): R = {
+  def forceRefreshSource(sourceId: Long): Z = {
     stream.publish(SourcesKeeperActor.UpdateOne(sourceId))
-    Future.successful(ok)
+    Task.effectTotal(ok)
   }
 
-  def forceRefresh: R = {
+  def forceRefresh: Z = {
     stream.publish(SourcesKeeperActor.Update)
-    Future.successful(ok)
+    Task.effectTotal(ok)
   }
 
-  def deleteSource(sourceId: Long): R = {
+  def deleteSource(sourceId: Long): Z = {
     sourcesService.delete(sourceId).map {
       case Some(x) =>
         stream.publish(SourcesKeeperActor.SourceDeleted(x))
@@ -56,26 +57,28 @@ class SourcesManagement(sourcesService: SourcesService,
     }
   }
 
-  def addSource(dto: NewSourceDto): R = {
-    sourcesService.addSource(dto).map {
-      case Left(errors) =>
-        BadRequestResponse(errors.mkString(", "))
-
-      case Right(x) =>
-        stream.publish(SourcesKeeperActor.NewSource(x))
-        SourceResponse(x)
-    }
+  def addSource(dto: NewSourceDto): Z = {
+    for {
+      res <- sourcesService.addSource(dto).fold(
+        v => BadRequestResponse(v.errors.mkString(", ")),
+        x => SourceResponse(x)
+      )
+//      _ <- Task.fromFunction(
+        // TODO ????
+//        stream.publish(SourcesKeeperActor.NewSource(x))
+//      )
+    } yield res
   }
 
-  def updateSource(sourceId: Long, dto: UpdateSourceDto): R = {
-    sourcesService.updateSource(sourceId, dto).map {
-      case Left(errors) =>
-        BadRequestResponse(errors.mkString(", "))
-
-      case Right(x) =>
-        stream.publish(SourcesKeeperActor.ReloadSource(x))
-        SourceResponse(x)
-    }
+  def updateSource(sourceId: Long, dto: UpdateSourceDto): Z = {
+    for {
+      res <- sourcesService.updateSource(sourceId, dto).fold(
+        v => BadRequestResponse(v.errors.mkString(", ")),
+        x => SourceResponse(x)
+      )
+      // TODO
+      // stream.publish(SourcesKeeperActor.ReloadSource(x))
+    } yield res
   }
 
 

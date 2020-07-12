@@ -8,17 +8,18 @@ import scala.concurrent.ExecutionContext
 class OpmlManagement(opmlService: OpmlService)
                     (implicit ec: ExecutionContext) extends BaseManagement {
 
-  def getOpml: R = {
+  def getOpml: Z = {
     opmlService.build.map(OpmlResponse)
   }
 
-  def createFrom(opml: String): R = {
-    opmlService.create(opml).map { result =>
-      result.fold(
-        BadRequestResponse,
-        ImportResponse
-      )
-    }
+  def createFrom(opml: String): Z = {
+    opmlService.create(opml).fold(
+      error => {
+        logger.warn(s"Failed to process: $error")
+        BadRequestResponse("Failed to convert")
+      },
+      ImportResponse
+    )
   }
 
 }

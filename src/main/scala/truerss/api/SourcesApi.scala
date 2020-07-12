@@ -53,11 +53,11 @@ class SourcesApi(sourcesManagement: SourcesManagement,
         pathPrefix("import") {
           makeImport
         } ~ pathEndOrSingleSlash {
-          create[NewSourceDto](x => sm.addSource(x))
+          createT[NewSourceDto](x => sm.addSource(x))
         }
       } ~ put {
         pathPrefix(LongNumber) { sourceId =>
-          create[UpdateSourceDto](x => sm.updateSource(sourceId, x))
+          createT[UpdateSourceDto](x => sm.updateSource(sourceId, x))
         } ~ pathPrefix("markall") {
           fm.markAll
         } ~ pathPrefix("mark" / LongNumber) { sourceId =>
@@ -83,7 +83,7 @@ class SourcesApi(sourcesManagement: SourcesManagement,
           a + b.decodeString(utf8)
         }
       }.runFold("") { _ + _ }.flatMap { x =>
-        om.createFrom(x)
+        zio.Runtime.default.unsafeRunToFuture(om.createFrom(x))
       }
 
       call(r)

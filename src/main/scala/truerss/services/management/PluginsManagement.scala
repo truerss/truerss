@@ -2,19 +2,20 @@ package truerss.services.management
 
 import truerss.api.{AppPluginsResponse, CssResponse, JsResponse}
 import truerss.services.ApplicationPluginsService
+import zio.Task
 
 class PluginsManagement(val service: ApplicationPluginsService) extends BaseManagement {
 
-  def getJs: JsResponse = {
-    JsResponse(service.js.mkString)
+  def getJs: Z = {
+    Task.effectTotal(JsResponse(service.js.mkString))
   }
 
-  def getCss: CssResponse = {
-    CssResponse(service.css.mkString)
+  def getCss: Z = {
+    Task.effectTotal(CssResponse(service.css.mkString))
   }
 
-  def getPluginList: AppPluginsResponse = {
-    AppPluginsResponse(service.view)
+  def getPluginList: Z = {
+    Task.effectTotal(AppPluginsResponse(service.view))
   }
 
 }

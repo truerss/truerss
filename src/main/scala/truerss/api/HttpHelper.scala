@@ -13,6 +13,7 @@ import scala.reflect.ClassTag
 import scala.util.{Failure => F, Success => S}
 import play.api.libs.json._
 import org.slf4j.LoggerFactory
+import zio.{Task, ZIO}
 /**
   * Created by mike on 17.12.16.
   */
@@ -28,6 +29,22 @@ trait HttpHelper {
 
   protected val api = pathPrefix("api" / "v1")
 
+  def createT[T : Reads : ClassTag](f: T => Task[Response])(implicit ec: ExecutionContext): Route = {
+    entity(as[String]) { json =>
+      Json.parse(json).validateOpt[T] match {
+        case JsSuccess(Some(value), _) =>
+          taskCall(f(value))
+
+        case JsSuccess(_, _) =>
+          complete(response(BadRequest, s"Unable to parse request: $json"))
+
+        case JsError(errors) =>
+          val str = errors.map(x => s"${x._1}: ${x._2.flatMap(_.messages).mkString(", ")}")
+          complete(response(BadRequest, s"Unable to parse request: $str"))
+      }
+    }
+  }
+
   def create[T : Reads : ClassTag](f: T => Future[Response])(implicit ec: ExecutionContext): Route = {
     entity(as[String]) { json =>
       Json.parse(json).validateOpt[T] match {
@@ -42,6 +59,18 @@ trait HttpHelper {
           complete(response(BadRequest, s"Unable to parse request: $str"))
       }
     }
+  }
+
+  def taskCall(f: Task[Response]): Route = {
+    val t = f.map { r =>
+      responseHandler(r) match {
+        case Complete(response) =>
+          complete(response)
+        case Rejected(_) =>
+          complete(response(InternalServerError, "Rejected"))
+       }
+    }
+    zio.Runtime.default.unsafeRun(t)
   }
 
   def call(f: Response)(implicit ec: ExecutionContext): Route = {
@@ -103,7 +132,7 @@ trait HttpHelper {
     finish(OK, Json.stringify(Json.toJson(x)))
   }
 
-  private def responseHandler(x: Response) = {
+  private def responseHandler(x: Response): RouteResult = {
     x match {
       case SourcesResponse(xs) => ok(xs)
       case SourceResponse(x) => ok(x)

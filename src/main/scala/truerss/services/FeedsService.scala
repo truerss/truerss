@@ -6,6 +6,7 @@ import truerss.dto.FeedDto
 import truerss.db.Feed
 import truerss.services.management.FeedSourceDtoModelImplicits
 import truerss.util.syntax
+import zio.Task
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -29,11 +30,11 @@ class FeedsService(dbLayer: DbLayer)(implicit val ec: ExecutionContext) {
   }
 
   def latest(offset: Int, limit: Int): FPage = {
-    feedDao.lastN(offset, limit).map(toPage)
+    Task.fromFuture { implicit ec => feedDao.lastN(offset, limit) }.map(toPage)
   }
 
   def favorites(offset: Int, limit: Int): FPage = {
-    feedDao.favorites(offset, limit).map(toPage)
+    Task.fromFuture { implicit ec => feedDao.favorites(offset, limit)}.map(toPage)
   }
 
   def markAllAsRead: Future[Int] = {
@@ -79,7 +80,7 @@ object FeedsService {
   import FeedSourceDtoModelImplicits._
 
   type Page = (Vector[FeedDto], Int)
-  type FPage = Future[Page]
+  type FPage = Task[Page]
 
   def toPage(tmp: (Seq[Feed], Int)): Page = {
     (tmp._1.map(_.toDto).toVector, tmp._2)

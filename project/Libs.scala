@@ -69,7 +69,8 @@ object Libs {
       .exclude("commons-collections", "commons-collections"),
     "com.typesafe" % "config" % configVersion,
     "com.github.scopt" %% "scopt" % scoptVersion,
-    "org.java-websocket" % "Java-WebSocket" % jwsVersion
+    "org.java-websocket" % "Java-WebSocket" % jwsVersion,
+    "dev.zio" %% "zio" % "1.0.0-RC21-2"
   )
 
   val tests = Seq(

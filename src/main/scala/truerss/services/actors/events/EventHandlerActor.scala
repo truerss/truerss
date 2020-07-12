@@ -22,7 +22,9 @@ class EventHandlerActor(private val sourcesService: SourcesService,
         .foreach(stream.publish)
 
     case ModifySource(sourceId) =>
-      sourcesService.changeLastUpdateTime(sourceId).foreach(identity)
+      for {
+        _ <- sourcesService.changeLastUpdateTime(sourceId)
+      } yield ()
 
   }
 }

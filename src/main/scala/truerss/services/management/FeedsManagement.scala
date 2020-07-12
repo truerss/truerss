@@ -24,7 +24,7 @@ class FeedsManagement(feedsService: FeedsService,
     feedsService.markAllAsRead.map { _ => ok }
   }
 
-  def favorites(offset: Int, limit: Int): R = {
+  def favorites(offset: Int, limit: Int): Z = {
     feedsService.favorites(offset, limit).map(toPage)
   }
 
@@ -63,7 +63,7 @@ class FeedsManagement(feedsService: FeedsService,
     feedsService.findBySource(sourceId, unreadOnly, offset, limit).map(toPage)
   }
 
-  def latest(offset: Int, limit: Int): R = {
+  def latest(offset: Int, limit: Int): Z = {
     feedsService.latest(offset, limit).map(toPage)
   }
 

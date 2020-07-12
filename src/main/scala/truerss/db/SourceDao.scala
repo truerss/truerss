@@ -5,6 +5,7 @@ import java.util.Date
 
 import slick.jdbc.JdbcBackend.DatabaseDef
 import truerss.db.driver.CurrentDriver
+import zio.Task
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -74,6 +75,18 @@ class SourceDao(val db: DatabaseDef)(implicit
     }
   }
 
+  def findByUrl1(url: String, id: Option[Long]): Task[Int] = {
+
+    val f = db.run {
+      id
+        .map(id => sources.filter(s => s.url === url && !(s.id === id)))
+        .getOrElse(sources.filter(s => s.url === url))
+        .length
+        .result
+    }
+    Task.fromFuture {implicit ec => f }
+  }
+
   def findByName(name: String, id: Option[Long]): Future[Int] = {
     db.run {
       id.map(id => sources.filter(s => s.name === name && !(s.id === id)))
@@ -81,6 +94,16 @@ class SourceDao(val db: DatabaseDef)(implicit
         .length
         .result
     }
+  }
+
+  def findByName1(name: String, id: Option[Long]): Task[Int] = {
+    val f = db.run {
+      id.map(id => sources.filter(s => s.name === name && !(s.id === id)))
+        .getOrElse(sources.filter(s => s.name === name))
+        .length
+        .result
+    }
+    Task.fromFuture { implicit ec => f }
   }
 
   def updateSource(source: Source): Future[Int] = {

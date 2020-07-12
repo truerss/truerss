@@ -3,18 +3,15 @@ package truerss.db.validation
 import org.apache.commons.validator.routines.UrlValidator
 import truerss.db.DbLayer
 import truerss.dto.{ApplicationPlugins, NewSourceDto, SourceDto}
+import truerss.services.ValidationError
 import truerss.util.syntax
+import zio._
 
 import scala.concurrent.{ExecutionContext, Future}
 
+
 // appPlugins is needed for custom content readers (non rss/atom)
 class SourceValidator(appPlugins: ApplicationPlugins)(implicit dbLayer: DbLayer, ec: ExecutionContext) {
-
-  import syntax.ext._
-
-  type R = Either[String, SourceDto]
-  type RL = Either[List[String], SourceDto]
-  type RLI = Either[List[String], Iterable[SourceDto]]
 
   private val urlValidator = new UrlValidator()
 
@@ -44,46 +41,29 @@ class SourceValidator(appPlugins: ApplicationPlugins)(implicit dbLayer: DbLayer,
     }
   }
 
-  def validateSource(source: SourceDto): Future[RL] = {
-    val vInterval = Future.successful(validateInterval(source))
-    val vUrl = Future.successful(validateUrl(source))
+  def validateSource(source: SourceDto): IO[ValidationError, SourceDto] = {
+    val vInterval = validateInterval(source)
+    val vUrl = validateUrl(source)
     val vUrlIsUnique = urlIsUnique(source)
     val vNameIsUnique = nameIsUnique(source)
-    val vIsRss = Future { validateRss(source) }
+    val vIsRss = validateRss(source)
 
-    Future.sequence(
-      Seq(vInterval, vUrl, vUrlIsUnique, vNameIsUnique, vIsRss)
-    ).map { results =>
-      val (errors, _) = results.partition(_.isLeft)
-      if (errors.nonEmpty) {
-        errors.map(_.swap).flatMap(_.toOption).toList.left
-      } else {
-        source.right
-      }
-    }
+    for {
+      _ <- vInterval
+      _ <- vUrl
+      _ <- vUrlIsUnique
+      _ <- vNameIsUnique
+      _ <- vIsRss
+    } yield source
   }
-
-  def validate(source: SourceDto): RL = {
-    (validateInterval(source), validateUrl(source)) match {
-      case (Right(_), Right(_)) => source.right
-      case (Left(err), Right(_)) => l(err)
-      case (Right(_), Left(err)) => l(err)
-      case (Left(e1), Left(e2)) => l(e1, e2)
-    }
-  }
-
-  private def urlError(source: SourceDto) = s"Url '${source.url}' already present in db"
-  private def nameError(source: SourceDto) = s"Name '${source.name}' is not unique"
-
-  private def l[T](x: T*) = List(x : _*).left
 
   // skip validation if it's
-  private def validateRss(source: SourceDto): R = {
+  private def validateRss(source: SourceDto): IO[ValidationError, SourceDto] = {
     if (isPlugin(source)) {
-      // plugin, skip rss/atom check
-      source.right
+      IO.effectTotal(source)
     } else {
-      sourceUrlValidator.validateUrl(source)
+      IO.fromEither(sourceUrlValidator.validateUrl(source))
+        .mapError { err => ValidationError(err :: Nil) }
     }
   }
 
@@ -96,31 +76,30 @@ class SourceValidator(appPlugins: ApplicationPlugins)(implicit dbLayer: DbLayer,
     }
   }
 
-  private def urlIsUnique(source: SourceDto)(implicit dbLayer: DbLayer, ec: ExecutionContext) = {
-    dbLayer.sourceDao.findByUrl(source.url, source.getId).map { x =>
-      if (x > 0) {
-        urlError(source).left
-      } else {
-        source.right
-      }
-    }
+  private def urlIsUnique(source: SourceDto)(implicit dbLayer: DbLayer,
+                                              ec: ExecutionContext): IO[ValidationError, SourceDto] = {
+    for {
+      count <- dbLayer.sourceDao.findByUrl1(source.url, source.getId).orDie
+      _ <- IO.fail(ValidationError(urlError(source) :: Nil)).when(count > 0)
+
+    } yield source
   }
 
-  private def nameIsUnique(source: SourceDto)(implicit dbLayer: DbLayer, ec: ExecutionContext) = {
-    dbLayer.sourceDao.findByName(source.url, source.getId).map { x =>
-      if (x > 0) {
-        nameError(source).left
-      } else {
-        source.right
-      }
-    }
+
+  private def nameIsUnique(source: SourceDto)
+                          (implicit dbLayer: DbLayer,
+                           ec: ExecutionContext): IO[ValidationError, SourceDto] = {
+    for {
+      count <- dbLayer.sourceDao.findByName1(source.url, source.getId).orDie
+      _ <- IO.fail(ValidationError(nameError(source) :: Nil)).when(count > 0)
+    } yield source
   }
 
-  private def validateInterval(source: SourceDto): R = {
+  private def validateInterval(source: SourceDto): IO[ValidationError, SourceDto] = {
     if (isValidInterval(source)) {
-      source.right
+      IO.effectTotal(source)
     } else {
-      "Interval must be great than 0".left
+      IO.fail(ValidationError("Interval must be great than 0" :: Nil))
     }
   }
 
@@ -132,11 +111,11 @@ class SourceValidator(appPlugins: ApplicationPlugins)(implicit dbLayer: DbLayer,
     }
   }
 
-  private def validateUrl(source: SourceDto): R = {
+  private def validateUrl(source: SourceDto): IO[ValidationError, SourceDto] = {
     if (isValidUrl(source)) {
-      source.right
+      IO.effectTotal(source)
     } else {
-      "Not valid url".left
+      IO.fail(ValidationError("Not valid url" :: Nil))
     }
   }
 
@@ -147,5 +126,8 @@ class SourceValidator(appPlugins: ApplicationPlugins)(implicit dbLayer: DbLayer,
       false
     }
   }
+
+  private def urlError(source: SourceDto) = s"Url '${source.url}' already present in db"
+  private def nameError(source: SourceDto) = s"Name '${source.name}' is not unique"
 
 }
