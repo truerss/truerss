@@ -17,9 +17,7 @@ class SourceOverviewService(val dbLayer: DbLayer)(implicit ec: ExecutionContext)
 
   def getSourceOverview(sourceId: Long): Task[SourceOverview] = {
     // todo compare in-memory vs diff in-db functions
-    Task.fromFuture { implicit ec => dao.findBySource(sourceId) }.map { feeds =>
-      calculate(sourceId, feeds)
-    }
+    dao.findBySource(sourceId).map(calculate(sourceId, _))
   }
 
 }

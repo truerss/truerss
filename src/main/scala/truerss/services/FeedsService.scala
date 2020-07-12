@@ -17,11 +17,15 @@ class FeedsService(dbLayer: DbLayer)(implicit val ec: ExecutionContext) {
   import syntax.future._
   import dbLayer.feedDao
 
-  def findOne(feedId: Long): Future[Option[FeedDto]] = {
-    findAndModify(feedId)(_.toF)
+  def findSingle(feedId: Long): Task[FeedDto] = {
+    dbLayer.feedDao.findSingle(feedId).map(_.toDto)
   }
 
-  def findUnread(sourceId: Long): Future[Vector[FeedDto]] = {
+  def findOne(feedId: Long): Task[Option[FeedDto]] = {
+    dbLayer.feedDao.findOne(feedId).map(x => x.map(_.toDto))
+  }
+
+  def findUnread(sourceId: Long): Task[Vector[FeedDto]] = {
     feedDao.findUnread(sourceId).map(convert)
   }
 
@@ -37,24 +41,23 @@ class FeedsService(dbLayer: DbLayer)(implicit val ec: ExecutionContext) {
     Task.fromFuture { implicit ec => feedDao.favorites(offset, limit)}.map(toPage)
   }
 
-  def markAllAsRead: Future[Int] = {
+  def markAllAsRead: Task[Int] = {
     feedDao.markAll
   }
 
-  def changeRead(feedId: Long, readFlag: Boolean): Future[Option[FeedDto]] = {
-    findAndModify(feedId) { feed =>
-      feedDao.modifyRead(feedId, read = readFlag).map { _ =>
-        feed.copy(read = readFlag)
-      }
-    }
+  def changeRead(feedId: Long, readFlag: Boolean): Task[Option[FeedDto]] = {
+    val t = for {
+      feed <- dbLayer.feedDao.findOne(feedId)
+      _ <- feedDao.modifyRead(feedId, read = readFlag)
+    } yield feed.map(_.toDto.copy(read = readFlag))
+    t
   }
 
-  def changeFav(feedId: Long, favFlag: Boolean): Future[Option[FeedDto]] = {
-    findAndModify(feedId) { feed =>
-      feedDao.modifyFav(feedId, fav = favFlag).map { _ =>
-        feed.copy(favorite = favFlag)
-      }
-    }
+  def changeFav(feedId: Long, favFlag: Boolean): Task[Option[FeedDto]] = {
+    for {
+      feed <- dbLayer.feedDao.findOne(feedId)
+      _ <- feedDao.modifyFav(feedId, fav = favFlag)
+    } yield feed.map(_.toDto.copy(favorite = favFlag))
   }
 
   def registerNewFeeds(sourceId: Long, feeds: Vector[Entry]): Future[Vector[FeedDto]] = {
@@ -63,14 +66,14 @@ class FeedsService(dbLayer: DbLayer)(implicit val ec: ExecutionContext) {
       .map(xs => xs.map(_.toDto))
   }
 
-  def updateContent(feedId: Long, content: String): Future[Unit] = {
+  def updateContent(feedId: Long, content: String): Task[Unit] = {
     feedDao.updateContent(feedId, content).map(_ => ())
   }
 
-  private def findAndModify(feedId: Long)(f: Feed => Future[Feed]): Future[Option[FeedDto]] = {
+  private def findAndModify(feedId: Long)(f: Feed => Task[Feed]): Task[Option[FeedDto]] = {
     feedDao.findOne(feedId).flatMap {
       case Some(x) => f(x).map(x => Option(x.toDto))
-      case _ => Future.successful(None)
+      case _ => Task.succeed(None)
     }
   }
 

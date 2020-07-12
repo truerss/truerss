@@ -1,7 +1,6 @@
 package truerss.services
 
 import akka.event.EventStream
-import org.slf4j.LoggerFactory
 import truerss.dto.{NewSourceDto, SourceViewDto}
 import truerss.services.actors.sync.SourcesKeeperActor
 import truerss.util.{OpmlBuilder, OpmlParser, Outline}

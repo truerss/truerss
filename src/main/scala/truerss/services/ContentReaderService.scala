@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory
 import truerss.db.Predefined
 import truerss.dto.{FeedDto, SetupKey}
 import truerss.util.{Request, syntax}
+import zio.Task
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
@@ -25,24 +26,26 @@ class ContentReaderService(
 
   protected val logger = LoggerFactory.getLogger(getClass)
 
-  def readFeedContent(feedId: Long, feed: FeedDto, forceReadContent: Boolean): Future[ReadResult] = {
+  def readFeedContent(feedId: Long, feed: FeedDto, forceReadContent: Boolean): Task[ReadResult] = {
     feed.content match {
-      case Some(_) => ReadResult(feed).toF
-
+      case Some(_) => Task.succeed(ReadResult(feed))
       case None =>
-        // should read anyway
         if (forceReadContent) {
-          processContent(feedId, feed)
+          Task.fromFuture { implicit ec => processContent(feedId, feed) }
         } else {
-          settingsService.where[Boolean](readContentKey, defaultIsRead).flatMap { setup =>
-            logger.debug(s"${readContentKey.name} is ${setup.value}")
-            // skip then
-            if (setup.value) {
-              ReadResult(feed).toF
-            } else {
-              processContent(feedId, feed)
+          for {
+            setup <- Task.fromFuture { implicit ec =>
+              settingsService.where[Boolean](readContentKey, defaultIsRead)
             }
-          }
+            // logger.debug(s"${readContentKey.name} is ${setup.value}")
+            result <- if (setup.value) {
+              Task.succeed(ReadResult(feed))
+            } else {
+              Task.fromFuture { implicit ec =>
+                processContent(feedId, feed)
+              }
+            }
+          } yield result
         }
     }
   }

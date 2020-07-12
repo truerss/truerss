@@ -18,9 +18,8 @@ class FeedsManagement(feedsService: FeedsService,
 
   import FeedsManagement._
   import ResponseHelpers.ok
-  import syntax.future._
 
-  def markAll: R = {
+  def markAll: Z = {
     feedsService.markAllAsRead.map { _ => ok }
   }
 
@@ -28,18 +27,18 @@ class FeedsManagement(feedsService: FeedsService,
     feedsService.favorites(offset, limit).map(toPage)
   }
 
-  def getFeedContent(feedId: Long): R = {
+  def getFeedContent(feedId: Long): Z = {
     fetchFeed(feedId, forceReadContent = true).map {
       case response: FeedResponse => toContent(response)
       case x => x
     }
   }
 
-  def getFeed(feedId: Long): R = {
+  def getFeed(feedId: Long): Z = {
     fetchFeed(feedId, forceReadContent = false)
   }
 
-  def changeFavorites(feedId: Long, favFlag: Boolean): R = {
+  def changeFavorites(feedId: Long, favFlag: Boolean): Z = {
     feedsService.changeFav(feedId, favFlag).map {
       case Some(feed) =>
         if (favFlag) {
@@ -51,11 +50,11 @@ class FeedsManagement(feedsService: FeedsService,
     }
   }
 
-  def changeRead(feedId: Long, readFlag: Boolean): R = {
+  def changeRead(feedId: Long, readFlag: Boolean): Z = {
     feedsService.changeRead(feedId, readFlag).map(feedHandler)
   }
 
-  def findUnreadBySource(sourceId: Long): R = {
+  def findUnreadBySource(sourceId: Long): Z = {
     feedsService.findUnread(sourceId).map(FeedsResponse)
   }
 
@@ -67,22 +66,13 @@ class FeedsManagement(feedsService: FeedsService,
     feedsService.latest(offset, limit).map(toPage)
   }
 
-  private def fetchFeed(feedId: Long, forceReadContent: Boolean): R = {
-    feedsService.findOne(feedId).flatMap {
-      case Some(feed) =>
-        contentReaderService.readFeedContent(feedId, feed, forceReadContent).map { result =>
-          if (forceReadContent && result.hasError) {
-            InternalServerErrorResponse(result.error.getOrElse(""))
-          } else {
-            FeedResponse(result.feedDto)
-          }
-        }
-
-      case None =>
-        ResponseHelpers.feedNotFound.toF
-    }
+  private def fetchFeed(feedId: Long, forceReadContent: Boolean): Z = {
+    for {
+      feed <- feedsService.findSingle(feedId)
+      content <- contentReaderService
+        .readFeedContent(feedId, feed, forceReadContent) // todo catch* unreadable content error
+    } yield FeedResponse(content.feedDto)
   }
-
 }
 
 object FeedsManagement {
