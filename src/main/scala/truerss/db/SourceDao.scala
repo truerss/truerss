@@ -42,41 +42,36 @@ class SourceDao(val db: DatabaseDef)(implicit
     }
   }
 
-  def fetchByUrls(urls: Seq[String]): Future[Seq[Source]] = {
-    db.run {
-      sources.filter(s => s.url.inSet(urls))
-        .result
+  def findByUrls(urls: Seq[String]): Task[Seq[String]] = {
+    Task.fromFuture { implicit ec =>
+      db.run {
+        sources.filter(s => s.url.inSet(urls))
+          .map(_.url)
+          .result
+      }
     }
   }
 
-  def findByUrls(urls: Seq[String]): Future[Seq[String]] = {
-    db.run {
-      sources.filter(s => s.url.inSet(urls))
-        .map(_.url)
-        .result
+  def fetchByUrls(urls: Seq[String]): Task[Seq[Source]] = {
+    Task.fromFuture { implicit ec =>
+      db.run {
+        sources.filter(s => s.url.inSet(urls))
+          .result
+      }
     }
   }
 
-  def findByNames(names: Seq[String]): Future[Seq[String]] = {
-    db.run {
-      sources.filter(s => s.name.inSet(names))
-        .map(_.url)
-        .result
+  def findByNames(names: Seq[String]): Task[Seq[String]] = {
+    Task.fromFuture { implicit ec =>
+      db.run {
+        sources.filter(s => s.name.inSet(names))
+          .map(_.url)
+          .result
+      }
     }
   }
 
-  def findByUrl(url: String, id: Option[Long]): Future[Int] = {
-    db.run {
-      id
-        .map(id => sources.filter(s => s.url === url && !(s.id === id)))
-        .getOrElse(sources.filter(s => s.url === url))
-        .length
-        .result
-    }
-  }
-
-  def findByUrl1(url: String, id: Option[Long]): Task[Int] = {
-
+  def findByUrl(url: String, id: Option[Long]): Task[Int] = {
     val f = db.run {
       id
         .map(id => sources.filter(s => s.url === url && !(s.id === id)))
@@ -87,16 +82,7 @@ class SourceDao(val db: DatabaseDef)(implicit
     Task.fromFuture {implicit ec => f }
   }
 
-  def findByName(name: String, id: Option[Long]): Future[Int] = {
-    db.run {
-      id.map(id => sources.filter(s => s.name === name && !(s.id === id)))
-        .getOrElse(sources.filter(s => s.name === name))
-        .length
-        .result
-    }
-  }
-
-  def findByName1(name: String, id: Option[Long]): Task[Int] = {
+  def findByName(name: String, id: Option[Long]): Task[Int] = {
     val f = db.run {
       id.map(id => sources.filter(s => s.name === name && !(s.id === id)))
         .getOrElse(sources.filter(s => s.name === name))

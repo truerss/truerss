@@ -5,8 +5,8 @@ import java.util.concurrent.Executors
 import akka.dispatch.ExecutionContexts
 import truerss.dto.SourceDto
 import truerss.util.{Request, syntax}
-
 import org.slf4j.LoggerFactory
+import zio.{Task, ZIO}
 
 import scala.concurrent.Future
 import scala.util.Try
@@ -40,14 +40,11 @@ class SourceUrlValidator extends Request {
   }
 
   // returns only valid
-  def validateUrls(dtos: Seq[SourceDto]): Future[Seq[SourceDto]] = {
-    val xs = dtos.map { x =>
-      Future(validateUrl(x))
+  // TODO pass from the top where[Setup]
+  def validateUrls(dtos: Seq[SourceDto]): Task[Seq[SourceDto]] = {
+    Task.collectParN(10)(dtos) { x =>
+      ZIO.fromOption(validateUrl(x).toOption)
     }
-    Future.sequence(xs)
-      .map { res =>
-        res.filter(_.isRight).flatMap(_.toOption)
-      }
   }
 
   protected def makeRequest(url: String): Map[String, String] = {

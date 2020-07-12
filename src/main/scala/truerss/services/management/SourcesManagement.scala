@@ -1,13 +1,13 @@
 package truerss.services.management
 
 import akka.event.EventStream
-import truerss.api.{BadRequestResponse, NotFoundResponse, Response, SourceOverViewResponse, SourceResponse, SourcesResponse}
+import truerss.api._
 import truerss.dto.{NewSourceDto, UpdateSourceDto}
-import truerss.services.{OpmlService, SourceOverviewService, SourcesService, ValidationError}
 import truerss.services.actors.sync.SourcesKeeperActor
+import truerss.services.{OpmlService, SourceOverviewService, SourcesService}
 import zio.Task
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class SourcesManagement(sourcesService: SourcesService,
                         opmlService: OpmlService,
@@ -16,7 +16,7 @@ class SourcesManagement(sourcesService: SourcesService,
                        )
                        (implicit ec: ExecutionContext) extends BaseManagement {
 
-  import ResponseHelpers.{sourceNotFound, ok}
+  import ResponseHelpers.{ok, sourceNotFound}
 
   def all: Z = {
     sourcesService.getAll.map(SourcesResponse)

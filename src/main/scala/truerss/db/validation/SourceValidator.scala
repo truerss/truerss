@@ -17,25 +17,23 @@ class SourceValidator(appPlugins: ApplicationPlugins)(implicit dbLayer: DbLayer,
 
   protected val sourceUrlValidator = new SourceUrlValidator()
 
-  def validateSources(sources: Iterable[NewSourceDto]): Future[Seq[NewSourceDto]] = {
+  def filterValid(sources: Iterable[NewSourceDto]): Task[Iterable[NewSourceDto]] = {
     val urls = sources.map(_.url).toSeq
     val names = sources.map(_.name).toSeq
 
-    val notUniqUrlsF = dbLayer.sourceDao.findByUrls(urls)
-    val notUniqNamesF = dbLayer.sourceDao.findByNames(names)
     for {
-      notUniqUrls <- notUniqUrlsF
-      notUniqNames <- notUniqNamesF
+      notUniqueUrls <- dbLayer.sourceDao.findByUrls(urls).orDie
+      notUniqueNames <- dbLayer.sourceDao.findByNames(names)
       xs = sources
         .filter(isValidInterval)
         .filter(isValidUrl)
         .filterNot { x =>
-          notUniqUrls.contains(x.url)
+          notUniqueUrls.contains(x.url)
         }.filterNot { x =>
-        notUniqNames.contains(x.name)
-      }
-      (plugins, notPlugins) = xs.partition(isPlugin)
-      validateUrls <- sourceUrlValidator.validateUrls(notPlugins.toSeq)
+          notUniqueNames.contains(x.name)
+        }
+        (plugins, notPlugins) = xs.partition(isPlugin)
+        validateUrls <- sourceUrlValidator.validateUrls(notPlugins.toSeq)
     } yield {
       plugins.toSeq ++ validateUrls.map(_.asInstanceOf[NewSourceDto])
     }
@@ -79,7 +77,7 @@ class SourceValidator(appPlugins: ApplicationPlugins)(implicit dbLayer: DbLayer,
   private def urlIsUnique(source: SourceDto)(implicit dbLayer: DbLayer,
                                               ec: ExecutionContext): IO[ValidationError, SourceDto] = {
     for {
-      count <- dbLayer.sourceDao.findByUrl1(source.url, source.getId).orDie
+      count <- dbLayer.sourceDao.findByUrl(source.url, source.getId).orDie
       _ <- IO.fail(ValidationError(urlError(source) :: Nil)).when(count > 0)
 
     } yield source
@@ -90,7 +88,7 @@ class SourceValidator(appPlugins: ApplicationPlugins)(implicit dbLayer: DbLayer,
                           (implicit dbLayer: DbLayer,
                            ec: ExecutionContext): IO[ValidationError, SourceDto] = {
     for {
-      count <- dbLayer.sourceDao.findByName1(source.url, source.getId).orDie
+      count <- dbLayer.sourceDao.findByName(source.url, source.getId).orDie
       _ <- IO.fail(ValidationError(nameError(source) :: Nil)).when(count > 0)
     } yield source
   }

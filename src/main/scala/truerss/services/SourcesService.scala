@@ -2,7 +2,7 @@ package truerss.services
 
 import truerss.db.{DbLayer, Source}
 import truerss.db.validation.SourceValidator
-import truerss.dto.{ApplicationPlugins, NewSourceDto, SourceDto, SourceViewDto, UpdateSourceDto}
+import truerss.dto.{ApplicationPlugins, NewSourceDto, SourceViewDto, UpdateSourceDto}
 import truerss.services.management.FeedSourceDtoModelImplicits
 import truerss.util.Util
 
@@ -59,15 +59,14 @@ class SourcesService(dbLayer: DbLayer,
 
   // opml
   def addSources(dtos: Iterable[NewSourceDto]): Task[Iterable[SourceViewDto]] = {
-    val t = sourceValidator.validateSources(dtos).flatMap { valid =>
-      val sources = valid.map { x =>
+    for {
+      valid <- sourceValidator.filterValid(dtos)
+      sources = valid.map { x =>
         x.toSource.withState(appPlugins.getState(x.url))
       }
-      dbLayer.sourceDao.insertMany(sources).flatMap { _ =>
-        dbLayer.sourceDao.fetchByUrls(sources.map(_.url))
-      }
-    }.map { xs => xs.map(_.toView) }
-    ft(t)
+      _ <- ft(dbLayer.sourceDao.insertMany(sources))
+      sources <- dbLayer.sourceDao.fetchByUrls(sources.map(_.url).toSeq)
+    } yield sources.map(_.toView)
   }
 
   //
