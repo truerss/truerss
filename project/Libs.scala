@@ -22,6 +22,7 @@ object Libs {
     val akkaHttpVersion = "10.1.11"
     val specsVersion = "4.10.0"
     val playJsonVersion = "2.9.0"
+    val zioVersion = "1.0.0-RC21-2"
   }
 
   import Versions._
@@ -73,6 +74,12 @@ object Libs {
     "dev.zio" %% "zio" % "1.0.0-RC21-2"
   )
 
+  val zio = Seq(
+    "dev.zio" %% "zio" % zioVersion,
+    "dev.zio" %% "zio-actors" % "0.0.6"
+   // "dev.zio" %% "zio-http-core" % zioVersion
+  )
+
   val tests = Seq(
     "org.specs2" %% "specs2-core" % specsVersion % "test",
     "org.specs2" %% "specs2-mock" % specsVersion % "test",
@@ -83,6 +90,6 @@ object Libs {
   )
 
   val deps = db ++ akka ++ truerss ++ logs ++
-    Seq(jsoup, playJson) ++ utils ++ tests
+    Seq(jsoup, playJson) ++ utils ++ zio ++ tests
 
 }
