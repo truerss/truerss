@@ -5,7 +5,6 @@ import truerss.db.validation.SourceValidator
 import truerss.dto.{ApplicationPlugins, NewSourceDto, SourceViewDto, UpdateSourceDto}
 import truerss.services.management.FeedSourceDtoModelImplicits
 import truerss.util.Util
-
 import zio._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -16,7 +15,7 @@ class SourcesService(dbLayer: DbLayer,
   import FeedSourceDtoModelImplicits._
   import Util._
 
-  protected val sourceValidator = new SourceValidator(appPlugins)(dbLayer, ec)
+  protected val sourceValidator = new SourceValidator(appPlugins)(dbLayer)
 
   def getAllForOpml: Task[Vector[SourceViewDto]] = {
     dbLayer.sourceDao.all.map { xs => xs.map(_.toView).toVector }
@@ -92,10 +91,6 @@ class SourcesService(dbLayer: DbLayer,
 
   private def fetchOne(sourceId: Long)(f: Source => SourceViewDto): Task[Option[SourceViewDto]] = {
     dbLayer.sourceDao.findOne(sourceId).map { x => x.map(f) }
-  }
-
-  private def ft[T](x: Future[T]): Task[T] = {
-    Task.fromFuture { implicit ec => x}
   }
 
 }

@@ -3,14 +3,12 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import truerss.api.{RoutingEndpoint, WebSocketsSupport}
 import truerss.db.Predefined
-import truerss.db.driver.SupportedDb
+import truerss.db.driver.DbInitializer
 import truerss.services._
 import truerss.services.actors.MainActor
 import truerss.services.management._
 import truerss.util.TrueRSSConfig
 
-import scala.concurrent.Await
-import scala.concurrent.duration._
 import scala.language.postfixOps
 
 object Main extends App {
@@ -28,7 +26,7 @@ object Main extends App {
       val dbEc = system.dispatchers.lookup("dispatchers.db-dispatcher")
       val servicesEc = system.dispatchers.lookup("dispatchers.services-dispatcher")
 
-      val dbLayer = SupportedDb.load(dbConf, isUserConf)(dbEc)
+      val dbLayer = DbInitializer.initialize(dbConf, isUserConf)(dbEc)
 
       val stream = system.eventStream
 

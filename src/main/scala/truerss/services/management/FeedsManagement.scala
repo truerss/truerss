@@ -58,7 +58,7 @@ class FeedsManagement(feedsService: FeedsService,
     feedsService.findUnread(sourceId).map(FeedsResponse)
   }
 
-  def fetchBySource(sourceId: Long, unreadOnly: Boolean, offset: Int, limit: Int): R = {
+  def fetchBySource(sourceId: Long, unreadOnly: Boolean, offset: Int, limit: Int): Z = {
     feedsService.findBySource(sourceId, unreadOnly, offset, limit).map(toPage)
   }
 

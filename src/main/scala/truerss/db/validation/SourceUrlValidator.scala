@@ -3,21 +3,20 @@ package truerss.db.validation
 import java.util.concurrent.Executors
 
 import akka.dispatch.ExecutionContexts
+import org.slf4j.LoggerFactory
 import truerss.dto.SourceDto
 import truerss.util.{Request, syntax}
-import org.slf4j.LoggerFactory
 import zio.{Task, ZIO}
 
-import scala.concurrent.Future
 import scala.util.Try
 
 // plugin should be present for non-rss/atom urls
 // +xml is part of ContentType
 class SourceUrlValidator extends Request {
 
+  import SourceUrlValidator._
   import syntax._
   import ext._
-  import SourceUrlValidator._
 
   private val logger = LoggerFactory.getLogger(getClass)
 

@@ -12,72 +12,59 @@ class FeedDao(val db: DatabaseDef)(implicit
                                    driver: CurrentDriver
 ) {
 
+  import JdbcTaskSupport._
   import driver.profile.api._
   import driver.query.{feeds, bySource, byFeed, FeedsTQExt, FeedsQExt}
-  import truerss.util.Util._
+  import FeedDao._
 
-  private type FPage = Future[(Seq[Feed], Int)]
+  private type FPage = Task[(Seq[Feed], Int)]
 
   def findUnread(sourceId: Long): Task[Seq[Feed]] = {
-    ft {
-      db.run {
-        bySource(sourceId)
-          .unreadOnly
-          .sortBy(_.publishedDate.desc)
-          .result
-      }
+    db.go {
+      bySource(sourceId)
+        .unreadOnly
+        .sortBy(_.publishedDate.desc)
+        .result
     }
   }
 
   def feedBySourceCount(read: Boolean): Task[Seq[(Long, Int)]] = {
-    ft {
-      db.run {
-        feeds
-          .filter(_.read === read)
-          .groupBy(_.sourceId)
-          .map {
-            case (sourceId, xs) => sourceId -> xs.size
-          }.result
-      }
+    db.go {
+      feeds
+        .filter(_.read === read)
+        .groupBy(_.sourceId)
+        .map {
+          case (sourceId, xs) => sourceId -> xs.size
+        }.result
     }
   }
 
   def feedCountBySourceId(sourceId: Long, unreadOnly: Boolean): Task[Int] = {
-    ft {
-      db.run {
-        bySource(sourceId)
-          .filter(_.read inSet getReadValues(unreadOnly))
-          .length.result
-      }
+    db.go {
+      bySource(sourceId)
+        .filter(_.read inSet getReadValues(unreadOnly))
+        .length.result
     }
   }
 
   def deleteFeedsBySource(sourceId: Long): Task[Int] = {
-    ft {
-      db.run {
-        bySource(sourceId).delete
-      }
-    }
+    db.go { bySource(sourceId).delete }
   }
 
   def markAll: Task[Int] = {
-    ft {
-      db.run {
-        feeds
-          .unreadOnly
-          .map(_.read)
-          .update(true)
-      }
+    db.go {
+      feeds
+        .unreadOnly
+        .map(_.read)
+        .update(true)
     }
   }
 
   def markBySource(sourceId: Long): Task[Int] = {
-    ft {
-      db.run {
-        bySource(sourceId)
-          .map(f => f.read)
-          .update(true)
-      }
+    db.go {
+      bySource(sourceId)
+        .map(f => f.read)
+        .update(true)
     }
   }
 
@@ -98,71 +85,62 @@ class FeedDao(val db: DatabaseDef)(implicit
   }
 
   def findOne(feedId: Long): Task[Option[Feed]] = {
-    ft {
-      db.run {
-        byFeed(feedId).take(1).result
-      }.map(_.headOption)
-    }
+    db.go {
+      byFeed(feedId).take(1).result
+    }.map(_.headOption)
   }
 
   def findSingle(feedId: Long): Task[Feed] = {
-    ft {
-      db.run {
-        byFeed(feedId).take(1).result
-      }.map(_.head)
-    }
+    db.go {
+      byFeed(feedId).take(1).result
+    }.map(_.head)
   }
 
   def modifyFav(feedId: Long, fav: Boolean): Task[Int] = {
-    ft {
-      db.run {
-        byFeed(feedId).map(e => e.favorite).update(fav)
-      }
+    db.go {
+      byFeed(feedId).map(e => e.favorite).update(fav)
     }
   }
 
   def modifyRead(feedId: Long, read: Boolean): Task[Int] = {
-    ft {
-      db.run {
-        byFeed(feedId).map(e => e.read).update(read)
-      }
+    db.go {
+      byFeed(feedId).map(e => e.read).update(read)
     }
   }
 
   def updateContent(feedId: Long, content: String): Task[Int] = {
-    ft {
-      db.run {
-        byFeed(feedId).map(_.content).update(content)
-      }
+    db.go {
+      byFeed(feedId).map(_.content).update(content)
     }
   }
 
   def insert(feed: Feed): Task[Long] = {
-    ft {
-      db.run {
-        (feeds returning feeds.map(_.id)) += feed
-      }
+    db.go {
+      (feeds returning feeds.map(_.id)) += feed
     }
+  }
+  def insertMany(xs: Iterable[Feed]) = {
+    db.go { feeds ++= xs }
   }
 
   def updateByUrl(feed: Feed): Task[Int] = {
-    ft {
-      db.run {
-        feeds.filter(_.url === feed.url)
-          .map(f => (f.title, f.author, f.publishedDate,
-            f.description, f.normalized, f.content, f.read))
-          .update((feed.title, feed.author, feed.publishedDate,
-            feed.description.orNull,
-            feed.normalized, feed.content.orNull, false))
-      }
+    db.go {
+      feeds.filter(_.url === feed.url)
+        .map(f => (f.title, f.author, f.publishedDate,
+          f.description, f.normalized, f.content, f.read))
+        .update((feed.title, feed.author, feed.publishedDate,
+          feed.description.orNull,
+          feed.normalized, feed.content.orNull, false))
     }
   }
 
+  private def updateByUrl(feeds: Iterable[Feed]): Task[Iterable[Int]] = {
+    Task.collectAll(feeds.map { x => updateByUrl(x) })
+  }
+
   def findBySource(sourceId: Long): Task[Seq[Feed]] = {
-    ft {
-      db.run {
-        bySource(sourceId).result
-      }
+    db.go {
+      bySource(sourceId).result
     }
   }
 
@@ -179,37 +157,20 @@ class FeedDao(val db: DatabaseDef)(implicit
     fetchPage(q, offset, limit)
   }
 
-  def mergeFeeds(sourceId: Long, xs: Iterable[Entry]): Future[Seq[Feed]] = {
+
+
+
+
+  def mergeFeeds(sourceId: Long, xs: Iterable[Entry]): Task[Seq[Feed]] = {
     val urls = xs.map(_.url)
-    val q = bySource(sourceId).filter(_.url inSet urls)
-    db.run {
-      q.result
-    }.flatMap { inDb =>
-      val inDbMap = inDb.map(f => f.url -> f).toMap
-      val (forceUpdateXs, updateXs) = xs.partition(_.forceUpdate)
-      db.run {
-        forceUpdateXs.map { entry =>
-          val feed = entry.toFeed(sourceId)
-          inDbMap.get(feed.url) match {
-            case Some(_) =>
-              updateByUrl(feed)
-            case None =>
-              insert(feed)
-          }
-        }
-
-        val updateXsMap = updateXs.map(_.toFeed(sourceId)).map(f => f.url -> f).toMap
-        val inDbUrls = inDbMap.keySet
-        val fromNetwork = updateXsMap.keySet
-        val newFeeds = (fromNetwork diff inDbUrls).flatMap(updateXsMap.get)
-        newFeeds.map(insert)
-
-        val newUrls = forceUpdateXs.map(_.url) ++ newFeeds.map(_.url)
-
-        bySource(sourceId)
-          .filter(_.url inSet newUrls)
-          .result
-      }
+    for {
+      inDb <- db.go(bySource(sourceId).filter(_.url inSet urls).result)
+      calc = calculate(sourceId, xs, inDb)
+      _ <- insertMany(calc.feedsToInsert)
+      _ <- updateByUrl(calc.feedsToUpdateByUrl)
+    } yield {
+      // return new urls
+      ???
     }
   }
 
@@ -221,13 +182,6 @@ class FeedDao(val db: DatabaseDef)(implicit
     }
   }
 
-  private def commonPaging(tq: Query[driver.Feeds, Feed, Seq], offset: Int, limit: Int) = {
-    tq
-      .sortBy(_.publishedDate.desc)
-      .drop(offset)
-      .take(limit)
-  }
-
   private def fetchPage(q: Query[driver.Feeds, Feed, Seq], offset: Int, limit: Int): FPage = {
     val act = for {
       resources <- q.drop(offset).take(limit).result
@@ -235,11 +189,35 @@ class FeedDao(val db: DatabaseDef)(implicit
     } yield {
       (resources, total)
     }
-    db.run(act)
+    db.go(act)
   }
 
-  private def ft[T](f: Future[T]): Task[T] = {
-    Task.fromFuture { implicit ec => f }
-  }
 
 }
+
+object FeedDao {
+  import truerss.util.Util._
+
+  def calculate(sourceId: Long, xs: Iterable[Entry], inDb: Seq[Feed]): FeedCalc = {
+    val inDbMap = inDb.map(f => f.url -> f).toMap
+    val (forceUpdateXs, updateXs) = xs.partition(_.forceUpdate)
+
+    val (feedsToUpdateByUrl, feedsToInsert) = forceUpdateXs
+      .map(_.toFeed(sourceId))
+      .partition(f => inDbMap.contains(f.url))
+
+    val updateXsMap = updateXs.map(_.toFeed(sourceId)).map(f => f.url -> f).toMap
+    val inDbUrls = inDbMap.keySet
+    val fromNetwork = updateXsMap.keySet
+    val newFeeds = (fromNetwork diff inDbUrls).flatMap(updateXsMap.get)
+    FeedCalc(
+      feedsToUpdateByUrl = feedsToUpdateByUrl,
+      feedsToInsert = (feedsToInsert ++ newFeeds).groupBy(_.url).values.flatten
+    )
+  }
+}
+
+case class FeedCalc(
+                     feedsToUpdateByUrl: Iterable[Feed],
+                     feedsToInsert: Iterable[Feed]
+                   )

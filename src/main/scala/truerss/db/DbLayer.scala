@@ -12,8 +12,8 @@ case class DbLayer(
                  db: JdbcBackend.DatabaseDef,
                  driver: CurrentDriver)(
                 implicit val ec: ExecutionContext) {
-  val sourceDao = new SourceDao(db)(ec, driver)
+  val sourceDao = new SourceDao(db)(driver)
   val feedDao = new FeedDao(db)(ec, driver)
-  val settingsDao = new PredefinedSettingsDao(db)(ec, driver)
-  val userSettingsDao = new UserSettingsDao(db)(ec, driver)
+  val settingsDao = new PredefinedSettingsDao(db)(driver)
+  val userSettingsDao = new UserSettingsDao(db)(driver)
 }

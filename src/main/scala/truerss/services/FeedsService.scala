@@ -29,16 +29,16 @@ class FeedsService(dbLayer: DbLayer)(implicit val ec: ExecutionContext) {
     feedDao.findUnread(sourceId).map(convert)
   }
 
-  def findBySource(sourceId: Long, unreadOnly: Boolean, offset: Int, limit: Int): Future[(Vector[FeedDto], Int)] = {
+  def findBySource(sourceId: Long, unreadOnly: Boolean, offset: Int, limit: Int): Task[(Vector[FeedDto], Int)] = {
     feedDao.pageForSource(sourceId, unreadOnly, offset, limit).map(toPage)
   }
 
   def latest(offset: Int, limit: Int): FPage = {
-    Task.fromFuture { implicit ec => feedDao.lastN(offset, limit) }.map(toPage)
+    feedDao.lastN(offset, limit).map(toPage)
   }
 
   def favorites(offset: Int, limit: Int): FPage = {
-    Task.fromFuture { implicit ec => feedDao.favorites(offset, limit)}.map(toPage)
+    feedDao.favorites(offset, limit).map(toPage)
   }
 
   def markAllAsRead: Task[Int] = {
