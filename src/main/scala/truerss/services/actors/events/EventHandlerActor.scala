@@ -18,8 +18,9 @@ class EventHandlerActor(private val sourcesService: SourcesService,
   def receive: Receive = {
     case RegisterNewFeeds(sourceId, entries) =>
       feedsService.registerNewFeeds(sourceId, entries)
-        .map(WebSockerController.NewFeeds)
-        .foreach(stream.publish)
+        .map(WebSockerController.NewFeeds).map { x =>
+        stream.publish(x)
+      }
 
     case ModifySource(sourceId) =>
       for {

@@ -5,16 +5,11 @@ import truerss.api._
 import truerss.dto.{FeedContent, FeedDto, Page}
 import truerss.services.actors.events.PublishPluginActor
 import truerss.services.{ContentReaderService, FeedsService}
-import truerss.util.syntax
-
-import scala.concurrent.ExecutionContext
-
 
 class FeedsManagement(feedsService: FeedsService,
                       contentReaderService: ContentReaderService,
                       stream: EventStream
-                     )
-                     (implicit ec: ExecutionContext) extends BaseManagement {
+                     ) extends BaseManagement {
 
   import FeedsManagement._
   import ResponseHelpers.ok
@@ -39,14 +34,13 @@ class FeedsManagement(feedsService: FeedsService,
   }
 
   def changeFavorites(feedId: Long, favFlag: Boolean): Z = {
-    feedsService.changeFav(feedId, favFlag).map {
-      case Some(feed) =>
-        if (favFlag) {
-          stream.publish(PublishPluginActor.PublishEvent(feed))
-        }
-        FeedResponse(feed)
-      case None =>
-        ResponseHelpers.feedNotFound
+    for {
+      feed <- feedsService.changeFav(feedId, favFlag)
+    } yield {
+      if (favFlag) {
+        stream.publish(PublishPluginActor.PublishEvent(feed))
+      }
+      FeedResponse(feed)
     }
   }
 
@@ -68,7 +62,7 @@ class FeedsManagement(feedsService: FeedsService,
 
   private def fetchFeed(feedId: Long, forceReadContent: Boolean): Z = {
     for {
-      feed <- feedsService.findSingle(feedId)
+      feed <- feedsService.findOne(feedId)
       content <- contentReaderService
         .readFeedContent(feedId, feed, forceReadContent) // todo catch* unreadable content error
     } yield FeedResponse(content.feedDto)
@@ -84,11 +78,8 @@ object FeedsManagement {
     FeedContentResponse(FeedContent(response.dto.content))
   }
 
-  private def feedHandler(feed: Option[FeedDto]) = {
-    feed match {
-      case Some(f) => FeedResponse(f)
-      case None => ResponseHelpers.feedNotFound
-    }
+  private def feedHandler(feed: FeedDto) = {
+    FeedResponse(feed)
   }
 
 }

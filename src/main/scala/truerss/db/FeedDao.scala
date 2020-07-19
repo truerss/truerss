@@ -3,14 +3,11 @@ package truerss.db
 import com.github.truerss.base.Entry
 import slick.jdbc.JdbcBackend.DatabaseDef
 import truerss.db.driver.CurrentDriver
-import zio.Task
+import truerss.services.NotFoundError
+import zio.{IO, Task}
 
-import scala.concurrent.{ExecutionContext, Future}
 
-class FeedDao(val db: DatabaseDef)(implicit
-                                   val ec: ExecutionContext,
-                                   driver: CurrentDriver
-) {
+class FeedDao(val db: DatabaseDef)(implicit driver: CurrentDriver) {
 
   import JdbcTaskSupport._
   import driver.profile.api._
@@ -84,16 +81,10 @@ class FeedDao(val db: DatabaseDef)(implicit
     )
   }
 
-  def findOne(feedId: Long): Task[Option[Feed]] = {
+  def findOne(feedId: Long): IO[NotFoundError, Feed] = {
     db.go {
       byFeed(feedId).take(1).result
-    }.map(_.headOption)
-  }
-
-  def findSingle(feedId: Long): Task[Feed] = {
-    db.go {
-      byFeed(feedId).take(1).result
-    }.map(_.head)
+    }.map(_.head).mapError { _ => NotFoundError(feedId) }
   }
 
   def modifyFav(feedId: Long, fav: Boolean): Task[Int] = {
@@ -157,10 +148,6 @@ class FeedDao(val db: DatabaseDef)(implicit
     fetchPage(q, offset, limit)
   }
 
-
-
-
-
   def mergeFeeds(sourceId: Long, xs: Iterable[Entry]): Task[Seq[Feed]] = {
     val urls = xs.map(_.url)
     for {
@@ -169,34 +156,32 @@ class FeedDao(val db: DatabaseDef)(implicit
       _ <- insertMany(calc.feedsToInsert)
       _ <- updateByUrl(calc.feedsToUpdateByUrl)
     } yield {
-      // return new urls
+      // return by new urls
       ???
     }
   }
 
-  private def getReadValues(unreadOnly: Boolean): Vector[Boolean] = {
+  private def fetchPage(q: Query[driver.Feeds, Feed, Seq], offset: Int, limit: Int): FPage = {
+    for {
+      resources <- db.go(q.drop(offset).take(limit).result)
+      total <- db.go(q.length.result)
+    } yield {
+      (resources, total)
+    }
+  }
+
+}
+
+object FeedDao {
+  import truerss.util.Util._
+
+  def getReadValues(unreadOnly: Boolean): Vector[Boolean] = {
     if (unreadOnly) {
       Vector(false)
     } else {
       Vector(true, false)
     }
   }
-
-  private def fetchPage(q: Query[driver.Feeds, Feed, Seq], offset: Int, limit: Int): FPage = {
-    val act = for {
-      resources <- q.drop(offset).take(limit).result
-      total <- q.length.result
-    } yield {
-      (resources, total)
-    }
-    db.go(act)
-  }
-
-
-}
-
-object FeedDao {
-  import truerss.util.Util._
 
   def calculate(sourceId: Long, xs: Iterable[Entry], inDb: Seq[Feed]): FeedCalc = {
     val inDbMap = inDb.map(f => f.url -> f).toMap
