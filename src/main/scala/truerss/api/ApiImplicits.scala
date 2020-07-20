@@ -1,6 +1,7 @@
 package truerss.api
 
 import akka.http.scaladsl.server.Route
+import play.api.libs.json.Writes
 import truerss.services.NotFoundError
 import zio.Task
 
@@ -26,6 +27,10 @@ object ApiImplicits {
       identity
     )
     HttpHelper.taskCall(p)
+  }
+
+  implicit def t2r1[W: Writes](f: Task[W]): Route = {
+    HttpHelper.taskCall1[W](f)
   }
 
 }

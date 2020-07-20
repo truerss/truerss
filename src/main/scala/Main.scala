@@ -65,7 +65,7 @@ object Main extends App {
         sourcesManagement = sourcesManagement,
         feedsManagement = feedsManagement,
         opmlManagement = opmlManagement,
-        pluginsManagement = pluginsManagement,
+        pluginsManagement = applicationPluginsService,
         settingsManagement = settingsManagement,
         searchManagement = searchManagement,
         wsPort = actualConfig.wsPort

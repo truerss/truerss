@@ -45,6 +45,22 @@ trait HttpHelper {
     }
   }
 
+  def createTR[T : Reads : ClassTag, R: Writes](f: T => Task[R]): Route = {
+    entity(as[String]) { json =>
+      Json.parse(json).validateOpt[T] match {
+        case JsSuccess(Some(value), _) =>
+          taskCall1(f(value))
+
+        case JsSuccess(_, _) =>
+          complete(response(BadRequest, s"Unable to parse request: $json"))
+
+        case JsError(errors) =>
+          val str = errors.map(x => s"${x._1}: ${x._2.flatMap(_.messages).mkString(", ")}")
+          complete(response(BadRequest, s"Unable to parse request: $str"))
+      }
+    }
+  }
+
   def create[T : Reads : ClassTag](f: T => Future[Response])(implicit ec: ExecutionContext): Route = {
     entity(as[String]) { json =>
       Json.parse(json).validateOpt[T] match {
@@ -69,6 +85,26 @@ trait HttpHelper {
         case Rejected(x) =>
           complete(response(InternalServerError, "Rejected"))
        }
+    }
+    zio.Runtime.default.unsafeRun(t)
+  }
+
+  def w[W: Writes](f: Task[W]): Route = taskCall1(f)
+
+  def taskCall1[W: Writes](f: Task[W]): Route = {
+    val t = f.map { r =>
+      finish(OK, Json.stringify(Json.toJson(r))) match {
+        case Complete(response) =>
+          complete(response)
+        case Rejected(_) =>
+          complete(response(InternalServerError, "Rejected"))
+      }
+//      responseHandler(r) match {
+//        case Complete(response) =>
+//          complete(response)
+//        case Rejected(_) =>
+//          complete(response(InternalServerError, "Rejected"))
+//      }
     }
     zio.Runtime.default.unsafeRun(t)
   }

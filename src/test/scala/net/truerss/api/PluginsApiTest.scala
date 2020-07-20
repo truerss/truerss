@@ -3,7 +3,6 @@ package net.truerss.api
 import akka.http.scaladsl.model.StatusCodes
 import truerss.api._
 import truerss.dto.PluginsViewDto
-import truerss.services.management.PluginsManagement
 
 class PluginsApiTest extends BaseApiTest {
 

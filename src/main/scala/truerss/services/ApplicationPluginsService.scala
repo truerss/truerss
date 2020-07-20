@@ -5,15 +5,16 @@ import java.net.URL
 import com.github.truerss.base._
 import truerss.dto.{ApplicationPlugins, PluginDto, PluginsViewDto, SourceViewDto}
 import truerss.db.SourceStates
+import zio.{Task, UIO}
 
 class ApplicationPluginsService(appPlugins: ApplicationPlugins) {
 
   import ApplicationPluginsService._
   private type CR = BaseContentReader with UrlMatcher with Priority with PluginInfo
 
-  def js: String = appPlugins.js.mkString
+  def js: UIO[String] = Task.effectTotal(appPlugins.js.mkString)
 
-  def css: String = appPlugins.css.mkString
+  def css: UIO[String] = Task.effectTotal(appPlugins.css.mkString)
 
   def matchUrl(url: URL): Boolean = {
     appPlugins.inFeed(url) ||
@@ -33,13 +34,15 @@ class ApplicationPluginsService(appPlugins: ApplicationPlugins) {
     appPlugins.getContentReaderOrDefault(url)
   }
 
-  def view: PluginsViewDto = {
-    PluginsViewDto(
-      feed = appPlugins.feedPlugins.map(baseToDto),
-      content = appPlugins.contentPlugins.map(baseToDto),
-      publish = appPlugins.publishPlugins.map(baseToDto),
-      site = appPlugins.sitePlugins.map(baseToDto)
-    )
+  def view: UIO[PluginsViewDto] = {
+    UIO.effectTotal {
+      PluginsViewDto(
+        feed = appPlugins.feedPlugins.map(baseToDto),
+        content = appPlugins.contentPlugins.map(baseToDto),
+        publish = appPlugins.publishPlugins.map(baseToDto),
+        site = appPlugins.sitePlugins.map(baseToDto)
+      )
+    }
   }
 
   def getSourceReader(source: SourceViewDto): BaseFeedReader = {

@@ -6,19 +6,20 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.directives.LoggingMagnet
 import akka.stream.Materializer
 import org.slf4j.LoggerFactory
-import truerss.services.management.{FeedsManagement, OpmlManagement, PluginsManagement, SearchManagement, SettingsManagement, SourcesManagement}
+import truerss.services.ApplicationPluginsService
+import truerss.services.management.{FeedsManagement, OpmlManagement, SearchManagement, SettingsManagement, SourcesManagement}
 
 import scala.concurrent.ExecutionContext
 import scala.io.Source
 
 class RoutingEndpoint(
-                     sourcesManagement: SourcesManagement,
-                     feedsManagement: FeedsManagement,
-                     opmlManagement: OpmlManagement,
-                     pluginsManagement: PluginsManagement,
-                     settingsManagement: SettingsManagement,
-                     searchManagement: SearchManagement,
-                     wsPort: Int
+                       sourcesManagement: SourcesManagement,
+                       feedsManagement: FeedsManagement,
+                       opmlManagement: OpmlManagement,
+                       pluginsManagement: ApplicationPluginsService,
+                       settingsManagement: SettingsManagement,
+                       searchManagement: SearchManagement,
+                       wsPort: Int
                      )(implicit ec: ExecutionContext,
                        val materializer: Materializer) {
 
