@@ -4,7 +4,7 @@ import com.github.truerss.base.Entry
 import slick.jdbc.JdbcBackend.DatabaseDef
 import truerss.db.driver.CurrentDriver
 import truerss.services.NotFoundError
-import zio.{IO, Task}
+import zio.{IO, Task, ZIO}
 
 
 class FeedDao(val db: DatabaseDef)(implicit driver: CurrentDriver) {
@@ -82,9 +82,27 @@ class FeedDao(val db: DatabaseDef)(implicit driver: CurrentDriver) {
   }
 
   def findOne(feedId: Long): IO[NotFoundError, Feed] = {
-    db.go {
-      byFeed(feedId).take(1).result
-    }.map(_.head).mapError { _ => NotFoundError(feedId) }
+    val t = for {
+      feedOpt <- db.go {
+        byFeed(feedId).take(1).result
+      }.map(_.headOption)
+      feed <- ZIO.fromOption(feedOpt)
+    } yield feed
+    t.mapError {
+      case None =>
+        NotFoundError(feedId)
+    }
+//    db.go {
+//      byFeed(feedId).take(1).result
+//    }.map(_.headOption).map {
+//      case Some(feed) => IO.succeed(feed)
+//      case None => IO.fail(NotFoundError(feedId))
+//    }.flatten
+//    db.go {
+//      byFeed(feedId).take(1).result
+//    }.map(_.head).mapError { _ =>
+//      NotFoundError(feedId)
+//    }
   }
 
   def modifyFav(feedId: Long, fav: Boolean): Task[Int] = {

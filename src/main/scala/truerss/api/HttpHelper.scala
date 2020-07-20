@@ -66,7 +66,7 @@ trait HttpHelper {
       responseHandler(r) match {
         case Complete(response) =>
           complete(response)
-        case Rejected(_) =>
+        case Rejected(x) =>
           complete(response(InternalServerError, "Rejected"))
        }
     }

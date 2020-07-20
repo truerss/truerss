@@ -46,7 +46,6 @@ class ContentReaderService(
 
   private def processContent(feedId: Long, feed: FeedDto): Task[ReadResult] = {
     logger.debug(s"Need to read content for $feedId")
-
     read(feed.url).flatMap {
       case Left(error) =>
         logger.warn(s"Failed to fetch content: $error for the feed: $feedId")
