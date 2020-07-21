@@ -7,7 +7,7 @@ import com.github.truerss.base.{ContentTypeParam, Errors}
 import org.jsoup.Jsoup
 import org.slf4j.LoggerFactory
 import truerss.db.Predefined
-import truerss.dto.{FeedDto, SetupKey}
+import truerss.dto.{FeedContent, FeedDto, SetupKey}
 import truerss.util.{Request, syntax}
 import zio.Task
 
@@ -23,6 +23,14 @@ class ContentReaderService(
   import syntax.ext._
 
   protected val logger = LoggerFactory.getLogger(getClass)
+
+  def fetchFeedContent(feedId: Long): Task[FeedContent] = {
+    for {
+      feed <- feedsService.findOne(feedId)
+      result <- readFeedContent(feedId, feed, forceReadContent = true)
+      _ <- Task.fail(ContentReadError(result.error.getOrElse(""))).when(result.hasError) // todo
+    } yield FeedContent(result.feedDto.content)
+  }
 
   def readFeedContent(feedId: Long, feed: FeedDto, forceReadContent: Boolean): Task[ReadResult] = {
     feed.content match {

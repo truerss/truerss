@@ -1,15 +1,15 @@
 package truerss.api
 
 import akka.http.scaladsl.server.Directives._
-import truerss.dto.{FeedDto, Page}
-import truerss.services.FeedsService
-import truerss.services.management.FeedsManagement
+import truerss.dto.{FeedContent, FeedDto, Page}
+import truerss.services.{ContentReaderService, FeedsService}
 import truerss.util.Util
 
 import scala.concurrent.ExecutionContext
 
-class FeedsApi(val feedsManagement: FeedsManagement,
-               feedsService: FeedsService)
+class FeedsApi(feedsService: FeedsService,
+               contentReaderService: ContentReaderService
+              )
               (
                 implicit val ec: ExecutionContext
               ) extends HttpHelper {
@@ -18,8 +18,8 @@ class FeedsApi(val feedsManagement: FeedsManagement,
   import ApiImplicits._
   import JsonFormats._
 
-  private val fm = feedsManagement
   private val fs = feedsService
+  private val crs = contentReaderService
 
   val route = api {
     pathPrefix("feeds") {
@@ -31,7 +31,7 @@ class FeedsApi(val feedsManagement: FeedsManagement,
         } ~ pathPrefix(LongNumber) { feedId =>
           w[FeedDto](fs.findOne(feedId))
         } ~ pathPrefix("content" / LongNumber) { feedId =>
-          fm.getFeedContent(feedId)
+          w[FeedContent](crs.fetchFeedContent(feedId))
         }
       } ~ put {
         pathPrefix("mark" / LongNumber) { feedId =>

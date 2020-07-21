@@ -40,8 +40,6 @@ object Main extends App {
         applicationPluginsService, settingsService)(servicesEc)
       val searchService = new SearchService(dbLayer)
 
-      val feedsManagement = new FeedsManagement(feedsService,
-        contentReaderService, stream)
       val settingsManagement = new SettingsManagement(settingsService)(servicesEc)
 
       val feedParallelism = zio.Runtime.default.unsafeRun(
@@ -57,7 +55,6 @@ object Main extends App {
       )
 
       val endpoint = new RoutingEndpoint(
-        feedsManagement = feedsManagement,
         feedsService = feedsService,
         sourcesService = sourcesService,
         pluginsManagement = applicationPluginsService,
@@ -65,6 +62,7 @@ object Main extends App {
         searchService = searchService,
         opmlService = opmlService,
         sourceOverviewService = sourceOverviewService,
+        contentReaderService = contentReaderService,
         wsPort = actualConfig.wsPort
       )
 
