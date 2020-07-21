@@ -5,18 +5,16 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.stream.Materializer
 import truerss.dto.{FeedDto, NewSourceDto, Page, SourceOverview, SourceViewDto, UpdateSourceDto}
-import truerss.services.{FeedsService, SourceOverviewService, SourcesService}
-import truerss.services.management.{FeedsManagement, OpmlManagement, SourcesManagement}
+import truerss.services.{FeedsService, OpmlService, SourceOverviewService, SourcesService}
 import truerss.util.Util
+import zio.Task
 
 import scala.concurrent.ExecutionContext
 
-class SourcesApi(sourcesManagement: SourcesManagement,
-                 feedsManagement: FeedsManagement,
-                 opmlManagement: OpmlManagement,
-                 feedsService: FeedsService,
+class SourcesApi(feedsService: FeedsService,
                  sourcesService: SourcesService,
-                 sourceOverviewService: SourceOverviewService
+                 sourceOverviewService: SourceOverviewService,
+                 opmlService: OpmlService
                 )(
   implicit val ec: ExecutionContext,
   val materializer: Materializer
@@ -27,12 +25,10 @@ class SourcesApi(sourcesManagement: SourcesManagement,
   import ApiImplicits._
 
   // just aliases
-  private val sm = sourcesManagement
-  private val fm = feedsManagement
-  private val om = opmlManagement
   private val fs = feedsService
   private val ss = sourcesService
   private val sos = sourceOverviewService
+  private val os = opmlService
 
   val route = api {
     pathPrefix("sources") {
@@ -54,17 +50,18 @@ class SourcesApi(sourcesManagement: SourcesManagement,
         } ~ pathPrefix("unread" / LongNumber) { sourceId =>
           w[Vector[FeedDto]](fs.findUnread(sourceId))
         } ~ pathPrefix("opml") {
-          om.getOpml
+          // todo custom header probably
+          w[String](os.build)
         }
       } ~ post {
         pathPrefix("import") {
           makeImport
         } ~ pathEndOrSingleSlash {
-          createT[NewSourceDto](x => sm.addSource(x))
+          createTR[NewSourceDto, SourceViewDto](ss.addSource)
         }
       } ~ put {
         pathPrefix(LongNumber) { sourceId =>
-          createT[UpdateSourceDto](x => sm.updateSource(sourceId, x))
+          createTR[UpdateSourceDto, SourceViewDto](x => ss.updateSource(sourceId, x))
         } ~ pathPrefix("markall") {
           w[Unit](fs.markAllAsRead)
         } ~ pathPrefix("mark" / LongNumber) { sourceId =>
@@ -90,10 +87,10 @@ class SourcesApi(sourcesManagement: SourcesManagement,
           a + b.decodeString(utf8)
         }
       }.runFold("") { _ + _ }.flatMap { x =>
-        zio.Runtime.default.unsafeRunToFuture(om.createFrom(x))
+        zio.Runtime.default.unsafeRunToFuture(os.create(x))
       }
 
-      call(r)
+      taskCall1[Iterable[SourceViewDto]](Task.fromFuture( implicit ec => r))
     }
   }
 

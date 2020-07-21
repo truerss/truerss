@@ -5,7 +5,6 @@ import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import truerss.api.ImportResponse
-import truerss.services.management.OpmlManagement
 import truerss.services.OpmlService
 
 import scala.concurrent.Future

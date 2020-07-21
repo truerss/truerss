@@ -32,7 +32,7 @@ object Main extends App {
 
       val settingsService = new SettingsService(dbLayer)(servicesEc)
       val sourceOverviewService = new SourceOverviewService(dbLayer)(servicesEc)
-      val sourcesService = new SourcesService(dbLayer, actualConfig.appPlugins)(servicesEc)
+      val sourcesService = new SourcesService(dbLayer, actualConfig.appPlugins, stream)
       val applicationPluginsService = new ApplicationPluginsService(actualConfig.appPlugins)
       val opmlService = new OpmlService(sourcesService, stream)(servicesEc)
       val feedsService = new FeedsService(dbLayer)
@@ -40,9 +40,6 @@ object Main extends App {
         applicationPluginsService, settingsService)(servicesEc)
       val searchService = new SearchService(dbLayer)
 
-      val opmlManagement = new OpmlManagement(opmlService)(servicesEc)
-      val sourcesManagement = new SourcesManagement(sourcesService,
-        opmlService, sourceOverviewService, stream)(servicesEc)
       val feedsManagement = new FeedsManagement(feedsService,
         contentReaderService, stream)
       val settingsManagement = new SettingsManagement(settingsService)(servicesEc)
@@ -60,14 +57,13 @@ object Main extends App {
       )
 
       val endpoint = new RoutingEndpoint(
-        sourcesManagement = sourcesManagement,
         feedsManagement = feedsManagement,
-        opmlManagement = opmlManagement,
         feedsService = feedsService,
         sourcesService = sourcesService,
         pluginsManagement = applicationPluginsService,
         settingsManagement = settingsManagement,
         searchService = searchService,
+        opmlService = opmlService,
         sourceOverviewService = sourceOverviewService,
         wsPort = actualConfig.wsPort
       )

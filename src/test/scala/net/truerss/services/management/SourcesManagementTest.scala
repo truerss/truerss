@@ -7,7 +7,7 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import truerss.api.SourceResponse
 import truerss.services.actors.sync.SourcesKeeperActor
-import truerss.services.management.{FeedSourceDtoModelImplicits, ResponseHelpers, SourcesManagement}
+import truerss.services.management.{FeedSourceDtoModelImplicits, ResponseHelpers}
 import truerss.services.{OpmlService, SourceOverviewService, SourcesService}
 import truerss.util.syntax
 

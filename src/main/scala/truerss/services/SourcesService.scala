@@ -9,28 +9,15 @@ import truerss.services.management.FeedSourceDtoModelImplicits
 import truerss.util.Util
 import zio._
 
-import scala.concurrent.{ExecutionContext}
-
 class SourcesService(val dbLayer: DbLayer,
                      val appPlugins: ApplicationPlugins,
                      val stream: EventStream
-                    )(implicit ec: ExecutionContext) {
+                    ) {
 
   import FeedSourceDtoModelImplicits._
   import Util._
 
   protected val sourceValidator = new SourceValidator(appPlugins)(dbLayer)
-
-  def refreshSource(sourceId: Int): Task[Unit] = {
-    // todo in task
-    stream.publish(SourcesKeeperActor.UpdateOne(sourceId))
-    Task.effectTotal(())
-  }
-
-  def refreshAll: Task[Unit] = {
-    stream.publish(SourcesKeeperActor.Update)
-    Task.effectTotal(())
-  }
 
   def getAllForOpml: Task[Vector[SourceViewDto]] = {
     dbLayer.sourceDao.all.map { xs => xs.map(_.toView).toVector }
@@ -84,30 +71,51 @@ class SourcesService(val dbLayer: DbLayer,
     } yield sources.map(_.toView)
   }
 
-  //
-  def addSource(dto: NewSourceDto): IO[ValidationError, SourceViewDto] = {
+  // IO[ValidationError, SourceViewDto]
+  def addSource(dto: NewSourceDto): Task[SourceViewDto] = {
     for {
       _ <- sourceValidator.validateSource(dto)
       source = dto.toSource
       state = appPlugins.getState(source.url)
       newSource = source.withState(state)
       id <- dbLayer.sourceDao.insert(newSource).orDie
-    } yield newSource.withId(id).toView
+      resultSource = newSource.withId(id).toView
+      _ <- Task.fromFunction(_ => {
+        stream.publish(SourcesKeeperActor.NewSource(resultSource))
+      })
+    } yield resultSource
   }
 
-  def updateSource(sourceId: Long, dto: UpdateSourceDto): IO[ValidationError, SourceViewDto] = {
+  // IO[ValidationError, SourceViewDto]
+  def updateSource(sourceId: Long, dto: UpdateSourceDto): Task[SourceViewDto] = {
     for {
       _ <- sourceValidator.validateSource(dto)
       source = dto.toSource
       state = appPlugins.getState(source.url)
       updatedSource = source.withState(state).withId(sourceId)
       _ <- dbLayer.sourceDao.updateSource(updatedSource).orDie
-    } yield updatedSource.toView
+      view = updatedSource.toView
+      _ <- Task.fromFunction(_ => {
+        stream.publish(SourcesKeeperActor.ReloadSource(view))
+      })
+    } yield view
   }
 
   def changeLastUpdateTime(sourceId: Long): Task[Int] = {
     dbLayer.sourceDao.updateLastUpdateDate(sourceId)
   }
+
+  def refreshSource(sourceId: Long): Task[Unit] = {
+    // todo in task
+    stream.publish(SourcesKeeperActor.UpdateOne(sourceId))
+    Task.effectTotal(())
+  }
+
+  def refreshAll: Task[Unit] = {
+    stream.publish(SourcesKeeperActor.Update)
+    Task.effectTotal(())
+  }
+
 
   private def fetchOne(sourceId: Long)(f: Source => SourceViewDto): Task[SourceViewDto] = {
     dbLayer.sourceDao.findOne(sourceId).map(f)
