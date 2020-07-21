@@ -4,8 +4,8 @@ import akka.http.scaladsl.model.Multipart
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.stream.Materializer
-import truerss.dto.{NewSourceDto, SourceViewDto, UpdateSourceDto}
-import truerss.services.{FeedsService, SourcesService}
+import truerss.dto.{FeedDto, NewSourceDto, Page, SourceOverview, SourceViewDto, UpdateSourceDto}
+import truerss.services.{FeedsService, SourceOverviewService, SourcesService}
 import truerss.services.management.{FeedsManagement, OpmlManagement, SourcesManagement}
 import truerss.util.Util
 
@@ -15,7 +15,8 @@ class SourcesApi(sourcesManagement: SourcesManagement,
                  feedsManagement: FeedsManagement,
                  opmlManagement: OpmlManagement,
                  feedsService: FeedsService,
-                 sourcesService: SourcesService
+                 sourcesService: SourcesService,
+                 sourceOverviewService: SourceOverviewService
                 )(
   implicit val ec: ExecutionContext,
   val materializer: Materializer
@@ -31,6 +32,7 @@ class SourcesApi(sourcesManagement: SourcesManagement,
   private val om = opmlManagement
   private val fs = feedsService
   private val ss = sourcesService
+  private val sos = sourceOverviewService
 
   val route = api {
     pathPrefix("sources") {
@@ -38,19 +40,19 @@ class SourcesApi(sourcesManagement: SourcesManagement,
         pathPrefix("all") {
           w[Vector[SourceViewDto]](ss.getAll)
         } ~ (pathPrefix(LongNumber) & pathEnd) { sourceId =>
-          sm.getSource(sourceId)
+          w[SourceViewDto](ss.getSource(sourceId))
         } ~ pathPrefix("overview"/ LongNumber) { sourceId =>
-          sm.getSourceOverview(sourceId)
+          w[SourceOverview](sos.getSourceOverview(sourceId))
         } ~ pathPrefix("latest") {
           parameters('offset ? "0", 'limit ? "100") { (from, to) =>
-            fm.latest(from.toIntOr(0), to.toIntOr(100))
+            w[Page[FeedDto]](fs.latest(from.toIntOr(0), to.toIntOr(100)))
           }
         } ~ pathPrefix(LongNumber / "feeds") { sourceId =>
           parameters('unreadOnly ? true, 'offset ? "0", 'limit ? "100") { (unreadOnly, from, limit) =>
-            fm.fetchBySource(sourceId, unreadOnly, from.toIntOr(0), limit.toIntOr(100))
+            w[Page[FeedDto]](fs.findBySource(sourceId, unreadOnly, from.toIntOr(0), limit.toIntOr(100)))
           }
         } ~ pathPrefix("unread" / LongNumber) { sourceId =>
-          fm.findUnreadBySource(sourceId)
+          w[Vector[FeedDto]](fs.findUnread(sourceId))
         } ~ pathPrefix("opml") {
           om.getOpml
         }
@@ -66,15 +68,15 @@ class SourcesApi(sourcesManagement: SourcesManagement,
         } ~ pathPrefix("markall") {
           w[Unit](fs.markAllAsRead)
         } ~ pathPrefix("mark" / LongNumber) { sourceId =>
-          sm.markSource(sourceId)
+          w[Unit](ss.markAsRead(sourceId))
         } ~ pathPrefix("refresh" / LongNumber) { sourceId =>
-          sm.forceRefreshSource(sourceId)
+          w[Unit](ss.refreshSource(sourceId))
         } ~ pathPrefix("refresh") {
-          sm.forceRefresh
+          w[Unit](ss.refreshAll)
         }
       } ~ delete {
         pathPrefix(LongNumber) { sourceId =>
-          sm.deleteSource(sourceId)
+          w[Unit](ss.delete(sourceId))
         }
       }
     }

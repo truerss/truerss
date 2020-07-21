@@ -5,44 +5,16 @@ import java.util.concurrent.TimeUnit
 
 import truerss.db.{DbLayer, Feed}
 import truerss.dto.{FeedsFrequency, SourceOverview}
-import truerss.services
-import truerss.services.SourceOverviewServiceZ.SourceOverviewServiceZ
-import zio._
+import zio.Task
 
 import scala.concurrent.ExecutionContext
 
-object SourceOverviewServiceZ {
-
-  type SourceOverviewServiceZ = Has[Service]
-
-  trait Service {
-    def getSourceOverview(sourceId: Long): Task[SourceOverview]
-  }
-
-  final class Live(private val dbLayer: DbLayer) extends Service {
-    import SourceOverviewService.calculate
-    def getSourceOverview(sourceId: Long): Task[SourceOverview] = {
-      // todo compare in-memory vs diff in-db functions
-      dbLayer.feedDao.findBySource(sourceId).map(calculate(sourceId, _))
-    }
-  }
-
-  def getSourceOverview(sourceId: Long): ZIO[SourceOverviewServiceZ, Throwable, SourceOverview] = {
-    ZIO.accessM(_.get.getSourceOverview(sourceId))
-  }
-
-}
-
 class SourceOverviewService(val dbLayer: DbLayer)(implicit ec: ExecutionContext) {
 
-  private val layer: Layer[Nothing, SourceOverviewServiceZ] =
-    ZLayer.succeed(new services.SourceOverviewServiceZ.Live(dbLayer))
+  import SourceOverviewService.calculate
 
   def getSourceOverview(sourceId: Long): Task[SourceOverview] = {
-    val f: ZIO[SourceOverviewServiceZ, Throwable, SourceOverview] =
-      SourceOverviewServiceZ.getSourceOverview(sourceId)
-
-    f.provideLayer(layer)
+    dbLayer.feedDao.findBySource(sourceId).map(calculate(sourceId, _))
   }
 
 }

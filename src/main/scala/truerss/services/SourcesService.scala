@@ -1,21 +1,36 @@
 package truerss.services
 
+import akka.event.EventStream
 import truerss.db.{DbLayer, Source}
 import truerss.db.validation.SourceValidator
 import truerss.dto.{ApplicationPlugins, NewSourceDto, SourceViewDto, UpdateSourceDto}
+import truerss.services.actors.sync.SourcesKeeperActor
 import truerss.services.management.FeedSourceDtoModelImplicits
 import truerss.util.Util
 import zio._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext}
 
-class SourcesService(dbLayer: DbLayer,
-                     val appPlugins: ApplicationPlugins)(implicit ec: ExecutionContext) {
+class SourcesService(val dbLayer: DbLayer,
+                     val appPlugins: ApplicationPlugins,
+                     val stream: EventStream
+                    )(implicit ec: ExecutionContext) {
 
   import FeedSourceDtoModelImplicits._
   import Util._
 
   protected val sourceValidator = new SourceValidator(appPlugins)(dbLayer)
+
+  def refreshSource(sourceId: Int): Task[Unit] = {
+    // todo in task
+    stream.publish(SourcesKeeperActor.UpdateOne(sourceId))
+    Task.effectTotal(())
+  }
+
+  def refreshAll: Task[Unit] = {
+    stream.publish(SourcesKeeperActor.Update)
+    Task.effectTotal(())
+  }
 
   def getAllForOpml: Task[Vector[SourceViewDto]] = {
     dbLayer.sourceDao.all.map { xs => xs.map(_.toView).toVector }
@@ -35,23 +50,26 @@ class SourcesService(dbLayer: DbLayer,
     }
   }
 
-  def getSource(sourceId: Long): Task[Option[SourceViewDto]] = {
+  def getSource(sourceId: Long): Task[SourceViewDto] = {
     fetchOne(sourceId) { _.toView }
   }
 
-  def markAsRead(sourceId: Long): Task[Option[SourceViewDto]] = {
+  def markAsRead(sourceId: Long): Task[Unit] = {
     fetchOne(sourceId) { source =>
       dbLayer.feedDao.markBySource(sourceId)
       source.toView
-    }
+    }.map(_ => ())
   }
 
-  def delete(sourceId: Long): Task[Option[SourceViewDto]] = {
+  def delete(sourceId: Long): Task[Unit] = {
+    //  todo in for
     fetchOne(sourceId) { source =>
+      val view = source.toView
       dbLayer.sourceDao.delete(sourceId)
       dbLayer.feedDao.deleteFeedsBySource(sourceId)
-      source.toView
-    }
+      stream.publish(SourcesKeeperActor.SourceDeleted(view))
+      view
+    }.map(_ => ())
   }
 
   // opml
@@ -91,8 +109,8 @@ class SourcesService(dbLayer: DbLayer,
     dbLayer.sourceDao.updateLastUpdateDate(sourceId)
   }
 
-  private def fetchOne(sourceId: Long)(f: Source => SourceViewDto): Task[Option[SourceViewDto]] = {
-    dbLayer.sourceDao.findOne(sourceId).map { x => x.map(f) }
+  private def fetchOne(sourceId: Long)(f: Source => SourceViewDto): Task[SourceViewDto] = {
+    dbLayer.sourceDao.findOne(sourceId).map(f)
   }
 
 }

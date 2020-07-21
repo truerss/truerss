@@ -18,41 +18,6 @@ class SourcesManagement(sourcesService: SourcesService,
 
   import ResponseHelpers.{ok, sourceNotFound}
 
-  def getSource(sourceId: Long): Z = {
-    sourcesService.getSource(sourceId).map {
-      case Some(s) => SourceResponse(s)
-      case _ => NotFoundResponse(s"Source $sourceId was not found")
-    }
-  }
-
-  def getSourceOverview(sourceId: Long): Z = {
-    sourceOverviewService.getSourceOverview(sourceId)
-      .map(SourceOverViewResponse)
-  }
-
-  def markSource(sourceId: Long): Z = {
-    sourcesService.markAsRead(sourceId).map(_ => ok)
-  }
-
-  def forceRefreshSource(sourceId: Long): Z = {
-    stream.publish(SourcesKeeperActor.UpdateOne(sourceId))
-    Task.effectTotal(ok)
-  }
-
-  def forceRefresh: Z = {
-    stream.publish(SourcesKeeperActor.Update)
-    Task.effectTotal(ok)
-  }
-
-  def deleteSource(sourceId: Long): Z = {
-    sourcesService.delete(sourceId).map {
-      case Some(x) =>
-        stream.publish(SourcesKeeperActor.SourceDeleted(x))
-        ok
-      case _ => sourceNotFound
-    }
-  }
-
   def addSource(dto: NewSourceDto): Z = {
     for {
       res <- sourcesService.addSource(dto).fold(

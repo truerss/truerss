@@ -19,22 +19,21 @@ class FeedsService(dbLayer: DbLayer) {
     dbLayer.feedDao.findOne(feedId).map(_.toDto)
   }
 
+  // todo pagination too
   def findUnread(sourceId: Long): Task[Vector[FeedDto]] = {
     feedDao.findUnread(sourceId).map(convert)
   }
 
-  def findBySource(sourceId: Long, unreadOnly: Boolean, offset: Int, limit: Int): Task[(Vector[FeedDto], Int)] = {
+  def findBySource(sourceId: Long, unreadOnly: Boolean, offset: Int, limit: Int): Task[truerss.dto.Page[FeedDto]] = {
     feedDao.pageForSource(sourceId, unreadOnly, offset, limit).map(toPage)
   }
 
-  def latest(offset: Int, limit: Int): FPage = {
+  def latest(offset: Int, limit: Int): Task[truerss.dto.Page[FeedDto]] = {
     feedDao.lastN(offset, limit).map(toPage)
   }
 
   def favorites(offset: Int, limit: Int): Task[truerss.dto.Page[FeedDto]] = {
-    feedDao.favorites(offset, limit).map { x =>
-      truerss.dto.Page(x._2, x._1.map(_.toDto))
-    }
+    feedDao.favorites(offset, limit).map(toPage)
   }
 
   def markAllAsRead: Task[Unit] = {
@@ -74,8 +73,8 @@ object FeedsService {
   type Page = (Vector[FeedDto], Int)
   type FPage = Task[Page]
 
-  def toPage(tmp: (Seq[Feed], Int)): Page = {
-    (tmp._1.map(_.toDto).toVector, tmp._2)
+  def toPage(tmp: (Seq[Feed], Int)): truerss.dto.Page[FeedDto] = {
+    truerss.dto.Page(tmp._2, tmp._1.map(_.toDto))
   }
 
   def convert(xs: Seq[Feed]): Vector[FeedDto] = {

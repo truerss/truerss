@@ -4,7 +4,8 @@ import java.time.{Clock, LocalDateTime}
 
 import slick.jdbc.JdbcBackend.DatabaseDef
 import truerss.db.driver.CurrentDriver
-import zio.Task
+import truerss.services.NotFoundError
+import zio.{IO, Task, ZIO}
 
 class SourceDao(val db: DatabaseDef)(implicit
                                      driver: CurrentDriver
@@ -19,8 +20,16 @@ class SourceDao(val db: DatabaseDef)(implicit
     sources.result ~> db
   }
 
-  def findOne(sourceId: Long): Task[Option[Source]] = {
-    sources.filter(_.id === sourceId).take(1).result.headOption ~> db
+  def findOne(sourceId: Long): IO[NotFoundError, Source] = {
+    val tmp = for {
+      sourceOpt <- sources.filter(_.id === sourceId).take(1).result.headOption ~> db
+      source <- ZIO.fromOption(sourceOpt)
+    } yield source
+    // todo one method for handling with feedsDao
+    tmp.mapError {
+      case None =>
+        NotFoundError(sourceId)
+    }
   }
 
   def delete(sourceId: Long): Task[Int] = {
