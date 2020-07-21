@@ -8,7 +8,7 @@ import scala.concurrent.ExecutionContext
 
 class PluginsApi(pluginsService: ApplicationPluginsService)(
   implicit val ec: ExecutionContext
-) extends HttpHelper {
+) extends HttpApi {
 
   import JsonFormats._
 

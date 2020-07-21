@@ -4,7 +4,7 @@ import akka.http.scaladsl.server.Directives._
 import truerss.dto.{FeedDto, Page, SearchRequest}
 import truerss.services.SearchService
 
-class SearchApi(private val searchService: SearchService) extends HttpHelper {
+class SearchApi(private val searchService: SearchService) extends HttpApi {
 
   import JsonFormats._
 

@@ -13,7 +13,7 @@ import scala.reflect.ClassTag
 /**
   * Created by mike on 17.12.16.
   */
-trait HttpHelper {
+trait HttpApi {
 
   import RouteResult._
   import StatusCodes._
@@ -100,10 +100,6 @@ trait HttpHelper {
     )
   }
 
-  private def ok[T: Writes](x: T) : RouteResult = {
-    finish(OK, Json.stringify(Json.toJson(x)))
-  }
-
 }
 
-object HttpHelper extends HttpHelper
+object HttpApi extends HttpApi

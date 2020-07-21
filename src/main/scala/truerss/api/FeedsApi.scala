@@ -12,7 +12,7 @@ class FeedsApi(feedsService: FeedsService,
               )
               (
                 implicit val ec: ExecutionContext
-              ) extends HttpHelper {
+              ) extends HttpApi {
 
   import Util.StringExt
   import JsonFormats._

@@ -18,7 +18,7 @@ class SourcesApi(feedsService: FeedsService,
                 )(
   implicit val ec: ExecutionContext,
   val materializer: Materializer
-) extends HttpHelper {
+) extends HttpApi {
 
   import JsonFormats._
   import Util.StringExt

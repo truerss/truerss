@@ -4,7 +4,7 @@ import akka.http.scaladsl.server.Directives._
 import truerss.dto.{AvailableSetup, NewSetup}
 import truerss.services.SettingsService
 
-class SettingsApi(private val settingsService: SettingsService) extends HttpHelper {
+class SettingsApi(private val settingsService: SettingsService) extends HttpApi {
 
   import JsonFormats._
 
