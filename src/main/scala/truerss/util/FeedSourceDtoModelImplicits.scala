@@ -1,11 +1,9 @@
-package truerss.services.management
+package truerss.util
 
 import java.time.{Clock, LocalDateTime}
-import java.util.Date
 
-import truerss.dto.{FeedDto, NewSourceDto, SourceViewDto, UpdateSourceDto}
 import truerss.db.{Feed, Source, SourceStates}
-import truerss.util.Util
+import truerss.dto.{FeedDto, NewSourceDto, SourceViewDto, UpdateSourceDto}
 
 object FeedSourceDtoModelImplicits {
 

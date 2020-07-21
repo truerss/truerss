@@ -4,8 +4,7 @@ import net.truerss.Gen
 import play.api.libs.json._
 import truerss.api.{FeedsResponse, JsonFormats, SearchApi}
 import truerss.dto.SearchRequest
-import truerss.util.syntax
-import truerss.services.management.FeedSourceDtoModelImplicits
+import truerss.util.{FeedSourceDtoModelImplicits, syntax}
 
 import scala.concurrent.Future
 

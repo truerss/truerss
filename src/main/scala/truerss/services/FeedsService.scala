@@ -4,13 +4,12 @@ import com.github.truerss.base.Entry
 import truerss.db.DbLayer
 import truerss.dto.FeedDto
 import truerss.db.Feed
-import truerss.services.management.FeedSourceDtoModelImplicits
 import truerss.util.syntax
 import zio.Task
 
 class FeedsService(dbLayer: DbLayer) {
 
-  import FeedSourceDtoModelImplicits._
+  import truerss.util.FeedSourceDtoModelImplicits._
   import FeedsService._
   import syntax.future._
   import dbLayer.feedDao
@@ -68,7 +67,7 @@ class FeedsService(dbLayer: DbLayer) {
 }
 
 object FeedsService {
-  import FeedSourceDtoModelImplicits._
+  import truerss.util.FeedSourceDtoModelImplicits._
 
   type Page = (Vector[FeedDto], Int)
   type FPage = Task[Page]

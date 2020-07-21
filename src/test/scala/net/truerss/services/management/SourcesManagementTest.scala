@@ -7,7 +7,6 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import truerss.api.SourceResponse
 import truerss.services.actors.sync.SourcesKeeperActor
-import truerss.services.management.{FeedSourceDtoModelImplicits, ResponseHelpers}
 import truerss.services.{OpmlService, SourceOverviewService, SourcesService}
 import truerss.util.syntax
 
@@ -17,7 +16,7 @@ class SourcesManagementTest(implicit val ee: ExecutionEnv) extends Specification
 
   sequential
 
-  import FeedSourceDtoModelImplicits._
+  import truerss.util.FeedSourceDtoModelImplicits._
   import syntax.future._
 
   private val sourceId = 1L

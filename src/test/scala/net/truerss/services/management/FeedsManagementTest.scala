@@ -8,7 +8,7 @@ import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import truerss.api.FeedResponse
 import truerss.services.actors.events.PublishPluginActor
-import truerss.services.management.{FeedsManagement, ResponseHelpers}
+import truerss.services.management.FeedsManagement
 import truerss.services.{ContentReaderService, FeedsService}
 import truerss.util.syntax
 

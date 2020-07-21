@@ -5,7 +5,6 @@ import truerss.db.{DbLayer, Source}
 import truerss.db.validation.SourceValidator
 import truerss.dto.{ApplicationPlugins, NewSourceDto, SourceViewDto, UpdateSourceDto}
 import truerss.services.actors.sync.SourcesKeeperActor
-import truerss.services.management.FeedSourceDtoModelImplicits
 import truerss.util.Util
 import zio._
 
@@ -14,7 +13,7 @@ class SourcesService(val dbLayer: DbLayer,
                      val stream: EventStream
                     ) {
 
-  import FeedSourceDtoModelImplicits._
+  import truerss.util.FeedSourceDtoModelImplicits._
   import Util._
 
   protected val sourceValidator = new SourceValidator(appPlugins)(dbLayer)

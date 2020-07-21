@@ -4,7 +4,7 @@ import net.truerss.Gen
 import truerss.api._
 import truerss.dto.AvailableSetup
 import truerss.util.syntax
-import truerss.services.management.{ResponseHelpers, SettingsManagement}
+import truerss.services.management.SettingsManagement
 
 class SettingsApiTest extends BaseApiTest {
 

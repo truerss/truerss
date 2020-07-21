@@ -16,7 +16,7 @@ class SourcesApiTest extends BaseApiTest {
   sequential
 
   import syntax.future._
-  import FeedSourceDtoModelImplicits._
+  import truerss.util.FeedSourceDtoModelImplicits._
   import JsonFormats._
 
   private val uri = getClass.getResource("/1.txt").toURI

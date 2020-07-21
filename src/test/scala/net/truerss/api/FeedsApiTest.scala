@@ -5,7 +5,7 @@ import net.truerss.Gen
 import truerss.api._
 import truerss.dto.FeedContent
 import truerss.util.syntax
-import truerss.services.management.{FeedsManagement, ResponseHelpers}
+import truerss.services.management.FeedsManagement
 
 
 class FeedsApiTest extends BaseApiTest {

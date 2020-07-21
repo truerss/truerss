@@ -7,7 +7,6 @@ import org.specs2.mutable.SpecificationLike
 import truerss.db.validation.{SourceUrlValidator, SourceValidator}
 import truerss.dto.{ApplicationPlugins, SourceDto, UpdateSourceDto}
 import truerss.services.SourcesService
-import truerss.services.management.FeedSourceDtoModelImplicits
 
 import scala.concurrent.duration._
 
@@ -18,7 +17,7 @@ class SourceServiceTest(implicit ee: ExecutionEnv)
 
   override def dbName: String = "source_service_test"
 
-  import FeedSourceDtoModelImplicits._
+  import truerss.util.FeedSourceDtoModelImplicits._
 
   sequential
 
