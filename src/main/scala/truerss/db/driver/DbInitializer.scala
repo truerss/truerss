@@ -32,13 +32,13 @@ object DbInitializer {
     val dbProfile = DBProfile.create(backend.get)
 
     val props = dbProfile.props(dbConf, isUserConf)
-
     val hc = new HikariConfig(props)
     hc.setConnectionTestQuery("SELECT 1;")
-    hc.setMaximumPoolSize(dbProfile.defaultConnectionSize)
+    hc.setPoolName("TrueRssPool")
     hc.setInitializationFailTimeout(initFailTimeout)
     hc.setMaxLifetime(maxTime)
     hc.setIdleTimeout(idleTime)
+    hc.setMaximumPoolSize(dbProfile.defaultConnectionSize)
 
     val db = try {
       val ds = new HikariDataSource(hc)

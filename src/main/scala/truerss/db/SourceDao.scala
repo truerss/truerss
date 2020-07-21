@@ -16,93 +16,74 @@ class SourceDao(val db: DatabaseDef)(implicit
   import driver.query.sources
 
   def all: Task[Seq[Source]] = {
-    db.go(sources.result)
+    sources.result ~> db
   }
 
   def findOne(sourceId: Long): Task[Option[Source]] = {
-    db.go(sources.filter(_.id === sourceId).take(1).result)
-      .map(_.headOption)
+    sources.filter(_.id === sourceId).take(1).result.headOption ~> db
   }
 
   def delete(sourceId: Long): Task[Int] = {
-    db.go(sources.filter(_.id === sourceId).delete)
+    sources.filter(_.id === sourceId).delete ~> db
   }
 
   def insert(source: Source): Task[Long] = {
-    db.go {
-      (sources returning sources.map(_.id)) += source
-    }
+    ((sources returning sources.map(_.id)) += source) ~> db
   }
 
   def insertMany(xs: Iterable[Source]) = {
-    db.go { sources ++= xs }
+    (sources ++= xs) ~> db
   }
 
   def findByUrls(urls: Seq[String]): Task[Seq[String]] = {
-    db.go {
-      sources.filter(s => s.url.inSet(urls))
-        .map(_.url)
-        .result
-    }
+    sources.filter(s => s.url.inSet(urls))
+      .map(_.url)
+      .result ~> db
   }
 
   def fetchByUrls(urls: Seq[String]): Task[Seq[Source]] = {
-    db.go {
-      sources.filter(s => s.url.inSet(urls))
-        .result
-    }
+    sources.filter(s => s.url.inSet(urls))
+      .result ~> db
   }
 
   def findByNames(names: Seq[String]): Task[Seq[String]] = {
-    db.go {
-      sources.filter(s => s.name.inSet(names))
-        .map(_.url)
-        .result
-    }
+    sources.filter(s => s.name.inSet(names))
+      .map(_.url)
+      .result ~> db
   }
 
   def findByUrl(url: String, id: Option[Long]): Task[Int] = {
-    db.go {
-      id
-        .map(id => sources.filter(s => s.url === url && !(s.id === id)))
-        .getOrElse(sources.filter(s => s.url === url))
-        .length
-        .result
-    }
+    id
+      .map(id => sources.filter(s => s.url === url && !(s.id === id)))
+      .getOrElse(sources.filter(s => s.url === url))
+      .length
+      .result ~> db
   }
 
   def findByName(name: String, id: Option[Long]): Task[Int] = {
-    db.go {
-      id.map(id => sources.filter(s => s.name === name && !(s.id === id)))
-        .getOrElse(sources.filter(s => s.name === name))
-        .length
-        .result
-    }
+    id.map(id => sources.filter(s => s.name === name && !(s.id === id)))
+      .getOrElse(sources.filter(s => s.name === name))
+      .length
+      .result ~> db
   }
 
   def updateSource(source: Source): Task[Int] = {
-    db.go {
-      sources.filter(_.id === source.id)
-        .map(s => (s.url, s.name, s.interval, s.state, s.normalized))
-        .update(source.url, source.name, source.interval,
-          source.state, source.normalized)
-    }
+    sources.filter(_.id === source.id)
+      .map(s => (s.url, s.name, s.interval, s.state, s.normalized))
+      .update(source.url, source.name, source.interval,
+        source.state, source.normalized) ~> db
   }
 
   def updateLastUpdateDate(sourceId: Long,
                            date: LocalDateTime = LocalDateTime.now(Clock.systemUTC())): Task[Int] = {
-    db.go {
-      sources.filter(_.id === sourceId)
-        .map(s => s.lastUpdate).update(date)
-    }
+    sources.filter(_.id === sourceId)
+      .map(s => s.lastUpdate).update(date) ~> db
   }
 
   def updateState(sourceId: Long, state: SourceState): Task[Int] = {
-    db.go {
-      sources.filter(_.id === sourceId)
-        .map(_.state)
-        .update(state)
-    }
+    sources.filter(_.id === sourceId)
+      .map(_.state)
+      .update(state) ~> db
   }
 
 }

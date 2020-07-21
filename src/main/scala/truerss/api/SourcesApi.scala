@@ -4,15 +4,18 @@ import akka.http.scaladsl.model.Multipart
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.stream.Materializer
-import truerss.dto.{NewSourceDto, UpdateSourceDto}
+import truerss.dto.{NewSourceDto, SourceViewDto, UpdateSourceDto}
+import truerss.services.{FeedsService, SourcesService}
 import truerss.services.management.{FeedsManagement, OpmlManagement, SourcesManagement}
 import truerss.util.Util
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class SourcesApi(sourcesManagement: SourcesManagement,
                  feedsManagement: FeedsManagement,
                  opmlManagement: OpmlManagement,
+                 feedsService: FeedsService,
+                 sourcesService: SourcesService
                 )(
   implicit val ec: ExecutionContext,
   val materializer: Materializer
@@ -26,12 +29,14 @@ class SourcesApi(sourcesManagement: SourcesManagement,
   private val sm = sourcesManagement
   private val fm = feedsManagement
   private val om = opmlManagement
+  private val fs = feedsService
+  private val ss = sourcesService
 
   val route = api {
     pathPrefix("sources") {
       get {
         pathPrefix("all") {
-          sm.all
+          w[Vector[SourceViewDto]](ss.getAll)
         } ~ (pathPrefix(LongNumber) & pathEnd) { sourceId =>
           sm.getSource(sourceId)
         } ~ pathPrefix("overview"/ LongNumber) { sourceId =>
@@ -59,7 +64,7 @@ class SourcesApi(sourcesManagement: SourcesManagement,
         pathPrefix(LongNumber) { sourceId =>
           createT[UpdateSourceDto](x => sm.updateSource(sourceId, x))
         } ~ pathPrefix("markall") {
-          fm.markAll
+          w[Unit](fs.markAllAsRead)
         } ~ pathPrefix("mark" / LongNumber) { sourceId =>
           sm.markSource(sourceId)
         } ~ pathPrefix("refresh" / LongNumber) { sourceId =>

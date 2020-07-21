@@ -17,52 +17,42 @@ class FeedDao(val db: DatabaseDef)(implicit driver: CurrentDriver) {
   private type FPage = Task[(Seq[Feed], Int)]
 
   def findUnread(sourceId: Long): Task[Seq[Feed]] = {
-    db.go {
-      bySource(sourceId)
-        .unreadOnly
-        .sortBy(_.publishedDate.desc)
-        .result
-    }
+    bySource(sourceId)
+      .unreadOnly
+      .sortBy(_.publishedDate.desc)
+      .result ~> db
   }
 
   def feedBySourceCount(read: Boolean): Task[Seq[(Long, Int)]] = {
-    db.go {
-      feeds
-        .filter(_.read === read)
-        .groupBy(_.sourceId)
-        .map {
-          case (sourceId, xs) => sourceId -> xs.size
-        }.result
-    }
+    feeds
+      .filter(_.read === read)
+      .groupBy(_.sourceId)
+      .map {
+        case (sourceId, xs) => sourceId -> xs.size
+      }.result ~> db
   }
 
   def feedCountBySourceId(sourceId: Long, unreadOnly: Boolean): Task[Int] = {
-    db.go {
-      bySource(sourceId)
-        .filter(_.read inSet getReadValues(unreadOnly))
-        .length.result
-    }
+    bySource(sourceId)
+      .filter(_.read inSet getReadValues(unreadOnly))
+      .length.result ~> db
   }
 
   def deleteFeedsBySource(sourceId: Long): Task[Int] = {
-    db.go { bySource(sourceId).delete }
+    bySource(sourceId).delete ~> db
   }
 
   def markAll: Task[Int] = {
-    db.go {
-      feeds
-        .unreadOnly
-        .map(_.read)
-        .update(true)
-    }
+    feeds
+      .unreadOnly
+      .map(_.read)
+      .update(true) ~> db
   }
 
   def markBySource(sourceId: Long): Task[Int] = {
-    db.go {
-      bySource(sourceId)
-        .map(f => f.read)
-        .update(true)
-    }
+    bySource(sourceId)
+      .map(f => f.read)
+      .update(true) ~> db
   }
 
   def lastN(offset: Int, limit: Int): FPage = {
@@ -106,41 +96,31 @@ class FeedDao(val db: DatabaseDef)(implicit driver: CurrentDriver) {
   }
 
   def modifyFav(feedId: Long, fav: Boolean): Task[Int] = {
-    db.go {
-      byFeed(feedId).map(e => e.favorite).update(fav)
-    }
+    byFeed(feedId).map(e => e.favorite).update(fav) ~> db
   }
 
   def modifyRead(feedId: Long, read: Boolean): Task[Int] = {
-    db.go {
-      byFeed(feedId).map(e => e.read).update(read)
-    }
+    byFeed(feedId).map(e => e.read).update(read) ~> db
   }
 
   def updateContent(feedId: Long, content: String): Task[Int] = {
-    db.go {
-      byFeed(feedId).map(_.content).update(content)
-    }
+    byFeed(feedId).map(_.content).update(content) ~> db
   }
 
   def insert(feed: Feed): Task[Long] = {
-    db.go {
-      (feeds returning feeds.map(_.id)) += feed
-    }
+    ((feeds returning feeds.map(_.id)) += feed) ~> db
   }
   def insertMany(xs: Iterable[Feed]) = {
-    db.go { feeds ++= xs }
+    (feeds ++= xs) ~> db
   }
 
   def updateByUrl(feed: Feed): Task[Int] = {
-    db.go {
-      feeds.filter(_.url === feed.url)
-        .map(f => (f.title, f.author, f.publishedDate,
-          f.description, f.normalized, f.content, f.read))
-        .update((feed.title, feed.author, feed.publishedDate,
-          feed.description.orNull,
-          feed.normalized, feed.content.orNull, false))
-    }
+    feeds.filter(_.url === feed.url)
+      .map(f => (f.title, f.author, f.publishedDate,
+        f.description, f.normalized, f.content, f.read))
+      .update((feed.title, feed.author, feed.publishedDate,
+        feed.description.orNull,
+        feed.normalized, feed.content.orNull, false)) ~> db
   }
 
   private def updateByUrl(feeds: Iterable[Feed]): Task[Iterable[Int]] = {
@@ -148,9 +128,7 @@ class FeedDao(val db: DatabaseDef)(implicit driver: CurrentDriver) {
   }
 
   def findBySource(sourceId: Long): Task[Seq[Feed]] = {
-    db.go {
-      bySource(sourceId).result
-    }
+    bySource(sourceId).result ~> db
   }
 
   def search(inFavorites: Boolean, query: String, offset: Int, limit: Int): FPage = {

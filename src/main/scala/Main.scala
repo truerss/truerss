@@ -45,7 +45,6 @@ object Main extends App {
         opmlService, sourceOverviewService, stream)(servicesEc)
       val feedsManagement = new FeedsManagement(feedsService,
         contentReaderService, stream)
-      val pluginsManagement = new PluginsManagement(applicationPluginsService)
       val settingsManagement = new SettingsManagement(settingsService)(servicesEc)
       val searchManagement = new SearchManagement(searchService)(servicesEc)
 
@@ -65,6 +64,8 @@ object Main extends App {
         sourcesManagement = sourcesManagement,
         feedsManagement = feedsManagement,
         opmlManagement = opmlManagement,
+        feedsService = feedsService,
+        sourcesService = sourcesService,
         pluginsManagement = applicationPluginsService,
         settingsManagement = settingsManagement,
         searchManagement = searchManagement,

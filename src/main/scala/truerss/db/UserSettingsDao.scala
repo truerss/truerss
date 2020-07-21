@@ -13,16 +13,15 @@ class UserSettingsDao(val db: DatabaseDef)(implicit driver: CurrentDriver) {
   import driver.query.userSettings
 
   def getSettings: Task[Iterable[UserSettings]] = {
-    db.go(userSettings.result)
+    userSettings.result ~> db
   }
 
   def getByKey(key: String): Task[Option[UserSettings]] = {
-    db.go(userSettings.filter(_.key === key).take(1).result)
-      .map(_.headOption)
+    userSettings.filter(_.key === key).take(1).result.headOption ~> db
   }
 
   def update(settings: UserSettings): Task[Int] = {
-    db.go(toStatement(settings))
+    toStatement(settings) ~> db
   }
 
   def bulkUpdate(settings: Iterable[UserSettings]): Task[Int] = {
@@ -35,7 +34,7 @@ class UserSettingsDao(val db: DatabaseDef)(implicit driver: CurrentDriver) {
   }
 
   def insert(xs: Iterable[UserSettings]): Task[Option[Int]] = {
-    db.go { userSettings ++= xs }
+    (userSettings ++= xs) ~> db
   }
 
   private def toStatement(settings: UserSettings): FixedSqlAction[Int, NoStream, Effect.Write] = {

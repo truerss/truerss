@@ -92,21 +92,22 @@ trait HttpHelper {
   def w[W: Writes](f: Task[W]): Route = taskCall1(f)
 
   def taskCall1[W: Writes](f: Task[W]): Route = {
-    val t = f.map { r =>
-      finish(OK, Json.stringify(Json.toJson(r))) match {
+    val taskResult = f.map { r =>
+      val result = r match {
+        case _: Unit =>
+          finish(NoContent, "")
+        case _ =>
+          finish(OK, Json.stringify(Json.toJson(r)))
+      }
+
+      result match {
         case Complete(response) =>
           complete(response)
         case Rejected(_) =>
           complete(response(InternalServerError, "Rejected"))
       }
-//      responseHandler(r) match {
-//        case Complete(response) =>
-//          complete(response)
-//        case Rejected(_) =>
-//          complete(response(InternalServerError, "Rejected"))
-//      }
     }
-    zio.Runtime.default.unsafeRun(t)
+    zio.Runtime.default.unsafeRun(taskResult)
   }
 
   def call(f: Response)(implicit ec: ExecutionContext): Route = {

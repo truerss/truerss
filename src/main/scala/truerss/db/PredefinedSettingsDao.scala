@@ -11,12 +11,12 @@ class PredefinedSettingsDao(val db: DatabaseDef)(implicit driver: CurrentDriver)
   import driver.query.predefinedSettings
 
   def getSettings: Task[Iterable[PredefinedSettings]] = {
-    db.go(predefinedSettings.result)
+    predefinedSettings.result ~> db
   }
 
   // for testing
   def insert(xs: Iterable[PredefinedSettings]): Task[Option[Int]] = {
-    db.go { predefinedSettings ++= xs }
+    (predefinedSettings ++= xs) ~> db
   }
 
 }

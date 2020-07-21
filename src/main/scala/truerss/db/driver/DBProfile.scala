@@ -59,8 +59,9 @@ object DBProfile {
             s"${Paths.get("").toAbsolutePath}/${dbConf.dbName}"
           }
           val props = new Properties()
-          props.setProperty("dataSourceClassName", sourceClassName)
           props.setProperty("dataSource.databaseName", dbName)
+          props.setProperty("driverClassName", driver)
+          props.setProperty("jdbcUrl", s"jdbc:sqlite:$dbName") // todo validate url
           props
         }
       }

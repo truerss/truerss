@@ -28,6 +28,12 @@ object JsonFormats {
     }
   }
 
+  implicit lazy val unitWrites: Writes[Unit] = new Writes[Unit] {
+    override def writes(o: Unit): JsValue = {
+      JsNull
+    }
+  }
+
   implicit object StateFormat extends Format[SourceState] {
     override def reads(json: JsValue): JsResult[SourceState] = {
       json match {

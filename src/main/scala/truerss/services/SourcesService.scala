@@ -28,8 +28,10 @@ class SourcesService(dbLayer: DbLayer,
         .feedBySourceCount(false)
         .map(_.toVector.toMap)
       sources <- dbLayer.sourceDao.all.map(_.toVector)
-    } yield sources.map { s =>
-      s.toView.recount(feedsBySource.getOrElse(s.id.get, 0))
+    } yield {
+      sources.map { s =>
+        s.toView.recount(feedsBySource.getOrElse(s.id.get, 0))
+      }
     }
   }
 

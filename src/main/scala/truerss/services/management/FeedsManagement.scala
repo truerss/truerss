@@ -3,7 +3,6 @@ package truerss.services.management
 import akka.event.EventStream
 import truerss.api._
 import truerss.dto.{FeedContent, FeedDto, Page}
-import truerss.services.actors.events.PublishPluginActor
 import truerss.services.{ContentReaderService, FeedsService}
 
 class FeedsManagement(feedsService: FeedsService,
@@ -14,13 +13,9 @@ class FeedsManagement(feedsService: FeedsService,
   import FeedsManagement._
   import ResponseHelpers.ok
 
-  def markAll: Z = {
-    feedsService.markAllAsRead.map { _ => ok }
-  }
-
-  def favorites(offset: Int, limit: Int): Z = {
-    feedsService.favorites(offset, limit).map(toPage)
-  }
+//  def markAll: Z = {
+//    feedsService.markAllAsRead.map { _ => ok }
+//  }
 
   def getFeedContent(feedId: Long): Z = {
     fetchFeed(feedId, forceReadContent = true).map {
@@ -31,21 +26,6 @@ class FeedsManagement(feedsService: FeedsService,
 
   def getFeed(feedId: Long): Z = {
     fetchFeed(feedId, forceReadContent = false)
-  }
-
-  def changeFavorites(feedId: Long, favFlag: Boolean): Z = {
-    for {
-      feed <- feedsService.changeFav(feedId, favFlag)
-    } yield {
-      if (favFlag) {
-        stream.publish(PublishPluginActor.PublishEvent(feed))
-      }
-      FeedResponse(feed)
-    }
-  }
-
-  def changeRead(feedId: Long, readFlag: Boolean): Z = {
-    feedsService.changeRead(feedId, readFlag).map(feedHandler)
   }
 
   def findUnreadBySource(sourceId: Long): Z = {

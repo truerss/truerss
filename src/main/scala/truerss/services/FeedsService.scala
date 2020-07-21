@@ -31,27 +31,29 @@ class FeedsService(dbLayer: DbLayer) {
     feedDao.lastN(offset, limit).map(toPage)
   }
 
-  def favorites(offset: Int, limit: Int): FPage = {
-    feedDao.favorites(offset, limit).map(toPage)
+  def favorites(offset: Int, limit: Int): Task[truerss.dto.Page[FeedDto]] = {
+    feedDao.favorites(offset, limit).map { x =>
+      truerss.dto.Page(x._2, x._1.map(_.toDto))
+    }
   }
 
-  def markAllAsRead: Task[Int] = {
-    feedDao.markAll
+  def markAllAsRead: Task[Unit] = {
+    feedDao.markAll.map(_ => ())
   }
 
   def changeRead(feedId: Long, readFlag: Boolean): Task[FeedDto] = {
     val t = for {
-      feed <- dbLayer.feedDao.findOne(feedId)
+      feed <- findOne(feedId)
       _ <- feedDao.modifyRead(feedId, read = readFlag)
-    } yield feed.toDto.copy(read = readFlag)
+    } yield feed.copy(read = readFlag)
     t
   }
 
   def changeFav(feedId: Long, favFlag: Boolean): Task[FeedDto] = {
     for {
-      feed <- dbLayer.feedDao.findOne(feedId)
+      feed <- findOne(feedId)
       _ <- feedDao.modifyFav(feedId, fav = favFlag)
-    } yield feed.toDto.copy(favorite = favFlag)
+    } yield feed.copy(favorite = favFlag)
   }
 
   def registerNewFeeds(sourceId: Long, feeds: Vector[Entry]): Task[Vector[FeedDto]] = {

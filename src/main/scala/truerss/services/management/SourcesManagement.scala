@@ -18,10 +18,6 @@ class SourcesManagement(sourcesService: SourcesService,
 
   import ResponseHelpers.{ok, sourceNotFound}
 
-  def all: Z = {
-    sourcesService.getAll.map(SourcesResponse)
-  }
-
   def getSource(sourceId: Long): Z = {
     sourcesService.getSource(sourceId).map {
       case Some(s) => SourceResponse(s)
