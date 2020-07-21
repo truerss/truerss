@@ -10,7 +10,6 @@ class PluginsApi(pluginsService: ApplicationPluginsService)(
   implicit val ec: ExecutionContext
 ) extends HttpHelper {
 
-  import ApiImplicits._
   import JsonFormats._
 
   val route = api {
@@ -20,9 +19,9 @@ class PluginsApi(pluginsService: ApplicationPluginsService)(
           w[PluginsViewDto](pluginsService.view)
         } ~ pathPrefix("js") {
           // todo header js
-          pluginsService.js
+          w[String](pluginsService.js)
         } ~ pathPrefix("css") {
-          pluginsService.css
+          w[String](pluginsService.css)
         }
       }
     }

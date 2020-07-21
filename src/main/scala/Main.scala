@@ -6,7 +6,6 @@ import truerss.db.Predefined
 import truerss.db.driver.DbInitializer
 import truerss.services._
 import truerss.services.actors.MainActor
-import truerss.services.management._
 import truerss.util.TrueRSSConfig
 
 import scala.language.postfixOps

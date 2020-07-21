@@ -22,7 +22,6 @@ class SourcesApi(feedsService: FeedsService,
 
   import JsonFormats._
   import Util.StringExt
-  import ApiImplicits._
 
   // just aliases
   private val fs = feedsService

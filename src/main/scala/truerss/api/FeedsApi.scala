@@ -15,7 +15,6 @@ class FeedsApi(feedsService: FeedsService,
               ) extends HttpHelper {
 
   import Util.StringExt
-  import ApiImplicits._
   import JsonFormats._
 
   private val fs = feedsService
