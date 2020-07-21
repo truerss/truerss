@@ -1,29 +1,23 @@
 package truerss.api
 
 import akka.http.scaladsl.server.Directives._
-import truerss.dto.NewSetup
-import truerss.services.management.SettingsManagement
+import truerss.dto.{AvailableSetup, NewSetup}
+import truerss.services.SettingsService
 
-import scala.concurrent.ExecutionContext
+class SettingsApi(private val settingsService: SettingsService) extends HttpHelper {
 
-class SettingsApi(val settingsManagement: SettingsManagement)
-                 (
-                   implicit val ec: ExecutionContext
-                 ) extends HttpHelper {
+  import JsonFormats._
 
-  import JsonFormats.newSetupFormat
-  import ApiImplicits._
-
-  private val sm = settingsManagement
+  private val ss = settingsService
 
   val route = api {
     pathPrefix("settings") {
       get {
         pathPrefix("current") {
-          sm.getCurrentSetup
+          w[Iterable[AvailableSetup[_]]](ss.getCurrentSetup)
         }
       } ~ put {
-        createT[Iterable[NewSetup[_]]](x => sm.updateSetups(x))
+        createTR[Iterable[NewSetup[_]], Unit](x => ss.updateSetups(x))
       }
     }
   }

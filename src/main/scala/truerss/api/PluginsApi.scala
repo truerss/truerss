@@ -19,6 +19,7 @@ class PluginsApi(pluginsService: ApplicationPluginsService)(
         pathPrefix("all")  {
           w[PluginsViewDto](pluginsService.view)
         } ~ pathPrefix("js") {
+          // todo header js
           pluginsService.js
         } ~ pathPrefix("css") {
           pluginsService.css

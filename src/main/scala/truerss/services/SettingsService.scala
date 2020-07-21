@@ -1,15 +1,17 @@
 package truerss.services
 
+import org.slf4j.LoggerFactory
 import truerss.db.{DbLayer, PredefinedSettings, RadioValue, SelectableValue, UserSettings}
 import truerss.dto.{AvailableRadio, AvailableSelect, AvailableSetup, AvailableValue, CurrentValue, NewSetup, Setup, SetupKey}
 import zio.Task
 
-import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
 
-class SettingsService(dbLayer: DbLayer)(implicit ec: ExecutionContext) {
+class SettingsService(dbLayer: DbLayer) {
 
   import SettingsService._
+
+  private val logger = LoggerFactory.getLogger(getClass)
 
   def getCurrentSetup: Task[Iterable[AvailableSetup[_]]] = {
     for {
@@ -18,12 +20,29 @@ class SettingsService(dbLayer: DbLayer)(implicit ec: ExecutionContext) {
     } yield makeAvailableSetup(global, user)
   }
 
-  def updateSetup(userSettings: UserSettings): Task[Int] = {
-    dbLayer.userSettingsDao.update(userSettings)
+  def updateSetups(newSetups: Iterable[NewSetup[_]]): Task[Unit] = {
+    getCurrentSetup.flatMap { xs =>
+      val result = newSetups.foldLeft(Reducer.empty) { case (r, newSetup) =>
+        xs.find(_.key == newSetup.key).map { result =>
+          if (newSetup.isValidAgainst(result)) {
+            val setup = newSetup.toUserSetup.withDescription(result.description)
+            r.withSetup(setup)
+          } else {
+            logger.warn(s"Incorrect value: ${newSetup.key}:${newSetup.value}, options: ${result.options}")
+            r.withError(s"Incorrect value: ${newSetup.value}")
+          }
+        }.getOrElse(r)
+      }
+      if (result.isEmpty) {
+        Task.fail(ValidationError(result.errors.toList))
+      } else {
+        update(result.setups)
+      }
+    }
   }
 
-  def updateSetups(userSettings: Iterable[UserSettings]): Task[Int] = {
-    dbLayer.userSettingsDao.bulkUpdate(userSettings)
+  private def update(userSettings: Iterable[UserSettings]): Task[Unit] = {
+    dbLayer.userSettingsDao.bulkUpdate(userSettings).map(_ => ())
   }
 
   // the application layer dependency
@@ -49,6 +68,60 @@ class SettingsService(dbLayer: DbLayer)(implicit ec: ExecutionContext) {
 
 object SettingsService {
 
+  case class Reducer(setups: Vector[UserSettings], errors: Vector[String]) {
+    def withError(error: String): Reducer = {
+      copy(errors = errors :+ error)
+    }
+
+    def withSetup(setup: UserSettings): Reducer = {
+      copy(setups = setups :+ setup)
+    }
+
+    def isEmpty: Boolean = {
+      setups.isEmpty
+    }
+  }
+
+  object Reducer {
+    val empty = Reducer(Vector.empty, Vector.empty)
+  }
+
+  implicit class NewSetupExt[T: ClassTag](val x: NewSetup[T]) {
+    def isValidAgainst[R](availableSetup: AvailableSetup[R]): Boolean = {
+      availableSetup.options match {
+        case AvailableSelect(xs) =>
+          x.value match {
+            case CurrentValue(v: Int) =>
+              xs.toVector.contains(v)
+
+            case _ => false
+          }
+
+        case _ => true
+      }
+    }
+
+    def toUserSetup: UserSettings = {
+      val tmp = UserSettings(
+        key = x.key,
+        description = x.key,
+        valueBoolean = None,
+        valueInt = None,
+        valueString = None
+      )
+      x.value match {
+        case CurrentValue(value: Int) =>
+          tmp.copy(valueInt = Some(value))
+        case CurrentValue(value: String) =>
+          tmp.copy(valueString = Some(value))
+        case CurrentValue(value: Boolean) =>
+          tmp.copy(valueBoolean = Some(value))
+        case x =>
+          throw new IllegalStateException(s"Unknown type: $x")
+      }
+    }
+  }
+
   implicit class UserSettingsExt(val x: UserSettings) extends AnyVal {
     def toSetup[T: ClassTag]: Setup[T] = {
       Vector(x.valueString, x.valueInt, x.valueBoolean).flatten.headOption match {
@@ -73,6 +146,12 @@ object SettingsService {
         case SelectableValue(predefined, _) => AvailableSelect(predefined)
         case RadioValue(currentState) => AvailableRadio(currentState)
       }
+    }
+  }
+
+  implicit class UserSettingExt(val x: UserSettings) extends AnyVal {
+    def withDescription(description: String): UserSettings = {
+      x.copy(description = description)
     }
   }
 
