@@ -21,15 +21,7 @@ class SourceDao(val db: DatabaseDef)(implicit
   }
 
   def findOne(sourceId: Long): IO[NotFoundError, Source] = {
-    val tmp = for {
-      sourceOpt <- sources.filter(_.id === sourceId).take(1).result.headOption ~> db
-      source <- ZIO.fromOption(sourceOpt)
-    } yield source
-    // todo one method for handling with feedsDao
-    tmp.mapError {
-      case None =>
-        NotFoundError(sourceId)
-    }
+    sources.filter(_.id === sourceId).take(1).result.headOption ~> db <~ sourceId
   }
 
   def delete(sourceId: Long): Task[Int] = {
@@ -44,20 +36,14 @@ class SourceDao(val db: DatabaseDef)(implicit
     (sources ++= xs) ~> db
   }
 
-  def findByUrls(urls: Seq[String]): Task[Seq[String]] = {
-    sources.filter(s => s.url.inSet(urls))
-      .map(_.url)
+  def findByUrlsAndNames(urls: Seq[String], names: Seq[String]): Task[Seq[(String, String)]] = {
+    sources.filter(s => s.url.inSet(urls) || s.name.inSet(names))
+      .map(x => (x.url, x.name))
       .result ~> db
   }
 
   def fetchByUrls(urls: Seq[String]): Task[Seq[Source]] = {
     sources.filter(s => s.url.inSet(urls))
-      .result ~> db
-  }
-
-  def findByNames(names: Seq[String]): Task[Seq[String]] = {
-    sources.filter(s => s.name.inSet(names))
-      .map(_.url)
       .result ~> db
   }
 

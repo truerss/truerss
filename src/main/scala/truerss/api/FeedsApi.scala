@@ -5,13 +5,8 @@ import truerss.dto.{FeedContent, FeedDto, Page}
 import truerss.services.{ContentReaderService, FeedsService}
 import truerss.util.Util
 
-import scala.concurrent.ExecutionContext
-
 class FeedsApi(feedsService: FeedsService,
                contentReaderService: ContentReaderService
-              )
-              (
-                implicit val ec: ExecutionContext
               ) extends HttpApi {
 
   import Util.StringExt
@@ -34,13 +29,13 @@ class FeedsApi(feedsService: FeedsService,
         }
       } ~ put {
         pathPrefix("mark" / LongNumber) { feedId =>
-          w[FeedDto](fs.changeFav(feedId, favFlag = true))
+          w[Unit](fs.changeFav(feedId, favFlag = true))
         } ~ pathPrefix("unmark" / LongNumber) { feedId =>
-          w[FeedDto](fs.changeFav(feedId, favFlag = false))
+          w[Unit](fs.changeFav(feedId, favFlag = false))
         } ~ pathPrefix("read" / LongNumber) { feedId =>
-          w[FeedDto](fs.changeRead(feedId, readFlag = true))
+          w[Unit](fs.changeRead(feedId, readFlag = true))
         } ~ pathPrefix("unread" / LongNumber) { feedId =>
-          w[FeedDto](fs.changeRead(feedId, readFlag = false))
+          w[Unit](fs.changeRead(feedId, readFlag = false))
         }
       }
     }

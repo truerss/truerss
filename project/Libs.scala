@@ -1,4 +1,3 @@
-import sbt.Tests.Exclude
 import sbt._
 
 object Libs {
@@ -75,18 +74,16 @@ object Libs {
   )
 
   val zio = Seq(
-    "dev.zio" %% "zio" % zioVersion,
-    "dev.zio" %% "zio-actors" % "0.0.6"
-   // "dev.zio" %% "zio-http-core" % zioVersion
+    "dev.zio" %% "zio" % zioVersion
   )
 
   val tests = Seq(
-    "org.specs2" %% "specs2-core" % specsVersion % "test",
-    "org.specs2" %% "specs2-mock" % specsVersion % "test",
+    "org.specs2" %% "specs2-core" % specsVersion % Test,
+    "org.specs2" %% "specs2-mock" % specsVersion % Test,
 
-    "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion % "test",
-    "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion % "test",
-    "com.typesafe.akka" %% "akka-testkit" % akkaVersion % "test"
+    "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion % Test,
+    "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion % Test,
+    "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test
   )
 
   val deps = db ++ akka ++ truerss ++ logs ++

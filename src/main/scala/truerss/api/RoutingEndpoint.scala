@@ -6,9 +6,8 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.directives.LoggingMagnet
 import akka.stream.Materializer
 import org.slf4j.LoggerFactory
-import truerss.services.{ApplicationPluginsService, ContentReaderService, FeedsService, OpmlService, SearchService, SettingsService, SourceOverviewService, SourcesService}
+import truerss.services.{ApplicationPluginsService, ContentReaderService, FeedsService, MarkService, OpmlService, RefreshSourcesService, SearchService, SettingsService, SourceOverviewService, SourcesService}
 
-import scala.concurrent.ExecutionContext
 import scala.io.Source
 
 class RoutingEndpoint(
@@ -20,18 +19,22 @@ class RoutingEndpoint(
                        sourceOverviewService: SourceOverviewService,
                        settingsService: SettingsService,
                        opmlService: OpmlService,
+                       refreshSourcesService: RefreshSourcesService,
+                       markService: MarkService,
                        wsPort: Int
-                     )(implicit ec: ExecutionContext,
-                       val materializer: Materializer) {
+                     )(implicit val materializer: Materializer) {
 
   import RoutingEndpoint._
 
-  val sourcesApi = new SourcesApi(
-    feedsService, sourcesService, sourceOverviewService, opmlService)
+  val sourcesApi = new SourcesApi(feedsService, sourcesService)
   val feedsApi = new FeedsApi(feedsService, contentReaderService)
   val pluginsApi = new PluginsApi(pluginsManagement)
   val settingsApi = new SettingsApi(settingsService)
   val searchApi = new SearchApi(searchService)
+  val refreshApi = new RefreshApi(refreshSourcesService)
+  val opmlApi = new OpmlApi(opmlService)
+  val markApi = new MarkApi(markService)
+  val sourcesOverviewApi = new SourcesOverviewApi(sourceOverviewService)
 
   protected val logger = LoggerFactory.getLogger(getClass)
 
@@ -46,7 +49,11 @@ class RoutingEndpoint(
     feedsApi.route ~
     pluginsApi.route ~
     settingsApi.route ~
-    searchApi.route
+    searchApi.route ~
+    refreshApi.route ~
+    opmlApi.route ~
+    markApi.route ~
+    sourcesOverviewApi.route
   }
 
   val fileName = "index.html"

@@ -52,6 +52,8 @@ object DBProfile {
         override val sourceClassName: String = "org.sqlite.SQLiteDataSource"
         override val defaultConnectionSize: Int = 1 // for sqlite: need to avoid locks
 
+        private val sqliteUrl = "jdbc:sqlite:"
+
         override def props(dbConf: DbConfig, isUserConf: Boolean): Properties = {
           val dbName = if (isUserConf) {
             dbConf.dbName
@@ -61,7 +63,12 @@ object DBProfile {
           val props = new Properties()
           props.setProperty("dataSource.databaseName", dbName)
           props.setProperty("driverClassName", driver)
-          props.setProperty("jdbcUrl", s"jdbc:sqlite:$dbName") // todo validate url
+          val jdbcUrl = if (dbName.startsWith(sqliteUrl)) {
+            dbName
+          } else {
+            s"$sqliteUrl$dbName"
+          }
+          props.setProperty("jdbcUrl", jdbcUrl)
           props
         }
       }

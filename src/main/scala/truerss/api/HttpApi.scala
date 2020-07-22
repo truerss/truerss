@@ -7,9 +7,11 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
 import org.slf4j.LoggerFactory
 import play.api.libs.json._
+import truerss.services.{ContentReadError, NotFoundError, ValidationError}
 import zio.Task
 
 import scala.reflect.ClassTag
+import scala.util.{Failure, Try, Success => S}
 /**
   * Created by mike on 17.12.16.
   */
@@ -17,8 +19,7 @@ trait HttpApi {
 
   import RouteResult._
   import StatusCodes._
-
-  val utf8 = Charset.forName("UTF-8")
+  import HttpApi.{utf8, printErrors}
 
   protected val logger = LoggerFactory.getLogger(getClass)
 
@@ -26,23 +27,33 @@ trait HttpApi {
 
   def createTR[T : Reads : ClassTag, R: Writes](f: T => Task[R]): Route = {
     entity(as[String]) { json =>
-      Json.parse(json).validateOpt[T] match {
-        case JsSuccess(Some(value), _) =>
-          taskCall1(f(value))
+      Try(Json.parse(json).validateOpt[T]) match {
+        case S(JsSuccess(Some(value), _)) =>
+          call(f(value))
 
-        case JsSuccess(_, _) =>
+        case S(JsSuccess(_, _)) =>
           complete(response(BadRequest, s"Unable to parse request: $json"))
 
-        case JsError(errors) =>
+        case S(JsError(errors)) =>
           val str = errors.map(x => s"${x._1}: ${x._2.flatMap(_.messages).mkString(", ")}")
           complete(response(BadRequest, s"Unable to parse request: $str"))
+
+        case Failure(_) =>
+          complete(response(BadRequest, s"Unable to parse request: $json"))
       }
     }
   }
 
-  def w[W: Writes](f: Task[W]): Route = taskCall1(f)
+  def w[W: Writes](f: Task[W]): Route = call(f)
 
-  def taskCall1[W: Writes](f: Task[W]): Route = {
+  def doneWith(f: Task[String], contentType: C): Route = {
+    val tmp = f.map { x =>
+      complete(flush(contentType, x))
+    }
+    zio.Runtime.default.unsafeRun(tmp)
+  }
+
+  def call[W: Writes](f: Task[W]): Route = {
     val taskResult = f.map { r =>
       val result = r match {
         case _: Unit =>
@@ -53,14 +64,41 @@ trait HttpApi {
 
       result match {
         case Complete(response) =>
-          complete(response)
+        response
         case Rejected(_) =>
-          complete(response(InternalServerError, "Rejected"))
+          response(InternalServerError, "Rejected")
       }
-    }
+    }.fold({
+        case ValidationError(errors) =>
+          HttpResponse(
+            status = BadRequest,
+            entity = HttpEntity.apply(printErrors(errors))
+          )
+
+        case ContentReadError(error) =>
+          HttpResponse(
+            status = InternalServerError,
+            entity = HttpEntity.apply(printErrors(error :: Nil))
+          )
+
+        case NotFoundError(_) =>
+          HttpResponse(
+            status = NotFound,
+            entity = HttpEntity.empty(ContentTypes.`application/json`)
+          )
+
+        case _ =>
+          HttpResponse(
+            status = InternalServerError,
+            entity = HttpEntity.empty(ContentTypes.`application/json`)
+          )
+
+      },
+      identity)
+    .map(complete(_))
+
     zio.Runtime.default.unsafeRun(taskResult)
   }
-
 
 
   private def flush(cnt: C, content: String) = {
@@ -69,11 +107,9 @@ trait HttpApi {
       content.getBytes(utf8)
     )
 
-    RouteResult.Complete(
-      HttpResponse(
-        status = OK,
-        entity = entity
-      )
+    HttpResponse(
+      status = OK,
+      entity = entity
     )
   }
 
@@ -102,4 +138,15 @@ trait HttpApi {
 
 }
 
-object HttpApi extends HttpApi
+object HttpApi extends HttpApi {
+  private final val errorF = "errors"
+  val utf8 = Charset.forName("UTF-8")
+  val javascript = MediaTypes.`application/javascript` withCharset HttpCharsets.`UTF-8`
+  val css = MediaTypes.`text/css` withCharset HttpCharsets.`UTF-8`
+  val opml = MediaTypes.`application/xml` withCharset HttpCharsets.`UTF-8`
+
+  def printErrors(errors: List[String]): String = {
+    Json.stringify(JsObject(Seq(errorF -> JsArray(errors.map(JsString)))))
+  }
+
+}

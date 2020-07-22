@@ -72,27 +72,7 @@ class FeedDao(val db: DatabaseDef)(implicit driver: CurrentDriver) {
   }
 
   def findOne(feedId: Long): IO[NotFoundError, Feed] = {
-    val t = for {
-      feedOpt <- db.go {
-        byFeed(feedId).take(1).result
-      }.map(_.headOption)
-      feed <- ZIO.fromOption(feedOpt)
-    } yield feed
-    t.mapError {
-      case None =>
-        NotFoundError(feedId)
-    }
-//    db.go {
-//      byFeed(feedId).take(1).result
-//    }.map(_.headOption).map {
-//      case Some(feed) => IO.succeed(feed)
-//      case None => IO.fail(NotFoundError(feedId))
-//    }.flatten
-//    db.go {
-//      byFeed(feedId).take(1).result
-//    }.map(_.head).mapError { _ =>
-//      NotFoundError(feedId)
-//    }
+    byFeed(feedId).take(1).result.headOption ~> db <~ feedId
   }
 
   def modifyFav(feedId: Long, fav: Boolean): Task[Int] = {

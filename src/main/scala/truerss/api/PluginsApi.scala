@@ -4,11 +4,7 @@ import akka.http.scaladsl.server.Directives._
 import truerss.dto.PluginsViewDto
 import truerss.services.ApplicationPluginsService
 
-import scala.concurrent.ExecutionContext
-
-class PluginsApi(pluginsService: ApplicationPluginsService)(
-  implicit val ec: ExecutionContext
-) extends HttpApi {
+class PluginsApi(private val pluginsService: ApplicationPluginsService) extends HttpApi {
 
   import JsonFormats._
 
@@ -18,10 +14,9 @@ class PluginsApi(pluginsService: ApplicationPluginsService)(
         pathPrefix("all")  {
           w[PluginsViewDto](pluginsService.view)
         } ~ pathPrefix("js") {
-          // todo header js
-          w[String](pluginsService.js)
+          doneWith(pluginsService.js, HttpApi.javascript)
         } ~ pathPrefix("css") {
-          w[String](pluginsService.css)
+          doneWith(pluginsService.css, HttpApi.css)
         }
       }
     }

@@ -4,6 +4,7 @@ import akka.http.scaladsl.Http
 import truerss.api.{RoutingEndpoint, WebSocketsSupport}
 import truerss.db.Predefined
 import truerss.db.driver.DbInitializer
+import truerss.db.validation.{SourceUrlValidator, SourceValidator}
 import truerss.services._
 import truerss.services.actors.MainActor
 import truerss.util.TrueRSSConfig
@@ -31,13 +32,17 @@ object Main extends App {
 
       val settingsService = new SettingsService(dbLayer)
       val sourceOverviewService = new SourceOverviewService(dbLayer)(servicesEc)
-      val sourcesService = new SourcesService(dbLayer, actualConfig.appPlugins, stream)
+      val sourceUrlValidator = new SourceUrlValidator()
+      val sourceValidator = new SourceValidator(dbLayer, sourceUrlValidator, actualConfig.appPlugins)
+      val sourcesService = new SourcesService(dbLayer, actualConfig.appPlugins, stream, sourceValidator)
       val applicationPluginsService = new ApplicationPluginsService(actualConfig.appPlugins)
-      val opmlService = new OpmlService(sourcesService, stream)(servicesEc)
+      val opmlService = new OpmlService(sourcesService)
       val feedsService = new FeedsService(dbLayer)
-      val contentReaderService = new ContentReaderService(feedsService,
-        applicationPluginsService, settingsService)(servicesEc)
+      val readerClient = new ReaderClient(applicationPluginsService)
+      val contentReaderService = new ContentReaderService(feedsService, readerClient, settingsService)
       val searchService = new SearchService(dbLayer)
+      val refreshSourcesService = new RefreshSourcesService(stream)
+      val markService = new MarkService(dbLayer)
 
       val feedParallelism = zio.Runtime.default.unsafeRun(
         settingsService.where[Int](
@@ -60,6 +65,8 @@ object Main extends App {
         sourceOverviewService = sourceOverviewService,
         settingsService = settingsService,
         contentReaderService = contentReaderService,
+        refreshSourcesService = refreshSourcesService,
+        markService = markService,
         wsPort = actualConfig.wsPort
       )
 

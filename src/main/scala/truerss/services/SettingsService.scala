@@ -2,18 +2,16 @@ package truerss.services
 
 import org.slf4j.LoggerFactory
 import truerss.db.{DbLayer, UserSettings}
-import truerss.dto.{AvailableSetup, NewSetup, Setup, SetupKey}
+import truerss.dto.{AvailableSetup, CurrentValue, NewSetup, Setup, SetupKey}
 import truerss.util.SettingsImplicits
 import zio.Task
 
 import scala.reflect.ClassTag
 
-class SettingsService(dbLayer: DbLayer) {
+class SettingsService(private val dbLayer: DbLayer) {
 
   import SettingsImplicits._
   import SettingsService._
-
-  private val logger = LoggerFactory.getLogger(getClass)
 
   def getCurrentSetup: Task[Iterable[AvailableSetup[_]]] = {
     for {
@@ -23,28 +21,12 @@ class SettingsService(dbLayer: DbLayer) {
   }
 
   def updateSetups(newSetups: Iterable[NewSetup[_]]): Task[Unit] = {
-    getCurrentSetup.flatMap { xs =>
-      val result = newSetups.foldLeft(Reducer.empty) { case (r, newSetup) =>
-        xs.find(_.key == newSetup.key).map { result =>
-          if (newSetup.isValidAgainst(result)) {
-            val setup = newSetup.toUserSetup.withDescription(result.description)
-            r.withSetup(setup)
-          } else {
-            logger.warn(s"Incorrect value: ${newSetup.key}:${newSetup.value}, options: ${result.options}")
-            r.withError(s"Incorrect value: ${newSetup.value}")
-          }
-        }.getOrElse(r)
-      }
-      if (result.isEmpty) {
-        Task.fail(ValidationError(result.errors.toList))
-      } else {
-        update(result.setups)
-      }
-    }
-  }
-
-  private def update(userSettings: Iterable[UserSettings]): Task[Unit] = {
-    dbLayer.userSettingsDao.bulkUpdate(userSettings).map(_ => ())
+    for {
+      xs <- getCurrentSetup
+      result <- Task.effectTotal(Reducer.reprocess(xs, newSetups))
+      _ <- Task.fail(ValidationError(result.errors.toList)).when(result.errors.nonEmpty)
+      _ <- dbLayer.userSettingsDao.bulkUpdate(result.setups)
+    } yield ()
   }
 
   // the application layer dependency
@@ -57,7 +39,6 @@ class SettingsService(dbLayer: DbLayer) {
     )
     getCurrentSetup.map { xs =>
       xs.find(_.key == key.name).map { available =>
-
         Setup(
           key = key,
           value = available.value.value.asInstanceOf[T]
@@ -69,6 +50,10 @@ class SettingsService(dbLayer: DbLayer) {
 }
 
 object SettingsService {
+
+  import SettingsImplicits._
+
+  private val logger = LoggerFactory.getLogger(getClass)
 
   case class Reducer(setups: Vector[UserSettings], errors: Vector[String]) {
     def withError(error: String): Reducer = {
@@ -86,6 +71,24 @@ object SettingsService {
 
   object Reducer {
     val empty = Reducer(Vector.empty, Vector.empty)
+
+    def reprocess(xs: Iterable[AvailableSetup[_]], newSetups: Iterable[NewSetup[_]]): Reducer = {
+      newSetups.foldLeft(Reducer.empty) { case (r, newSetup) =>
+        xs.find(_.key == newSetup.key).map { result =>
+          if (newSetup.isValidAgainst(result)) {
+            val setup = newSetup.toUserSetup.withDescription(result.description)
+            r.withSetup(setup)
+          } else {
+            logger.warn(s"Incorrect value: ${newSetup.key}:${newSetup.value}, options: ${result.options}")
+            r.withError(buildError(newSetup.value))
+          }
+        }.getOrElse(r)
+      }
+    }
+
+    def buildError(value: CurrentValue[_]): String = {
+      s"Incorrect value: $value"
+    }
   }
 
 }

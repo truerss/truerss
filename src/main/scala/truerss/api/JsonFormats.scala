@@ -141,6 +141,7 @@ object JsonFormats {
     }
   }
 
+
   implicit lazy val newSetupFormat: Format[NewSetup[_]] = new Format[NewSetup[_]] {
     private final val fKey = "key"
     private final val fValue = "value"

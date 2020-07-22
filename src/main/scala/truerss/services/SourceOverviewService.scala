@@ -9,7 +9,7 @@ import zio.Task
 
 import scala.concurrent.ExecutionContext
 
-class SourceOverviewService(val dbLayer: DbLayer)(implicit ec: ExecutionContext) {
+class SourceOverviewService(private val dbLayer: DbLayer)(implicit ec: ExecutionContext) {
 
   import SourceOverviewService.calculate
 

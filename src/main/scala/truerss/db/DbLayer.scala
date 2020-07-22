@@ -10,8 +10,7 @@ import scala.concurrent.ExecutionContext
   */
 case class DbLayer(
                  db: JdbcBackend.DatabaseDef,
-                 driver: CurrentDriver)(
-                implicit val ec: ExecutionContext) {
+                 driver: CurrentDriver) {
   val sourceDao = new SourceDao(db)(driver)
   val feedDao = new FeedDao(db)(driver)
   val settingsDao = new PredefinedSettingsDao(db)(driver)

@@ -1,9 +1,5 @@
 package truerss.db.validation
 
-import java.util.concurrent.Executors
-
-import akka.dispatch.ExecutionContexts
-import org.slf4j.LoggerFactory
 import truerss.dto.SourceDto
 import truerss.util.{Request, syntax}
 import zio.{Task, ZIO}
@@ -18,18 +14,10 @@ class SourceUrlValidator extends Request {
   import syntax._
   import ext._
 
-  private val logger = LoggerFactory.getLogger(getClass)
-
   override protected val connectionTimeout: Int = 1000
   override protected val readTimeout: Int = 1000
 
-  // todo configuration plz
-  private implicit val ec = ExecutionContexts.fromExecutor(
-    Executors.newFixedThreadPool(10)
-  )
-
   def validateUrl(dto: SourceDto): Either[String, SourceDto] = {
-    logger.debug(s"Validate: ${dto.url}")
     Try {
       makeRequest(dto.url).get(contentTypeHeaderName).map(isValid)
     }.toOption.flatten match {
@@ -50,10 +38,6 @@ class SourceUrlValidator extends Request {
     getRequestHeaders(url)
   }
 
-  private def buildError(url: String) = {
-    s"$url is not a valid RSS/Atom feed"
-  }
-
 }
 
 object SourceUrlValidator {
@@ -61,5 +45,9 @@ object SourceUrlValidator {
 
   def isValid(value: String): Boolean = {
     value.contains("xml")
+  }
+
+  def buildError(url: String): String = {
+    s"$url is not a valid RSS/Atom feed"
   }
 }

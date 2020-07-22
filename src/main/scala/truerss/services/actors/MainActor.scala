@@ -1,35 +1,17 @@
 package truerss.services.actors
 
-import akka.actor.SupervisorStrategy._
-import akka.actor.{Actor, ActorLogging, ActorRef, OneForOneStrategy, Props}
+import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.event.EventStream
-import truerss.api.WebSockerController
-import truerss.dto.{Notify, NotifyLevel}
 import truerss.services.actors.events.{EventHandlerActor, PublishPluginActor}
 import truerss.services.actors.sync.SourcesKeeperActor
 import truerss.services.{ApplicationPluginsService, FeedsService, SourcesService}
 import truerss.util.TrueRSSConfig
-
-import scala.concurrent.duration._
 
 class MainActor(config: TrueRSSConfig,
                 applicationPluginsService: ApplicationPluginsService,
                 sourcesService: SourcesService,
                 feedsService: FeedsService)
   extends Actor with ActorLogging {
-
-  // todo
-  override val supervisorStrategy =
-    OneForOneStrategy(maxNrOfRetries = 10, withinTimeRange = 1 minute) {
-      case x: java.sql.SQLException =>
-        log.error(x, x.getMessage)
-        context.system.eventStream.publish(WebSockerController.NotifyMessage(
-            Notify("Db Error. System will be stopped", NotifyLevel.Danger)))
-        Stop
-      case x: Throwable =>
-        log.error(x, x.getMessage)
-        Resume
-  }
 
   private val stream: EventStream = context.system.eventStream
 

@@ -11,7 +11,6 @@ trait Request {
   protected val readTimeout = 10000
   protected val retryCount = 3
 
-  // todo queue plz, thread limitation, border
   def getResponse(url: String): HttpResponse[String] = {
     handle(defaultRequest(url))
   }
@@ -54,6 +53,9 @@ trait Request {
 }
 
 object DefaultParameters {
+
+  val emptyResponse: HttpResponse[String] = new HttpResponse[String]("", code = 504, Map.empty)
+
   val userAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.153 Safari/537.36"
 
   val userAgents = Vector(

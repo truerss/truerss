@@ -96,7 +96,7 @@ case class SourceOverview(
                          )
 
 object SourceOverview {
-  def empty(sourceId: Long) = {
+  def empty(sourceId: Long): SourceOverview = {
     SourceOverview(
       sourceId = sourceId,
       unreadCount = 0,

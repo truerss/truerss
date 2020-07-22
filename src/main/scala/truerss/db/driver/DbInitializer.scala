@@ -56,7 +56,7 @@ object DbInitializer {
 
     runMigrations(db, dbProfile, driver)
 
-    DbLayer(db, driver)(ec)
+    DbLayer(db, driver)
   }
 
   private def createTables(db: JdbcBackend.DatabaseDef, dbProfile: DBProfile, driver: CurrentDriver): Unit = {

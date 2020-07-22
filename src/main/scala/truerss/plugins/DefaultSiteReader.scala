@@ -137,7 +137,7 @@ class DefaultSiteReader(config: Config)
 
       need.select("form, input, meta, style, script").asScala.foreach(_.remove)
 
-      need.html().some.right
+      Some(need.html()).right
     }
   }
 

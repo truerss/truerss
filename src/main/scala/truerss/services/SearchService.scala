@@ -6,7 +6,7 @@ import truerss.services.FeedsService.toPage
 import zio.Task
 
 
-class SearchService(dbLayer: DbLayer) {
+class SearchService(private val dbLayer: DbLayer) {
 
   def search(request: SearchRequest): Task[Page[FeedDto]] = {
     dbLayer.feedDao

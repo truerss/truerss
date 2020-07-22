@@ -8,6 +8,9 @@ class AjaxService
     @plugin_api = "/api/v1/plugins"
     @settings_api = "/api/v1/settings"
     @search_api = "/api/v1/search"
+    @mark_api = "/api/v1/mark"
+    @refresh_api = "/api/v1/refresh"
+    @overview_api = "/api/v1/overview"
     @k = (err) ->
       c(JSON.stringify(err))
       logger.warn(JSON.stringify(err))
@@ -45,7 +48,7 @@ class AjaxService
     @_post("#{@sources_api}", params, success, error)
 
   refresh_all: () ->
-    @_put("#{@sources_api}/refresh", @k , @k)
+    @_put("#{@refresh_api}", @k , @k)
 
   get_feeds: (source_id, success, error) ->
     @_get(
@@ -62,7 +65,7 @@ class AjaxService
     )
 
   refresh_one: (num, success, error) ->
-    @_put("#{@sources_api}/refresh/#{num}", {}, @k, @k)
+    @_put("#{@refresh_api}/#{num}", {}, @k, @k)
 
   remove_source: (num, success, error) ->
     @_delete("#{@sources_api}/#{num}", @k, @k)
@@ -94,14 +97,14 @@ class AjaxService
     @_get("/about", success, @k)
 
   mark_as_read: (source_id) ->
-    @_put("#{@sources_api}/mark/#{source_id}", @k, @k)
+    @_put("#{@mark_api}/mark/#{source_id}", @k, @k)
 
   mark_all_as_read: (success) ->
-    @_put("#{@sources_api}/markall", {}, success, @k)
+    @_put("#{@mark_api}/mark", {}, success, @k)
 
   get_source_overview: (sourceId, success) ->
     @_get(
-      "#{@sources_api}/overview/#{sourceId}",
+      "#{@overview_api}/#{sourceId}",
       (response) -> success(SourceOverview.create(response)),
       @k)
 
