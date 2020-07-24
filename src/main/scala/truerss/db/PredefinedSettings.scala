@@ -36,6 +36,10 @@ case class PredefinedSettings(key: String, description: String, value: SettingVa
   def toKey: SetupKey = {
     SetupKey(key, description)
   }
+
+  def default[T]: T = {
+    value.defaultValue.asInstanceOf[T]
+  }
 }
 
 object Predefined {

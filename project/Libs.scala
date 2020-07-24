@@ -83,7 +83,12 @@ object Libs {
 
     "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion % Test,
     "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion % Test,
-    "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test
+    "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test,
+
+    "org.testcontainers" % "testcontainers" % "1.14.3" % Test,
+    "org.testcontainers" % "mysql" % "1.14.3" % Test,
+    "org.testcontainers" % "postgresql" % "1.14.3" % Test,
+    "org.testcontainers" % "mockserver" % "1.14.3" % Test
   )
 
   val deps = db ++ akka ++ truerss ++ logs ++

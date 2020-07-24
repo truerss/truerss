@@ -10,6 +10,11 @@ object ZIOMaterializer {
     def e: Either[Throwable, T] = {
       zio.Runtime.default.unsafeRun(x.either)
     }
+
+    def err[T <: Throwable] = {
+      e.swap.toOption.get.asInstanceOf[T]
+    }
+
   }
 
 }

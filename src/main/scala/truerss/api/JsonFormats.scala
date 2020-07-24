@@ -4,7 +4,7 @@ import java.util.Date
 
 import play.api.libs.json._
 import truerss.db._
-import truerss.dto.{Notify, _}
+import truerss.dto._
 
 object JsonFormats {
 
@@ -31,6 +31,12 @@ object JsonFormats {
   implicit lazy val unitWrites: Writes[Unit] = new Writes[Unit] {
     override def writes(o: Unit): JsValue = {
       JsNull
+    }
+  }
+
+  implicit lazy val unitReads: Reads[Unit] = new Reads[Unit] {
+    override def reads(json: JsValue): JsResult[Unit] = {
+      JsSuccess(())
     }
   }
 
@@ -91,15 +97,15 @@ object JsonFormats {
         case AvailableSelect(predefined) =>
           JsArray(predefined.map(x => JsNumber(x)).toSeq)
 
-        case AvailableRadio(_) =>
-          r
+        case AvailableRadio =>
+          r // + ("value" -> JsBoolean(x))
       }
     }
 
     override def reads(json: JsValue): JsResult[AvailableValue] = {
       json match {
-        case JsBoolean(b) =>
-          JsSuccess(AvailableRadio(b))
+        case JsObject(map) if map.keys.exists(_ == "type") =>
+          JsSuccess(AvailableRadio)
         case JsArray(xs) =>
           JsSuccess(AvailableSelect(xs.collect { case JsNumber(x) => x.toInt }))
         case _ =>
@@ -136,6 +142,23 @@ object JsonFormats {
           "description" -> o.description.j,
           "options" -> availableValueFormat.writes(o.options),
           "value" -> currentValueFormat.writes(o.value)
+        )
+      )
+    }
+  }
+
+  implicit lazy val availableSetupReads: Reads[AvailableSetup[_]] = new Reads[AvailableSetup[_]] {
+    override def reads(json: JsValue): JsResult[AvailableSetup[_]] = {
+      val key = (json \ "key").as[String]
+      val description = (json \ "description").as[String]
+      val value = (json \ "value").as[CurrentValue[_]]
+      val options = (json \ "options").as[AvailableValue]
+      JsSuccess(
+        AvailableSetup(
+          key = key,
+          description = description,
+          value = value,
+          options = options
         )
       )
     }
@@ -200,6 +223,28 @@ object JsonFormats {
     }
   }
 
+  implicit def pageReader[T](implicit f: Reads[T]): Reads[Page[T]] = new Reads[Page[T]] {
+    override def reads(json: JsValue): JsResult[Page[T]] = {
+      json match {
+        case JsObject(obj) =>
+          val tmp = for {
+            total <- obj.get("total").collect { case JsNumber(x) => x.toInt }
+            resources <- obj.get("resources").collect {
+              case JsArray(xs) => xs.map(f.reads).collect {
+                case JsSuccess(x, _) => x
+              }
+            }
+          } yield Page(total, resources)
+
+          tmp.map { x => JsSuccess(x) }.getOrElse(JsError("Failed to deserialize"))
+
+        case _ =>
+          JsError("Object is required")
+      }
+    }
+  }
+
   implicit val pageFeedsWriter = pageWriter[FeedDto]
+  implicit val pageFeedsReader = pageReader[FeedDto]
 
 }

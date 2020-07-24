@@ -64,7 +64,7 @@ object SettingsImplicits {
     def toAvailableOptions: AvailableValue = {
       x.value match {
         case SelectableValue(predefined, _) => AvailableSelect(predefined)
-        case RadioValue(currentState) => AvailableRadio(currentState)
+        case RadioValue(_) => AvailableRadio
       }
     }
   }

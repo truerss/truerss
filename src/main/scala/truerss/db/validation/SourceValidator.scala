@@ -81,7 +81,7 @@ class SourceValidator(private val dbLayer: DbLayer,
 
 object SourceValidator {
 
-  private final val urlValidator = new UrlValidator()
+  private final val urlValidator = new UrlValidator(UrlValidator.ALLOW_LOCAL_URLS)
 
   final val intervalError = "Interval must be great than 0"
   final val urlError = "Not valid url"

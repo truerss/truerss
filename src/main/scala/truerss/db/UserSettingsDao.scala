@@ -5,6 +5,8 @@ import slick.sql.FixedSqlAction
 import truerss.db.driver.CurrentDriver
 import zio.{IO, Task, ZIO}
 
+import scala.concurrent.Future
+
 
 class UserSettingsDao(val db: DatabaseDef)(implicit driver: CurrentDriver) {
 
@@ -25,8 +27,11 @@ class UserSettingsDao(val db: DatabaseDef)(implicit driver: CurrentDriver) {
   }
 
   def bulkUpdate(settings: Iterable[UserSettings]): Task[Unit] = {
-    val xs = settings.map(toStatement)
-    Task.effectTotal(xs.map { o => db.go(o) }.map(_ => ()))
+    // TODO
+    Task.fromFuture { implicit ec =>
+      Future.sequence(settings.map(toStatement).map(x => db.run(x)))
+    }.map(_ => ())
+
   }
 
   def insert(xs: Iterable[UserSettings]): Task[Option[Int]] = {

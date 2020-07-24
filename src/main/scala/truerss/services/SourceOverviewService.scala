@@ -7,13 +7,12 @@ import truerss.db.{DbLayer, Feed}
 import truerss.dto.{FeedsFrequency, SourceOverview}
 import zio.Task
 
-import scala.concurrent.ExecutionContext
-
-class SourceOverviewService(private val dbLayer: DbLayer)(implicit ec: ExecutionContext) {
+class SourceOverviewService(private val dbLayer: DbLayer) {
 
   import SourceOverviewService.calculate
 
   def getSourceOverview(sourceId: Long): Task[SourceOverview] = {
+    dbLayer.sourceDao.findOne(sourceId) *>
     dbLayer.feedDao.findBySource(sourceId).map(calculate(sourceId, _))
   }
 
@@ -58,9 +57,14 @@ object SourceOverviewService {
       val diff = scala.math.abs(end - start)
       val daysDiff = TimeUnit.SECONDS.toDays(diff) * 1.0
 
-      val perDay = count / daysDiff
-      val perWeek = count / (daysDiff / 7.0)
-      val perMonth = count / (daysDiff / 30.0)
+      val (perDay, perWeek, perMonth) = if (daysDiff < 1) {
+        (0d, 0d, 0d)
+      } else {
+        (count / daysDiff,
+          count / (daysDiff / 7.0),
+          count / (daysDiff / 30.0)
+        )
+      }
 
       FeedsFrequency(
         perDay = perDay,

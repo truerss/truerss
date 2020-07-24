@@ -104,9 +104,7 @@ object TrueRSSConfig {
     help("help") text "print usage text"
   }
 
-  def loadConfiguration(
-                         trueRSSConfig: TrueRSSConfig
-                       ): (TrueRSSConfig, DbConfig, Boolean) = {
+  def loadConfiguration(trueRSSConfig: TrueRSSConfig): (TrueRSSConfig, DbConfig, Boolean) = {
     val configFileName = "truerss.config"
     val appDir = trueRSSConfig.appDir
     val confPath = s"$appDir/$configFileName"

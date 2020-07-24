@@ -4,15 +4,16 @@ import com.github.truerss.base.Entry
 import slick.jdbc.JdbcBackend.DatabaseDef
 import truerss.db.driver.CurrentDriver
 import truerss.services.NotFoundError
-import zio.{IO, Task, ZIO}
+import truerss.util.Util
+import zio.{IO, Task}
 
 
 class FeedDao(val db: DatabaseDef)(implicit driver: CurrentDriver) {
 
+  import FeedDao._
   import JdbcTaskSupport._
   import driver.profile.api._
-  import driver.query.{feeds, bySource, byFeed, FeedsTQExt, FeedsQExt}
-  import FeedDao._
+  import driver.query.{FeedsQExt, FeedsTQExt, byFeed, bySource, feeds}
 
   private type FPage = Task[(Seq[Feed], Int)]
 
@@ -90,6 +91,7 @@ class FeedDao(val db: DatabaseDef)(implicit driver: CurrentDriver) {
   def insert(feed: Feed): Task[Long] = {
     ((feeds returning feeds.map(_.id)) += feed) ~> db
   }
+
   def insertMany(xs: Iterable[Feed]) = {
     (feeds ++= xs) ~> db
   }
@@ -124,16 +126,19 @@ class FeedDao(val db: DatabaseDef)(implicit driver: CurrentDriver) {
     fetchPage(q, offset, limit)
   }
 
-  def mergeFeeds(sourceId: Long, xs: Iterable[Entry]): Task[Seq[Feed]] = {
-    val urls = xs.map(_.url)
+  private def findByUrls(sourceId: Long, urls: Iterable[String]): Task[Iterable[Feed]] = {
+    db.go(bySource(sourceId).filter(_.url inSet urls).result)
+  }
+
+  def mergeFeeds(sourceId: Long, xs: Iterable[Entry]): Task[Iterable[Feed]] = {
     for {
-      inDb <- db.go(bySource(sourceId).filter(_.url inSet urls).result)
+      inDb <- findByUrls(sourceId, xs.map(_.url))
       calc = calculate(sourceId, xs, inDb)
       _ <- insertMany(calc.feedsToInsert)
       _ <- updateByUrl(calc.feedsToUpdateByUrl)
+      feeds <- findByUrls(sourceId, calc.feedsToInsert.map(_.url))
     } yield {
-      // return by new urls
-      ???
+      feeds ++ calc.feedsToUpdateByUrl
     }
   }
 
@@ -149,7 +154,7 @@ class FeedDao(val db: DatabaseDef)(implicit driver: CurrentDriver) {
 }
 
 object FeedDao {
-  import truerss.util.Util._
+  import Util._
 
   def getReadValues(unreadOnly: Boolean): Vector[Boolean] = {
     if (unreadOnly) {
@@ -159,7 +164,7 @@ object FeedDao {
     }
   }
 
-  def calculate(sourceId: Long, xs: Iterable[Entry], inDb: Seq[Feed]): FeedCalc = {
+  def calculate(sourceId: Long, xs: Iterable[Entry], inDb: Iterable[Feed]): FeedCalc = {
     val inDbMap = inDb.map(f => f.url -> f).toMap
     val (forceUpdateXs, updateXs) = xs.partition(_.forceUpdate)
 

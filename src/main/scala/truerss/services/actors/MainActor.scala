@@ -31,9 +31,7 @@ class MainActor(config: TrueRSSConfig,
 
   stream.subscribe(publishActor, classOf[PublishPluginActor.PublishEvent])
   stream.subscribe(eventHandlerActor, classOf[EventHandlerActor.EventHandlerActorMessage])
-  stream.subscribe(sourcesRef, classOf[SourcesKeeperActor.NewSource])
-  stream.subscribe(sourcesRef, classOf[SourcesKeeperActor.SourceDeleted])
-  stream.subscribe(sourcesRef, classOf[SourcesKeeperActor.ReloadSource])
+  stream.subscribe(sourcesRef, classOf[SourcesKeeperActor.SourcesMessage])
 
 
   def receive = {

@@ -21,7 +21,7 @@ object WebSockerController {
   import JsonFormats.feedDtoFormat
 
   sealed trait WSMessage
-  case class NewFeeds(xs: Vector[FeedDto]) extends WSMessage
+  case class NewFeeds(xs: Iterable[FeedDto]) extends WSMessage
   case class NotifyMessage(message: Notify) extends WSMessage
 
   implicit class WSMessageJson(val x: WSMessage) extends AnyVal {

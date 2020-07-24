@@ -48,7 +48,7 @@ class AjaxService
     @_post("#{@sources_api}", params, success, error)
 
   refresh_all: () ->
-    @_put("#{@refresh_api}", @k , @k)
+    @_put("#{@refresh_api}/all", @k , @k)
 
   get_feeds: (source_id, success, error) ->
     @_get(

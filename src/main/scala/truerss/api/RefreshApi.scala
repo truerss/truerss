@@ -9,11 +9,12 @@ class RefreshApi(private val refreshSourcesService: RefreshSourcesService) exten
 
   val route = api {
     pathPrefix("refresh") {
-      pathEndOrSingleSlash {
-        w[Unit](refreshSourcesService.refreshAll)
-      } ~
-      pathPrefix(LongNumber) { sourceId =>
-        w[Unit](refreshSourcesService.refreshSource(sourceId))
+      put {
+        pathPrefix("all") {
+          w[Unit](refreshSourcesService.refreshAll)
+        } ~ pathPrefix(LongNumber) { sourceId =>
+          w[Unit](refreshSourcesService.refreshSource(sourceId))
+        }
       }
     }
   }

@@ -87,7 +87,7 @@ object SettingsService {
     }
 
     def buildError(value: CurrentValue[_]): String = {
-      s"Incorrect value: $value"
+      s"Incorrect value: ${value.value}"
     }
   }
 

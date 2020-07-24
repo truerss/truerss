@@ -17,7 +17,7 @@ class SettingsApiTests extends BaseApiTest {
   private val errors = "boom" :: Nil
   private val newTestSetups: Iterable[NewSetup[_]] = NewSetup("test", CurrentValue(false)) :: Nil
   private val invalidNewSetup: Iterable[NewSetup[_]] = NewSetup("test#1", CurrentValue(false)) :: Nil
-  private val current: Iterable[AvailableSetup[_]] = AvailableSetup("test", "test", AvailableRadio(true), CurrentValue(false)) :: Nil
+  private val current: Iterable[AvailableSetup[_]] = AvailableSetup("test", "test", AvailableRadio, CurrentValue(false)) :: Nil
 
   "settings api" should {
     "get current setup" in new Test() {

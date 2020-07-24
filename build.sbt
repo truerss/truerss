@@ -30,7 +30,15 @@ val setup = Seq(
 
 rpmVendor in Rpm := "fntz"
 
-lazy val mainProject = Project("truerss", file(".")).settings(
+// integrations testing
+
+lazy val RealTest = config("real") extend(Test)
+
+
+lazy val mainProject = Project("truerss", file("."))
+  .configs(RealTest)
+  .settings( inConfig(RealTest)(Defaults.testSettings) : _*)
+  .settings(
     rpmVendor in Rpm := "fntz",
     rpmVendor := "test",
     setup ++ Seq(installTask, buildCoffeeTask) ++ Seq(
@@ -39,7 +47,7 @@ lazy val mainProject = Project("truerss", file(".")).settings(
     classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.ScalaLibrary,
     name := "truerss",
     version := "0.0.3.4.pre.6",
-    parallelExecution in Test := false,
+    parallelExecution in Test := true,
     assemblyJarName in assembly := s"truerss_${version.value}.jar",
     mainClass in assembly := Some("Main"),
     assemblyMergeStrategy in assembly := {

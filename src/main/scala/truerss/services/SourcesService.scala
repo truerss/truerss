@@ -22,7 +22,7 @@ class SourcesService(private val dbLayer: DbLayer,
     dbLayer.sourceDao.all.map { xs => xs.map(_.toView).toVector }
   }
 
-  def getAll: Task[Vector[SourceViewDto]] = {
+  def findAll: Task[Vector[SourceViewDto]] = {
     // TODO join
     for {
       feedsBySource <- dbLayer.feedDao

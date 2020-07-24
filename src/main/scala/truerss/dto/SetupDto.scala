@@ -27,7 +27,7 @@ object Default extends LowerPriorityImplicits {
 
 sealed trait AvailableValue
 case class AvailableSelect(predefined: Iterable[Int]) extends AvailableValue
-case class AvailableRadio(currentState: Boolean) extends AvailableValue
+case object AvailableRadio extends AvailableValue
 
 case class CurrentValue[T](value: T)
 object CurrentValue {

@@ -49,10 +49,8 @@ class FeedsService(dbLayer: DbLayer) {
     } yield ()
   }
 
-  def registerNewFeeds(sourceId: Long, feeds: Vector[Entry]): Task[Vector[FeedDto]] = {
-    feedDao.mergeFeeds(sourceId, feeds)
-      .map(_.toVector)
-      .map(xs => xs.map(_.toDto))
+  def registerNewFeeds(sourceId: Long, feeds: Iterable[Entry]): Task[Iterable[FeedDto]] = {
+    feedDao.mergeFeeds(sourceId, feeds).map { xs => xs.map(_.toDto) }
   }
 
   def updateContent(feedId: Long, content: String): Task[Unit] = {

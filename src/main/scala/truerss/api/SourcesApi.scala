@@ -20,10 +20,11 @@ class SourcesApi(feedsService: FeedsService,
     pathPrefix("sources") {
       get {
         pathPrefix("all") {
-          w[Vector[SourceViewDto]](ss.getAll)
+          w[Iterable[SourceViewDto]](ss.findAll)
         } ~ (pathPrefix(LongNumber) & pathEnd) { sourceId =>
           w[SourceViewDto](ss.getSource(sourceId))
         } ~ pathPrefix("latest") {
+          // todo to feeds api
           parameters('offset ? "0", 'limit ? "100") { (from, to) =>
             w[Page[FeedDto]](fs.latest(from.toIntOr(0), to.toIntOr(100)))
           }
@@ -32,7 +33,7 @@ class SourcesApi(feedsService: FeedsService,
             w[Page[FeedDto]](fs.findBySource(sourceId, unreadOnly, from.toIntOr(0), limit.toIntOr(100)))
           }
         } ~ pathPrefix("unread" / LongNumber) { sourceId =>
-          w[Vector[FeedDto]](fs.findUnread(sourceId))
+          w[Iterable[FeedDto]](fs.findUnread(sourceId))
         }
       } ~ post {
         pathEndOrSingleSlash {

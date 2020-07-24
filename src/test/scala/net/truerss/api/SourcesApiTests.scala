@@ -205,7 +205,7 @@ class SourcesApiTests extends BaseApiTest {
     ) {
       var savedSourceId = 0L
 
-      override def getAll: Task[Vector[SourceViewDto]] = Task.succeed(dtos)
+      override def findAll: Task[Vector[SourceViewDto]] = Task.succeed(dtos)
 
       override def getSource(sourceId: Long): Task[SourceViewDto] = {
         sourceId match {

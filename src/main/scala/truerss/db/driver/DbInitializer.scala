@@ -19,9 +19,7 @@ object DbInitializer {
   private val maxTime = 60*1000
   private val idleTime = 45*1000
 
-  def initialize(dbConf: DbConfig, isUserConf: Boolean)(
-    implicit ec: ExecutionContext
-  ): DbLayer = {
+  def initialize(dbConf: DbConfig, isUserConf: Boolean): DbLayer = {
     val backend: Option[SupportedDb] = DBProfile.get(dbConf.dbBackend)
 
     if (backend.isEmpty) {
@@ -96,8 +94,7 @@ object DbInitializer {
     }
   }
 
-  private def runMigrations(db: JdbcBackend.DatabaseDef, dbProfile: DBProfile,
-                    driver: CurrentDriver)(implicit ec: ExecutionContext): Unit = {
+  private def runMigrations(db: JdbcBackend.DatabaseDef, dbProfile: DBProfile, driver: CurrentDriver): Unit = {
 
     import driver.profile.api._
 
@@ -137,8 +134,7 @@ object DbInitializer {
     Console.out.println("completed...")
   }
 
-  def runPredefinedChanges(db: JdbcBackend.DatabaseDef, dbProfile: DBProfile,
-                           driver: CurrentDriver)(implicit ec: ExecutionContext): Unit = {
+  def runPredefinedChanges(db: JdbcBackend.DatabaseDef, dbProfile: DBProfile, driver: CurrentDriver): Unit = {
     import driver.profile.api._
     Predefined.predefined.foreach { p =>
       val q = Await.result(

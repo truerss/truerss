@@ -5,27 +5,31 @@ import akka.event.EventStream
 import com.github.truerss.base.Entry
 import truerss.api.WebSockerController
 import truerss.services.{FeedsService, SourcesService}
+import truerss.util.EventStreamExt
 
 class EventHandlerActor(private val sourcesService: SourcesService,
                         feedsService: FeedsService)
   extends Actor with ActorLogging {
 
   import EventHandlerActor._
-  import context.dispatcher
+  import EventStreamExt._
 
   val stream: EventStream = context.system.eventStream
 
   def receive: Receive = {
     case RegisterNewFeeds(sourceId, entries) =>
-      feedsService.registerNewFeeds(sourceId, entries)
-        .map(WebSockerController.NewFeeds).map { x =>
-        stream.publish(x)
-      }
+      val f = for {
+        feeds <- feedsService.registerNewFeeds(sourceId, entries)
+        _ <- stream.fire(WebSockerController.NewFeeds(feeds))
+      } yield ()
+
+      zio.Runtime.default.unsafeRunTask(f)
 
     case ModifySource(sourceId) =>
-      for {
+      val f = for {
         _ <- sourcesService.changeLastUpdateTime(sourceId)
       } yield ()
+      zio.Runtime.default.unsafeRunTask(f)
 
   }
 }
