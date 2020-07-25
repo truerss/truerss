@@ -258,7 +258,7 @@ trait FullTests extends Specification { self: Resources =>
       result must have size 1
 
       // delete source
-      sourceApiClient.deleteOne(sourceId)
+      sourceApiClient.deleteOne(sourceId).m
 
       sourceApiClient.findOne(sourceId).e must beLeft(EntityNotFoundError)
       feedsApiClient.findOne(feedId).e must beLeft(EntityNotFoundError)

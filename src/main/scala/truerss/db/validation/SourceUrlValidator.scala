@@ -1,5 +1,6 @@
 package truerss.db.validation
 
+import org.slf4j.LoggerFactory
 import truerss.dto.SourceDto
 import truerss.util.{Request, syntax}
 import zio.{Task, ZIO}
@@ -14,6 +15,8 @@ class SourceUrlValidator extends Request {
   import syntax._
   import ext._
 
+  protected val logger = LoggerFactory.getLogger(getClass)
+
   override protected val connectionTimeout: Int = 1000
   override protected val readTimeout: Int = 1000
 
@@ -22,7 +25,9 @@ class SourceUrlValidator extends Request {
       makeRequest(dto.url).get(contentTypeHeaderName).map(isValid)
     }.toOption.flatten match {
       case Some(true) => dto.right
-      case _ => buildError(dto.url).left
+      case x =>
+        logger.warn(s"${dto.url} is not valid")
+        buildError(dto.url).left
     }
   }
 

@@ -12,7 +12,6 @@ class OpmlService(private val sourcesService: SourcesService) {
   }
 
   def create(text: String): Task[Iterable[SourceViewDto]] = {
-    println("$"*100)
     for {
       xs <- OpmlParser.parse(text)
       fs = fromOutlines(xs)

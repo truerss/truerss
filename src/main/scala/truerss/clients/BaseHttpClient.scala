@@ -3,7 +3,8 @@ package truerss.clients
 import org.slf4j.LoggerFactory
 import play.api.libs.json.{Json, Reads}
 import scalaj.http.{Http, HttpRequest, HttpResponse}
-import zio.Task
+import zio.blocking.Blocking
+import zio.{RIO, Task}
 
 class BaseHttpClient(val baseUrl: String) {
 
@@ -13,7 +14,7 @@ class BaseHttpClient(val baseUrl: String) {
 
   protected val api = "api/v1"
 
-  protected val readTimeout = 10000       // ms
+  protected val readTimeout = 15000       // ms
   protected val connectionTimeout = 3000  // ms
 
   protected def put[T: Reads](url: String): Task[T] = {
@@ -72,7 +73,9 @@ class BaseHttpClient(val baseUrl: String) {
   }
 
   protected def sendRequest(req: HttpRequest): Task[HttpResponse[String]] = {
-    Task.effectTotal(req.timeout(connectionTimeout, readTimeout).asString)
+    import zio.blocking._
+    effectBlockingIO(req.timeout(connectionTimeout, readTimeout).asString)
+      .provideLayer(Blocking.live)
   }
 
 

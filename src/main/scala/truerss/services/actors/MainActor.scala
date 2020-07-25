@@ -40,7 +40,7 @@ class MainActor(config: TrueRSSConfig,
   }
 
   private def create(props: Props, name: String): ActorRef = {
-    context.actorOf(props.withDispatcher("dispatchers.truerss-dispatcher"), name)
+    context.actorOf(props, name)
   }
 
 }

@@ -38,7 +38,7 @@ object AppRunner {
     val refreshSourcesService = new RefreshSourcesService(stream)
     val markService = new MarkService(dbLayer)
 
-    val feedParallelism = zio.Runtime.default.unsafeRun(
+    val feedParallelism = zio.Runtime.default.unsafeRunTask(
       settingsService.where[Int](
         Predefined.parallelism.toKey,
         Predefined.parallelism.default[Int]

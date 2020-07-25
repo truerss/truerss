@@ -57,7 +57,7 @@ class Sqlite3Tests
 
   override def content: String = server.content
 
-  override def opmlFile: String = Resources.load("test.opml", host, port)
+  override def opmlFile: String = Resources.load("test.opml", host, serverPort)
 
   Http()(system).bindAndHandle(
     server.route,

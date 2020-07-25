@@ -11,8 +11,8 @@ class OpmlApiHttpClient(baseUrl: String) extends BaseHttpClient(baseUrl) {
 
   protected val opmlUrl = s"$baseUrl/$api/opml"
 
-  protected val defaultName = "import.opml"
-  protected val defaultFileName = "import.opml"
+  protected val defaultName = "import"
+  protected val defaultFileName = "import"
 
   def importFile(opml: String): Task[Iterable[SourceViewDto]] = {
     handleRequest[Iterable[SourceViewDto]](

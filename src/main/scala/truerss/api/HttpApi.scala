@@ -50,7 +50,7 @@ trait HttpApi {
     val tmp = f.map { x =>
       complete(flush(contentType, x))
     }
-    zio.Runtime.default.unsafeRun(tmp)
+    zio.Runtime.default.unsafeRunTask(tmp)
   }
 
   def call[W: Writes](f: Task[W]): Route = {
@@ -97,7 +97,7 @@ trait HttpApi {
       identity)
     .map(complete(_))
 
-    zio.Runtime.default.unsafeRun(taskResult)
+    zio.Runtime.default.unsafeRunTask(taskResult)
   }
 
 
