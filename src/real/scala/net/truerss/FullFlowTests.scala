@@ -1,13 +1,12 @@
-package net.truerss.sqlite3
+package net.truerss
 
-import net.truerss.{Gen, Resources, ZIOMaterializer}
 import org.specs2.mutable.Specification
 import truerss.clients.{EntityNotFoundError, _}
 import truerss.db.Predefined
-import truerss.dto.{CurrentValue, NewSetup, NewSourceDto, SearchRequest, SourceViewDto, UpdateSourceDto}
+import truerss.dto._
 import zio.Task
 
-trait FullTests extends Specification { self: Resources =>
+trait FullFlowTests extends Specification with Resources {
 
   import ZIOMaterializer._
 

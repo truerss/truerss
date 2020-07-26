@@ -1,6 +1,5 @@
-package net.truerss.sqlite3
+package net.truerss
 
-import net.truerss.{Resources, ZIOMaterializer}
 import org.specs2.mutable.Specification
 import truerss.clients.{BadRequestError, SettingsApiHttpClient}
 import truerss.db.Predefined

@@ -2,36 +2,50 @@ package truerss.api
 
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import akka.stream.Materializer
 import truerss.dto.SourceViewDto
 import truerss.services.OpmlService
-import zio.Task
 
-class OpmlApi(private val opmlService: OpmlService)
-             (private implicit val materializer: Materializer) extends HttpApi {
+import scala.concurrent.duration._
+
+class OpmlApi(private val opmlService: OpmlService) extends HttpApi {
 
   import JsonFormats._
+  import OpmlApi._
+
+  protected val defaultSerializationTime = 3 seconds
 
   val route = api {
     pathPrefix("opml") {
       (post & pathPrefix("import")) {
-        makeImport
+        makeImport1
       } ~ (get & pathEndOrSingleSlash) {
         doneWith(opmlService.build, HttpApi.opml)
       }
     }
   }
 
-  // todo switch to tasks
-  protected def makeImport: Route = {
-    fileUpload("import") { case (_, byteSource) =>
-      val tmp = byteSource.map { p =>
-        p.decodeString(HttpApi.utf8)
-      }.runFold("") { _ + _ }.map { text =>
-        zio.Runtime.default.unsafeRunTask(opmlService.create(text))
-      }(materializer.executionContext)
-      w[Iterable[SourceViewDto]](Task.fromFuture { implicit ec => tmp })
+  protected def makeImport1: Route = {
+    extractStrictEntity(defaultSerializationTime) { entity =>
+      val text = reprocessToOpml(entity.data.utf8String)
+      val result = opmlService.create(text)
+      w[Iterable[SourceViewDto]](result)
     }
+  }
+
+}
+
+object OpmlApi {
+  //
+  // I use this method, because akka-http time to time does not run future inside a stream
+  // from `fileUpload` directive
+  //
+  def reprocessToOpml(content: String): String = {
+    content.split("\n")
+      .filterNot(_.startsWith("---"))      // remove boundary
+      .filterNot(_.startsWith("Content"))
+      .map(_.trim)
+      .filterNot(_.isEmpty)
+      .mkString("\n")
   }
 
 }

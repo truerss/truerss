@@ -22,7 +22,6 @@ class EventHandlerActor(private val sourcesService: SourcesService,
         feeds <- feedsService.registerNewFeeds(sourceId, entries)
         _ <- stream.fire(WebSockerController.NewFeeds(feeds))
       } yield ()
-
       zio.Runtime.default.unsafeRunTask(f)
 
     case ModifySource(sourceId) =>

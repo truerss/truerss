@@ -1,9 +1,10 @@
 package net.truerss.api
+
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Route
 import truerss.api.{HttpApi, OpmlApi}
 import truerss.dto.SourceViewDto
-import truerss.services.{OpmlService, SourcesService}
+import truerss.services.OpmlService
 import zio.Task
 
 class OpmlApiTests extends BaseApiTest {
@@ -20,8 +21,8 @@ class OpmlApiTests extends BaseApiTest {
       }
     }
 
-    "import file to api" in {
-      success
+    "#reprocess" in {
+      OpmlApi.reprocessToOpml(entity) ==== opml.split("\n").map(_.trim).mkString("\n")
     }
   }
 
@@ -33,5 +34,29 @@ class OpmlApiTests extends BaseApiTest {
     }
     override protected val route: Route = new OpmlApi(service).route
   }
+
+  private def entity =
+    s"""
+      |--------------------------d078de50dc3eca6f
+      |Content-Disposition: form-data; name="import"; filename="test.opml"
+      |Content-Type: application/octet-stream
+      |
+      |$opml
+      |
+      |--------------------------d078de50dc3eca6f""".stripMargin
+
+  private def opml =
+    """|<?xml version="1.0"?>
+      |<opml version="1.0">
+      |<head>TrueRSS Feed List Export</head>
+      |<body>
+      |<outline title="Newsfeeds exported from Truerss" text="Newsfeeds exported from Truerss" description="Newsfeeds exported from Truerss" type="folder">
+      |    <outline type="rss" text="update-test" title="test" xmlUrl="http://%%HOST%%:%%PORT%%/rss"></outline>
+      |    <outline type="rss" text="test#2" title="test" xmlUrl="http://%%HOST%%:%%PORT%%/rss1"></outline>
+      |    <outline type="rss" text="update-test" title="test" xmlUrl="http://%%HOST%%:%%PORT%%/rss2"></outline>
+      |    <outline type="rss" text="update-test" title="test" xmlUrl="http://%%HOST%%:%%PORT%%/boom"></outline>
+      |</outline>
+      |</body>
+      |</opml>""".stripMargin
 
 }

@@ -5,8 +5,9 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.directives.LoggingMagnet
 import akka.stream.Materializer
+import truerss.services._
+
 import org.slf4j.LoggerFactory
-import truerss.services.{ApplicationPluginsService, ContentReaderService, FeedsService, MarkService, OpmlService, RefreshSourcesService, SearchService, SettingsService, SourceOverviewService, SourcesService}
 
 import scala.io.Source
 

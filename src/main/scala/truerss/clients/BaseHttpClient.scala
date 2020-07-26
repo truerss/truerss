@@ -14,9 +14,6 @@ class BaseHttpClient(val baseUrl: String) {
 
   protected val api = "api/v1"
 
-  protected val readTimeout = 15000       // ms
-  protected val connectionTimeout = 3000  // ms
-
   protected def put[T: Reads](url: String): Task[T] = {
     handleRequest[T](Http(url).method("PUT"))
   }
@@ -74,7 +71,7 @@ class BaseHttpClient(val baseUrl: String) {
 
   protected def sendRequest(req: HttpRequest): Task[HttpResponse[String]] = {
     import zio.blocking._
-    effectBlockingIO(req.timeout(connectionTimeout, readTimeout).asString)
+    effectBlockingIO(req.asString)
       .provideLayer(Blocking.live)
   }
 

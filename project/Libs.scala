@@ -18,7 +18,7 @@ object Libs {
     val logbackVersion = "1.1.2"
     val baseVersion = "0.0.6"
     val jsoupVersion = "1.8.3"
-    val akkaHttpVersion = "10.1.11"
+    val akkaHttpVersion = "10.1.12"
     val specsVersion = "4.10.0"
     val playJsonVersion = "2.9.0"
     val zioVersion = "1.0.0-RC21-2"
