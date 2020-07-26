@@ -6,15 +6,16 @@ import akka.util.Timeout
 import com.github.truerss.base.ContentTypeParam.UrlRequest
 import com.github.truerss.base.Errors.UnexpectedError
 import com.typesafe.config.ConfigFactory
-import org.specs2.mock.Mockito
+import org.jsoup.Jsoup
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import scalaj.http.HttpResponse
 import truerss.plugins.DefaultSiteReader
 
 import scala.concurrent.duration._
+import scala.collection.JavaConverters._
 
-class DefaultReaderTests extends Specification with Mockito {
+class DefaultReaderTests extends Specification {
 
   implicit val timeout = Timeout(10 seconds)
 
@@ -30,6 +31,17 @@ class DefaultReaderTests extends Specification with Mockito {
       defaultReader.matchUrl(new URL(url)) must beTrue
       defaultReader.matchUrl(new URL("https://www.youtube.com")) must beTrue
       defaultReader.matchUrl(new URL("https://news.ycombinator.com/")) must beTrue
+    }
+  }
+
+  "normalize links" should {
+    "normalize" in {
+      val link = "https://example.com"
+      DefaultSiteReader.normalizeLink(link, link) ==== link
+
+      DefaultSiteReader.normalizeLink(link, s"$link/test") ==== s"$link/test"
+
+      DefaultSiteReader.normalizeLink(link, s"/test") ==== s"$link/test"
     }
   }
 
@@ -66,6 +78,27 @@ class DefaultReaderTests extends Specification with Mockito {
       val result = defaultReader.content(UrlRequest(new URL(content1Url)))
       result.isRight must beTrue
       result.right.get.get must contain(HtmlFixtures.text)
+    }
+    "#parseContent" in {
+      val result = DefaultSiteReader.parseContent(url, HtmlFixtures.content)
+
+      result must contain(HtmlFixtures.text)
+
+      val asJsoup = Jsoup.parse(result)
+      DefaultSiteReader.forbidElements.foreach { element =>
+        asJsoup.select(element).asScala must be empty
+      }
+
+      asJsoup.select("a").asScala
+        .head.attr("href") ==== s"$url${HtmlFixtures.link}"
+
+      asJsoup.select("img").asScala
+          .foreach { img =>
+            img.attr("src").startsWith(url) must beTrue
+            img.attr("src").endsWith(".png") must beTrue
+          }
+
+      success
     }
   }
 
@@ -120,10 +153,25 @@ object HtmlFixtures {
   </rss>
 
   val text = "The US digital service"
+  val img1 = "img1"
+  val img2 = "img2"
+  val link = "/link"
 
   val content = s"""<div>
     <article>
+      <meta name="referrer" content="origin">
+      <style type="text/css">
+      p {
+        color: #26b72b;
+      }
+      </style>
       $text
+      <img id="$img1" src="http://example.com/1.png"/>
+      <img id="$img2" src="/2.png"/>
+      <a href="$link">test-link</a>
+      <form><input type="text" value="asd" /></form>
+      <input type="text" value="asd" />
+      <script type="application/javascript">alert(1);</script>
     </article>
   </div>"""
 }

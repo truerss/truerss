@@ -3,9 +3,11 @@ package truerss.http_support
 import scalaj.http._
 import zio.Task
 import zio.blocking._
+import truerss.util.TaskImplicits
 
 trait Request {
 
+  import TaskImplicits._
   import DefaultParameters._
 
   // TODO for settings
@@ -14,11 +16,11 @@ trait Request {
   protected val retryCount = 3
 
   def getResponseT(url: String): Task[HttpResponse[String]] = {
-    effectBlockingIO(getResponse(url)).provideLayer(Blocking.live)
+    effectBlockingIO(handle(defaultRequest(url))).provideLayer(Blocking.live)
   }
 
   def getResponse(url: String): HttpResponse[String] = {
-    handle(defaultRequest(url))
+    getResponseT(url).materialize
   }
 
   def getRequestHeaders(url: String): Map[String, String] = {

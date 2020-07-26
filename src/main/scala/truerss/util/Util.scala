@@ -1,5 +1,6 @@
 package truerss.util
 
+import java.net.URL
 import java.time.{LocalDateTime, ZoneOffset}
 import java.util.Date
 
@@ -16,6 +17,16 @@ object Util {
 
     def toIntOr(recover: Int): Int = {
       Try(s.toInt).getOrElse(recover)
+    }
+
+    def toUrl: URL = {
+      new URL(s)
+    }
+  }
+
+  implicit class UrlExt(val x: URL) extends AnyVal {
+    def toBase: String = {
+      s"${x.getProtocol}://${x.getHost}"
     }
   }
 

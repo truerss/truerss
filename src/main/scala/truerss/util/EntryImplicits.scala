@@ -3,7 +3,9 @@ package truerss.util
 import java.time.ZoneOffset
 
 import com.github.truerss.base.Entry
+import org.jsoup.Jsoup
 import truerss.db.Feed
+import truerss.dto.EntryDto
 
 object EntryImplicits {
 
@@ -25,6 +27,17 @@ object EntryImplicits {
       read = false,
       delete = false
     )
+  }
+
+  implicit class EntryDtoExt(val entry: EntryDto) extends AnyVal {
+    def clearImages: EntryDto = {
+      entry.description match {
+        // remove images from description
+        case Some(d) if d.contains("<img") =>
+          entry.copy(description =  Some(Jsoup.parse(d).select("img").remove().text()))
+        case _ => entry
+      }
+    }
   }
 
 }
