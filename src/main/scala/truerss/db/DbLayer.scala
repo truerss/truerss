@@ -11,8 +11,8 @@ import scala.concurrent.ExecutionContext
 case class DbLayer(
                  db: JdbcBackend.DatabaseDef,
                  driver: CurrentDriver) {
-  val sourceDao = new SourceDao(db)(driver)
-  val feedDao = new FeedDao(db)(driver)
+  val sourceDao = new SourcesDao(db)(driver)
+  val feedDao = new FeedsDao(db)(driver)
   val settingsDao = new PredefinedSettingsDao(db)(driver)
   val userSettingsDao = new UserSettingsDao(db)(driver)
 }

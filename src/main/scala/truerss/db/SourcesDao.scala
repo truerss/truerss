@@ -7,8 +7,8 @@ import truerss.db.driver.CurrentDriver
 import truerss.services.NotFoundError
 import zio.{IO, Task, ZIO}
 
-class SourceDao(val db: DatabaseDef)(implicit
-                                     driver: CurrentDriver
+class SourcesDao(val db: DatabaseDef)(implicit
+                                      driver: CurrentDriver
 ) {
 
   import JdbcTaskSupport._

@@ -4,7 +4,7 @@ import org.specs2.mutable.Specification
 import net.truerss.{Gen, ZIOMaterializer}
 import org.specs2.mock.Mockito
 import org.specs2.specification.Scope
-import truerss.db.{DbLayer, SourceDao}
+import truerss.db.{DbLayer, SourcesDao}
 import truerss.db.validation.{SourceUrlValidator, SourceValidator}
 import truerss.dto.{ApplicationPlugins, NewSourceDto}
 import truerss.services.ValidationError
@@ -183,7 +183,7 @@ class SourceValidatorTests extends Specification with Mockito {
 
   private class Test() extends Scope {
     val dbLayer = mock[DbLayer]
-    val sourceDao = mock[SourceDao]
+    val sourceDao = mock[SourcesDao]
     val sourceUrlValidator = mock[SourceUrlValidator]
     val appPlugins = mock[ApplicationPlugins]
     dbLayer.sourceDao returns sourceDao

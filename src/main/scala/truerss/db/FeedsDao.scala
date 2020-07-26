@@ -4,13 +4,12 @@ import com.github.truerss.base.Entry
 import slick.jdbc.JdbcBackend.DatabaseDef
 import truerss.db.driver.CurrentDriver
 import truerss.services.NotFoundError
-import truerss.util.{FeedsMerger, FeedCalc}
+import truerss.util.FeedsMerger
 import zio.{IO, Task}
 
+class FeedsDao(val db: DatabaseDef)(implicit driver: CurrentDriver) {
 
-class FeedDao(val db: DatabaseDef)(implicit driver: CurrentDriver) {
-
-  import FeedDao._
+  import FeedsDao._
   import FeedsMerger._
   import JdbcTaskSupport._
   import driver.profile.api._
@@ -154,7 +153,7 @@ class FeedDao(val db: DatabaseDef)(implicit driver: CurrentDriver) {
 
 }
 
-object FeedDao {
+object FeedsDao {
   def getReadValues(unreadOnly: Boolean): Vector[Boolean] = {
     if (unreadOnly) {
       Vector(false)
