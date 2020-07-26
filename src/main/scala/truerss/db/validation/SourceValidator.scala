@@ -2,6 +2,7 @@ package truerss.db.validation
 
 import org.apache.commons.validator.routines.UrlValidator
 import truerss.db.DbLayer
+import truerss.db.driver.CurrentDriver
 import truerss.dto.{ApplicationPlugins, NewSourceDto, SourceDto}
 import truerss.services.ValidationError
 import zio._
@@ -25,6 +26,8 @@ class SourceValidator(private val dbLayer: DbLayer,
       xs = sources
         .filter(isValidInterval)
         .filter(isValidUrl)
+        .filter(isValidUrlLength)
+        .filter(isValidNameLength)
         .filterNot { x => notUniqueUrls.contains(x.url)   }
         .filterNot { x => notUniqueNames.contains(x.name) }
       (plugins, notPlugins) = xs.partition(isPlugin)
@@ -37,6 +40,8 @@ class SourceValidator(private val dbLayer: DbLayer,
   def validateSource(source: SourceDto): IO[ValidationError, SourceDto] = {
     val vInterval = validateInterval(source)
     val vUrl = validateUrl(source)
+    val vNameLength = validateNameLength(source)
+    val vUrlLength =  validateUrlLength(source)
     val vUrlIsUnique = urlIsUnique(source)
     val vNameIsUnique = nameIsUnique(source)
     val vIsRss = validateRss(source)
@@ -44,6 +49,8 @@ class SourceValidator(private val dbLayer: DbLayer,
     for {
       _ <- vInterval
       _ <- vUrl
+      _ <- vNameLength
+      _ <- vUrlLength
       _ <- vUrlIsUnique
       _ <- vNameIsUnique
       _ <- vIsRss
@@ -84,40 +91,58 @@ object SourceValidator {
   private final val urlValidator = new UrlValidator(UrlValidator.ALLOW_LOCAL_URLS)
 
   final val intervalError = "Interval must be great than 0"
+  final val nameLengthError = s"Name length must be less than ${CurrentDriver.defaultLength} symbols"
+  final val urlLengthError = s"Url length must be less than ${CurrentDriver.defaultLength} symbols"
   final val urlError = "Not valid url"
   def urlError(source: SourceDto) = s"Url '${source.url}' already present in db"
   def nameError(source: SourceDto) = s"Name '${source.name}' is not unique"
 
+  def validateUrlLength(source: SourceDto): IO[ValidationError, SourceDto] = {
+    if (isValidUrlLength(source)) {
+      IO.succeed(source)
+    } else {
+      IO.fail(ValidationError(intervalError :: Nil))
+    }
+  }
+
+  def isValidUrlLength(source: SourceDto): Boolean = {
+    source.url.length <= CurrentDriver.defaultLength
+  }
+
+  def validateNameLength(source: SourceDto): IO[ValidationError, SourceDto] = {
+    if (isValidNameLength(source)) {
+      IO.succeed(source)
+    } else {
+      IO.fail(ValidationError(intervalError :: Nil))
+    }
+  }
+
+  def isValidNameLength(source: SourceDto): Boolean = {
+    source.name.length <= CurrentDriver.defaultLength
+  }
+
   def validateInterval(source: SourceDto): IO[ValidationError, SourceDto] = {
     if (isValidInterval(source)) {
-      IO.effectTotal(source)
+      IO.succeed(source)
     } else {
       IO.fail(ValidationError(intervalError :: Nil))
     }
   }
 
   def isValidInterval(source: SourceDto): Boolean = {
-    if (source.interval > 0) {
-      true
-    } else {
-      false
-    }
+    source.interval > 0
   }
 
   def validateUrl(source: SourceDto): IO[ValidationError, SourceDto] = {
     if (isValidUrl(source)) {
-      IO.effectTotal(source)
+      IO.succeed(source)
     } else {
       IO.fail(ValidationError(urlError :: Nil))
     }
   }
 
   def isValidUrl(source: SourceDto): Boolean = {
-    if (urlValidator.isValid(source.url)) {
-      true
-    } else {
-      false
-    }
+    urlValidator.isValid(source.url)
   }
 
 }

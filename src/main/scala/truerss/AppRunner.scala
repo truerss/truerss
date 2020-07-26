@@ -76,7 +76,6 @@ object AppRunner {
     actorSystem.actorOf(WebSocketsSupport.props(actualConfig.wsPort), "ws-api")
 
     actorSystem.registerOnTermination {
-      // todo ws terminate
       logger.info(s"========> ActorSytem[${actorSystem.name}] is terminating...")
     }
   }

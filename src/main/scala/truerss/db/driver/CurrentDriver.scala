@@ -27,7 +27,7 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
   }
 
   object StateSupport {
-    implicit val sourceStateMapper = MappedColumnType.base[SourceState, Byte](
+    implicit val sourceStateMapper: JdbcType[SourceState] with BaseTypedType[SourceState] = MappedColumnType.base[SourceState, Byte](
       {
         case SourceStates.Neutral => 0
         case SourceStates.Enable => 1
@@ -54,14 +54,13 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
 
   class Sources(tag: Tag) extends Table[Source](tag, tableNames.sources) {
 
-    import DateSupport._
     import StateSupport._
 
     def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
 
-    def url = column[String]("url", O.Length(256))
+    def url = column[String]("url", O.Length(CurrentDriver.defaultLength))
 
-    def name = column[String]("name", O.Length(256))
+    def name = column[String]("name", O.Length(CurrentDriver.defaultLength))
 
     def interval = column[Int]("interval", O.Default[Int](86400))
 
@@ -83,8 +82,6 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
   }
 
   class Feeds(tag: Tag) extends Table[Feed](tag, tableNames.feeds) {
-
-    import DateSupport._
 
     def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
 
@@ -126,7 +123,6 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
   }
 
   class Versions(tag: Tag) extends Table[Version](tag, tableNames.versions) {
-    import DateSupport._
 
     def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
     def fact = column[String]("fact", SqlType("TEXT"))
@@ -191,6 +187,10 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
     }
   }
 
+}
+
+object CurrentDriver {
+  final val defaultLength = 256
 }
 
 case class TableNames(sources: String,

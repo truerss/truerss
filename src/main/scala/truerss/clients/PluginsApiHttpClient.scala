@@ -16,11 +16,11 @@ class PluginsApiHttpClient(baseUrl: String) extends BaseHttpClient(baseUrl) {
   }
 
   def getCss: Task[String] = {
-    handleRequest[String](Http(s"$pluginsUrl/css").method("GET"))
+    rawGet(s"$pluginsUrl/css")
   }
 
   def getJs: Task[String] = {
-    handleRequest[String](Http(s"$pluginsUrl/js").method("GET"))
+    rawGet(s"$pluginsUrl/js")
   }
 
 }

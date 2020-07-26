@@ -4,6 +4,7 @@ import org.specs2.mutable.Specification
 import net.truerss.{Gen, ZIOMaterializer}
 import org.specs2.mock.Mockito
 import org.specs2.specification.Scope
+import truerss.db.driver.CurrentDriver
 import truerss.db.{DbLayer, SourcesDao}
 import truerss.db.validation.{SourceUrlValidator, SourceValidator}
 import truerss.dto.{ApplicationPlugins, NewSourceDto}
@@ -23,8 +24,23 @@ class SourceValidatorTests extends Specification with Mockito {
     }
 
     "validate url" in {
-      validateUrl(Gen.genNewSource.copy(url = "asd")).e must beLeft(ValidationError(urlError :: Nil))
+      validateUrl(Gen.genNewSource.copy(url = "asd")).e must beLeft(ValidationError(urlError))
       validateUrl(Gen.genNewSource.copy(url = "http://example.com/rss")).e must beRight
+    }
+
+    "validate url length" in {
+      val source = Gen.genNewSource
+      val invalidUrl = s"http://example${"a"*CurrentDriver.defaultLength}.com"
+      validateUrlLength(source).e must beRight
+
+      validateUrlLength(source.copy(url = invalidUrl)).e must beLeft(ValidationError(urlLengthError))
+    }
+
+    "validate name length" in {
+      val source = Gen.genNewSource
+      val invalidName = "a"*CurrentDriver.defaultLength + "1"
+      validateNameLength(source).e must beRight
+      validateNameLength(source.copy(name = invalidName)).e must beLeft(ValidationError(nameLengthError))
     }
 
     "validate source" should {

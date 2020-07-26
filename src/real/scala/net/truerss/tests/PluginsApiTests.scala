@@ -17,16 +17,11 @@ trait PluginsApiTests extends Specification with Resources {
     }
 
     "css" in {
-
-      // TODO
-//      pluginHttpClient.getCss.m ==== ""
-      success
+      pluginHttpClient.getCss.m ==== ""
     }
 
     "js" in {
-      success
-      // TODO
-      //pluginHttpClient.getJs.m ==== ""
+      pluginHttpClient.getJs.m ==== ""
     }
   }
 

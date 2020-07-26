@@ -7,7 +7,6 @@ import java.net.InetSocketAddress
 import org.java_websocket.WebSocket
 import org.java_websocket.handshake.ClientHandshake
 import org.java_websocket.server.WebSocketServer
-import truerss.dto.Notify
 
 class WebSocketsSupport(val port: Int) extends Actor with ActorLogging {
 
@@ -19,7 +18,13 @@ class WebSocketsSupport(val port: Int) extends Actor with ActorLogging {
   val socketServer = SocketServer(port, context, stream, log)
   socketServer.start()
 
-  def receive = { case x => log.warning(s"Unexpected message ${x}") }
+  def receive = { case x =>
+    log.warning(s"Unexpected message $x")
+  }
+
+  override def postStop(): Unit = {
+    socketServer.stop()
+  }
 
 }
 
@@ -65,7 +70,7 @@ case class SocketServer(port: Int,
 }
 
 object WebSocketsSupport {
-  def props(port: Int) = {
+  def props(port: Int): Props = {
     Props(classOf[WebSocketsSupport], port)
   }
 }
