@@ -16,8 +16,6 @@ object DbInitializer {
 
   private val waitTime = 10 seconds
   private val initFailTimeout = 1000
-  private val maxTime = 60*1000
-  private val idleTime = 45*1000
 
   def initialize(dbConf: DbConfig, isUserConf: Boolean): DbLayer = {
     val backend: Option[SupportedDb] = DBProfile.get(dbConf.dbBackend)
@@ -34,8 +32,6 @@ object DbInitializer {
     hc.setConnectionTestQuery("SELECT 1;")
     hc.setPoolName("TrueRssPool")
     hc.setInitializationFailTimeout(initFailTimeout)
-    hc.setMaxLifetime(maxTime)
-    hc.setIdleTimeout(idleTime)
     hc.setMaximumPoolSize(dbProfile.defaultConnectionSize)
 
     val db = try {
@@ -50,14 +46,14 @@ object DbInitializer {
     val names = TableNames.default
     val driver = CurrentDriver(dbProfile.profile, names)
 
-    createTables(db, dbProfile, driver)
+    createTables(db, driver)
 
     runMigrations(db, dbProfile, driver)
 
     DbLayer(db, driver)
   }
 
-  private def createTables(db: JdbcBackend.DatabaseDef, dbProfile: DBProfile, driver: CurrentDriver): Unit = {
+  private def createTables(db: JdbcBackend.DatabaseDef, driver: CurrentDriver): Unit = {
     import driver.profile.api._
 
     def run[T](description: String, act: DBIOAction[T, NoStream, Nothing]) = {
@@ -169,7 +165,6 @@ object DbInitializer {
           .addIndexes(_.byFavoriteIndex)
           .addIndexes(_.byReadIndex)
           .addIndexes(_.bySourceAndFavorite)
-          .addIndexes(_.byTitleIndex)
           .addIndexes(_.bySourceAndReadIndex)
         Some(sq & fq)
       } else {

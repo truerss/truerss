@@ -57,12 +57,11 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
     import DateSupport._
     import StateSupport._
 
-
     def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
 
-    def url = column[String]("url")
+    def url = column[String]("url", O.Length(256))
 
-    def name = column[String]("name")
+    def name = column[String]("name", O.Length(256))
 
     def interval = column[Int]("interval", O.Default[Int](86400))
 
@@ -113,8 +112,6 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
 
     def bySourceIndex = index("idx_source", sourceId)
 
-    def byTitleIndex = index("idx_title", title)
-
     def byReadIndex = index("idx_read", read)
 
     def bySourceAndReadIndex = index("idx_source_read", (sourceId, read))
@@ -141,7 +138,7 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
   class PredefinedSettingsTable(tag: Tag) extends Table[PredefinedSettings](tag, tableNames.predefinedSettings) {
     import SettingValueSupport._
 
-    def key = column[String]("key", O.Unique)
+    def key = column[String]("key", O.Unique, O.Length(25))
     def description = column[String]("description")
     def value = column[SettingValue]("value")
 

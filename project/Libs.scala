@@ -5,7 +5,7 @@ object Libs {
     val scalaVersion = "2.12.4"
     val scalajVersion = "2.4.1"
     val postgresqlVersion = "42.2.14"
-    val mysqlVersion = "8.0.20"
+    val mysqlVersion = "8.0.21"
     val sqliteVersion = "3.32.3"
     val commonValidatorVersion = "1.6"
     val truerssBaseVersion = "0.0.3"
@@ -87,8 +87,7 @@ object Libs {
 
     "org.testcontainers" % "testcontainers" % "1.14.3" % Test,
     "org.testcontainers" % "mysql" % "1.14.3" % Test,
-    "org.testcontainers" % "postgresql" % "1.14.3" % Test,
-    "org.testcontainers" % "mockserver" % "1.14.3" % Test
+    "org.testcontainers" % "postgresql" % "1.14.3" % Test
   )
 
   val deps = db ++ akka ++ truerss ++ logs ++

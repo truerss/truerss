@@ -7,32 +7,31 @@ import org.specs2.specification.BeforeAfterAll
 import truerss.AppRunner
 import truerss.util.DbConfig
 
-import scala.concurrent.Await
-import scala.concurrent.duration._
-
 class Sqlite3Tests
   extends AllTestsTogether
     with BeforeAfterAll with Resources {
 
-  val isUserConf = true
-  val dbConf = new DbConfig(
-    dbBackend = "sqlite",
-    dbHost = "",
-    dbPort = "",
-    dbName = "sqlite-test.tdb",
-    dbUsername = "",
-    dbPassword = ""
-  )
+  override def suiteName: String = "sqlite-tests"
+
+  private val dbName = "sqlite-test.tdb"
 
   override def beforeAll(): Unit = {
+    startServer()
+    val isUserConf = true
+    val dbConf = new DbConfig(
+      dbBackend = "sqlite",
+      dbHost = "",
+      dbPort = "",
+      dbName = dbName,
+      dbUsername = "",
+      dbPassword = ""
+    )
     AppRunner.run(actualConfig, dbConf, isUserConf)(system)
   }
 
   override def afterAll(): Unit = {
-    Await.result(system.terminate(), 3 seconds)
-    val file = new File(s"./${dbConf.dbName}")
+    shutdown()
+    val file = new File(s"./$dbName")
     Files.deleteIfExists(file.toPath)
   }
-
-  override def suiteName: String = "sqlite-tests"
 }

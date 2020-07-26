@@ -1,24 +1,24 @@
 package net.truerss
 
 import org.specs2.specification.BeforeAfterAll
-import org.testcontainers.containers.MySQLContainer
+import org.testcontainers.containers.PostgreSQLContainer
 import truerss.AppRunner
 import truerss.util.DbConfig
 
-class MySqlTests extends AllTestsTogether with BeforeAfterAll with Resources {
+class PostgresTests extends AllTestsTogether with BeforeAfterAll with Resources {
 
-  override def suiteName: String = "mysql-tests"
+  override def suiteName: String = "posgtres-tests"
 
-  val container = new MySQLContainer()
+  val container = new PostgreSQLContainer()
 
   override def beforeAll(): Unit = {
     container.start()
     startServer()
     val isUserConf = false
     val dbConf = new DbConfig(
-      dbBackend = "mysql",
+      dbBackend = "postgresql",
       dbHost = container.getHost,
-      dbPort = container.getMappedPort(MySQLContainer.MYSQL_PORT).toString,
+      dbPort = container.getMappedPort(PostgreSQLContainer.POSTGRESQL_PORT).toString,
       dbName = container.getDatabaseName,
       dbUsername = container.getUsername,
       dbPassword = container.getPassword
@@ -30,4 +30,5 @@ class MySqlTests extends AllTestsTogether with BeforeAfterAll with Resources {
     shutdown()
     container.stop()
   }
+
 }

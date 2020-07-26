@@ -87,7 +87,6 @@ object TrueRSSConfig {
     val fDbb = "db"
     val fPlugins = "plugins"
     val fRoot = "truerss"
-    val fUpdateParallelism = "update-parallelism"
 
     val fPort = "port"
     val fHost = "host"

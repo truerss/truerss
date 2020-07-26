@@ -25,8 +25,6 @@ trait Resources {
 
   val serverPort = allocatePort
 
-  println("@"*100 + s"---> ${url}")
-
   def url: String = s"http://$host:$port"
   def rssUrl: String = s"http://$host:$serverPort/rss"
   def rssUrl1: String = s"http://$host:$serverPort/rss1"
@@ -39,9 +37,7 @@ trait Resources {
     wsPort = wsPort
   )
 
-  println(s"==========> port=$port, wsPort=$wsPort, serverPort=$serverPort")
-
-  println(s"current server url: =============> ${actualConfig.url}")
+  println(s" [$suiteName] ==========> port=$port, wsPort=$wsPort, serverPort=$serverPort")
 
   private val server = TestRssServer(host, serverPort)
 
@@ -53,14 +49,21 @@ trait Resources {
 
   def opmlFile: String = Resources.load("test.opml", host, serverPort)
 
-  Http()(system).bindAndHandle(
-    server.route,
-    host,
-    serverPort
-  ).foreach { _ =>
-    println(s"=============> run test server on: $host:$serverPort")
-  }(system.dispatcher)
+  def startServer() = {
+    Http()(system).bindAndHandle(
+      server.route,
+      host,
+      serverPort
+    ).foreach { _ =>
+      println(s"=============> run test server on: $host:$serverPort")
+    }(system.dispatcher)
+  }
 
+  def shutdown() = {
+    Http().shutdownAllConnectionPools().foreach { _ =>
+      system.terminate()
+    }(system.dispatcher)
+  }
 
 }
 

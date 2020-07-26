@@ -76,7 +76,7 @@ object DBProfile {
       case Mysql => new DBProfile {
         override val driver: String = "com.mysql.jdbc.Driver"
         override val profile: JdbcProfile = MySQLProfile
-        override val sourceClassName: String = "com.mysql.jdbc.jdbc2.optional.MysqlDataSource"
+        override val sourceClassName: String = "com.mysql.cj.jdbc.MysqlDataSource"
       }
     }
   }
