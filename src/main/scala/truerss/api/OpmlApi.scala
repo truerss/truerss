@@ -4,13 +4,14 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import truerss.dto.SourceViewDto
 import truerss.services.OpmlService
+import truerss.util.OpmlExtractor
 
 import scala.concurrent.duration._
 
 class OpmlApi(private val opmlService: OpmlService) extends HttpApi {
 
   import JsonFormats._
-  import OpmlApi._
+  import OpmlExtractor._
 
   protected val defaultSerializationTime = 3 seconds
 
@@ -34,18 +35,3 @@ class OpmlApi(private val opmlService: OpmlService) extends HttpApi {
 
 }
 
-object OpmlApi {
-  //
-  // I use this method, because akka-http time to time does not run future inside a stream
-  // from `fileUpload` directive
-  //
-  def reprocessToOpml(content: String): String = {
-    content.split("\n")
-      .filterNot(_.startsWith("---"))      // remove boundary
-      .filterNot(_.startsWith("Content"))
-      .map(_.trim)
-      .filterNot(_.isEmpty)
-      .mkString("\n")
-  }
-
-}

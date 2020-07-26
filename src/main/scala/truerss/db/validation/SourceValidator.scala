@@ -5,7 +5,6 @@ import truerss.db.DbLayer
 import truerss.dto.{ApplicationPlugins, NewSourceDto, SourceDto}
 import truerss.services.ValidationError
 import zio._
-import zio.blocking._
 
 // appPlugins is needed for custom content readers (non rss/atom)
 class SourceValidator(private val dbLayer: DbLayer,
@@ -13,6 +12,7 @@ class SourceValidator(private val dbLayer: DbLayer,
                       private val appPlugins: ApplicationPlugins) {
 
   import SourceValidator._
+  // TODO source url/name size
 
   def filterValid(sources: Iterable[NewSourceDto]): Task[Iterable[NewSourceDto]] = {
     val urls = sources.map(_.url).toSeq

@@ -3,6 +3,7 @@ package net.truerss
 import java.io.File
 import java.nio.file.Files
 
+import net.truerss.tests.AllTestsTogether
 import org.specs2.specification.BeforeAfterAll
 import truerss.AppRunner
 import truerss.util.DbConfig

@@ -1,5 +1,6 @@
 package net.truerss
 
+import net.truerss.tests.AllTestsTogether
 import org.specs2.specification.BeforeAfterAll
 import org.testcontainers.containers.MySQLContainer
 import truerss.AppRunner

@@ -14,7 +14,7 @@ import truerss.plugins.DefaultSiteReader
 
 import scala.concurrent.duration._
 
-class DefaultReaderTest extends Specification with Mockito {
+class DefaultReaderTests extends Specification with Mockito {
 
   implicit val timeout = Timeout(10 seconds)
 

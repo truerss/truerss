@@ -1,15 +1,15 @@
-package net.truerss.dao
+package net.truerss.util
 
 import java.util.Date
 
 import com.github.truerss.base.Entry
 import net.truerss.Gen
 import org.specs2.mutable.Specification
-import truerss.db.FeedDao
+import truerss.util.FeedsMerger
 
-class FeedDaoTests extends Specification {
+class FeedsMergerTests extends Specification {
 
-  "FeedDao" should {
+  "feeds merger" should {
     "#calc" in {
       val sourceId = 1
       val feed1 = Gen
@@ -52,7 +52,7 @@ class FeedDaoTests extends Specification {
         forceUpdate = false
       )
 
-      val result = FeedDao.calculate(sourceId,
+      val result = FeedsMerger.calculate(sourceId,
         Iterable(entry1, entry2, entry3),
         Iterable(feed1, feed2, feed3)
       )

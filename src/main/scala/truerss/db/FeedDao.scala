@@ -4,13 +4,14 @@ import com.github.truerss.base.Entry
 import slick.jdbc.JdbcBackend.DatabaseDef
 import truerss.db.driver.CurrentDriver
 import truerss.services.NotFoundError
-import truerss.util.Util
+import truerss.util.{FeedsMerger, FeedCalc}
 import zio.{IO, Task}
 
 
 class FeedDao(val db: DatabaseDef)(implicit driver: CurrentDriver) {
 
   import FeedDao._
+  import FeedsMerger._
   import JdbcTaskSupport._
   import driver.profile.api._
   import driver.query.{FeedsQExt, FeedsTQExt, byFeed, bySource, feeds}
@@ -154,8 +155,6 @@ class FeedDao(val db: DatabaseDef)(implicit driver: CurrentDriver) {
 }
 
 object FeedDao {
-  import Util._
-
   def getReadValues(unreadOnly: Boolean): Vector[Boolean] = {
     if (unreadOnly) {
       Vector(false)
@@ -164,26 +163,4 @@ object FeedDao {
     }
   }
 
-  def calculate(sourceId: Long, xs: Iterable[Entry], inDb: Iterable[Feed]): FeedCalc = {
-    val inDbMap = inDb.map(f => f.url -> f).toMap
-    val (forceUpdateXs, updateXs) = xs.partition(_.forceUpdate)
-
-    val (feedsToUpdateByUrl, feedsToInsert) = forceUpdateXs
-      .map(_.toFeed(sourceId))
-      .partition(f => inDbMap.contains(f.url))
-
-    val updateXsMap = updateXs.map(_.toFeed(sourceId)).map(f => f.url -> f).toMap
-    val inDbUrls = inDbMap.keySet
-    val fromNetwork = updateXsMap.keySet
-    val newFeeds = (fromNetwork diff inDbUrls).flatMap(updateXsMap.get)
-    FeedCalc(
-      feedsToUpdateByUrl = feedsToUpdateByUrl,
-      feedsToInsert = (feedsToInsert ++ newFeeds).groupBy(_.url).values.flatten
-    )
-  }
 }
-
-case class FeedCalc(
-                     feedsToUpdateByUrl: Iterable[Feed],
-                     feedsToInsert: Iterable[Feed]
-                   )

@@ -1,5 +1,6 @@
-package net.truerss
+package net.truerss.tests
 
+import net.truerss.{Gen, Resources, ZIOMaterializer}
 import org.specs2.mutable.Specification
 import truerss.clients.{EntityNotFoundError, _}
 import truerss.db.Predefined

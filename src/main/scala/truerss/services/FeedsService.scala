@@ -4,14 +4,12 @@ import com.github.truerss.base.Entry
 import truerss.db.DbLayer
 import truerss.dto.FeedDto
 import truerss.db.Feed
-import truerss.util.syntax
 import zio.Task
 
 class FeedsService(dbLayer: DbLayer) {
 
   import truerss.util.FeedSourceDtoModelImplicits._
   import FeedsService._
-  import syntax.future._
   import dbLayer.feedDao
 
   def findOne(feedId: Long): Task[FeedDto] = {

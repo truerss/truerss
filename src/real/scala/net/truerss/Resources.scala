@@ -29,7 +29,7 @@ trait Resources {
   def rssUrl: String = s"http://$host:$serverPort/rss"
   def rssUrl1: String = s"http://$host:$serverPort/rss1"
 
-  def sleep = Thread.sleep(1000)
+  def sleep() = Thread.sleep(1000)
 
   val actualConfig = TrueRSSConfig().copy(
     host = host,

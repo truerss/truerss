@@ -1,5 +1,6 @@
-package net.truerss
+package net.truerss.tests
 
+import net.truerss.{Resources, ZIOMaterializer}
 import org.specs2.mutable.Specification
 import truerss.clients.{BadRequestError, SettingsApiHttpClient}
 import truerss.db.Predefined
