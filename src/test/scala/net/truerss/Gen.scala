@@ -7,7 +7,7 @@ import truerss.db.{Feed, Source, SourceStates}
 import truerss.dto.{AvailableSelect, AvailableSetup, CurrentValue, FeedDto, NewSetup, NewSourceDto, SourceViewDto, UpdateSourceDto}
 
 object Gen {
-  import truerss.util.Util._
+  import truerss.util.CommonImplicits._
 
   def genId = UUID.randomUUID().toString
 

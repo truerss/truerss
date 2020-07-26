@@ -9,7 +9,7 @@ import truerss.dto.EntryDto
 
 object EntryImplicits {
 
-  import Util._
+  import CommonImplicits._
 
   implicit class EntryExt(val entry: Entry) extends AnyVal {
     def toFeed(sourceId: Long): Feed = Feed(

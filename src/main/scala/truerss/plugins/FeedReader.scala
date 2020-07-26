@@ -5,13 +5,13 @@ import java.time.format.DateTimeFormatter
 import java.util.Date
 
 import truerss.dto.EntryDto
-import truerss.util.Util
+import truerss.util.CommonImplicits
 
 import scala.util.Try
 import scala.xml.{Elem, Node}
 
 trait FeedParser {
-  import Util._
+  import CommonImplicits._
 
   def from(tagName: String)(implicit source: Node): Option[String] = {
     val x = source \ tagName

@@ -14,7 +14,7 @@ import truerss.http_support.Request
 
 import scala.collection.JavaConverters._
 import truerss.util.syntax.{\/, ext}
-import truerss.util.{EntryImplicits, Util}
+import truerss.util.{EntryImplicits, CommonImplicits}
 
 import scala.util.Try
 
@@ -83,7 +83,7 @@ class DefaultSiteReader(config: Config)
 
 object DefaultSiteReader {
 
-  import Util._
+  import CommonImplicits._
   import EntryImplicits._
 
   val forbidElements = Iterable("form", "input", "meta", "style", "script")

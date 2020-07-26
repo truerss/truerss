@@ -5,7 +5,7 @@ import truerss.db.{DbLayer, Source}
 import truerss.db.validation.SourceValidator
 import truerss.dto.{ApplicationPlugins, NewSourceDto, SourceViewDto, UpdateSourceDto}
 import truerss.services.actors.sync.SourcesKeeperActor
-import truerss.util.{Util, FeedSourceDtoModelImplicits, EventStreamExt}
+import truerss.util.{CommonImplicits, FeedSourceDtoModelImplicits, EventStreamExt, ApplicationPluginsImplicits}
 import zio._
 
 class SourcesService(private val dbLayer: DbLayer,
@@ -15,8 +15,8 @@ class SourcesService(private val dbLayer: DbLayer,
                     ) {
 
   import FeedSourceDtoModelImplicits._
-  import Util._
   import EventStreamExt._
+  import ApplicationPluginsImplicits._
 
   def getAllForOpml: Task[Vector[SourceViewDto]] = {
     dbLayer.sourceDao.all.map { xs => xs.map(_.toView).toVector }

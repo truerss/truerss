@@ -3,14 +3,14 @@ package truerss.api
 import akka.http.scaladsl.server.Directives._
 import truerss.dto._
 import truerss.services.{FeedsService, SourcesService}
-import truerss.util.Util
+import truerss.util.CommonImplicits
 
 class SourcesApi(feedsService: FeedsService,
                  sourcesService: SourcesService
                 ) extends HttpApi {
 
   import JsonFormats._
-  import Util.StringExt
+  import CommonImplicits.StringExt
 
   // just aliases
   private val fs = feedsService

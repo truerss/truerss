@@ -11,7 +11,7 @@ object ZIOMaterializer {
       zio.Runtime.default.unsafeRunTask(x.either)
     }
 
-    def err[T <: Throwable] = {
+    def err[T <: Throwable]: T = {
       e.swap.toOption.get.asInstanceOf[T]
     }
 

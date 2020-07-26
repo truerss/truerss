@@ -13,7 +13,6 @@ class SourceValidator(private val dbLayer: DbLayer,
                       private val appPlugins: ApplicationPlugins) {
 
   import SourceValidator._
-  // TODO source url/name size
 
   def filterValid(sources: Iterable[NewSourceDto]): Task[Iterable[NewSourceDto]] = {
     val urls = sources.map(_.url).toSeq

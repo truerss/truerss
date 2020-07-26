@@ -7,7 +7,7 @@ import truerss.dto.{FeedDto, NewSourceDto, SourceViewDto, UpdateSourceDto}
 
 object FeedSourceDtoModelImplicits {
 
-  import Util._
+  import CommonImplicits._
 
   implicit class NewSourceDtoExt(val x: NewSourceDto) extends AnyVal {
     def toSource: Source = {

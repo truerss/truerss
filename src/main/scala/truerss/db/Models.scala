@@ -2,7 +2,7 @@ package truerss.db
 
 import java.time.LocalDateTime
 
-import truerss.util.Util._
+import truerss.util.CommonImplicits._
 
 import scala.language.postfixOps
 
