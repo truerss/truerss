@@ -6,15 +6,13 @@ import com.github.truerss.ContentExtractor
 import com.github.truerss.base.ContentTypeParam.{HtmlRequest, UrlRequest}
 import com.github.truerss.base._
 import com.typesafe.config.Config
-
 import org.jsoup.Jsoup
 import org.slf4j.LoggerFactory
+import truerss.http_support.Request
 
 import scala.collection.JavaConverters._
 import scala.util.control.Exception._
-
 import truerss.util.syntax.{\/, ext}
-import truerss.util.Request
 
 class DefaultSiteReader(config: Config)
   extends BaseSitePlugin(config) with Request {

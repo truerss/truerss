@@ -56,9 +56,7 @@ class SourceActor(source: SourceViewDto,
 }
 
 object SourceActor {
-  import truerss.util.Request._
-
-  def props(source: SourceViewDto, feedReader: BaseFeedReader) = {
+  def props(source: SourceViewDto, feedReader: BaseFeedReader): Props = {
     Props(classOf[SourceActor], source, feedReader)
   }
 
@@ -66,8 +64,6 @@ object SourceActor {
                          tickTime: FiniteDuration,
                          interval: FiniteDuration
                        )
-
-
 
   object UpdateTime {
     def apply(lastUpdate: Long, sourceInterval: Long): UpdateTime = {
@@ -87,13 +83,4 @@ object SourceActor {
     }
   }
 
-  def extractContent(url: String): String = {
-    val response = getResponse(url)
-
-    if (response.isError) {
-      throw new RuntimeException(s"Connection error for $url")
-    }
-
-    Jsoup.parse(response.body).body().html()
-  }
 }

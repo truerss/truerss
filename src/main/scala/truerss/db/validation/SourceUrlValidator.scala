@@ -2,7 +2,8 @@ package truerss.db.validation
 
 import org.slf4j.LoggerFactory
 import truerss.dto.SourceDto
-import truerss.util.{Request, syntax}
+import truerss.http_support.Request
+import truerss.util.syntax
 import zio.{Task, ZIO}
 
 import scala.util.Try

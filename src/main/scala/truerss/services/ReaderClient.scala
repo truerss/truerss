@@ -2,12 +2,11 @@ package truerss.services
 
 import java.net.URL
 
-import com.github.truerss.base.{ContentTypeParam, Errors}
 import com.github.truerss.base.aliases.WithContent
+import com.github.truerss.base.{ContentTypeParam, Errors}
 import org.jsoup.Jsoup
-import truerss.util.{DefaultParameters, Request}
-import zio.{Task, ZIO}
-import zio.blocking._
+import truerss.http_support.Request
+import zio.Task
 
 class ReaderClient(private val applicationPluginsService: ApplicationPluginsService) {
 
@@ -32,10 +31,9 @@ class ReaderClient(private val applicationPluginsService: ApplicationPluginsServ
 
 object ReaderClient {
 
-  // todo blocking
   def extractContent(url: String): Task[String] = {
     for {
-      response <- Task(Request.getResponse(url))
+      response <- Request.getResponseT(url)
       _ <- Task.fail(ContentReadError(s"Connection error for $url")).when(response.isError)
       result <- Task(Jsoup.parse(response.body).body().html())
     } yield result

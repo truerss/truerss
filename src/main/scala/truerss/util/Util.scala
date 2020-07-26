@@ -25,7 +25,7 @@ object Util {
     }
   }
 
-  // todo 
+  // todo
   implicit class ApplicationPluginsExt(val a: ApplicationPlugins) extends AnyVal {
     def getState(url: String): SourceState = {
       if (a.matchUrl(url)) {

@@ -1,6 +1,8 @@
-package truerss.util
+package truerss.http_support
 
 import scalaj.http._
+import zio.Task
+import zio.blocking._
 
 trait Request {
 
@@ -10,6 +12,10 @@ trait Request {
   protected val connectionTimeout = 10000
   protected val readTimeout = 10000
   protected val retryCount = 3
+
+  def getResponseT(url: String): Task[HttpResponse[String]] = {
+    effectBlockingIO(getResponse(url)).provideLayer(Blocking.live)
+  }
 
   def getResponse(url: String): HttpResponse[String] = {
     handle(defaultRequest(url))
