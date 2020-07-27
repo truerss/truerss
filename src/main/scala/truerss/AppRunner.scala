@@ -3,7 +3,8 @@ package truerss
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import org.slf4j.LoggerFactory
-import truerss.api.{RoutingEndpoint, WebSocketsSupport}
+import truerss.api.RoutingEndpoint
+import truerss.api.ws.WebSocketsSupport
 import truerss.db.Predefined
 import truerss.db.driver.DbInitializer
 import truerss.db.validation.{SourceUrlValidator, SourceValidator}

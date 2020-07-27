@@ -1,12 +1,13 @@
-package truerss.api
+package truerss.api.ws
 
 import akka.actor.{Actor, ActorLogging}
 import org.java_websocket.WebSocket
+import truerss.api.JsonFormats
 import truerss.dto.{FeedDto, Notify, WSMessageType, WebSocketMessage}
 
-class WebSockerController(ws: WebSocket) extends Actor with ActorLogging {
+class WebSocketController(ws: WebSocket) extends Actor with ActorLogging {
 
-  import WebSockerController._
+  import WebSocketController._
 
   def receive: Receive = {
     case m: WSMessage =>
@@ -15,10 +16,10 @@ class WebSockerController(ws: WebSocket) extends Actor with ActorLogging {
 
 }
 
-object WebSockerController {
+object WebSocketController {
 
-  import WebSocketJsonFormats._
   import JsonFormats.feedDtoFormat
+  import WebSocketJsonFormats._
 
   sealed trait WSMessage
   case class NewFeeds(xs: Iterable[FeedDto]) extends WSMessage

@@ -14,6 +14,7 @@ MainController =
   """
 
   _init_ws: (adapter, port) ->
+    logger = @logger
     protocol = if location.protocol is "https"
       "wss"
     else
@@ -21,14 +22,14 @@ MainController =
 
     ws = new WebSocket("#{protocol}://#{location.hostname}:#{port}/")
     ws.onopen = () ->
-      @logger.info("ws open on port: #{port}")
+      logger.info("ws open on port: #{port}")
 
     ws.onmessage = (e) ->
       message = JSON.parse(e.data)
-      @logger.info("ws given message: #{message.messageType}")
+      logger.info("ws given message: #{message.messageType}")
       adapter.fire(document, "ws:#{message.messageType}", message.body)
     ws.onclose = () ->
-      @logger.info("ws close")
+      logger.info("ws close")
 
   _load_js_and_css: (ajax) ->
     ajax.js_all (resp) ->
@@ -85,7 +86,7 @@ MainController =
           adapter.fire(document, "settings:load")
           adapter.fire(document, "sources:load")
           adapter.fire(document, "about:load")
-          #TODO @_init_ws(@logger, adapter, port)
+          @_init_ws(adapter, port)
 
       delete_cookie("redirect")
     return

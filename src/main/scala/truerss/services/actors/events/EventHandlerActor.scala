@@ -3,7 +3,7 @@ package truerss.services.actors.events
 import akka.actor.{Actor, ActorLogging, Props}
 import akka.event.EventStream
 import com.github.truerss.base.Entry
-import truerss.api.WebSockerController
+import truerss.api.ws.WebSocketController
 import truerss.services.{FeedsService, SourcesService}
 import truerss.util.EventStreamExt
 
@@ -20,7 +20,7 @@ class EventHandlerActor(private val sourcesService: SourcesService,
     case RegisterNewFeeds(sourceId, entries) =>
       val f = for {
         feeds <- feedsService.registerNewFeeds(sourceId, entries)
-        _ <- stream.fire(WebSockerController.NewFeeds(feeds))
+        _ <- stream.fire(WebSocketController.NewFeeds(feeds))
       } yield ()
       zio.Runtime.default.unsafeRunTask(f)
 
@@ -35,7 +35,7 @@ class EventHandlerActor(private val sourcesService: SourcesService,
 
 object EventHandlerActor {
   def props(sourcesService: SourcesService,
-            feedsService: FeedsService) = {
+            feedsService: FeedsService): Props = {
     Props(classOf[EventHandlerActor], sourcesService, feedsService)
   }
 

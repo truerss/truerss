@@ -5,8 +5,7 @@ import java.util.Date
 
 import akka.actor.{Actor, ActorLogging, Props}
 import com.github.truerss.base._
-import org.jsoup.Jsoup
-import truerss.api.WebSockerController
+import truerss.api.ws.WebSocketController
 import truerss.dto.{Notify, NotifyLevel, SourceViewDto}
 import truerss.services.actors.events.EventHandlerActor
 import truerss.services.actors.sync.SourcesKeeperActor.{Update, UpdateMe, Updated}
@@ -44,7 +43,7 @@ class SourceActor(source: SourceViewDto,
           stream.publish(EventHandlerActor.RegisterNewFeeds(source.id, xs))
         case Left(error) =>
           log.warning(s"Error when update source $error")
-          stream.publish(WebSockerController.NotifyMessage(
+          stream.publish(WebSocketController.NotifyMessage(
             Notify(error.error, NotifyLevel.Danger)
           ))
       }
