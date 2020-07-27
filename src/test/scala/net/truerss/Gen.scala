@@ -48,7 +48,7 @@ object Gen {
     NewSourceDto(
       url = genUrl,
       name = name,
-      interval = genInt
+      interval = 1
     )
   }
 

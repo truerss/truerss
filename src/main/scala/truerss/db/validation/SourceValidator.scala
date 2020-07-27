@@ -100,7 +100,7 @@ object SourceValidator {
     if (isValidUrlLength(source)) {
       IO.succeed(source)
     } else {
-      IO.fail(ValidationError(intervalError :: Nil))
+      IO.fail(ValidationError(urlLengthError :: Nil))
     }
   }
 
@@ -112,7 +112,7 @@ object SourceValidator {
     if (isValidNameLength(source)) {
       IO.succeed(source)
     } else {
-      IO.fail(ValidationError(intervalError :: Nil))
+      IO.fail(ValidationError(nameLengthError :: Nil))
     }
   }
 

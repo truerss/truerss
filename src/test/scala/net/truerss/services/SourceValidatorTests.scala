@@ -81,7 +81,6 @@ class SourceValidatorTests extends Specification with Mockito {
       }
 
       "when ok" in new Test() {
-        val error = "boom"
         val newSource = Gen.genNewSource
         sourceDao.findByUrl(anyString, any[Option[Long]]) returns Task.succeed(0)
         sourceDao.findByName(anyString, any[Option[Long]]) returns Task.succeed(0)
