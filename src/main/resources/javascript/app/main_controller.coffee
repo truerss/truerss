@@ -26,9 +26,11 @@ MainController =
 
     ws.onmessage = (e) ->
       message = JSON.parse(e.data)
+      c(message)
       logger.info("ws given message: #{message.messageType}")
       adapter.fire(document, "ws:#{message.messageType}", message.body)
     ws.onclose = () ->
+      c("===================close")
       logger.info("ws close")
 
   _load_js_and_css: (ajax) ->

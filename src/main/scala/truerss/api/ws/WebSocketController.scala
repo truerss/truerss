@@ -3,7 +3,8 @@ package truerss.api.ws
 import akka.actor.{Actor, ActorLogging}
 import org.java_websocket.WebSocket
 import truerss.api.JsonFormats
-import truerss.dto.{FeedDto, Notify, WSMessageType, WebSocketMessage}
+import play.api.libs.json._
+import truerss.dto.{FeedDto, Notify, WSMessageType}
 
 class WebSocketController(ws: WebSocket) extends Actor with ActorLogging {
 
@@ -14,6 +15,10 @@ class WebSocketController(ws: WebSocket) extends Actor with ActorLogging {
       ws.send(m.asJsonString)
   }
 
+  override def postStop(): Unit = {
+    ws.close()
+  }
+
 }
 
 object WebSocketController {
@@ -22,18 +27,30 @@ object WebSocketController {
   import WebSocketJsonFormats._
 
   sealed trait WSMessage
-  case class NewFeeds(xs: Iterable[FeedDto]) extends WSMessage
+  case class NewFeeds(newFeeds: Iterable[FeedDto]) extends WSMessage
   case class NotifyMessage(message: Notify) extends WSMessage
 
   implicit class WSMessageJson(val x: WSMessage) extends AnyVal {
     def asJsonString: String = {
-      x match {
+      val result = x match {
         case NewFeeds(xs) =>
-          convert(WebSocketMessage(WSMessageType.New, convert(xs)))
+          JsObject(
+            Seq(
+              "messageType" -> JsString(WSMessageType.New.toString),
+              "body" -> Json.toJson(xs)
+            )
+          )
 
         case NotifyMessage(message) =>
-          s"${convert(WebSocketMessage(WSMessageType.Notify, convert(message)))}"
+          JsObject(
+            Seq(
+              "messageType" -> JsString(WSMessageType.Notify.toString),
+              "body" -> Json.toJson(message)
+            )
+          )
       }
+
+      Json.stringify(result)
     }
   }
 

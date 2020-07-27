@@ -44,10 +44,12 @@ case class SocketServer(port: Int,
   }
 
   private def stop(webSocket: WebSocket): Unit = {
-    val actor = connectionMap(webSocket)
-    connectionMap -= webSocket
-    stream.unsubscribe(actor)
-    ctx.stop(actor)
+    Option(webSocket).foreach { key =>
+      val actor = connectionMap(key)
+      connectionMap -= webSocket
+      stream.unsubscribe(actor)
+      ctx.stop(actor)
+    }
   }
 
 }

@@ -14,7 +14,8 @@ class WebSocketsSupport(val port: Int) extends Actor with ActorLogging {
   socketServer.start()
 
   def receive = {
-    case x => unhandled(x)
+    case x =>
+      unhandled(x)
   }
 
   override def postStop(): Unit = {

@@ -2,14 +2,18 @@ package net.truerss.tests
 
 import net.truerss.{Gen, Resources, ZIOMaterializer}
 import org.specs2.mutable.Specification
+import org.specs2.specification.BeforeAfterAll
+import play.api.libs.json._
+import truerss.api.ws.WebSocketController.NewFeeds
 import truerss.clients.{EntityNotFoundError, _}
 import truerss.db.Predefined
 import truerss.dto._
 import zio.Task
 
-trait FullFlowTests extends Specification with Resources {
+trait FullFlowTests extends Specification with Resources with BeforeAfterAll {
 
   import ZIOMaterializer._
+  import WSReaders._
 
   private val sourceApiClient = new SourcesApiHttpClient(url)
   private val feedsApiClient = new FeedsApiHttpClient(url)
@@ -22,6 +26,9 @@ trait FullFlowTests extends Specification with Resources {
 
   "APIs" should {
     "scenario" in {
+      // check ws
+      wsClient.isOpen must beTrue
+
       // create an source
       val newSource = NewSourceDto(
         url = rssUrl,
@@ -33,7 +40,7 @@ trait FullFlowTests extends Specification with Resources {
 
       val sourceId = createdSource.id
 
-      p("Create Source: $sourceId -> ${newSource.url}")
+      p(s"Create Source: $sourceId -> ${newSource.url}")
 
       val getSource = sourceApiClient.findOne(sourceId).m
 
@@ -86,17 +93,24 @@ trait FullFlowTests extends Specification with Resources {
       dto.interval ==== updateSource.interval
       dto.id ==== updateSource.id
 
+      wsClient.newFeeds must have size 1
+      val newFeeds1 = wsClient.newFeeds.head
+      newFeeds1 must have size 1
+      newFeeds1.foreach {_.sourceId ==== sourceId }
+
       p("Refresh One")
 
       refreshApiClient.refreshOne(sourceId).e must beRight
 
-      sleep
-      // todo ws client check new entities
+      sleep()
+
+
+      wsClient.newFeeds.size must beGreaterThan(1)
 
       p("Refresh All")
       refreshApiClient.refreshAll.e must beRight
 
-      sleep
+      sleep()
 
       getRssStats must beGreaterThanOrEqualTo(4) // we sent a few requests before (when tried to create source)
 
@@ -170,14 +184,14 @@ trait FullFlowTests extends Specification with Resources {
       val source2 = newSource.copy(url = rssUrl1, name = "test#2")
       val sourceId2 = sourceApiClient.create(source2).m.id
 
-      sleep // waiting for sync source2
+      sleep() // waiting for sync source2
 
       // produce new entities
       produceNewEntities
 
       refreshApiClient.refreshOne(sourceId).m
 
-      sleep // waiting for sync source1
+      sleep() // waiting for sync source1
 
       feedsApiClient.read(feedId).m
 
@@ -198,7 +212,7 @@ trait FullFlowTests extends Specification with Resources {
 
       refreshApiClient.refreshAll.m
 
-      sleep // wait for sync
+      sleep() // wait for sync
 
       sourceApiClient.unread(sourceId2).m must have size 3
 
@@ -256,6 +270,38 @@ trait FullFlowTests extends Specification with Resources {
       val result = opmlApiClient.importFile(opmlFile).m
 
       result must have size 1
+
+      // add one more new source
+      val newSource3 = NewSourceDto(
+        url = rssUrlWithError,
+        name = "test-source-3",
+        interval = 1
+      )
+
+      val sourceDto3 = sourceApiClient.create(newSource3).m
+      sourceDto3.interval ==== newSource3.interval
+      sourceDto3.url ==== newSource3.url
+      sourceDto3.name ==== newSource3.name
+
+      val sourceId3 = sourceDto3.id
+
+      sleep() // waiting for updates
+
+      wsClient.notifications must be empty // still empty
+
+      wsClient.newFeeds.last.foreach { _.sourceId ==== sourceId3 } // and we have feeds from source3
+
+      produceErrors      // generate errors in source3
+
+      refreshApiClient.refreshOne(sourceId3).m
+
+      sleep()
+
+      wsClient.notifications.size ==== 1
+
+      val notification = wsClient.notifications.head
+      notification.level ==== NotifyLevel.Danger
+      notification.message must contain(s"Connection error for $rssUrlWithError")
 
       // delete source
       sourceApiClient.deleteOne(sourceId).m

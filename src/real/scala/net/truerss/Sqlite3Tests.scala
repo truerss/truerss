@@ -28,6 +28,7 @@ class Sqlite3Tests
       dbPassword = ""
     )
     AppRunner.run(actualConfig, dbConf, isUserConf)(system)
+    startWsClient()
   }
 
   override def afterAll(): Unit = {

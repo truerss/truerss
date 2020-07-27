@@ -25,6 +25,7 @@ class PostgresTests extends AllTestsTogether with BeforeAfterAll with Resources 
       dbPassword = container.getPassword
     )
     AppRunner.run(actualConfig, dbConf, isUserConf)(system)
+    startWsClient()
   }
 
   override def afterAll(): Unit = {

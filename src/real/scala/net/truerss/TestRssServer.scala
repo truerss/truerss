@@ -11,10 +11,15 @@ case class TestRssServer(host: String, port: Int) {
   val notRssStats = new AtomicInteger(0)
 
   @volatile private var shouldProduceNewEntities = false
+  @volatile private var shouldProduceErrors = false
 
   def produceNewEntities(): Unit = {
     p("Switch to new mode [push new entities]")
     shouldProduceNewEntities = true
+  }
+
+  def produceErrors(): Unit = {
+    shouldProduceErrors = true
   }
 
   private def loadRss(file: String): String = {
@@ -52,6 +57,16 @@ case class TestRssServer(host: String, port: Int) {
         rssStats.incrementAndGet()
         if (shouldProduceNewEntities) {
           sendRssFeed(rss1)
+        } else {
+          sendRssFeed(rss)
+        }
+      }
+    }
+  } ~ pathPrefix("error-rss") {
+    get {
+      complete {
+        if (shouldProduceErrors) {
+          sendRssFeed(rss).copy(status = StatusCodes.InternalServerError)
         } else {
           sendRssFeed(rss)
         }

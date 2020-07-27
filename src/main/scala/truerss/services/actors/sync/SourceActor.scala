@@ -37,7 +37,7 @@ class SourceActor(source: SourceViewDto,
 
   def receive = {
     case Update =>
-      log.info(s"Update ${source.normalized}")
+      log.info(s"Update ${source.normalized} -> ${source.url}")
       feedReader.newEntries(source.url) match {
         case Right(xs) =>
           stream.publish(EventHandlerActor.RegisterNewFeeds(source.id, xs))
@@ -47,6 +47,7 @@ class SourceActor(source: SourceViewDto,
             Notify(error.error, NotifyLevel.Danger)
           ))
       }
+
       context.parent ! Updated
       stream.publish(EventHandlerActor.ModifySource(source.id))
   }

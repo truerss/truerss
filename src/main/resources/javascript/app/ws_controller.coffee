@@ -2,7 +2,9 @@
 WSController =
   # new feeds
   fresh: (e, xs) ->
+
     feeds = JSON.parse(xs).map (x) -> new Feed(x)
+    c(feeds)
     if feeds.length > 0
       source = Sources.takeFirst (s) -> s.id() == feeds[0].source_id()
       feeds.forEach (f) -> source.add_feed(f)

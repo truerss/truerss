@@ -45,7 +45,7 @@ class RoutingEndpoint(
 
   private val log = logRequest(LoggingMagnet(_ => logIncomingRequest))
 
-  val apis = log {
+  val apis =
     sourcesApi.route ~
     feedsApi.route ~
     pluginsApi.route ~
@@ -55,7 +55,6 @@ class RoutingEndpoint(
     opmlApi.route ~
     markApi.route ~
     sourcesOverviewApi.route
-  }
 
   val fileName = "index.html"
 
