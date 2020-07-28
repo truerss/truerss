@@ -58,7 +58,6 @@ UploadController =
         ajax.source_create source.ajaxify(),
           (json) =>
             Sources.add(new Source(json))
-            # todo hide modal
             @_modal.hide()
             clear_input()
             clean_route()
