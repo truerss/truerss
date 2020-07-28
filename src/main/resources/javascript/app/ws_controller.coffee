@@ -1,33 +1,30 @@
 
 WSController =
+
+  logger: Sirius.Application.get_logger("WSController")
+
   # new feeds
   fresh: (e, xs) ->
-
-    feeds = JSON.parse(xs).map (x) -> new Feed(x)
-    c(feeds)
-    if feeds.length > 0
-      source = Sources.takeFirst (s) -> s.id() == feeds[0].source_id()
-      feeds.forEach (f) -> source.add_feed(f)
-      source.count(source.count() + feeds.length)
+    feeds = xs.map (x) -> Feed.create(x)
+    if !feeds.is_empty()
+      source_id = feeds[0].source_id()
+      source = Sources.find('id', source_id)
 
       if source
-        if location.pathname == "" || location.pathname == "/"
-          redirect(source.href())
-        else
-          if state.isState(States.Source) || state.isState(States.Feed)
-            if sources && sources.get() && sources.get() == source.id()
-              render_feeds_and_source_overview(source)
-
-
-        UIkit.notify
-          message : "Given #{feeds.length} feeds, from #{source.name()}"
+        source.count(source.count() + feeds.length)
+        # push source to the top of list
+        UIkit.notification
+          message : "Received #{feeds.length} new feeds, from #{source.name()}"
           status  : 'success',
           timeout : 3000,
           pos     : 'top-right'
 
-  notify: (e, msg) ->
-    obj = JSON.parse(msg) # level: lvl, message: msg
-    UIkit.notify
+      else
+        # todo load ?
+        @logger.warn("Source #{source_id} was not found")
+
+  notify: (e, obj) ->
+    UIkit.notification
       message : obj.message
       status  : obj.level,
       timeout : 3000,

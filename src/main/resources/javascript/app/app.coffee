@@ -52,7 +52,7 @@ $ ->
   #    "mouseenter .tippy-count": controller: FeedsController, action: 'draw_tooltip', data: "data-source-id"
 
   setup =
-    enable_logging: false
+    enable_logging: true
     route: routes
     adapter: new JQueryAdapter()
     controller_wrapper: ControllerExt

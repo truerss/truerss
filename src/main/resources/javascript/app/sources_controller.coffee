@@ -11,7 +11,7 @@ SourcesController =
 
     if Sources.size() == 0
       @logger.debug("No sources, nothing to show")
-      render_feeds([], current_page, total_feeds, href)
+      render_feeds([], page, 0, href)
     else
       ajax.latest(offset, limit, (feeds, total) =>
         render_feeds(feeds, page, total, href)

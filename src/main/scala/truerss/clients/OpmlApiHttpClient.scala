@@ -23,7 +23,7 @@ class OpmlApiHttpClient(baseUrl: String) extends BaseHttpClient(baseUrl) {
   }
 
   def download: Task[String] = {
-    rawGet(opmlUrl)
+    rawGet(s"$baseUrl/opml")
   }
 
 }

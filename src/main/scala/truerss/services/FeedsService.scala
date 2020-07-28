@@ -16,6 +16,8 @@ class FeedsService(dbLayer: DbLayer) {
     dbLayer.feedDao.findOne(feedId).map(_.toDto)
   }
 
+  // todo read feed with content if need
+
   // todo pagination too
   def findUnread(sourceId: Long): Task[Vector[FeedDto]] = {
     feedDao.findUnread(sourceId).map(convert)

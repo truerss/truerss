@@ -4,6 +4,10 @@ import sbt.Package.ManifestAttributes
 import Libs._
 import Tasks._
 
+name := "TrueRSS"
+
+version := "0.0.3.4.pre.6"
+
 val setup = Seq(
   resolvers += Resolver.sonatypeRepo("snapshots"),
   resolvers += "Typesafe Releases" at "https://repo.typesafe.com/typesafe/releases",
@@ -27,9 +31,6 @@ val setup = Seq(
   javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
 )
 
-
-rpmVendor in Rpm := "fntz"
-
 // integrations testing
 
 lazy val RealTest = config("real") extend(Test)
@@ -39,14 +40,12 @@ lazy val mainProject = Project("truerss", file("."))
   .configs(RealTest)
   .settings( inConfig(RealTest)(Defaults.testSettings) : _*)
   .settings(
-    rpmVendor in Rpm := "fntz",
-    rpmVendor := "test",
     setup ++ Seq(installTask, buildCoffeeTask) ++ Seq(
     //(compile in Compile) := (compile in Compile).dependsOn(buildCoffee).value,
     organization := "net.truerss",
     classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.ScalaLibrary,
-    name := "truerss",
-    version := "0.0.3.4.pre.6",
+    name := name.value,
+    version := version.value,
     parallelExecution in Test := true,
     assemblyJarName in assembly := s"truerss_${version.value}.jar",
     mainClass in assembly := Some("Main"),
@@ -73,6 +72,4 @@ lazy val mainProject = Project("truerss", file("."))
     packageOptions := Seq(ManifestAttributes(("Built-By", s"${new Date()}"))),
     libraryDependencies ++= deps
   )
-).enablePlugins(JavaAppPackaging)
-.enablePlugins(RpmPlugin)
-.enablePlugins(JDKPackagerPlugin)
+).enablePlugins(JDKPackagerPlugin)

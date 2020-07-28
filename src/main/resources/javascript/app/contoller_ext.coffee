@@ -12,8 +12,9 @@ class AjaxService
     @refresh_api = "/api/v1/refresh"
     @overview_api = "/api/v1/overview"
     @k = (err) ->
-      c(JSON.stringify(err))
-      logger.warn(JSON.stringify(err))
+      if err # otherwise: 204 no content
+        c(JSON.stringify(err))
+        logger.warn(JSON.stringify(err))
 
 
   plugins_all: (success, error) ->
@@ -152,7 +153,7 @@ class AjaxService
     $.ajax
       url: url
       type: "PUT"
-      dataType: "text" # json
+      dataType: "json" # json
       data: params
       success: success
       error: error

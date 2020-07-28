@@ -1,6 +1,7 @@
 require 'rake'
 
 task :compile do
+  p "regenerate"
   c_to = "#{Dir.pwd}/src/main/resources/javascript/"
   path = "#{Dir.pwd}/src/main/resources/javascript/app"
   files = ["ext", "feeds_controller", "ws_controller",
@@ -9,6 +10,7 @@ task :compile do
     "about_controller",
     "templates", "app"
    ].map{|f| "#{path}/#{f}.coffee"}.join(" ")
+  p "write to #{c_to}"
   system("cat #{files} | coffee -c -b --stdio > #{c_to}/truerss.js")
 end
 

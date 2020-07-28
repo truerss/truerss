@@ -20,7 +20,7 @@ class EventHandlerActor(private val sourcesService: SourcesService,
     case RegisterNewFeeds(sourceId, entries) =>
       val f = for {
         feeds <- feedsService.registerNewFeeds(sourceId, entries)
-        _ <- stream.fire(WebSocketController.NewFeeds(feeds))
+        _ <- stream.fire(WebSocketController.NewFeeds(feeds)).when(feeds.nonEmpty)
       } yield ()
       zio.Runtime.default.unsafeRunTask(f)
 

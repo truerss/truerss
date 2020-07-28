@@ -16,16 +16,16 @@ class OpmlApi(private val opmlService: OpmlService) extends HttpApi {
   protected val defaultSerializationTime = 3 seconds
 
   val route = api {
-    pathPrefix("opml") {
-      (post & pathPrefix("import")) {
-        makeImport1
-      } ~ (get & pathEndOrSingleSlash) {
-        doneWith(opmlService.build, HttpApi.opml)
-      }
+    (post & pathPrefix("opml" / "import")) {
+      makeImport
+    }
+  } ~ pathPrefix("opml") {
+    get {
+      doneWith(opmlService.build, HttpApi.opml)
     }
   }
 
-  protected def makeImport1: Route = {
+  protected def makeImport: Route = {
     extractStrictEntity(defaultSerializationTime) { entity =>
       val text = reprocessToOpml(entity.data.utf8String)
       val result = opmlService.create(text)
