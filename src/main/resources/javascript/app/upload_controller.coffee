@@ -26,10 +26,10 @@ UploadController =
     if @to_model_materializer?
       @to_model_materializer.stop()
 
-    if to_view_materializer?
+    if @to_view_materializer?
       @to_model_materializer.stop()
 
-    source = new Source()
+    source = new Source({})
 
     @to_model_materializer = Sirius.Materializer.build(Templates.modal_view, source)
       .field("input[name='title']")
@@ -50,20 +50,22 @@ UploadController =
 
     @to_view_materializer.run()
 
-    Templates.modal_view.on "#save-source", "click", (e) =>
+    current_modal = @_modal
+
+    Templates.modal_view.on "#save-source", "click", (e) ->
       if source.is_valid()
         json = source.ajaxify()
-        @logger.debug "Send a new source: #{json}"
+        logger.debug "Send a new source: #{json}"
 
         ajax.source_create source.ajaxify(),
           (json) =>
             Sources.add(new Source(json))
-            @_modal.hide()
+            current_modal.hide()
             clear_input()
             clean_route()
 
           (err) =>
-            @logger.warn("Failed to create a new source: #{JSON.stringify(err.responseJSON)}")
+            logger.warn("Failed to create a new source: #{JSON.stringify(err.responseJSON)}")
             all_errors = err.responseJSON['errors'] # array
             source.set_error("url.url_validator", all_errors.join(", "))
 
@@ -76,7 +78,7 @@ UploadController =
     modal = @_modal
 
     UIkit.upload("#upload", {
-      url: '/api/v1/sources/import',
+      url: '/api/v1/opml/import',
       allow: '*.opml',
 
       multiple: true,

@@ -6,7 +6,7 @@ import scala.xml.Utility
 
 object OpmlBuilder {
   // util variables
-  private val exportText = "Newsfeeds exported from Truerss"
+  private val exportText = "Newsfeeds exported from TrueRSS"
 
   def build(sources: Seq[SourceViewDto]): String = {
     val outlines = sources.map { source =>
