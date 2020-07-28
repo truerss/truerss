@@ -50,18 +50,16 @@ MainController =
       ajax.load_ejs("feeds_list")
       ajax.load_ejs("favorites")
       ajax.load_ejs("plugins")
-      ajax.load_ejs("tippy_tooltip")
       ajax.load_ejs("settings")
       ajax.load_ejs("source_overview")
       ajax.load_ejs("about")
       ajax.load_ejs("short_view_feeds_list")
-    ).done (sources, feeds_list, favorites, plugins, tippy_tooltip, settings, source_description, about, short_view) =>
+    ).done (sources, feeds_list, favorites, plugins, settings, source_description, about, short_view) =>
       # TODO use async loading in controllers
       Templates.source_list = new EJS(sources[0])
       Templates.feeds_list = new EJS(feeds_list[0])
       Templates.favorites_template = new EJS(favorites[0])
       Templates.plugins_template = new EJS(plugins[0])
-      Templates.tippy_template = new EJS(tippy_tooltip[0])
       Templates.settings_template = new EJS(settings[0])
       Templates.source_overview_template = new EJS(source_description[0])
       Templates.about_template = new EJS(about[0])
@@ -70,7 +68,6 @@ MainController =
       @_load_js_and_css(ajax)
       port = read_cookie("port")
       mb_redirect = read_cookie("redirect")
-      default_count = 100
 
       if !(!!window.WebSocket && !!window.FormData && !!history.pushState)
         UIkit.notify

@@ -64,7 +64,7 @@ UploadController =
         json = source.ajaxify()
         logger.debug "Send a new source: #{json}"
 
-        ajax.source_create source.ajaxify(),
+        ajax.source_create json,
           (json) =>
             Sources.add(new Source(json))
             current_modal.hide()

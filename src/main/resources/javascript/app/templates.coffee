@@ -17,7 +17,6 @@ Templates =
   plugins_template: null
   plugins_view: new Sirius.View("#plugins-modal")
   pagination_view: new Sirius.View("#pagination")
-  tippy_template: null
   settings_template: null
   settings_view: new Sirius.View("#settings-modal")
   source_overview_template: null

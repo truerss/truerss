@@ -97,32 +97,4 @@ FeedsController =
     ajax.get_feed_content feed_id, (response) ->
       Templates.article_view.render(response.content).html()
 
-  draw_tooltip: (e, source_id) ->
-    # seems tippy does not work with uikit
-    ew = $('.uk-offcanvas-bar-show').width()
-    id = e.target.id
-
-    if id
-      span = document.getElementById(id)
-      source_id = parseInt(source_id)
-      source = Sources.takeFirst (s) -> s.id() == source_id
-      # because tippy does not have properly flow
-      tippy = new Tippy(".tippy-count", {
-        position: 'right'
-        distance: -1 * ew + 10
-        arrow: true
-        hideDelay: 2500
-        theme: 'light'
-        interactive: false
-      })
-
-      result = Templates.tippy_template
-        .render({feeds: source.unread_feeds().slice(0, 25)})
-      span.title = result
-
-      popper = tippy.getPopperElement(span)
-
-      tippy.update(popper)
-
-
 

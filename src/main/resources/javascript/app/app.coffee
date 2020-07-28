@@ -49,8 +49,6 @@ $ ->
     "click a[href='#add-modal']": controller: UploadController, action: "upload"
     "input #search": controller: SearchController, action: "filter"
 
-  #    "mouseenter .tippy-count": controller: FeedsController, action: 'draw_tooltip', data: "data-source-id"
-
   setup =
     enable_logging: true
     route: routes
