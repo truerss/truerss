@@ -22,6 +22,11 @@ UploadController =
 
     clear_input()
 
+    clear_errors = () ->
+      jQuery("#{Templates.modal_view.get_element()} span.errors").html('')
+
+    clear_errors()
+
 
     if @to_model_materializer?
       @to_model_materializer.stop()
@@ -30,6 +35,7 @@ UploadController =
       @to_model_materializer.stop()
 
     source = new Source({})
+
 
     @to_model_materializer = Sirius.Materializer.build(Templates.modal_view, source)
       .field("input[name='title']")
@@ -53,6 +59,7 @@ UploadController =
     current_modal = @_modal
 
     Templates.modal_view.on "#save-source", "click", (e) ->
+      source.validate()
       if source.is_valid()
         json = source.ajaxify()
         logger.debug "Send a new source: #{json}"

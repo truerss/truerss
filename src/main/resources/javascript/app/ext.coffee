@@ -56,6 +56,7 @@ Sirius.View.register_strategy('sum',
 class UrlValidator extends Sirius.Validator
 
   validate: (url, attrs) ->
+    return false unless url
     re = /^(http[s]?:\/\/){0,1}(www\.){0,1}[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,5}[\.]{0,1}/
     if !re.test(url)
       @msg = "Url '#{url}' is not valid"
