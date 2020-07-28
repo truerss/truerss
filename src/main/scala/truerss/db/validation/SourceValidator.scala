@@ -93,7 +93,7 @@ object SourceValidator {
   final val nameLengthError = s"Name length must be less than ${CurrentDriver.defaultLength} symbols"
   final val urlLengthError = s"Url length must be less than ${CurrentDriver.defaultLength} symbols"
   final val urlError = "Not valid url"
-  def urlError(source: SourceDto) = s"Url '${source.url}' already present in db"
+  def urlError(source: SourceDto) = s"Url '${source.url}' is not unique"
   def nameError(source: SourceDto) = s"Name '${source.name}' is not unique"
 
   def validateUrlLength(source: SourceDto): IO[ValidationError, SourceDto] = {

@@ -6,11 +6,8 @@ import zio.Task
 
 class ContentReaderService(
                             feedsService: FeedsService,
-                            readerClient: ReaderClient,
-                            settingsService: SettingsService
+                            readerClient: ReaderClient
                           ) {
-
-  import ContentReaderService._
 
   def fetchFeedContent(feedId: Long): Task[FeedContent] = {
     for {
@@ -24,16 +21,9 @@ class ContentReaderService(
       case Some(_) => Task.succeed(feed.content)
       case None =>
         for {
-          setup <- settingsService.where[Boolean](readContentKey, defaultIsRead)
-          result <- if (setup.value) {
-            Task.succeed(feed.content)
-          } else {
-            for {
-              content <- readerClient.read(feed.url)
-              _ <- updateContentIfNeed(feedId, content)
-            } yield content
-          }
-        } yield result
+          content <- readerClient.read(feed.url)
+          _ <- updateContentIfNeed(feedId, content)
+        } yield content
     }
   }
 

@@ -34,7 +34,7 @@ object AppRunner {
     val opmlService = new OpmlService(sourcesService)
     val feedsService = new FeedsService(dbLayer)
     val readerClient = new ReaderClient(applicationPluginsService)
-    val contentReaderService = new ContentReaderService(feedsService, readerClient, settingsService)
+    val contentReaderService = new ContentReaderService(feedsService, readerClient)
     val searchService = new SearchService(dbLayer)
     val refreshSourcesService = new RefreshSourcesService(stream)
     val markService = new MarkService(dbLayer)

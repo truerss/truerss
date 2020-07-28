@@ -6,7 +6,7 @@ import truerss.dto.FeedDto
 import truerss.db.Feed
 import zio.Task
 
-class FeedsService(dbLayer: DbLayer) {
+class FeedsService(private val dbLayer: DbLayer) {
 
   import truerss.util.FeedSourceDtoModelImplicits._
   import FeedsService._

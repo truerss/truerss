@@ -56,7 +56,7 @@ trait FullFlowTests extends Specification with Resources with BeforeAfterAll {
       p("Try to create with the same url")
       val newSourceInvalidUrl = newSource.copy(name = Gen.genUrl)
       sourceApiClient.create(newSourceInvalidUrl)
-        .err[BadRequestError].errors ==== Iterable(s"Url '${newSource.url}' already present in db")
+        .err[BadRequestError].errors ==== Iterable(s"Url '${newSource.url}' is not unique")
 
       p("Try to create with invalid interval")
       val newSourceInvalidInterval = newSource.copy(interval = -1)
@@ -104,8 +104,7 @@ trait FullFlowTests extends Specification with Resources with BeforeAfterAll {
 
       sleep()
 
-
-      wsClient.newFeeds.size must beGreaterThan(1)
+      wsClient.newFeeds.size ==== 1
 
       p("Refresh All")
       refreshApiClient.refreshAll.e must beRight
@@ -148,11 +147,6 @@ trait FullFlowTests extends Specification with Resources with BeforeAfterAll {
 
       // feeds api
       feedsApiClient.findOne(feedId).m ==== feed
-
-      // because of settings
-      feedsApiClient.content(feedId).m.content must beNone
-
-      updateSkipContentSetup(false).m // should read
 
       feedsApiClient.content(feedId).m.content.map(clear) must beSome(content)
 
@@ -320,15 +314,6 @@ trait FullFlowTests extends Specification with Resources with BeforeAfterAll {
       .stripMargin
       .replaceAll("\n", "")
       .replaceAll(" ", "")
-  }
-
-  private def updateSkipContentSetup(to: Boolean): Task[Unit] = {
-    settingsClient.update(Iterable(
-      NewSetup(
-        key = Predefined.read.key,
-        value = CurrentValue(to)
-      )
-    ))
   }
 
   private def p(x: String) = {
