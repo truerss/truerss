@@ -50,7 +50,6 @@ UploadController =
 
     @to_view_materializer.run()
 
-
     Templates.modal_view.on "#save-source", "click", (e) =>
       if source.is_valid()
         json = source.ajaxify()
@@ -65,8 +64,10 @@ UploadController =
             clean_route()
 
           (err) =>
-            @logger.warn("Failed to create a new source: #{JSON.stringify(err)}")
-            source.set_error("url.url_validator", err.responseJSON['error'])
+            @logger.warn("Failed to create a new source: #{JSON.stringify(err.responseJSON)}")
+            all_errors = err.responseJSON['errors'] # array
+            source.set_error("url.url_validator", all_errors.join(", "))
+
 
     bar = document.getElementById("progressbar")
 
