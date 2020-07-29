@@ -98,10 +98,10 @@ class AjaxService
     @_get("/about", success, @k)
 
   mark_as_read: (source_id) ->
-    @_put("#{@mark_api}/mark/#{source_id}", @k, @k)
+    @_put("#{@mark_api}/#{source_id}", @k, @k)
 
   mark_all_as_read: (success) ->
-    @_put("#{@mark_api}/mark", {}, success, @k)
+    @_put("#{@mark_api}", {}, success, @k)
 
   get_source_overview: (sourceId, success) ->
     @_get(
@@ -309,6 +309,7 @@ ControllerExt =
       feeds_per_page: feeds_per_page
       pagination: pagination
       page_url: start_page_name
+      is_favorites_page: start_page_name.contains("/favorites")
     options
 
   clean_main_page: () ->

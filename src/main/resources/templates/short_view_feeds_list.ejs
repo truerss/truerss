@@ -1,5 +1,9 @@
 <% if (feeds.length == 0) { %>
-    <h3>no unread feeds</h3>
+    <% if (is_favorites_page) { %>
+        <h3>no entries</h3>
+    <% } else { %>
+        <h3>no unread entries</h3>
+    <% } %>
 <% } %>
 
 <% for (i = 0; i < feeds.length; i ++) { %>

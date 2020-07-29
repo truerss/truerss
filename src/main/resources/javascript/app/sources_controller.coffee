@@ -70,11 +70,13 @@ SourcesController =
 
   mark_by_click_on_count_button: (e, id) ->
     id = parseInt(id, 10)
-
     if isNaN(id)
       @mark_all()
     else
       get_source_overview(id).then (overview) =>
+        source = Sources.find('id', id)
+        if source
+          source.count(0)
         current_count = overview.unread_count()
         ajax.mark_as_read(id)
         overview.unread_count(0)
