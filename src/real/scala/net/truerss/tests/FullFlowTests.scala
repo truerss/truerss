@@ -3,17 +3,12 @@ package net.truerss.tests
 import net.truerss.{Gen, Resources, ZIOMaterializer}
 import org.specs2.mutable.Specification
 import org.specs2.specification.BeforeAfterAll
-import play.api.libs.json._
-import truerss.api.ws.WebSocketController.NewFeeds
 import truerss.clients.{EntityNotFoundError, _}
-import truerss.db.Predefined
 import truerss.dto._
-import zio.Task
 
 trait FullFlowTests extends Specification with Resources with BeforeAfterAll {
 
   import ZIOMaterializer._
-  import WSReaders._
 
   private val sourceApiClient = new SourcesApiHttpClient(url)
   private val feedsApiClient = new FeedsApiHttpClient(url)
@@ -261,9 +256,13 @@ trait FullFlowTests extends Specification with Resources with BeforeAfterAll {
       opml must contain(source2.url)
 
       p("Import sources")
-      val result = opmlApiClient.importFile(opmlFile).m
+      val result = opmlApiClient.importFile(opmlFile).e
 
-      result must have size 1
+      result must beRight
+
+      sleep()
+
+      wsClient.newSources must have size 1
 
       // add one more new source
       val newSource3 = NewSourceDto(

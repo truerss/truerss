@@ -56,6 +56,8 @@ trait HttpApi {
   def call[W: Writes](f: Task[W]): Route = {
     val taskResult = f.map { r =>
       val result = r match {
+        case _: Processing =>
+          finish(Accepted, "")
         case _: Unit =>
           finish(NoContent, "")
         case _ =>

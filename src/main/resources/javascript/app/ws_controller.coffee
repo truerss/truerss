@@ -3,6 +3,9 @@ WSController =
 
   logger: Sirius.Application.get_logger("WSController")
 
+  new_sources: (e, xs) ->
+    xs.map (x) -> Sources.add(new Source(x))
+
   # new feeds
   fresh: (e, xs) ->
     feeds = xs.map (x) -> Feed.create(x)

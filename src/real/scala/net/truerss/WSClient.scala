@@ -2,12 +2,11 @@ package net.truerss
 
 import java.net.URI
 
-import net.truerss.tests.WSReaders
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
 import play.api.libs.json.Json
-import truerss.api.ws.WebSocketController.{NewFeeds, NotifyMessage}
-import truerss.dto.{FeedDto, Notify}
+import truerss.api.ws.WebSocketController.{NewFeeds, NewSources, NotifyMessage}
+import truerss.dto.{FeedDto, Notify, SourceViewDto}
 
 import scala.collection.mutable.{ArrayBuffer => AB}
 
@@ -17,6 +16,7 @@ class WSClient(val url: String) extends WebSocketClient(new URI(url)) {
 
   val notifications = AB[Notify]()
   val newFeeds = AB[Iterable[FeedDto]]()
+  val newSources = AB[Iterable[SourceViewDto]]()
 
   override def onOpen(handshakedata: ServerHandshake): Unit = {
   }
@@ -26,6 +26,9 @@ class WSClient(val url: String) extends WebSocketClient(new URI(url)) {
     result match {
       case Some(value) =>
         value match {
+          case NewSources(xs) =>
+            newSources += xs
+
           case NewFeeds(feeds) =>
             newFeeds += feeds
 

@@ -1,15 +1,13 @@
-package net.truerss.tests
+package net.truerss
 
 import play.api.libs.json._
-import truerss.api.ws.WebSocketController.{NewFeeds, NotifyMessage, WSMessage}
-import truerss.dto.{FeedDto, Notify, NotifyLevel, WSMessageType}
-import truerss.api.ws.WebSocketJsonFormats
 import truerss.api.JsonFormats
+import truerss.api.ws.WebSocketController.{NewFeeds, NewSources, NotifyMessage, WSMessage}
+import truerss.dto.{FeedDto, Notify, NotifyLevel, SourceViewDto, WSMessageType}
 
 object WSReaders {
 
   import JsonFormats.feedDtoFormat
-  import WebSocketJsonFormats._
 
   private implicit lazy val notifyLevelsReads: Reads[NotifyLevel.Value] = Reads.enumNameReads(NotifyLevel)
 
@@ -22,6 +20,10 @@ object WSReaders {
           val json = Json.parse(value)
           val tpe = WSMessageType.withName((json \ "messageType").as[String])
           tpe match {
+            case WSMessageType.Sources =>
+              val xs = (json \ "body").as[Iterable[SourceViewDto]]
+              JsSuccess(NewSources(xs))
+
             case WSMessageType.New =>
               val xs = (json \ "body").as[Iterable[FeedDto]]
               JsSuccess(NewFeeds(xs))

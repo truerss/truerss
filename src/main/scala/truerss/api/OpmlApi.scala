@@ -2,9 +2,9 @@ package truerss.api
 
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import truerss.dto.SourceViewDto
 import truerss.services.OpmlService
 import truerss.util.OpmlExtractor
+import zio.Task
 
 import scala.concurrent.duration._
 
@@ -28,9 +28,15 @@ class OpmlApi(private val opmlService: OpmlService) extends HttpApi {
   protected def makeImport: Route = {
     extractStrictEntity(defaultSerializationTime) { entity =>
       val text = reprocessToOpml(entity.data.utf8String)
-      val result = opmlService.create(text)
-      w[Iterable[SourceViewDto]](result)
+      runImport(text)
+      w[Processing](Task.succeed(Processing()))
     }
+  }
+
+  private def runImport(text: String) = {
+    val f = opmlService.create(text).forkDaemon
+    zio.Runtime.default.unsafeRunTask(f)
+
   }
 
 }

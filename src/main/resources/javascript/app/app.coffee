@@ -22,6 +22,7 @@ $ ->
     "about:load": controller: AboutController, action: "load"
     "ws:new": controller: WSController, action: "fresh"
     "ws:notify": controller: WSController, action: "notify"
+    "ws:sources": controller: WSController, action: "new_sources"
     "/favorites" : controller: FeedsController, action: "favorites"
     "/favorites/search": controller: SearchController, action: "show", after: () -> scroll_to_top()
     "/favorites/search/page/:page": controller: SearchController, action: "show", after: () -> scroll_to_top()

@@ -1,7 +1,7 @@
 package truerss.clients
 
 import scalaj.http.{Http, MultiPart}
-import truerss.api.JsonFormats
+import truerss.api.{JsonFormats, Processing}
 import truerss.dto.SourceViewDto
 import zio.Task
 
@@ -14,12 +14,12 @@ class OpmlApiHttpClient(baseUrl: String) extends BaseHttpClient(baseUrl) {
   protected val defaultName = "import"
   protected val defaultFileName = "import"
 
-  def importFile(opml: String): Task[Iterable[SourceViewDto]] = {
-    handleRequest[Iterable[SourceViewDto]](
+  def importFile(opml: String): Task[Unit] = {
+    handleRequest[Processing](
       Http(s"$opmlUrl/import").postMulti(
         MultiPart(defaultName, defaultFileName, "application/xml", opml)
       )
-    )
+    ).map(_ => ())
   }
 
   def download: Task[String] = {

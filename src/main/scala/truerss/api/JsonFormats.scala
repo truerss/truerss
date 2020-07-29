@@ -40,6 +40,18 @@ object JsonFormats {
     }
   }
 
+  implicit lazy val processingWrites: Writes[Processing] = new Writes[Processing] {
+    override def writes(o: Processing): JsValue = {
+      JsNull
+    }
+  }
+
+  implicit lazy val processingReads: Reads[Processing] = new Reads[Processing] {
+    override def reads(json: JsValue): JsResult[Processing] = {
+      JsSuccess(Processing())
+    }
+  }
+
   implicit object StateFormat extends Format[SourceState] {
     override def reads(json: JsValue): JsResult[SourceState] = {
       json match {

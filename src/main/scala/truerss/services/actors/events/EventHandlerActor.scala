@@ -4,6 +4,7 @@ import akka.actor.{Actor, ActorLogging, Props}
 import akka.event.EventStream
 import com.github.truerss.base.Entry
 import truerss.api.ws.WebSocketController
+import truerss.dto.SourceViewDto
 import truerss.services.{FeedsService, SourcesService}
 import truerss.util.EventStreamExt
 
@@ -30,6 +31,10 @@ class EventHandlerActor(private val sourcesService: SourcesService,
       } yield ()
       zio.Runtime.default.unsafeRunTask(f)
 
+    case NewSourcesCreated(sources) =>
+      val f = stream.fire(WebSocketController.NewSources(sources))
+      zio.Runtime.default.unsafeRunTask(f)
+
   }
 }
 
@@ -40,6 +45,7 @@ object EventHandlerActor {
   }
 
   sealed trait EventHandlerActorMessage
-  case class RegisterNewFeeds(sourceId: Long, entries: Vector[Entry]) extends EventHandlerActorMessage
+  case class RegisterNewFeeds(sourceId: Long, entries: Iterable[Entry]) extends EventHandlerActorMessage
   case class ModifySource(sourceId: Long) extends EventHandlerActorMessage
+  case class NewSourcesCreated(sources: Iterable[SourceViewDto]) extends EventHandlerActorMessage
 }

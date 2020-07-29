@@ -4,8 +4,9 @@ import akka.event.EventStream
 import truerss.db.{DbLayer, Source}
 import truerss.db.validation.SourceValidator
 import truerss.dto.{ApplicationPlugins, NewSourceDto, SourceViewDto, UpdateSourceDto}
+import truerss.services.actors.events.EventHandlerActor
 import truerss.services.actors.sync.SourcesKeeperActor
-import truerss.util.{CommonImplicits, FeedSourceDtoModelImplicits, EventStreamExt, ApplicationPluginsImplicits}
+import truerss.util.{ApplicationPluginsImplicits, CommonImplicits, EventStreamExt, FeedSourceDtoModelImplicits}
 import zio._
 
 class SourcesService(private val dbLayer: DbLayer,
@@ -59,7 +60,9 @@ class SourcesService(private val dbLayer: DbLayer,
       }
       _ <- dbLayer.sourceDao.insertMany(sources)
       sources <- dbLayer.sourceDao.fetchByUrls(sources.map(_.url).toSeq)
-      _ <- stream.fire(SourcesKeeperActor.NewSources(sources.map(_.toView)))
+      xs = sources.map(_.toView)
+      _ <- stream.fire(SourcesKeeperActor.NewSources(xs))
+      _ <- stream.fire(EventHandlerActor.NewSourcesCreated(xs))
     } yield sources.map(_.toView)
   }
 
