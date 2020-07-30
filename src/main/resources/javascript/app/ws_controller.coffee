@@ -4,6 +4,7 @@ WSController =
   logger: Sirius.Application.get_logger("WSController")
 
   new_sources: (e, source) ->
+    @logger.info("New source: #{JSON.stringify(source)}")
     Sources.add(new Source(source))
 
   # new feeds
@@ -19,9 +20,10 @@ WSController =
           # push to the top
           current_source = jQuery("#source-#{source_id}")
           first_element = jQuery("#{Templates.source_list_view.get_element()} .source-element").first()
-          current_source
-            .remove().clone(true)
-            .insertBefore(first_element)
+          if current_source.attr('id') != first_element.attr('id')
+            current_source
+              .remove().clone(true)
+              .insertBefore(first_element)
 
         # push source to the top of list
         UIkit.notification
