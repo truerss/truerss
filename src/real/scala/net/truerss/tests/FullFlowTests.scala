@@ -264,6 +264,8 @@ trait FullFlowTests extends Specification with Resources with BeforeAfterAll {
 
       wsClient.newSources must have size 1
 
+      wsClient.notifications must have size 3 // import failed for few sources
+
       // add one more new source
       val newSource3 = NewSourceDto(
         url = rssUrlWithError,
@@ -280,7 +282,7 @@ trait FullFlowTests extends Specification with Resources with BeforeAfterAll {
 
       sleep() // waiting for updates
 
-      wsClient.notifications must be empty // still empty
+      wsClient.notifications must have size 3 // from import
 
       wsClient.newFeeds.last.foreach { _.sourceId ==== sourceId3 } // and we have feeds from source3
 
@@ -290,9 +292,9 @@ trait FullFlowTests extends Specification with Resources with BeforeAfterAll {
 
       sleep()
 
-      wsClient.notifications.size ==== 1
+      wsClient.notifications.size ==== 4 // 3 from import + 1 from read invalid rss ^ (produceErrors)
 
-      val notification = wsClient.notifications.head
+      val notification = wsClient.notifications.last 
       notification.level ==== NotifyLevel.Danger
       notification.message must contain(s"Connection error for $rssUrlWithError")
 
