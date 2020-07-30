@@ -3,10 +3,12 @@ package truerss.services
 import akka.event.EventStream
 import truerss.db.{DbLayer, Source}
 import truerss.db.validation.SourceValidator
-import truerss.dto.{ApplicationPlugins, NewSourceDto, SourceViewDto, UpdateSourceDto}
-import truerss.services.actors.events.EventHandlerActor
+import truerss.dto.{ApplicationPlugins, NewSourceDto, Notify, NotifyLevel, SourceViewDto, UpdateSourceDto}
 import truerss.services.actors.sync.SourcesKeeperActor
-import truerss.util.{ApplicationPluginsImplicits, CommonImplicits, EventStreamExt, FeedSourceDtoModelImplicits}
+import truerss.util.{ApplicationPluginsImplicits, EventStreamExt, FeedSourceDtoModelImplicits}
+import org.slf4j.LoggerFactory
+import truerss.api.ws.WebSocketController
+import truerss.services.actors.events.EventHandlerActor
 import zio._
 
 class SourcesService(private val dbLayer: DbLayer,
@@ -18,6 +20,8 @@ class SourcesService(private val dbLayer: DbLayer,
   import FeedSourceDtoModelImplicits._
   import EventStreamExt._
   import ApplicationPluginsImplicits._
+
+  private val logger = LoggerFactory.getLogger(getClass)
 
   def getAllForOpml: Task[Vector[SourceViewDto]] = {
     dbLayer.sourceDao.all.map { xs => xs.map(_.toView).toVector }
@@ -52,18 +56,28 @@ class SourcesService(private val dbLayer: DbLayer,
   }
 
   // opml
-  def addSources(dtos: Iterable[NewSourceDto]): Task[Iterable[SourceViewDto]] = {
-    for {
-      valid <- sourceValidator.filterValid(dtos)
-      sources = valid.map { x =>
-        x.toSource.withState(appPlugins.getState(x.url))
+  def addSources(dtos: Iterable[NewSourceDto]): Task[Unit] = {
+    Task.collectAllParN_(10) {
+      dtos.map { dto =>
+        addSource(dto).foldM(
+        {
+          case ValidationError(errors) =>
+            stream.fire(WebSocketController.NotifyMessage(
+              Notify(errors.mkString(", "), NotifyLevel.Warning)
+            ))
+          case ex: Throwable =>
+            stream.fire(WebSocketController.NotifyMessage(
+              Notify(ex.getMessage, NotifyLevel.Warning)
+            ))
+        },
+          validSource => {
+            stream.fire(
+              EventHandlerActor.NewSourceCreated(validSource)
+            )
+          }
+        )
       }
-      _ <- dbLayer.sourceDao.insertMany(sources)
-      sources <- dbLayer.sourceDao.fetchByUrls(sources.map(_.url).toSeq)
-      xs = sources.map(_.toView)
-      _ <- stream.fire(SourcesKeeperActor.NewSources(xs))
-      _ <- stream.fire(EventHandlerActor.NewSourcesCreated(xs))
-    } yield sources.map(_.toView)
+    }
   }
 
   def addSource(dto: NewSourceDto): Task[SourceViewDto] = {

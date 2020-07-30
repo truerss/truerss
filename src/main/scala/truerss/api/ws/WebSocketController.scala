@@ -29,7 +29,7 @@ object WebSocketController {
   sealed trait WSMessage
   case class NewFeeds(newFeeds: Iterable[FeedDto]) extends WSMessage
   case class NotifyMessage(message: Notify) extends WSMessage
-  case class NewSources(newSources: Iterable[SourceViewDto]) extends WSMessage
+  case class NewSource(newSource: SourceViewDto) extends WSMessage
 
   object Fields {
     final val mtF = "messageType"
@@ -41,11 +41,11 @@ object WebSocketController {
 
     def asJsonString: String = {
       val result = x match {
-        case NewSources(xs) =>
+        case NewSource(x) =>
           JsObject(
             Seq(
-              mtF -> JsString(WSMessageType.Sources.toString),
-              bF -> Json.toJson(xs)
+              mtF -> JsString(WSMessageType.NewSource.toString),
+              bF -> Json.toJson(x)
             )
           )
 

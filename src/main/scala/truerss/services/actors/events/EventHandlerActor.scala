@@ -26,14 +26,14 @@ class EventHandlerActor(private val sourcesService: SourcesService,
       zio.Runtime.default.unsafeRunTask(f)
 
     case ModifySource(sourceId) =>
-      val f = for {
-        _ <- sourcesService.changeLastUpdateTime(sourceId)
-      } yield ()
-      zio.Runtime.default.unsafeRunTask(f)
+      zio.Runtime.default.unsafeRunTask(
+        sourcesService.changeLastUpdateTime(sourceId)
+      )
 
-    case NewSourcesCreated(sources) =>
-      val f = stream.fire(WebSocketController.NewSources(sources))
-      zio.Runtime.default.unsafeRunTask(f)
+    case NewSourceCreated(source) =>
+      zio.Runtime.default.unsafeRunTask(
+        stream.fire(WebSocketController.NewSource(source))
+      )
 
   }
 }
@@ -47,5 +47,5 @@ object EventHandlerActor {
   sealed trait EventHandlerActorMessage
   case class RegisterNewFeeds(sourceId: Long, entries: Iterable[Entry]) extends EventHandlerActorMessage
   case class ModifySource(sourceId: Long) extends EventHandlerActorMessage
-  case class NewSourcesCreated(sources: Iterable[SourceViewDto]) extends EventHandlerActorMessage
+  case class NewSourceCreated(source: SourceViewDto) extends EventHandlerActorMessage
 }

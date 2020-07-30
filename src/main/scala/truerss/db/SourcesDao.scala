@@ -42,11 +42,6 @@ class SourcesDao(val db: DatabaseDef)(implicit
       .result ~> db
   }
 
-  def fetchByUrls(urls: Seq[String]): Task[Seq[Source]] = {
-    sources.filter(s => s.url.inSet(urls))
-      .result ~> db
-  }
-
   def findByUrl(url: String, id: Option[Long]): Task[Int] = {
     id
       .map(id => sources.filter(s => s.url === url && !(s.id === id)))

@@ -47,9 +47,6 @@ class SourcesKeeperActor(config: SourcesKeeperActor.SourcesSettings,
     case NewSource(source) =>
       startSourceActor(source)
 
-    case NewSources(sources) =>
-      sources.foreach(startSourceActor)
-
     case Update =>
       log.info(s"Update for ${context.children.size} actors")
       context.children.foreach{ _ ! Update }
@@ -131,7 +128,6 @@ object SourcesKeeperActor {
   case object Update extends SourcesMessage
   case class UpdateOne(num: Long) extends SourcesMessage
   case class NewSource(source: SourceViewDto) extends SourcesMessage
-  case class NewSources(sources: Iterable[SourceViewDto]) extends SourcesMessage
   case class ReloadSource(source: SourceViewDto) extends SourcesMessage
 
   // not message, just tmp class with all sources

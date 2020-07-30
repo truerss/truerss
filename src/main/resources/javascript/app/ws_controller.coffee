@@ -3,8 +3,8 @@ WSController =
 
   logger: Sirius.Application.get_logger("WSController")
 
-  new_sources: (e, xs) ->
-    xs.map (x) -> Sources.add(new Source(x))
+  new_sources: (e, source) ->
+    Sources.add(new Source(source))
 
   # new feeds
   fresh: (e, xs) ->
@@ -15,6 +15,14 @@ WSController =
 
       if source
         source.count(source.count() + feeds.length)
+        if source.count() > 0
+          # push to the top
+          current_source = jQuery("#source-#{source_id}")
+          first_element = jQuery("#{Templates.source_list_view.get_element()} .source-element").first()
+          current_source
+            .remove().clone(true)
+            .insertBefore(first_element)
+
         # push source to the top of list
         UIkit.notification
           message : "Received #{feeds.length} new feeds, from #{source.name()}"

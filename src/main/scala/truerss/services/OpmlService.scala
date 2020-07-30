@@ -11,7 +11,7 @@ class OpmlService(private val sourcesService: SourcesService) {
     sourcesService.getAllForOpml.map(OpmlBuilder.build)
   }
 
-  def create(text: String): Task[Iterable[SourceViewDto]] = {
+  def create(text: String): Task[Unit] = {
     for {
       xs <- OpmlParser.parse(text)
       fs = fromOutlines(xs)

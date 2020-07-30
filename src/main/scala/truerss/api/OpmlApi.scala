@@ -28,15 +28,13 @@ class OpmlApi(private val opmlService: OpmlService) extends HttpApi {
   protected def makeImport: Route = {
     extractStrictEntity(defaultSerializationTime) { entity =>
       val text = reprocessToOpml(entity.data.utf8String)
-      runImport(text)
+      runImportAsync(text)
       w[Processing](Task.succeed(Processing()))
     }
   }
 
-  private def runImport(text: String) = {
-    val f = opmlService.create(text).forkDaemon
-    zio.Runtime.default.unsafeRunTask(f)
-
+  private def runImportAsync(text: String) = {
+    zio.Runtime.default.unsafeRunTask(opmlService.create(text).forkDaemon)
   }
 
 }

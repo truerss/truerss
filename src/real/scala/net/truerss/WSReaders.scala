@@ -2,7 +2,7 @@ package net.truerss
 
 import play.api.libs.json._
 import truerss.api.JsonFormats
-import truerss.api.ws.WebSocketController.{NewFeeds, NewSources, NotifyMessage, WSMessage}
+import truerss.api.ws.WebSocketController.{NewFeeds, NewSource, NewSources, NotifyMessage, WSMessage}
 import truerss.dto.{FeedDto, Notify, NotifyLevel, SourceViewDto, WSMessageType}
 
 object WSReaders {
@@ -20,9 +20,9 @@ object WSReaders {
           val json = Json.parse(value)
           val tpe = WSMessageType.withName((json \ "messageType").as[String])
           tpe match {
-            case WSMessageType.Sources =>
-              val xs = (json \ "body").as[Iterable[SourceViewDto]]
-              JsSuccess(NewSources(xs))
+            case WSMessageType.NewSource =>
+              val x = (json \ "body").as[SourceViewDto]
+              JsSuccess(NewSource(x))
 
             case WSMessageType.New =>
               val xs = (json \ "body").as[Iterable[FeedDto]]

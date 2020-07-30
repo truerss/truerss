@@ -14,28 +14,6 @@ class SourceValidator(private val dbLayer: DbLayer,
 
   import SourceValidator._
 
-  def filterValid(sources: Iterable[NewSourceDto]): Task[Iterable[NewSourceDto]] = {
-    val urls = sources.map(_.url).toSeq
-    val names = sources.map(_.name).toSeq
-
-    for {
-      notUnique <- dbLayer.sourceDao.findByUrlsAndNames(urls, names)
-      notUniqueUrls = notUnique.map(_._1)
-      notUniqueNames = notUnique.map(_._2)
-      xs = sources
-        .filter(isValidInterval)
-        .filter(isValidUrl)
-        .filter(isValidUrlLength)
-        .filter(isValidNameLength)
-        .filterNot { x => notUniqueUrls.contains(x.url)   }
-        .filterNot { x => notUniqueNames.contains(x.name) }
-      (plugins, notPlugins) = xs.partition(isPlugin)
-      validateUrls <- sourceUrlValidator.validateUrls(notPlugins.toSeq)
-    } yield {
-      plugins.toSeq ++ validateUrls.map(_.asInstanceOf[NewSourceDto])
-    }
-  }
-
   def validateSource(source: SourceDto): IO[ValidationError, SourceDto] = {
     val vInterval = validateInterval(source)
     val vUrl = validateUrl(source)
