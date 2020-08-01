@@ -4,7 +4,7 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import org.slf4j.LoggerFactory
 import truerss.api.RoutingEndpoint
-import truerss.api.ws.WebSocketsSupport
+import truerss.api.ws.SocketServer
 import truerss.db.Predefined
 import truerss.db.driver.DbInitializer
 import truerss.db.validation.{SourceUrlValidator, SourceValidator}
@@ -52,6 +52,7 @@ object AppRunner {
       "main-actor"
     )
 
+
     val endpoint = new RoutingEndpoint(
       feedsService = feedsService,
       sourcesService = sourcesService,
@@ -74,9 +75,12 @@ object AppRunner {
       logger.info(s"Http Server: ${actualConfig.url}")
     }(actorSystem.dispatcher)
 
-    actorSystem.actorOf(WebSocketsSupport.props(actualConfig.wsPort), "ws-api")
+
+    val webSocketServer = SocketServer(actualConfig.wsPort, actorSystem)
+    webSocketServer.start()
 
     actorSystem.registerOnTermination {
+      webSocketServer.stop()
       logger.info(s"========> ActorSytem[${actorSystem.name}] is terminating...")
     }
   }

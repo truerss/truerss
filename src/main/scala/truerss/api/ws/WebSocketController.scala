@@ -6,7 +6,8 @@ import truerss.api.JsonFormats
 import play.api.libs.json._
 import truerss.dto.{FeedDto, Notify, SourceViewDto, WSMessageType}
 
-class WebSocketController(ws: WebSocket) extends Actor with ActorLogging {
+// one actor per one user connection
+class WebSocketController(private val ws: WebSocket) extends Actor with ActorLogging {
 
   import WebSocketController._
 

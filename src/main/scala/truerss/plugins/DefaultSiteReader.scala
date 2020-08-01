@@ -52,7 +52,7 @@ class DefaultSiteReader(config: Config)
       Try(extractEntries(url, response.body)).fold(
         error => {
           logger.warn(s"Failed to fetch entries from $url", error)
-          UnexpectedError(error.getMessage).left
+          UnexpectedError(s"Failed to fetch entries from $url").left
         },
         _.toVector.right
       )
