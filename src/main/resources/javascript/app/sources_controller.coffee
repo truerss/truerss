@@ -112,11 +112,3 @@ SourcesController =
 
       sources.forEach((x) -> Sources.add(x))
 
-      unless sources.is_empty()
-        sxs = Sources.all().filter (s) -> s.count() > 0
-        @logger.info "redirect to"
-        if sxs[0]
-          source = sxs[0]
-          #TODO redirect(source.href())
-        else
-          #TODO redirect(Sources.first().href())

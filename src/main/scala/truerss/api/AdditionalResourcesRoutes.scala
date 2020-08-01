@@ -58,7 +58,7 @@ object AdditionalResourcesRoutes {
   final val portC = "port"
   final val redirectToC = "redirectTo"
   final val xhrHeaderName =  "X-Requested-With"
-  final val xhrHeaderValue = "XMLHttpRequest".toLowerCase
+  final val xhrHeaderValue = "XMLHttpRequest"
 
   final val about =
     """

@@ -67,7 +67,22 @@ MainController =
 
       @_load_js_and_css(ajax)
       port = read_cookie("port")
-      mb_redirect = read_cookie("redirect")
+      mb_redirect = read_cookie("redirectTo")
+
+      if mb_redirect && !mb_redirect.is_empty()
+        default_time = 400
+        default_count = 7
+        redirect = (count) ->
+          if ajax.is_ready() || count > default_count
+            Sirius.redirect(mb_redirect)
+          else
+            c("#{ajax.counter}")
+            setTimeout(
+              () -> redirect(count + 1)
+              default_time
+            )
+
+        redirect(0)
 
       if !(!!window.WebSocket && !!window.FormData && !!history.pushState)
         UIkit.notify
@@ -85,6 +100,6 @@ MainController =
           adapter.fire(document, "about:load")
           @_init_ws(adapter, port)
 
-      delete_cookie("redirect")
+      delete_cookie("redirectTo")
     return
 

@@ -3,6 +3,7 @@ class AjaxService
 
   constructor: () ->
     logger = Sirius.Application.get_logger("AjaxService")
+    @counter = 0
     @sources_api = "/api/v1/sources"
     @feeds_api = "/api/v1/feeds"
     @plugin_api = "/api/v1/plugins"
@@ -16,6 +17,9 @@ class AjaxService
         c(JSON.stringify(err))
         logger.warn(JSON.stringify(err))
 
+  is_ready: () ->
+    c("===========> #{@counter}")
+    @counter == 0
 
   plugins_all: (success, error) ->
     @_get("#{@plugin_api}/all", success, error)
@@ -135,7 +139,7 @@ class AjaxService
   load_ejs: (url) ->
     jQuery.ajax
       type: "GET"
-      url: "templates/#{url}.ejs"
+      url: "/templates/#{url}.ejs"
 
   _feeds_transform: (response, success_f) ->
     total = response["total"]
@@ -169,10 +173,14 @@ class AjaxService
 
   _get: (url, success, error = @k ) ->
     $.ajax
+      beforeSend: () =>
+        @counter = @counter + 1
       type: "GET"
       url: url
       success: success
       error : error
+      complete: () =>
+        @counter = @counter - 1
 
 
 `
