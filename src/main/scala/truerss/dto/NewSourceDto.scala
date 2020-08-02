@@ -48,7 +48,6 @@ case class PluginDto(author: String,
                      pluginName: String
                     )
 
-// TODO rename on ui
 case class PluginsViewDto(
                            feed: Vector[PluginDto] = Vector.empty,
                            content: Vector[PluginDto] = Vector.empty,

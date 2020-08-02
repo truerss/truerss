@@ -6,7 +6,7 @@ import org.testcontainers.containers.PostgreSQLContainer
 import truerss.AppRunner
 import truerss.util.DbConfig
 
-trait PostgresTests extends AllTestsTogether with BeforeAfterAll with Resources {
+class PostgresTests extends AllTestsTogether with BeforeAfterAll with Resources {
 
   override def suiteName: String = "posgtres-tests"
 

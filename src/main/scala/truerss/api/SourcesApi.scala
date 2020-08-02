@@ -32,8 +32,6 @@ class SourcesApi(feedsService: FeedsService,
           parameters('unreadOnly ? true, 'offset ? "0", 'limit ? "100") { (unreadOnly, from, limit) =>
             w[Page[FeedDto]](fs.findBySource(sourceId, unreadOnly, from.toIntOr(0), limit.toIntOr(100)))
           }
-        } ~ pathPrefix("unread" / LongNumber) { sourceId =>
-          w[Iterable[FeedDto]](fs.findUnread(sourceId))
         }
       } ~ post {
         pathEndOrSingleSlash {

@@ -61,10 +61,5 @@ object AdditionalResourcesRoutes {
   final val xhrHeaderValue = "XMLHttpRequest"
 
   final val about =
-    """
-          TrueRss is an open-source feed reader with a customizable plugin system for any content (atom, RSS, youtube channels...).
-          More info <a href='https://github.com/truerss/truerss'>Github page</a>.
-          <br/>
-          Download plugins: <a href='https://github.com/truerss/plugins/releases'>plugins</a>
-    """.stripMargin
+    Source.fromInputStream(getClass.getResourceAsStream(s"/about.txt")).mkString
 }

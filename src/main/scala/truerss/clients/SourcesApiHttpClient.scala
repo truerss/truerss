@@ -35,12 +35,12 @@ class SourcesApiHttpClient(baseUrl: String) extends BaseHttpClient(baseUrl) {
     get[Page[FeedDto]](s"$sourcesUrl/latest?offset=$offset&limit=$limit")
   }
 
-  def unread(sourceId: Long): Task[Iterable[FeedDto]] = {
-    get[Iterable[FeedDto]](s"$sourcesUrl/unread/$sourceId")
-  }
-
   def feeds(sourceId: Long, unreadOnly: Boolean, offset: Int, limit: Int): Task[Page[FeedDto]] = {
     get[Page[FeedDto]](s"$sourcesUrl/$sourceId/feeds?unreadOnly=$unreadOnly&offset=$offset&limit=$limit")
+  }
+
+  def unread(sourceId: Long, offset: Int, limit: Int): Task[Page[FeedDto]] = {
+    feeds(sourceId, unreadOnly = true, offset, limit)
   }
 
 }

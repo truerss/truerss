@@ -6,7 +6,7 @@ import org.testcontainers.containers.MySQLContainer
 import truerss.AppRunner
 import truerss.util.DbConfig
 
-trait MySqlTests extends AllTestsTogether with BeforeAfterAll with Resources {
+class MySqlTests extends AllTestsTogether with BeforeAfterAll with Resources {
 
   override def suiteName: String = "mysql-tests"
 

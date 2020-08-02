@@ -121,7 +121,7 @@ trait FullFlowTests extends Specification with Resources with BeforeAfterAll {
       p("Get Overview for not existing source")
       overviewApiClient.overview(1000).e must beLeft(EntityNotFoundError)
 
-      sourceApiClient.unread(sourceId).m must have size 1
+      sourceApiClient.unread(sourceId, 0, 10).m.resources must have size 1
       val latest = sourceApiClient.latest(0, 100).m
       latest.total ==== 1
       latest.resources must have size 1
@@ -149,7 +149,7 @@ trait FullFlowTests extends Specification with Resources with BeforeAfterAll {
 
       sourceApiClient.feeds(sourceId, unreadOnly = true, 0, 100).m.resources must be empty
 
-      sourceApiClient.unread(sourceId).m must be empty
+      sourceApiClient.unread(sourceId, 0, 10).m.resources must be empty
 
       feedsApiClient.findOne(feedId).m.read must beTrue
 
@@ -188,26 +188,26 @@ trait FullFlowTests extends Specification with Resources with BeforeAfterAll {
       sourceApiClient.feeds(sourceId2, unreadOnly = false, 0, 100).m.resources must have size 1
 
       // markApi
-      val unreadInSource1 = sourceApiClient.unread(sourceId).m
+      val unreadInSource1 = sourceApiClient.unread(sourceId, 0, 10).m.resources
       unreadInSource1 must have size 2
       unreadInSource1.map(_.id).filter(_ == feedId) must be empty
 
       markApiClient.markOne(sourceId).m
 
-      sourceApiClient.unread(sourceId).m must be empty
+      sourceApiClient.unread(sourceId, 0, 10).m.resources must be empty
 
       // we did not sync
-      sourceApiClient.unread(sourceId2).m must have size 1
+      sourceApiClient.unread(sourceId2, 0, 10).m.resources must have size 1
 
       refreshApiClient.refreshAll.m
 
       sleep() // wait for sync
 
-      sourceApiClient.unread(sourceId2).m must have size 3
+      sourceApiClient.unread(sourceId2, 0, 10).m.resources must have size 3
 
       markApiClient.markAll.m
 
-      sourceApiClient.unread(sourceId2).m must be empty
+      sourceApiClient.unread(sourceId2, 0, 10).m.resources must be empty
 
       // search
       searchApiClient.search(SearchRequest(
@@ -303,7 +303,7 @@ trait FullFlowTests extends Specification with Resources with BeforeAfterAll {
 
       sourceApiClient.findOne(sourceId).e must beLeft(EntityNotFoundError)
       feedsApiClient.findOne(feedId).e must beLeft(EntityNotFoundError)
-      sourceApiClient.unread(sourceId).m must be empty
+      sourceApiClient.unread(sourceId, 0, 10).m.resources must be empty
 
       success
     }

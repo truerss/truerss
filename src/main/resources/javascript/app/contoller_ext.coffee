@@ -37,13 +37,6 @@ class AjaxService
       error
     )
 
-  get_unread: (sourceId, success) ->
-    @_get(
-      "#{@sources_api}/unread/#{sourceId}",
-      (response) -> success(response.map((x) -> Feed.create(x))),
-      @k
-    )
-
   latest: (offset, limit, success) ->
     @_get("#{@sources_api}/latest?offset=#{offset}&limit=#{limit}",
       (r) => @_feeds_transform(r, success)
@@ -54,13 +47,6 @@ class AjaxService
 
   refresh_all: () ->
     @_put("#{@refresh_api}/all", @k , @k)
-
-  get_feeds: (source_id, success, error) ->
-    @_get(
-      "#{@sources_api}/#{source_id}/feeds",
-      (response) -> success(response.map((x) -> Feed.create(x))),
-      error
-    )
 
   get_page_of_feeds: (source_id, offset, limit, unread_only, success, error) ->
     @_get(

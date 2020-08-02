@@ -32,14 +32,6 @@ class SourceUrlValidator extends Request {
     }
   }
 
-  // returns only valid
-  // TODO pass from the top where[Setup]
-  def validateUrls(dtos: Seq[SourceDto]): Task[Seq[SourceDto]] = {
-    Task.collectParN(10)(dtos) { x =>
-      ZIO.fromOption(validateUrl(x).toOption)
-    }
-  }
-
   protected def makeRequest(url: String): Map[String, String] = {
     getRequestHeaders(url)
   }

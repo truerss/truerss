@@ -11,7 +11,7 @@ trait Request {
   import DefaultParameters._
 
   // TODO for settings
-  protected val connectionTimeout = 10000
+  protected val connectionTimeout = 1000
   protected val readTimeout = 10000
   protected val retryCount = 3
 

@@ -53,7 +53,7 @@ object Predefined {
     description = "Number of simultaneous requests",
     value = SelectableValue(Iterable(10, 25, 45, 100), 10)
   )
-
+  // todo
   val read = PredefinedSettings(
     key = fReadContent,
     description = "Skip content",
@@ -72,5 +72,5 @@ object Predefined {
     value = RadioValue(false)
   )
 
-  val predefined = parallelism :: read :: feedsPerPage :: shortView :: Nil
+  val predefined = parallelism :: feedsPerPage :: shortView :: Nil
 }

@@ -15,14 +15,7 @@ class FeedsDao(val db: DatabaseDef)(implicit driver: CurrentDriver) {
   import driver.profile.api._
   import driver.query.{FeedsQExt, FeedsTQExt, byFeed, bySource, feeds}
 
-  private type FPage = Task[(Seq[Feed], Int)]
-
-  def findUnread(sourceId: Long): Task[Seq[Feed]] = {
-    bySource(sourceId)
-      .unreadOnly
-      .sortBy(_.publishedDate.desc)
-      .result ~> db
-  }
+  private type TPage = Task[(Seq[Feed], Int)]
 
   def feedBySourceCount(read: Boolean): Task[Seq[(Long, Int)]] = {
     feeds
@@ -56,17 +49,17 @@ class FeedsDao(val db: DatabaseDef)(implicit driver: CurrentDriver) {
       .update(true) ~> db
   }
 
-  def lastN(offset: Int, limit: Int): FPage = {
+  def lastN(offset: Int, limit: Int): TPage = {
     fetchPage(feeds.unreadOnly, offset, limit)
   }
 
-  def pageForSource(sourceId: Long, unreadOnly: Boolean, offset: Int, limit: Int): FPage = {
+  def pageForSource(sourceId: Long, unreadOnly: Boolean, offset: Int, limit: Int): TPage = {
     val f = bySource(sourceId)
       .filter(_.read inSet getReadValues(unreadOnly))
     fetchPage(f, offset, limit)
   }
 
-  def favorites(offset: Int, limit: Int): FPage = {
+  def favorites(offset: Int, limit: Int): TPage = {
     fetchPage(
       feeds.isFavorite, offset, limit
     )
@@ -113,7 +106,7 @@ class FeedsDao(val db: DatabaseDef)(implicit driver: CurrentDriver) {
     bySource(sourceId).result ~> db
   }
 
-  def search(inFavorites: Boolean, query: String, offset: Int, limit: Int): FPage = {
+  def search(inFavorites: Boolean, query: String, offset: Int, limit: Int): TPage = {
     val exp = s"%$query%"
     val f = feeds
       .filter{x => (x.title like exp) || (x.normalized like exp) || (x.url like exp)}
@@ -142,7 +135,7 @@ class FeedsDao(val db: DatabaseDef)(implicit driver: CurrentDriver) {
     }
   }
 
-  private def fetchPage(q: Query[driver.Feeds, Feed, Seq], offset: Int, limit: Int): FPage = {
+  private def fetchPage(q: Query[driver.Feeds, Feed, Seq], offset: Int, limit: Int): TPage = {
     for {
       resources <- db.go(q.drop(offset).take(limit).result)
       total <- db.go(q.length.result)
@@ -161,5 +154,4 @@ object FeedsDao {
       Vector(true, false)
     }
   }
-
 }

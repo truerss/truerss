@@ -7,7 +7,7 @@ MainController =
     <h1>Error! Websockets and FormData not supported</h1>
     <p>
       Seems you have old browser.
-      TrueRSS work with IE 10+, FF 33+,
+      TrueRSS works with IE 10+, FF 33+,
       Chrome 31+ and Opera 26+.
       Update browser please.
     </p>

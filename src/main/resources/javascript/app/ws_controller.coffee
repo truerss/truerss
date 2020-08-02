@@ -33,7 +33,6 @@ WSController =
           pos     : 'top-right'
 
       else
-        # todo load ?
         @logger.warn("Source #{source_id} was not found")
 
   notify: (e, obj) ->
