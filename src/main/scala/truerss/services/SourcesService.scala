@@ -54,6 +54,7 @@ class SourcesService(private val dbLayer: DbLayer,
 
   // opml
   def addSources(dtos: Iterable[NewSourceDto]): Task[Unit] = {
+    // todo use settings instead of constant
     Task.collectAllParN_(10) {
       dtos.map { dto =>
         addSource(dto).foldM(
