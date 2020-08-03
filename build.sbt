@@ -6,7 +6,9 @@ import Tasks._
 
 name := "TrueRSS"
 
-version := "0.0.3.4.pre.6"
+version := "0.0.3.4.pre.7"
+
+maintainer := "mike <mike.fch1@gmail.com>"
 
 val setup = Seq(
   resolvers += Resolver.sonatypeRepo("snapshots"),

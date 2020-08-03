@@ -19,7 +19,7 @@ class OpmlApiHttpClient(baseUrl: String) extends BaseHttpClient(baseUrl) {
       Http(s"$opmlUrl/import").postMulti(
         MultiPart(defaultName, defaultFileName, "application/xml", opml)
       )
-    ).map(_ => ())
+    ).unit
   }
 
   def download: Task[String] = {

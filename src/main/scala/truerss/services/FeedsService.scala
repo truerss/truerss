@@ -47,7 +47,7 @@ class FeedsService(private val dbLayer: DbLayer) {
   }
 
   def updateContent(feedId: Long, content: String): Task[Unit] = {
-    feedDao.updateContent(feedId, content).map(_ => ())
+    feedDao.updateContent(feedId, content).unit
   }
 
 }

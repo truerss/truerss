@@ -6,7 +6,7 @@ import zio.Task
 class MarkService(private val dbLayer: DbLayer) {
 
   def markAll: Task[Unit] = {
-    dbLayer.feedDao.markAll.map(_ => ())
+    dbLayer.feedDao.markAll.unit
   }
 
   def markOne(sourceId: Long): Task[Unit] = {

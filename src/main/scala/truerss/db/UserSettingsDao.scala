@@ -28,6 +28,8 @@ class UserSettingsDao(val db: DatabaseDef)(implicit driver: CurrentDriver) {
 
   def bulkUpdate(settings: Iterable[UserSettings]): Task[Unit] = {
     // TODO
+
+
     Task.fromFuture { implicit ec =>
       Future.sequence(settings.map(toStatement).map(x => db.run(x)))
     }.map(_ => ())
