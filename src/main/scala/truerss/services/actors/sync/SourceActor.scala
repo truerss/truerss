@@ -1,17 +1,19 @@
 package truerss.services.actors.sync
 
+import java.time.ZoneOffset
 import java.util.Date
 
 import akka.actor.{Actor, ActorLogging, Props}
 import com.github.truerss.base._
-import org.jsoup.Jsoup
-import truerss.dto.{Notify, NotifyLevels, SourceViewDto}
-import truerss.services.DbHelperActor.{AddFeeds, SourceLastUpdate}
+import truerss.api.ws.WebSocketController
+import truerss.dto.{Notify, NotifyLevel, SourceViewDto}
+import truerss.services.actors.events.EventHandlerActor
 import truerss.services.actors.sync.SourcesKeeperActor.{Update, UpdateMe, Updated}
 
 import scala.concurrent.duration._
 
-class SourceActor(source: SourceViewDto, feedReader: BaseFeedReader)
+class SourceActor(source: SourceViewDto,
+                  feedReader: BaseFeedReader)
   extends Actor with ActorLogging {
 
   import SourceActor._
@@ -21,7 +23,7 @@ class SourceActor(source: SourceViewDto, feedReader: BaseFeedReader)
 
   val stream = context.system.eventStream
 
-  val updTime = UpdateTime(source.lastUpdate.getTime, source.interval)
+  val updTime = UpdateTime(source.lastUpdate.toInstant(ZoneOffset.UTC).getEpochSecond, source.interval)
 
   log.info(s"Next time update for ${source.name} -> ${updTime.tickTime}; " +
     s"Interval: ${updTime.interval}")
@@ -35,25 +37,26 @@ class SourceActor(source: SourceViewDto, feedReader: BaseFeedReader)
 
   def receive = {
     case Update =>
-      log.info(s"Update ${source.normalized}")
-      stream.publish(SourceLastUpdate(source.id))
+      log.info(s"Update ${source.normalized} -> ${source.url}")
       feedReader.newEntries(source.url) match {
         case Right(xs) =>
-          stream.publish(AddFeeds(source.id, xs))
+          stream.publish(EventHandlerActor.RegisterNewFeeds(source.id, xs))
         case Left(error) =>
           log.warning(s"Error when update source $error")
-          stream.publish(Notify(NotifyLevels.Danger, error.error))
+          stream.publish(WebSocketController.NotifyMessage(
+            Notify(error.error, NotifyLevel.Danger)
+          ))
       }
+
       context.parent ! Updated
+      stream.publish(EventHandlerActor.ModifySource(source.id))
   }
 
 
 }
 
 object SourceActor {
-  import truerss.util.Request._
-
-  def props(source: SourceViewDto, feedReader: BaseFeedReader) = {
+  def props(source: SourceViewDto, feedReader: BaseFeedReader): Props = {
     Props(classOf[SourceActor], source, feedReader)
   }
 
@@ -61,8 +64,6 @@ object SourceActor {
                          tickTime: FiniteDuration,
                          interval: FiniteDuration
                        )
-
-
 
   object UpdateTime {
     def apply(lastUpdate: Long, sourceInterval: Long): UpdateTime = {
@@ -82,13 +83,4 @@ object SourceActor {
     }
   }
 
-  def extractContent(url: String): String = {
-    val response = getResponse(url)
-
-    if (response.isError) {
-      throw new RuntimeException(s"Connection error for $url")
-    }
-
-    Jsoup.parse(response.body).body().html()
-  }
 }

@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<opml version="1.0">
+<head>TrueRSS Feed List Export</head>
+<body>
+<outline title="Newsfeeds exported from Truerss" text="Newsfeeds exported from Truerss" description="Newsfeeds exported from Truerss" type="folder">
+    <outline type="rss" text="update-test" title="test" xmlUrl="http://%%HOST%%:%%PORT%%/rss"></outline>
+    <outline type="rss" text="test#2" title="test" xmlUrl="http://%%HOST%%:%%PORT%%/rss1"></outline>
+    <outline type="rss" text="update-test" title="test" xmlUrl="http://%%HOST%%:%%PORT%%/rss2"></outline>
+    <outline type="rss" text="update-test" title="test" xmlUrl="http://%%HOST%%:%%PORT%%/boom"></outline>
+</outline>
+</body>
+</opml>

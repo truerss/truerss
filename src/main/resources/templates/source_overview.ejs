@@ -1,0 +1,52 @@
+<ul class="uk-list custom-padding-top-30" id="source-overview-<%= source.id() %>">
+    <li>
+        <ul class="uk-padding-remove uk-margin-remove uk-subnav uk-subnav-pill" uk-switcher>
+            <li class="<% if (!overview.is_loaded_all()) { %> uk-active <%}%> uk-padding-remove uk-margin-remove">
+                <a href="<%= source.href() %>">Unread</a>
+            </li>
+            <li class="<% if (overview.is_loaded_all()) { %> uk-active <%}%> uk-margin-remove uk-padding-remove">
+                <a href="<%= source.href_all() %>">Load All</a>
+            </li>
+        </ul>
+    </li>
+
+    <li><%= source.name() %>
+        <span class="uk-align-right custom-padding-right-3">
+                        <a href="#refresh-source" data-source-id="<%= source.id() %>"
+                           title="refresh" uk-icon="refresh"></a>
+                        <a href="#remove-source" data-source-id="<%= source.id() %>"
+                           title="remove feed" uk-icon="trash"></a>
+                    </span>
+    </li>
+    <li>
+        <a class="uk-link-text" href="<%= source.url() %>">
+            <%= source.url() %>
+        </a>
+    </li>
+    <li>Updated every <%= source.interval() %> hour(s)</li>
+    <li>Last updated  <%= moment(source.last_update_in_tz()).fromNow() %></li>
+    <li>plugins?
+        <% if (source.has_plugin()) { %>
+            Yes
+        <% } else { %>
+            No
+        <% } %>
+    </li>
+    <li><%= overview.feedsCount %> feeds</li>
+    <li>unread count:
+        <span class="source-overview-unread-count" data-source-id="<%= source.id() %>">
+        <% if (overview.unreadCount != 0) { %>
+            <%= source.count() %>
+        <% } else { %>
+            -
+        <% } %>
+        </span>
+    </li>
+
+    <li>In favorites:
+        <span class="source-overview-favorites-count" data-source-id="<%= source.id() %>">
+            <%= overview.favoritesCount %>
+        </span>
+    </li>
+
+</ul>

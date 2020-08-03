@@ -1,166 +1,114 @@
 
 SourcesController =
 
-  by_source: () ->
-    html = Templates.list.render({sources: Sources.all()})
-    Templates.article_view.render(html).html()
-    state.to(States.List)
+  logger: Sirius.Application.get_logger("SourcesController")
 
-  all: () ->
-    html = Templates.all_sources_template.render({sources: Sources.all()})
-    Templates.article_view.render(html).html()
-    state.to(States.Sources)
+  show_all: (page) ->
+    page = parseInt(page || 1, 10)
+    offset = get_offset(page)
+    limit = get_limit()
+    href = "/show/all"
 
-  refresh_all: () ->
-    ajax.refresh_all()
+    if Sources.size() == 0
+      @logger.debug("No sources, nothing to show")
+      render_feeds([], page, 0, href)
+    else
+      ajax.latest(offset, limit, (feeds, total) =>
+        render_feeds(feeds, page, total, href)
+      )
 
-  show: (normalized) ->
+  show_all_in_source: (normalized, page) ->
+    @_show(normalized, page, true)
+
+  show: (normalized, page) ->
+    @_show(normalized, page, false)
+
+  _show: (normalized, page, is_loaded_all) ->
+    page = parseInt(page || 1, 10)
+    offset = get_offset(page)
+    limit = get_limit()
     normalized = decodeURIComponent(normalized)
-    source = Sources.takeFirst (s) -> s.normalized() == normalized
-    if source
-      ajax.get_unread source.id(), (feeds) ->
-        source.reset('feeds')
-        feeds = feeds.map (x) ->
-          pd = moment(x['publishedDate'])
-          x['publishedDate'] = pd
-          f = new Feed(x)
-          source.add_feed(f)
-          f
+    source = Sources.find('normalized', normalized)
 
-        if feeds.length > 0
-          render_source_feeds_and_redirect_to_first(source)
-        else
-          ajax.get_feeds source.id(), (feeds) ->
-            feeds = feeds.map (x) ->
-              pd = moment(x['publishedDate'])
-              x['publishedDate'] = pd
-              f = new Feed(x)
-              source.add_feed(f)
-              f
+    unread_only = !is_loaded_all
 
-            render_source_feeds_and_redirect_to_first(source)
+    if source?
+      ajax.get_page_of_feeds(source.id(), offset, limit, unread_only,
+        (feeds, total) =>
+          @logger.info("Load from source: #{source.id()}, #{feeds.length} feeds")
+          @_process_feeds(source, feeds, page, total, is_loaded_all)
+      )
 
-      state.to(States.Source)
-      posts.clear()
-      sources.set(source.id())
+    else
+      @logger.warn "source: #{normalized} does not exist"
+
+  _process_feeds: (source, feeds, page, total, is_load_all) ->
+    get_source_overview(source.id()).then (overview) =>
+      overview.is_loaded_all(is_load_all)
+      render_feeds_and_source_overview(source, overview, feeds, page, total)
+
+
+  refresh_all: (e) ->
+    ajax.refresh_all()
+    e.preventDefault()
 
   refresh_one: (e, id) ->
     ajax.refresh_one id
+    e.preventDefault()
 
   remove: (e, id) ->
     ajax.remove_source id
     source = Sources.find("id", id)
     if source
+      change_count(-source.count())
       Sources.remove(source)
-      jQuery("#all-sources tr.source-#{id}").remove()
-
+      $("#source-overview-#{source.id()}").remove()
+      Sirius.redirect("/show/all")
 
   edit: (e, id) ->
-    logger.info("update #{id} source")
-    source = Sources.find('id', id)
-    if source
-      el = "table tr.source-#{source.id()}"
+    @logger.info("update #{id} source")
 
-      view = new Sirius.View(el)
-      view.render("uk-hidden").zoom("td > span").add_class()
-      view.render("uk-hidden").zoom("td input").remove_class()
-      view.render("uk-hidden").zoom("span.errors").remove_class()
-
-      to_view_transformer = Sirius.Transformer.draw({
-        name: {
-          to: 'span.source-name'
-        },
-        'url': {
-          to: 'span.source-url'
-        },
-        'interval': {
-          to: 'span.source-interval'
-        },
-        'errors.url.url_validator': {
-          to: 'span.errors'
-        }
-      })
-
-      source.bind(view, to_view_transformer)
-
-      to_model_transformer = Sirius.Transformer.draw({
-        "input[name='name']": {
-          to: 'name'
-        },
-        "input[name='url']": {
-          to: 'url'
-        },
-        "input[name='interval']": {
-          to: 'interval'
-        }
-      })
-
-      view.bind(source, to_model_transformer)
-      view.on "input[type='button']", "click", (e) ->
-        ajax.update_source source.id(), source.ajaxify(),
-          (s) ->
-            logger.info("update source #{source.id()}")
-            view.render("uk-hidden").zoom("td > span").remove_class()
-            view.render("uk-hidden").zoom("td input").add_class()
-          (e) ->
-            logger.error("error on update source")
-            source.set_error("url.url_validator", e.responseText)
-
-  mark_by_click_on_count_button: (_, id) ->
+  mark_by_click_on_count_button: (e, id) ->
     id = parseInt(id, 10)
-    source = Sources.takeFirst (s) -> s.id() == id
-    if source
-      ajax.mark_as_read(id)
-      source.count(0)
+    if isNaN(id)
+      @mark_all()
     else
-      logger.warn("source with id=#{id} not found")
-
-  mark: (event, id) ->
-    unless !(state.hasState(States.Source) || state.hasState(States.Feed))
-      url = location.pathname
-      if url.startsWith("/show/")
-        normalized = decodeURIComponent(url.split("/")[2])
-        source = Sources.takeFirst (s) -> s.normalized() == normalized
+      get_source_overview(id).then (overview) =>
+        source = Sources.find('id', id)
         if source
-          ajax.mark_as_read(source.id())
           source.count(0)
-        else
-          logger.warn("source not found with normalized: '#{normalized}' from '#{url}'")
+        current_count = overview.unread_count()
+        ajax.mark_as_read(id)
+        overview.unread_count(0)
+        change_count(-current_count)
 
-    event.preventDefault()
+    e.preventDefault()
 
-  mark_all: (event) ->
+  mark_all: () ->
     ajax.mark_all_as_read()
-    Sources.all().forEach (s) -> s.count(0)
-    return
+    @logger.debug("Mark all sources as read")
+    count = 0
+    Sources.map (x) ->
+      count = count + x.count()
+      x.count(0)
 
-  filter: (event) ->
-    hc = "uk-hidden"
-    q = jQuery(event.target).val()
-    if q.trim().length == 0
-      jQuery("li.source-element").removeClass(hc)
+    change_count(-count)
 
-    hide = Sources.filter (s) -> s.name().indexOf(q) == -1
-    show = Sources.filter (s) -> s.name().indexOf(q) != -1
+  reload: () ->
+    ajax.sources_all (sources) =>
+      # just active. see @SearchController
+      for source in sources
+        x = Sources.find('id', source.id())
+        if x?
+          x.active(true)
+        else
+          Sources.add(x)
 
-    if show.length > 0
-      show_ids = show.map (s) -> "\#source-#{s.id()}"
-      jQuery(show_ids.join(",")).removeClass(hc)
+  load: () ->
+    ajax.sources_all (sources) =>
+      # overview
+      @logger.info("load #{sources.length} sources")
+      sources = sources.sort (a, b) -> parseInt(a.count()) - parseInt(b.count())
 
-    if hide.length > 0
-      hide_ids = hide.map (s) -> "\#source-#{s.id()}"
-      jQuery(hide_ids.join(",")).addClass(hc)
+      sources.forEach((x) -> Sources.add(x))
 
-  download: (e) ->
-    window.open("/api/v1/sources/opml")
-
-  fetch_unread: (e, source) ->
-    ajax.get_unread source.id(), (feeds) ->
-      feeds = feeds.map (x) ->
-        pd = moment(x['publishedDate'])
-        x['publishedDate'] = pd
-        new Feed(x)
-
-      source.reset('feeds')
-      source.count(feeds.length)
-      feeds.forEach (f) -> source.add_feed(f)

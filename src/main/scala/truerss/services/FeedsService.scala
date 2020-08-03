@@ -1,84 +1,68 @@
 package truerss.services
 
+import com.github.truerss.base.Entry
 import truerss.db.DbLayer
 import truerss.dto.FeedDto
 import truerss.db.Feed
-import truerss.services.management.DtoModelImplicits
+import zio.Task
 
-import scala.concurrent.{ExecutionContext, Future}
+class FeedsService(private val dbLayer: DbLayer) {
 
-class FeedsService(dbLayer: DbLayer)(implicit val ec: ExecutionContext) {
+  import truerss.util.FeedSourceDtoModelImplicits._
+  import FeedsService._
+  import dbLayer.feedDao
 
-  import DtoModelImplicits._
-
-  def findOne(feedId: Long): Future[Option[FeedDto]] = {
-    dbLayer.feedDao.findOne(feedId).map { x => x.map(_.toDto) }
+  def findOne(feedId: Long): Task[FeedDto] = {
+    dbLayer.feedDao.findOne(feedId).map(_.toDto)
   }
 
-  def markAllAsRead: Future[Int] = {
-    dbLayer.feedDao.markAll
+  def findBySource(sourceId: Long, unreadOnly: Boolean, offset: Int, limit: Int): Task[truerss.dto.Page[FeedDto]] = {
+    feedDao.pageForSource(sourceId, unreadOnly, offset, limit).map(toPage)
   }
 
-  def addToFavorites(feedId: Long): Future[Option[FeedDto]] = {
-    findAndModify(feedId) { feed =>
-      dbLayer.feedDao.modifyFav(feedId, fav = true).map { _ =>
-        feed.map(_.mark(true))
-      }
-    }
+  def latest(offset: Int, limit: Int): Task[truerss.dto.Page[FeedDto]] = {
+    feedDao.lastN(offset, limit).map(toPage)
   }
 
-  def removeFromFavorites(feedId: Long): Future[Option[FeedDto]] = {
-    findAndModify(feedId) { feed =>
-      dbLayer.feedDao.modifyFav(feedId, fav = false).map { _ =>
-        feed.map(_.mark(false))
-      }
-    }
+  def favorites(offset: Int, limit: Int): Task[truerss.dto.Page[FeedDto]] = {
+    feedDao.favorites(offset, limit).map(toPage)
   }
 
-  def markAsRead(feedId: Long): Future[Option[FeedDto]] = {
-    findAndModify(feedId) { feed =>
-      dbLayer.feedDao.modifyRead(feedId, true).map { _ =>
-        feed.map(f => f.copy(read = true))
-      }
-    }
-  }
-
-  def markAsUnread(feedId: Long): Future[Option[FeedDto]] = {
-    findAndModify(feedId) {feed =>
-      dbLayer.feedDao.modifyRead(feedId, false).map { _ =>
-        feed.map(f => f.copy(read = false))
-      }
-    }
-  }
-
-  def findUnread(sourceId: Long): Future[Vector[FeedDto]] = {
-    dbLayer.feedDao.findUnread(sourceId).map(t)
-  }
-
-  def findBySource(sourceId: Long, from: Int, limit: Int): Future[(Vector[FeedDto], Int)] = {
+  def changeRead(feedId: Long, readFlag: Boolean): Task[Unit] = {
     for {
-      feeds <- dbLayer.feedDao.pageForSource(sourceId, from, limit)
-      total <- dbLayer.feedDao.feedCountBySourceId(sourceId)
-    } yield (t(feeds), total)
+      _ <- findOne(feedId)
+      _ <- feedDao.modifyRead(feedId, read = readFlag)
+    } yield ()
   }
 
-  def latest(count: Int): Future[Vector[FeedDto]] = {
-    dbLayer.feedDao.lastN(count).map(t)
+  def changeFav(feedId: Long, favFlag: Boolean): Task[Unit] = {
+    for {
+      _ <- findOne(feedId)
+      _ <- feedDao.modifyFav(feedId, fav = favFlag)
+    } yield ()
   }
 
-  def favorites: Future[Vector[FeedDto]] = {
-    dbLayer.feedDao.favorites.map(t)
+  def registerNewFeeds(sourceId: Long, feeds: Iterable[Entry]): Task[Iterable[FeedDto]] = {
+    feedDao.mergeFeeds(sourceId, feeds).map { xs => xs.map(_.toDto) }
   }
 
+  def updateContent(feedId: Long, content: String): Task[Unit] = {
+    feedDao.updateContent(feedId, content).unit
+  }
 
-  private def t(xs: Seq[Feed]): Vector[FeedDto] = {
+}
+
+object FeedsService {
+  import truerss.util.FeedSourceDtoModelImplicits._
+
+  type Page = (Vector[FeedDto], Int)
+  type FPage = Task[Page]
+
+  def toPage(tmp: (Seq[Feed], Int)): truerss.dto.Page[FeedDto] = {
+    truerss.dto.Page(tmp._2, tmp._1.map(_.toDto))
+  }
+
+  def convert(xs: Seq[Feed]): Vector[FeedDto] = {
     xs.map(_.toDto).toVector
   }
-
-
-  private def findAndModify(feedId: Long)(f: Option[Feed] => Future[Option[Feed]]): Future[Option[FeedDto]] = {
-    dbLayer.feedDao.findOne(feedId).flatMap(f).map { x => x.map(_.toDto) }
-  }
-
-
 }

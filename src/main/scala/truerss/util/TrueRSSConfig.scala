@@ -3,8 +3,9 @@ package truerss.util
 import java.io.File
 
 import com.typesafe.config.{Config, ConfigException, ConfigFactory}
-
 import scopt.OptionParser
+import truerss.dto.ApplicationPlugins
+import truerss.plugins.YoutubePlugin
 
 import scala.util.control.Exception._
 import scala.collection.JavaConverters._
@@ -14,12 +15,16 @@ case class TrueRSSConfig(
   host: String = "localhost",
   port: Int = 8000,
   wsPort: Int = 8080,
-  parallelFeedUpdate: Int = 10, // update-parallelism
+  feedParallelism: Int = 10, // update-parallelism
   appPlugins: ApplicationPlugins = ApplicationPlugins()
 ) {
   require(port != wsPort)
 
   val url = s"$host:$port"
+
+  def withParallelism(count: Int): TrueRSSConfig = {
+    copy(feedParallelism = count)
+  }
 }
 
 case class DbConfig(
@@ -82,7 +87,6 @@ object TrueRSSConfig {
     val fDbb = "db"
     val fPlugins = "plugins"
     val fRoot = "truerss"
-    val fUpdateParallelism = "update-parallelism"
 
     val fPort = "port"
     val fHost = "host"
@@ -99,9 +103,7 @@ object TrueRSSConfig {
     help("help") text "print usage text"
   }
 
-  def loadConfiguration(
-                         trueRSSConfig: TrueRSSConfig
-                       ): (TrueRSSConfig, DbConfig, Boolean) = {
+  def loadConfiguration(trueRSSConfig: TrueRSSConfig): (TrueRSSConfig, DbConfig, Boolean) = {
     val configFileName = "truerss.config"
     val appDir = trueRSSConfig.appDir
     val confPath = s"$appDir/$configFileName"
@@ -137,8 +139,6 @@ object TrueRSSConfig {
     val appConfig = conf.getConfig(fRoot)
 
     val pluginConf = appConfig.getConfig(fPlugins)
-    val parallelFeed = catching(classOf[ConfigException]) either
-      appConfig.getInt(fUpdateParallelism) fold(e => 10, pf => pf)
 
     val port = catching(classOf[ConfigException]) either
       appConfig.getInt(fPort) fold(_ => trueRSSConfig.port, identity)
@@ -148,6 +148,7 @@ object TrueRSSConfig {
       appConfig.getInt(fWsPort) fold(_ => trueRSSConfig.wsPort, identity)
 
     val appPlugins = PluginLoader.load(pluginDir, pluginConf)
+      .addPlugin(new YoutubePlugin(pluginConf))
 
     val dbConf = appConfig.getConfig(fDbb)
     val dbConfig = DbConfig.load(dbConf)
@@ -156,7 +157,6 @@ object TrueRSSConfig {
       port = port,
       host = host,
       wsPort = wsPort,
-      parallelFeedUpdate = parallelFeed,
       appPlugins = appPlugins
     ), dbConfig, isUserConf)
   }

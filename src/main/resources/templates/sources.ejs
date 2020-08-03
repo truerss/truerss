@@ -1,30 +1,19 @@
 <li class="source-element" id="source-<%= source.id() %>" data-source-id=<%= source.id() %>>
-    <span class="uk-text-left">
-      <% if (source.is_disable()) { %>
-        <span><%= source.name() %></span>
-      <% } else { %>
-        <a class="source-url" href="<%= source.href() %>">
-          <%= source.name() %>
-        </a>
-      <% } %>
-    </span>
+  <% if (source.is_plugin_disabled()) { %>
+    <span class="uk-link-muted uk-text-small"><%= source.name() %></span>
+  <% } else { %>
+    <a class="uk-link-muted uk-text-small source-url" href="<%= source.href() %>">
+      <%= source.name() %>
+    </a>
+  <% } %>
 
-    <span title="lol" id="source-count-<%=source.id()%>" class="uk-badge uk-float-right uk-margin-small-right
-        uk-badge-notification uk-text-right source-count tippy-count"
-        data-source-id="<%= source.id() %>">
-        <%= source.count() %></span>
-    <% if (source.withPlugin()) { %>
-          <% if (source.is_disable()) { %>
-            <i class="uk-badge uk-float-right uk-margin-small-right
-                           uk-badge-notification
-                           uk-badge-danger
-                           uk-icon-plug"></i>
-          <% } else { %>
-            <i class="uk-badge uk-float-right uk-margin-small-right
-                           uk-badge-notification
-                           uk-badge-success
-                           uk-icon-plug"></i>
+
+    <a id="source-count-<%=source.id()%>"
+       class="uk-badge uk-align-right uk-margin-remove uk-text-small source-count"
+       data-source-id="<%= source.id() %>">
+        <% if (!source.is_empty()) { %>
+            <%= source.count() %>
         <% } %>
+    </a>
 
-    <% } %>
 </li>

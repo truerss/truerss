@@ -3,157 +3,283 @@
 <head lang="en">
     <meta charset="UTF-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title></title>
+    <title>TrueRSS</title>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="stylesheet" href="/css/uikit.almost-flat.min.css">
-    <link rel="stylesheet" href="/css/form-file.min.css">
-    <link rel="stylesheet" href="/css/upload.min.css">
-    <link rel="stylesheet" href="/css/notify.min.css">
-    <link rel="stylesheet" href="/css/placeholder.min.css">
-    <link rel="stylesheet" href="/css/search.min.css">
-    <link rel="stylesheet" href="/css/tippy.css">
+    <link rel="stylesheet" href="/css/uikit.min.css">
     <link rel="stylesheet" href="/css/truerss.css">
 
     <script type="text/javascript" src="/js/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="/js/jquery_adapter.min.js"></script>
     <script type="text/javascript" src="/js/ejs.min.js"></script>
     <script type="text/javascript" src="/js/moment.min.js"></script>
     <script type="text/javascript" src="/js/uikit.min.js"></script>
-    <script type="text/javascript" src="/js/notify.min.js"></script>
+    <script type="text/javascript" src="/js/uikit-icons.min.js"></script>
+    <script type="text/javascript" src="/js/notification.min.js"></script>
     <script type="text/javascript" src="/js/upload.min.js"></script>
-    <script type="text/javascript" src="/js/tippy.min.js"></script>
-    <script type="text/javascript" src="/js/jquery_adapter.min.js"></script>
     <script type="text/javascript" src="/js/sirius.min.js"></script>
     <script type="text/javascript" src="/js/truerss.js"></script>
+
+    <style type="text/css">
+            #overlay {
+                position: fixed;
+                top: 33%;
+                left: 0;
+                margin: 0;
+                padding: 55px 10px;
+                text-align: center;
+                letter-spacing: 3px;
+                -moz-opacity: 0.5;
+                opacity: 0.5;
+                writing-mode: tb-rl;
+                text-orientation: sideways;
+            }
+
+            html, body, .h100 {
+                min-height: 100% !important;
+                height: 100% !important;
+            }
+
+            .rm-m-p {
+                margin: 0 0;
+                padding: 0;
+            }
+            .navigation-menu li a {
+                font-size: 1rem !important;
+            }
+
+            .mt3 {
+                margin-top: 3%;
+            }
+            .mt1 {
+                margin-top: 1%;
+            }
+
+            a svg {
+                padding-top: 0;
+                margin-top: -3%;
+            }
+
+            a.unfavorite svg {
+                color: red;
+            }
+
+            a.unfavorite svg path {
+                fill: red;
+            }
+
+            a.unread svg {
+                color: blue;
+            }
+
+            a.unread svg path {
+                fill: blue;
+            }
+
+            .right {
+                right:0;
+                position: absolute;
+            }
+
+            #source-overview > * {
+                margin-left: 0 !important;
+                padding-left: 0 !important;
+            }
+
+            .custom-padding-top-30 {
+                padding-top: 30%;
+            }
+
+            .custom-padding-right-3 {
+                padding-right: 10%;
+            }
+
+            .custom-padding-top-3 {
+                padding-top: 3%;
+            }
+
+            .scrollable {
+                overflow-y: scroll;
+            }
+
+            .custom-padding {
+                padding: 3px;
+            }
+
+            .sticky {
+                position: fixed;
+                top: 0;
+            }
+
+
+        </style>
 
 </head>
 <body class="tm-background">
 
 
-<nav class="tm-navbar uk-navbar uk-navbar-attached">
-    <div class="uk-container uk-container-center">
+<nav class="uk-navbar-container uk-margin rm-m-p uk-navbar">
+        <div class="uk-navbar-left">
 
-        <a class="uk-navbar-brand uk-hidden-small" href="http://truerss.net/">TrueRSS</a>
-        <nav class="uk-navbar">
-            <ul class="uk-navbar-nav">
+            <a class="uk-navbar-item uk-logo" href="#">TrueRSS</a>
+
+            <ul class="uk-navbar-nav navigation-menu">
                 <li class="uk-active"><a href="/">Home</a></li>
-                <li><a href="#add-modal" data-uk-modal>Add</a></li>
-                <li><a href="#refresh" class="cursor">Refresh</a></li>
-                <li><a href="#mark-source-as-read" id="mark-source-as-read" class="cursor">Mark as read</a></li>
-                <li><a href="/favorites" rel="noreferrer">Favorites</a></li>
-                <li><a href="/sources" rel="noreferrer">Sources</a></li>
-                <li><a href="/plugins" rel="noreferrer">Plugins</a></li>
-                <li><a href="/by-source" rel="noreferrer">By Source</a></li>
-                <li><a href="/opml" target="_blank">Download Opml</a></li>
-                <li><a href="/about">About</a></li>
+
+                <li>
+                    <a href="/favorites" rel="noreferrer">Favorites</a>
+                </li>
+                <li>
+                    <a href="/plugins" rel="noreferrer">Plugins</a>
+                </li>
+                <li>
+                    <a href="/settings" rel="noreferrer">Settings</a>
+                </li>
+
+                <li>
+                    <a href="/about" rel="noreferrer">About</a>
+                </li>
+
             </ul>
-        </nav>
+
+        </div>
+
+        <div class="uk-navbar-item">
+            <form class="uk-search uk-search-default">
+                <input id="search" class="uk-search-input" type="search" placeholder="Search...">
+            </form>
+        </div>
+
+        <div class="uk-navbar-right uk-padding-remove">
+
+            <ul class="uk-navbar-nav navigation-menu">
+                <li>
+                    <a href="#add-modal">Add</a>
+                </li>
+                <li>
+                    <a href="#refresh" class="cursor">Refresh</a>
+                </li>
+                <li>
+                    <a href="/opml" download>Download Opml</a>
+                </li>
+            </ul>
+
+        </div>
+    </nav>
 
 
-    </div>
-</nav>
+    <div class="uk-grid uk-padding-remove-top uk-margin-auto h100 mt1" uk-grid>
 
-<div class="tm-middle">
-    <div class="uk-container uk-container-center">
+        <div id="sources-container" class="scrollable uk-width-1-6 uk-background-cover uk-height-max-large h100">
+            <div class="uk-text-left">
+                <ul class="uk-list uk-padding-small uk-padding-remove-bottom uk-margin-remove uk-margin-remove-bottom" id="source-list-all">
+                    <li id="source-all" class="source-element">
+                        <a class="uk-link-muted uk-text-small source-url" href="/show/all">
+                         All
+                        </a>
 
-        <div class="uk-grid" data-uk-grid-margin>
-            <div class="tm-sidebar uk-width-medium-1-4 uk-hidden-small custom-margin">
-                <button id="source-button" class="uk-button" data-uk-offcanvas="{target:'#offcanvas-5'}">Open</button>
-
-                <ul id="feeds" class="tm-nav uk-nav feeds" data-uk-nav>
-                    <!-- feeds.ejs -->
+                        <a id="source-count-all" class="uk-badge uk-align-right uk-margin-remove uk-text-small source-count uk-hidden"></a>
+                    </li>
                 </ul>
 
-                <!--<div id="pagination">1,2,3</div>-->
+                <ul class="uk-list uk-padding-small uk-padding-remove-top" id="source-list">
+
+                </ul>
             </div>
-            <div id="main" class="tm-main uk-width-medium-3-4">
 
-                <article class="uk-article">
+        </div>
 
-                    <h1 class="uk-article-title"></h1>
-
-                    <hr class="uk-article-divider">
-
-                    <p></p>
-
-
-                </article>
+        <div class="uk-width-3-5 custom-padding-top-3">
+            <div class="uk-text-left" id="main">
 
             </div>
         </div>
 
-    </div>
-</div>
 
-
-
-<div id="offcanvas-5" class="uk-offcanvas">
-    <div class="uk-offcanvas-bar">
-        <div class="uk-panel">
-            <h3 class="uk-panel-title">Sources<button id="truerss-markall" class="uk-button uk-button-mini uk-float-right">mark all as read</button></h3>
-        </div>
-
-        <form class="uk-search">
-            <input id="search" class="uk-search-field" type="search" placeholder="search...">
-        </form>
-
-        <div class="uk-panel">
-            <ul class="uk-list uk-list-line" id="source-list">
-                <!-- sources.ejs -->
-            </ul>
+        <div id="source-overview"
+             class="uk-width-1-5 uk-align-right uk-background-cover
+        uk-height-max-large uk-text-small
+        right h100 uk-padding-remove-left">
         </div>
     </div>
-</div>
+
+    <div id="settings-modal" uk-modal>
+    </div>
+
+    <div id="plugins-modal" uk-modal>
+    </div>
+
+    <div id="about-modal" uk-modal>
+    </div>
 
 
+    <div id="upload-modal" uk-modal>
+        <div class="uk-modal-dialog uk-modal-body">
+            <button class="uk-modal-close-default" type="button" uk-close></button>
+            <h2 class="uk-modal-title"></h2>
 
-<div id="add-modal" class="uk-modal">
-    <div class="uk-modal-dialog custom-width-dialog">
-        <button type="button" class="uk-modal-close uk-close"></button>
-        <div class="uk-modal-header">
-            <h2>Add new source</h2>
-        </div>
-        <div class="uk-width-1-1">
-            <form class="uk-form uk-form-horizontal">
-                <div class="uk-form-row">
-                    <label class="uk-form-label">Title</label>
+            <form class="uk-form-stacked">
+                <div class="uk-margin uk-margin-remove-top">
                     <div class="uk-form-controls">
-                        <input type="text" name="title" class="custom-input"  placeholder="enter title" />
+                        <input class="uk-input" name="title" type="text" placeholder="Title">
                     </div>
                 </div>
-                <div class="uk-form-row">
-                    <label class="uk-form-label">Url</label>
+                <div class="uk-margin uk-margin-remove-top">
                     <div class="uk-form-controls">
-                        <input type="text" class="custom-input" name="url"  placeholder="enter url" />
+                        <input class="uk-input" name="url" type="text" placeholder="Url">
                     </div>
                 </div>
-                <div class="uk-form-row">
-                    <label class="uk-form-label">Interval</label>
-                    <div class="uk-form-controls">
-                        <input name="interval" type="text" value="1">
+
+                <div class="uk-margin uk-margin-remove-top">
+                    <div class="uk-form-controls" uk-form-custom="target: > * > span:first-child">
+                        <select>
+                            <option value="1" selected>Interval: 1 hour</option>
+                            <option value="2">Interval: 2 hours</option>
+                            <option value="3">Interval: 3 hours</option>
+                            <option value="6">Interval: 6 hours</option>
+                            <option value="8">Interval: 8 hours</option>
+                            <option value="12">Interval: 12 hours</option>
+                            <option value="16">Interval: 16 hours</option>
+                            <option value="24">Interval: 24 hours</option>
+                        </select>
+
+                        <button class="uk-button uk-button-default" type="button" tabindex="-1">
+                            <span></span>
+                            <span uk-icon="icon: chevron-down"></span>
+                        </button>
                     </div>
                 </div>
-                <div class="uk-form-row">
-                    <span class="source-url-error uk-text-danger uk-text-large"></span>
+
+                <div class="uk-margin uk-margin-remove-top">
+                    <div class="uk-form-controls">
+                        <span style="color:red;" class="errors"></span>
+                    </div>
                 </div>
+
+                <div class="uk-margin uk-margin-remove-top">
+                    <div class="uk-form-controls">
+                        <input type="button" id="save-source" class="uk-button uk-button-primary" value="Save"/>
+                    </div>
+                </div>
+
             </form>
-            <hr/>
-            <div id="upload-drop" class="uk-placeholder uk-width-1-1">
-                or Import from <i class="uk-icon-cloud-upload uk-icon-medium uk-text-muted uk-margin-small-right"></i>
-                <a href="#" class="uk-form-file">OPML file<input id="upload-select" type="file"></a>
-            </div>
-            <div id="progressbar" class="uk-progress uk-hidden">
-                <div class="uk-progress-bar" style="width: 0%;"></div>
-            </div>
-        </div>
 
-        <div class="uk-modal-footer uk-text-right">
-            <button type="button" class="uk-button close-modal">Cancel</button>
-            <button type="button" class="uk-button uk-button-primary">Save</button>
+            <div id="upload" class="js-upload uk-placeholder uk-text-center">
+                <span uk-icon="icon: cloud-upload"></span>
+                <span class="uk-text-middle">Attach OPML by dropping them here or</span>
+                <div uk-form-custom>
+                    <input type="file" multiple>
+                    <span class="uk-link">selecting one</span>
+                </div>
+            </div>
+            <progress id="progressbar" class="uk-progress" value="0" max="100" hidden></progress>
         </div>
     </div>
-</div>
+
+
+
+
 
 </body>
 </html>

@@ -1,9 +1,8 @@
 package truerss.db
 
-import java.util.Date
+import java.time.LocalDateTime
 
-import truerss.dto.NewSourceDto
-import truerss.util.Util._
+import truerss.util.CommonImplicits._
 
 import scala.language.postfixOps
 
@@ -29,13 +28,13 @@ case class Source(id: Option[Long],
                   interval: Int,
                   state: SourceState,
                   normalized: String,
-                  lastUpdate: Date,
+                  lastUpdate: LocalDateTime,
                   count: Int = 0) {
 
   def normalize: Source = copy(normalized = name.normalize)
   def recount(x: Int): Source = copy(count = x)
   def withId(x: Long): Source = copy(id = Some(x))
-  def withState(x: SourceState): Source = copy(state = state)
+  def withState(x: SourceState): Source = copy(state = x)
 
 }
 
@@ -45,7 +44,7 @@ case class Feed(id: Option[Long],
                 url: String,
                 title: String,
                 author: String,
-                publishedDate: Date,
+                publishedDate: LocalDateTime,
                 description: Option[String],
                 content: Option[String],
                 normalized: String,
@@ -55,5 +54,5 @@ case class Feed(id: Option[Long],
   def mark(flag: Boolean): Feed = copy(favorite = flag)
 }
 
-case class Version(id: Long, fact: String, when: Date)
+case class Version(id: Long, fact: String, when: LocalDateTime)
 

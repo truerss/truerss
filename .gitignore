@@ -31,3 +31,5 @@ src/main/resources/images
 src/main/resources/fonts
 truerss.db
 *.tdb
+Gemfile.lock
+.java-version

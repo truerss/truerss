@@ -1,56 +1,48 @@
 package truerss.services
 
-import java.net.URL
+import truerss.db.Predefined
+import truerss.dto.{FeedContent, FeedDto, SetupKey}
+import zio.Task
 
-import com.github.truerss.base.{ContentTypeParam, Errors}
-import com.github.truerss.base.aliases.WithContent
-import org.jsoup.Jsoup
-import truerss.util.Request
+class ContentReaderService(
+                            feedsService: FeedsService,
+                            readerClient: ReaderClient
+                          ) {
 
-import scala.util.{Failure, Success, Try}
-
-class ContentReaderService(applicationPluginsService: ApplicationPluginsService) {
-
-  import ContentReaderService._
-
-  def read(url: String): Either[String, Option[String]] = {
-    val tmp = new URL(url)
-    val c = applicationPluginsService.getContentReaderOrDefault(tmp)
-      .asInstanceOf[WithContent]
-
-    if (c.needUrl) {
-      pass(c.content(ContentTypeParam.UrlRequest(tmp)))
-    } else {
-      Try {
-        extractContent(url)
-      } match {
-        case Success(value) =>
-          pass(c.content(ContentTypeParam.HtmlRequest(value)))
-
-        case Failure(exception) =>
-          Left(exception.getMessage)
-      }
-    }
-
+  def fetchFeedContent(feedId: Long): Task[FeedContent] = {
+    for {
+      feed <- feedsService.findOne(feedId)
+      content <- readFeedContent(feedId, feed)
+    } yield FeedContent(content)
   }
 
-  private def pass(result: Either[Errors.Error, Option[String]]): Either[String, Option[String]] = {
-    result.fold(
-      err => Left(err.error),
-      x => Right(x)
-    )
+  protected def readFeedContent(feedId: Long, feed: FeedDto): Task[Option[String]] = {
+    feed.content match {
+      case Some(_) => Task.succeed(feed.content)
+      case None =>
+        for {
+          content <- readerClient.read(feed.url)
+          _ <- updateContentIfNeed(feedId, content)
+        } yield content
+    }
+  }
+
+  protected def updateContentIfNeed(feedId: Long, contentOpt: Option[String]): Task[Unit] = {
+    contentOpt match {
+      case Some(content) =>
+        feedsService.updateContent(feedId, content)
+      case None =>
+        Task.succeed(())
+    }
   }
 
 }
 
 object ContentReaderService {
-  def extractContent(url: String): String = {
-    val response = Request.getResponse(url)
 
-    if (response.isError) {
-      throw new RuntimeException(s"Connection error for $url")
-    }
+  val readContentKey: SetupKey = Predefined.read.toKey
+  val defaultIsRead: Boolean = Predefined.read.value.defaultValue.asInstanceOf[Boolean]
 
-    Jsoup.parse(response.body).body().html()
-  }
+  case class ReadResult(feedDto: FeedDto)
+
 }

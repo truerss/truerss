@@ -1,25 +1,22 @@
 package truerss.api
 
-import akka.stream.Materializer
 import akka.http.scaladsl.server.Directives._
-import truerss.services.management.PluginsManagement
+import truerss.dto.PluginsViewDto
+import truerss.services.ApplicationPluginsService
 
-import scala.concurrent.ExecutionContext
+class PluginsApi(private val pluginsService: ApplicationPluginsService) extends HttpApi {
 
-class PluginsApi(pluginsService: PluginsManagement)(
-  implicit override val ec: ExecutionContext,
-  val materializer: Materializer
-) extends HttpHelper {
+  import JsonFormats._
 
   val route = api {
     pathPrefix("plugins") {
       get {
-        pathPrefix("all") {
-          call(pluginsService.getPluginList)
+        pathPrefix("all")  {
+          w[PluginsViewDto](pluginsService.view)
         } ~ pathPrefix("js") {
-          call(pluginsService.getJs)
+          doneWith(pluginsService.js, HttpApi.javascript)
         } ~ pathPrefix("css") {
-          call(pluginsService.getCss)
+          doneWith(pluginsService.css, HttpApi.css)
         }
       }
     }

@@ -8,18 +8,20 @@ class EJS
 
 Templates =
   source_list: null
-  list: null
   feeds_list: null
-  all_sources_template: null
+  sources_all_view: new Sirius.View("#source-all") # li
   source_list_view: new Sirius.View("#source-list")
-  feed_template: null
   article_view: new Sirius.View("#main")
-  modal_element: "#add-modal"
-  modal_view: new Sirius.View("#add-modal")
-  feeds_view: new Sirius.View("#feeds")
-  feeds_template: null
+  modal_view: new Sirius.View("#upload-modal")
   favorites_template: null
   plugins_template: null
+  plugins_view: new Sirius.View("#plugins-modal")
   pagination_view: new Sirius.View("#pagination")
-  tippy_template: null
+  settings_template: null
+  settings_view: new Sirius.View("#settings-modal")
+  source_overview_template: null
+  source_overview_view: new Sirius.View("#source-overview")
+  about_view: new Sirius.View("#about-modal")
+  about_template: null
+  short_view_feeds_list_template: null
 

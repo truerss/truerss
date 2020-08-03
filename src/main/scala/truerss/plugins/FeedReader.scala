@@ -2,15 +2,16 @@ package truerss.plugins
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.Date
 
 import truerss.dto.EntryDto
-import truerss.util.Util
+import truerss.util.CommonImplicits
 
 import scala.util.Try
 import scala.xml.{Elem, Node}
 
 trait FeedParser {
-  import Util._
+  import CommonImplicits._
 
   def from(tagName: String)(implicit source: Node): Option[String] = {
     val x = source \ tagName
@@ -19,13 +20,13 @@ trait FeedParser {
   }
   def parse(x: Elem): Iterable[EntryDto]
 
-  def getDate(x: String)(implicit format: DateTimeFormatter) = {
+  def getDate(x: String)(implicit format: DateTimeFormatter): Option[Date] = {
     Try(LocalDateTime.parse(x.toCharArray, format)).toOption.map(_.toDate)
   }
 }
 
 case object FeedParser {
-  def matchParser(x: Elem) = {
+  def matchParser(x: Elem): FeedParser = {
     if (x.label == "RDF" || x.label == "rss") {
       RSSParser
     } else {
@@ -42,7 +43,7 @@ case object RSSParser extends FeedParser {
   val _pubDate = "pubDate"
   val _author = "author"
 
-  implicit val format = DateTimeFormatter.RFC_1123_DATE_TIME
+  implicit val format: DateTimeFormatter = DateTimeFormatter.RFC_1123_DATE_TIME
 
   override def parse(x: Elem): Iterable[EntryDto] = {
     (x \\ _item).map { implicit item =>
@@ -66,7 +67,7 @@ case object AtomParser extends FeedParser {
   val _entry = "entry"
   val _summary = "summary"
 
-  protected def getAuthors(x: Node) = {
+  protected def getAuthors(x: Node): Option[String] = {
     val r = x \ _author
     if (r.isEmpty) {
       None
@@ -75,7 +76,7 @@ case object AtomParser extends FeedParser {
     }
   }
 
-  protected def getLinks(x: Node) = {
+  protected def getLinks(x: Node): Option[String] = {
     val links = x \ _link
     val r = links
       .filter(_.attribute("rel").exists(_.forall(_.text == "alternate")))
@@ -88,7 +89,7 @@ case object AtomParser extends FeedParser {
     }
   }
 
-  implicit val format = DateTimeFormatter.ISO_DATE_TIME
+  implicit val format: DateTimeFormatter = DateTimeFormatter.ISO_DATE_TIME
 
   override def parse(x: Elem): Iterable[EntryDto] = {
     // global author

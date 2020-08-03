@@ -1,17 +1,16 @@
 package net.truerss.services
 
-import java.net.{URI, URL}
+import java.net.URL
 
 import com.github.truerss.base._
 import com.typesafe.config.Config
+import net.truerss.Gen
 import org.specs2.mock.Mockito
 import org.specs2.mutable.SpecificationLike
+import truerss.dto.ApplicationPlugins
 import truerss.services.ApplicationPluginsService
-import truerss.util.ApplicationPlugins
 
-import scala.collection.mutable.ArrayBuffer
-
-class ApplicationPluginsServiceTest extends SpecificationLike with Mockito {
+class ApplicationPluginsServiceTest extends SpecificationLike {
 
   private val fPrioriry = 10
   private val fName = "feed"
@@ -29,9 +28,9 @@ class ApplicationPluginsServiceTest extends SpecificationLike with Mockito {
 
 
       val ap = ApplicationPlugins(
-        feedPlugins = ArrayBuffer(new TestFeedBasePlugin(testUrl1)),
-        contentPlugins = ArrayBuffer(new TestBaseContentPlugin(testUrl2)),
-        sitePlugins = ArrayBuffer(new TestSitePlugin(testUrl3))
+        feedPlugins = Vector(new TestFeedBasePlugin(testUrl1)),
+        contentPlugins = Vector(new TestBaseContentPlugin(testUrl2)),
+        sitePlugins = Vector(new TestSitePlugin(testUrl3))
       )
 
       val service = new ApplicationPluginsService(ap)
@@ -51,9 +50,9 @@ class ApplicationPluginsServiceTest extends SpecificationLike with Mockito {
       val c = new TestBaseContentPlugin(testUrl1)
 
       val ap = ApplicationPlugins(
-        feedPlugins = ArrayBuffer(f),
-        contentPlugins = ArrayBuffer(c),
-        sitePlugins = ArrayBuffer(s)
+        feedPlugins = Vector(f),
+        contentPlugins = Vector(c),
+        sitePlugins = Vector(s)
       )
 
       val service = new ApplicationPluginsService(ap)
@@ -69,9 +68,9 @@ class ApplicationPluginsServiceTest extends SpecificationLike with Mockito {
       val c = new TestBaseContentPlugin(testUrl1)
 
       val ap = ApplicationPlugins(
-        feedPlugins = ArrayBuffer(f),
-        contentPlugins = ArrayBuffer(c),
-        sitePlugins = ArrayBuffer(s)
+        feedPlugins = Vector(f),
+        contentPlugins = Vector(c),
+        sitePlugins = Vector(s)
       )
 
       val service = new ApplicationPluginsService(ap)
@@ -87,7 +86,7 @@ class ApplicationPluginsServiceTest extends SpecificationLike with Mockito {
     override val version: String = "test"
   }
 
-  private class TestFeedBasePlugin(expected: URL) extends BaseFeedPlugin(mock[Config]) with TestPluginInfo {
+  private class TestFeedBasePlugin(expected: URL) extends BaseFeedPlugin(null) with TestPluginInfo {
     override val priority: Int = fPrioriry
 
     override val pluginName: String = fName
@@ -97,7 +96,7 @@ class ApplicationPluginsServiceTest extends SpecificationLike with Mockito {
     override def matchUrl(url: URL): Boolean = url == expected
   }
 
-  private class TestBaseContentPlugin(expected: URL) extends BaseContentPlugin(mock[Config]) with TestPluginInfo {
+  private class TestBaseContentPlugin(expected: URL) extends BaseContentPlugin(null) with TestPluginInfo {
     override val priority: Int = cPrioriry
 
     override val pluginName: String = cName
@@ -109,7 +108,7 @@ class ApplicationPluginsServiceTest extends SpecificationLike with Mockito {
     override def content(urlOrContent: ContentTypeParam.RequestParam): Response = Right(Some("test"))
   }
 
-  private class TestSitePlugin(expected: URL) extends BaseSitePlugin(mock[Config]) with TestPluginInfo {
+  private class TestSitePlugin(expected: URL) extends BaseSitePlugin(null) with TestPluginInfo {
     override val priority: Int = sPrioriry
 
     override val pluginName: String = sName

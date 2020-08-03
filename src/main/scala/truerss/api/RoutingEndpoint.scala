@@ -1,47 +1,58 @@
 package truerss.api
 
-import akka.http.scaladsl.model.headers.{HttpCookie, RawHeader}
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.directives.LoggingMagnet
 import akka.stream.Materializer
-import truerss.services.management.{FeedsManagement, OpmlManagement, PluginsManagement, SourcesManagement}
-
-import scala.concurrent.ExecutionContext
-import scala.io.Source
+import org.slf4j.LoggerFactory
+import truerss.services._
 
 class RoutingEndpoint(
-                     sourcesManagement: SourcesManagement,
-                     feedsManagement: FeedsManagement,
-                     opmlManagement: OpmlManagement,
-                     pluginsManagement: PluginsManagement,
-                     wsPort: Int
-                     )(implicit ec: ExecutionContext,
-                       val materializer: Materializer) {
+                       feedsService: FeedsService,
+                       contentReaderService: ContentReaderService,
+                       pluginsManagement: ApplicationPluginsService,
+                       sourcesService: SourcesService,
+                       searchService: SearchService,
+                       sourceOverviewService: SourceOverviewService,
+                       settingsService: SettingsService,
+                       opmlService: OpmlService,
+                       refreshSourcesService: RefreshSourcesService,
+                       markService: MarkService,
+                       wsPort: Int
+                     )(implicit val materializer: Materializer) {
 
-  import RoutingEndpoint._
-
-  val sourcesApi = new SourcesApi(sourcesManagement, feedsManagement, opmlManagement)
-  val feedsApi = new FeedsApi(feedsManagement)
+  val sourcesApi = new SourcesApi(feedsService, sourcesService)
+  val feedsApi = new FeedsApi(feedsService, contentReaderService)
   val pluginsApi = new PluginsApi(pluginsManagement)
+  val settingsApi = new SettingsApi(settingsService)
+  val searchApi = new SearchApi(searchService)
+  val refreshApi = new RefreshApi(refreshSourcesService)
+  val opmlApi = new OpmlApi(opmlService)
+  val markApi = new MarkApi(markService)
+  val sourcesOverviewApi = new SourcesOverviewApi(sourceOverviewService)
 
-  val apis = sourcesApi.route ~ feedsApi.route ~ pluginsApi.route
+  protected val logger = LoggerFactory.getLogger(getClass)
 
-  val fileName = "index.html"
+  private def logIncomingRequest(req: HttpRequest): Unit = {
+    logger.debug(s"${req.method.value} ${req.uri}")
+  }
 
-  val route = pathEndOrSingleSlash {
-    setCookie(HttpCookie("port", s"$wsPort")) {
-      complete {
-        HttpEntity(
-          ContentTypes.`text/html(UTF-8)`,
-          Source.fromInputStream(getClass.getResourceAsStream(s"/$fileName")).mkString
-        )
-      }
-    }
-  } ~ apis ~ pathPrefix("about") {
-    complete {
-      about
-    }
-  } ~ pathPrefix("css") {
+  private val log = logRequest(LoggingMagnet(_ => logIncomingRequest))
+
+  val apis =
+    sourcesApi.route ~
+    feedsApi.route ~
+    pluginsApi.route ~
+    settingsApi.route ~
+    searchApi.route ~
+    refreshApi.route ~
+    opmlApi.route ~
+    markApi.route ~
+    sourcesOverviewApi.route
+
+  val additional = new AdditionalResourcesRoutes(wsPort)
+
+  val route = additional.route ~ apis ~ pathPrefix("css") {
     getFromResourceDirectory("css")
   } ~
     pathPrefix("js") {
@@ -52,40 +63,8 @@ class RoutingEndpoint(
     } ~
     pathPrefix("templates") {
       getFromResourceDirectory("templates")
-    } ~ pathPrefix("show" / Segments) { segments =>
-    respondWithHeader(makeRedirect(s"/show/${segments.mkString("/")}")) {
-      redirect("/", StatusCodes.Found)
     }
-  } ~ pathPrefix(Segment) { segment =>
-    respondWithHeader(makeRedirect(segment)) {
-      redirect("/", StatusCodes.Found)
-    }
-  }
 
 
-}
 
-object RoutingEndpoint {
-  def makeRedirect(location: String) = {
-    RawHeader("Redirect", location)
-  }
-
-  final val about =
-    """
-      <h1>About</h1>
-        <p>
-          TrueRss is open source feed reader with customizable plugin system
-          for any content (atom, rss, youtube channels...).
-          More info <a href='https://github.com/truerss/truerss'>Github page</a>
-          Download plugins: <a href='https://github.com/truerss/plugins/releases'>plugins</a>
-        </p>
-        <ul>
-          <li><code>left-arrow</code> - next post</li>
-          <li><code>right-arrow</code> - previous post</li>
-          <li><code>shift+n</code> - next source</li>
-          <li><code>shift+p</code> - previous source</li>
-          <li><code>shift+f</code> - mark\\unmark as favorite</li>
-          <li><code>shift+m</code> - mark as read</li>
-        </ul>
-    """.stripMargin
 }

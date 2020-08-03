@@ -4,7 +4,14 @@ import sbt.Package.ManifestAttributes
 import Libs._
 import Tasks._
 
+name := "TrueRSS"
+
+version := "1.0.0"
+
+maintainer := "mike <mike.fch1@gmail.com>"
+
 val setup = Seq(
+  resolvers += Resolver.sonatypeRepo("snapshots"),
   resolvers += "Typesafe Releases" at "https://repo.typesafe.com/typesafe/releases",
   resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
   resolvers += "JCenter" at "https://jcenter.bintray.com/",
@@ -26,17 +33,26 @@ val setup = Seq(
   javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
 )
 
-lazy val mainProject = Project("truerss", file(".")).settings(
-  setup ++ Seq(installTask, buildCoffeeTask) ++ Seq(
-    //(compile in Compile) := (compile in Compile).dependsOn(buildCoffee).value,
+// integrations testing
+
+lazy val RealTest = config("real") extend(Test)
+
+
+lazy val mainProject = Project("truerss", file("."))
+  .configs(RealTest)
+  .settings( inConfig(RealTest)(Defaults.testSettings) : _*)
+  .settings(
+    setup ++ Seq(installTask, buildCoffeeTask) ++ Seq(
+    (compile in Compile) := (compile in Compile).dependsOn(buildCoffee).value,
     organization := "net.truerss",
-    name := "truerss",
-    version := "0.0.3.4-pre.3",
-    parallelExecution in Test := false,
-    assemblyJarName in assembly := s"truerss-${version.value}.jar",
-    mainClass in assembly := Some("truerss.Boot"),
+    classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.ScalaLibrary,
+    name := name.value,
+    version := version.value,
+    parallelExecution in Test := true,
+    assemblyJarName in assembly := s"truerss_${version.value}.jar",
+    mainClass in assembly := Some("Main"),
     assemblyMergeStrategy in assembly := {
-      case x if x.toString.contains(".conf") => MergeStrategy.concat
+      case x if x.contains(".conf") => MergeStrategy.concat
       case PathList(ps @ _*) =>
         if (ps.contains("log4j-provider.properties"))
           MergeStrategy.concat
@@ -58,4 +74,4 @@ lazy val mainProject = Project("truerss", file(".")).settings(
     packageOptions := Seq(ManifestAttributes(("Built-By", s"${new Date()}"))),
     libraryDependencies ++= deps
   )
-)
+).enablePlugins(JDKPackagerPlugin)

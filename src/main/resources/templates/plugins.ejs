@@ -1,75 +1,49 @@
-<article class="uk-article">
-    <h1 class="uk-article-title">Plugins List</h1>
-    <p class="uk-article-lead">
-        <table class="uk-table">
-            <thead>
-              <tr>
-                <th>PluginName</th>
-                <th>About</th>
-                <th>Version</th>
-                <th>Author</th>
-              </tr>
-            </thead>
-        </table>
+<div class="uk-modal-dialog">
+    <button class="uk-modal-close-default" type="button" uk-close></button>
+    <div class="uk-modal-header">
+        <h2 class="uk-modal-title">Plugins List</h2>
+    </div>
+    <div class="uk-modal-body">
+        <div class="uk-section uk-padding-small">
+            <div>
+                <% if (plugins.feed.length > 0) { %>
+                    <dl class="uk-description-list">
+                        <% for(var i = 0; i < plugins.feed.length; i++) { %>
+                            <dt><%= plugins.feed[i].pluginName %> (v<%= plugins.feed[i].version %>)</dt>
+                            <dd><%= plugins.feed[i].about %></dd>
+                        <% } %>
+                    </dl>
+                <% } %>
 
-        <% if (plugins.feed.length > 0) { %>
-            <% for(var i = 0; i < plugins.feed.length; i++) { %>
-                <table class="uk-table uk-table-striped">
-                   <tbody>
-                     <tr>
-                       <td><%= plugins.feed[i].pluginName %></td>
-                       <td><%= plugins.feed[i].about %></td>
-                       <td><%= plugins.feed[i].version %></td>
-                       <td><%= plugins.feed[i].author.htmlize() %></td>
-                     </tr>
-                   </tbody>
-                </table>
-            <% } %>
-        <% } %>
+                <% if (plugins.content.length > 0) { %>
+                    <dl class="uk-description-list">
+                        <% for(var i = 0; i < plugins.content.length; i++) { %>
+                            <dt><%= plugins.content[i].pluginName %> (v<%= plugins.content[i].version %>)</dt>
+                            <dd><%= plugins.content[i].about %></dd>
+                        <% } %>
+                    </dl>
+                <% } %>
 
-        <% if (plugins.content.length > 0) { %>
-            <% for(var i = 0; i < plugins.content.length; i++) { %>
-                <table class="uk-table uk-table-striped">
-                   <tbody>
-                     <tr>
-                       <td><%= plugins.content[i].pluginName %></td>
-                       <td><%= plugins.content[i].about %></td>
-                       <td><%= plugins.content[i].version %></td>
-                       <td><%= plugins.content[i].author.htmlize() %></td>
-                     </tr>
-                   </tbody>
-                </table>
-            <% } %>
-        <% } %>
+                <% if (plugins.publish.length > 0) { %>
+                    <dl class="uk-description-list">
+                        <% for(var i = 0; i < plugins.publish.length; i++) { %>
+                            <dt><%= plugins.publish[i].pluginName %> (v<%= plugins.publish[i].version %>)</dt>
+                            <dd><%= plugins.publish[i].about %></dd>
+                        <% } %>
+                    </dl>
+                <% } %>
 
-        <% if (plugins.publish.length > 0) { %>
-            <% for(var i = 0; i < plugins.publish.length; i++) { %>
-                <table class="uk-table uk-table-striped">
-                   <tbody>
-                     <tr>
-                       <td><%= plugins.publish[i].pluginName %></td>
-                       <td><%= plugins.publish[i].about %></td>
-                       <td><%= plugins.publish[i].version %></td>
-                       <td><%= plugins.publish[i].author.htmlize() %></td>
-                     </tr>
-                   </tbody>
-                </table>
-            <% } %>
-        <% } %>
+                <% if (plugins.site.length > 0) { %>
+                    <dl class="uk-description-list">
+                        <% for(var i = 0; i < plugins.site.length; i++) { %>
+                            <dt><%= plugins.site[i].pluginName %> (v<%= plugins.site[i].version %>)</dt>
+                            <dd><%= plugins.site[i].about %></dd>
+                        <% } %>
+                    </dl>
+                <% } %>
 
-        <% if (plugins.site.length > 0) { %>
-            <% for(var i = 0; i < plugins.site.length; i++) { %>
-                <table class="uk-table uk-table-striped">
-                   <tbody>
-                     <tr>
-                       <td><%= plugins.site[i].pluginName %></td>
-                       <td><%= plugins.site[i].about %></td>
-                       <td><%= plugins.site[i].version %></td>
-                       <td><%- plugins.site[i].author.htmlize() %></td>
-                     </tr>
-                   </tbody>
-                </table>
-            <% } %>
-        <% } %>
-    </p>
-</article>
+            </div>
+        </div>
+    </div>
+</div>
+

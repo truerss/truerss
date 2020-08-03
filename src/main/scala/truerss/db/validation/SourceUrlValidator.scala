@@ -1,32 +1,39 @@
 package truerss.db.validation
 
+import org.slf4j.LoggerFactory
 import truerss.dto.SourceDto
-import truerss.util.{Request, syntax}
+import truerss.http_support.Request
+import truerss.util.syntax
+import zio.{Task, ZIO}
 
 import scala.util.Try
 
 // plugin should be present for non-rss/atom urls
 // +xml is part of ContentType
-class SourceUrlValidator {
+class SourceUrlValidator extends Request {
+
+  import SourceUrlValidator._
   import syntax._
   import ext._
-  import SourceUrlValidator._
+
+  protected val logger = LoggerFactory.getLogger(getClass)
+
+  override protected val connectionTimeout: Int = 1000
+  override protected val readTimeout: Int = 1000
 
   def validateUrl(dto: SourceDto): Either[String, SourceDto] = {
     Try {
       makeRequest(dto.url).get(contentTypeHeaderName).map(isValid)
     }.toOption.flatten match {
       case Some(true) => dto.right
-      case _ => buildError(dto.url).left
+      case x =>
+        logger.warn(s"${dto.url} is not valid")
+        buildError(dto.url).left
     }
   }
 
   protected def makeRequest(url: String): Map[String, String] = {
-    Request.getRequestHeaders(url)
-  }
-
-  private def buildError(url: String) = {
-    s"$url is not a valid RSS/Atom feed"
+    getRequestHeaders(url)
   }
 
 }
@@ -36,5 +43,9 @@ object SourceUrlValidator {
 
   def isValid(value: String): Boolean = {
     value.contains("xml")
+  }
+
+  def buildError(url: String): String = {
+    s"$url is not a valid RSS/Atom feed"
   }
 }

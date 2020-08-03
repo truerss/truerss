@@ -6,25 +6,28 @@ import com.github.truerss.ContentExtractor
 import com.github.truerss.base.ContentTypeParam.{HtmlRequest, UrlRequest}
 import com.github.truerss.base._
 import com.typesafe.config.Config
-
 import org.jsoup.Jsoup
+import org.jsoup.nodes.Element
 import org.slf4j.LoggerFactory
+import scalaj.http.HttpResponse
+import truerss.http_support.Request
 
 import scala.collection.JavaConverters._
-import scala.util.control.Exception._
-
 import truerss.util.syntax.{\/, ext}
-import truerss.util.Request
+import truerss.util.{EntryImplicits, CommonImplicits}
+
+import scala.util.Try
 
 class DefaultSiteReader(config: Config)
   extends BaseSitePlugin(config) with Request {
+
+  import DefaultSiteReader._
+  import Errors._
   import ext._
 
-  private final val logger = LoggerFactory.getLogger(getClass)
+  private val logger = LoggerFactory.getLogger(getClass)
 
-  import Errors._
-
-  implicit def exception2error(x: Throwable) = x match {
+  implicit def exception2error(x: Throwable): Either[Error, Nothing] = x match {
     case x: RuntimeException => ConnectionError(x.getMessage).left
     case x: Exception => UnexpectedError(x.getMessage).left
   }
@@ -33,51 +36,75 @@ class DefaultSiteReader(config: Config)
   override val about = "default rss|atom reader"
   override val pluginName = "Default"
   override val version = "0.0.3"
-  override val contentType = Text
-  override val contentTypeParam = ContentTypeParam.URL
+  override val contentType: BaseType = Text
+  override val contentTypeParam: ContentTypeParam.URL.type = ContentTypeParam.URL
 
-  override val priority = -1
+  override val priority: Int = -1
 
   override def matchUrl(url: URL) = true
 
-  override def newEntries(url: String) = {
-    catching(classOf[Exception]) either extract(url) fold(
-      err => {
-        logger.error(s"new entries error -> $url", err)
-        err
-      },
-      either => either
-    )
-  }
-
-  private def extract(url: String): Error \/ Vector[Entry] = {
+  override def newEntries(url: String): Error \/ Vector[Entry] = {
     val response = getResponse(url)
 
     if (response.isError) {
       UnexpectedError(s"Connection error for $url with status code: ${response.code}").left
     } else {
-      val x = scala.xml.XML.loadString(response.body)
-      val parser = FeedParser.matchParser(x)
-      val xs = parser.parse(x)
-
-      // filter by empty url
-      // transform url
-      // filter description
-      val result = xs.filter(_.url.isDefined)
-        .map(p =>  p.copy(url = Some(normalizeLink(url, p.url.get))))
-        .map { p =>
-          p.description match {
-            case Some(d) if d.contains("<img") =>
-              p.copy(description =  Some(Jsoup.parse(d).select("img").remove().text()))
-            case _ => p
-          }
-        }.map(_.toEntry).toVector
-
-      result.right
+      Try(extractEntries(url, response.body)).fold(
+        error => {
+          logger.warn(s"Failed to fetch entries from $url", error)
+          UnexpectedError(s"Failed to fetch entries from $url").left
+        },
+        _.toVector.right
+      )
     }
   }
 
-  private def normalizeLink(url0: String, link: String): String = {
+  override def content(urlOrContent: ContentTypeParam.RequestParam): Error \/ Option[String] = {
+    urlOrContent match {
+      case UrlRequest(tmp) =>
+        val url = tmp.toString
+        val response = getResponse(url)
+        if (response.isError) {
+          UnexpectedError(s"Connection error for $url").left
+        } else {
+          val result = parseContent(url, response.body)
+
+          Some(result).right
+        }
+      case HtmlRequest(_) => UnexpectedError("Pass url only").left
+    }
+  }
+
+  override def getResponse(url: String): HttpResponse[String] = {
+    super.getResponse(url)
+  }
+
+}
+
+object DefaultSiteReader {
+
+  import CommonImplicits._
+  import EntryImplicits._
+
+  val forbidElements = Iterable("form", "input", "meta", "style", "script")
+  private val href = "href"
+
+  def extractEntries(url: String, body: String): Iterable[Entry] = {
+    val currentXml = scala.xml.XML.loadString(body)
+    val parser = FeedParser.matchParser(currentXml)
+    val xs = parser.parse(currentXml)
+
+    // filter by empty url
+    // transform url
+    // filter description
+    xs.filter(_.url.isDefined)
+      .map { p => p.copy(url = Some(normalizeLink(url, p.url.get))) }
+      .map { p => p.clearImages }
+      .map(_.toEntry)
+  }
+
+  // float link to hard
+  def normalizeLink(url0: String, link: String): String = {
     val url = new URL(url0)
     val (protocol, host, port) = (url.getProtocol, url.getHost, url.getPort)
 
@@ -95,49 +122,34 @@ class DefaultSiteReader(config: Config)
     }
   }
 
-  override def content(urlOrContent: ContentTypeParam.RequestParam) = {
-    urlOrContent match {
-      case UrlRequest(url) =>
-        catching(classOf[Exception]) either extractContent(url.toString) fold(
-          err => {
-            logger.error(s"content error -> $url", err.getMessage)
-            UnexpectedError(err.getMessage).left
-          },
-          either => either
-        )
-      case HtmlRequest(_) => UnexpectedError("Pass url only").left
+  def parseContent(url: String, body: String): String = {
+    val base = url.toUrl.toBase
+
+    val doc = Jsoup.parse(body)
+    val result = ContentExtractor.extract(doc.body())
+
+    val need = doc.select(result.selector)
+
+    need.select("img").asScala.foreach { img =>
+      changeUrl(img, "src", "src", base)
     }
+
+    need.select("a").asScala.foreach { a =>
+      changeUrl(a, href, "abs:href", base)
+    }
+
+    forbidElements.foreach { element =>
+      need.select(element).asScala.foreach(_.remove())
+    }
+    need.html()
   }
 
-  private def extractContent(url: String): Error \/ Option[String] = {
-    val response = getResponse(url)
-    if (response.isError) {
-      UnexpectedError(s"Connection error for $url").left
+  private def changeUrl(element: Element, key: String, keyAttr: String, base: String): Element = {
+    val absUrl = element.attr(keyAttr)
+    if (absUrl.isEmpty || !absUrl.startsWith("http")) {
+      element.attr(key, s"$base${element.attr(key)}")
     } else {
-      val url0 = new URL(url)
-      val base = s"${url0.getProtocol}://${url0.getHost}"
-
-      val doc = Jsoup.parse(response.body)
-      val result = ContentExtractor.extract(doc.body())
-
-      val need = doc.select(result.selector)
-
-      need.select("img").asScala.foreach { img =>
-        Option(img.absUrl("src")).map(img.attr("src", _)).getOrElse(img)
-      }
-
-      need.select("a").asScala.foreach { a =>
-        val absUrl = a.attr("abs:href")
-        if (absUrl.isEmpty) {
-          a.attr("href", s"$base${a.attr("href")}")
-        } else {
-          a.attr("href", absUrl)
-        }
-      }
-
-      need.select("form, input, meta, style, script").asScala.foreach(_.remove)
-
-      need.html().some.right
+      element
     }
   }
 

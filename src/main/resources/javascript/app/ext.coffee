@@ -24,7 +24,8 @@ Sirius.View.register_strategy('toggle',
   transform: (oldvalue, newvalue) -> newvalue
   render: (adapter, element, result, attribute) ->
     klass = "count-hidden"
-    if parseInt(result) == 0
+    count = parseInt(result)
+    if count == 0 || isNaN(count)
       $(element).addClass(klass)
     else
       if $(element).hasClass(klass)
@@ -32,13 +33,33 @@ Sirius.View.register_strategy('toggle',
       adapter.swap(element, result)
 )
 
+Sirius.View.register_strategy('sum',
+  transform: (oldvalue, newvalue) ->
+    oldvalue = parseInt(oldvalue, 10)
+    newvalue = parseInt(newvalue, 10)
+    if isNaN(oldvalue)
+      newvalue
+    else
+      newvalue + oldvalue
+
+  render: (adapter, element, result, attribute) ->
+    hidden = "uk-hidden"
+    if parseInt(result) <= 0
+      $(element).addClass(hidden)
+    else
+      if $(element).hasClass(hidden)
+        $(element).removeClass(hidden)
+    adapter.swap(element, result)
+)
+
 
 class UrlValidator extends Sirius.Validator
 
   validate: (url, attrs) ->
+    return false unless url
     re = /^(http[s]?:\/\/){0,1}(www\.){0,1}[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,5}[\.]{0,1}/
     if !re.test(url)
-      @msg = "Url not valid"
+      @msg = "Url '#{url}' is not valid"
       false
     else
       true
@@ -59,3 +80,29 @@ Array::group_by = (key) ->
     else
       o[k] = [a]
   o
+
+Array::each_cons = (num) ->
+  Array.from(
+    {length: @length - num + 1},
+    (_, i) => @slice(i, i + num)
+  )
+
+Array::uniq = () ->
+  Array.from(new Set(@))
+
+Array::add_to = (el) ->
+  if @length == 0 || @[@length-1] != el
+    @push(el)
+  @
+
+Array::contains = (el) ->
+  @indexOf(el) != -1
+
+Array::is_empty = () ->
+  @length == 0
+
+String::contains = (str) ->
+  @indexOf(str) != -1
+
+String::is_empty = () ->
+  @length == 0

@@ -1,38 +1,51 @@
 
 class Source extends Sirius.BaseModel
   @attrs: ["id", "url", "name", {"interval" : 1}, "state", "normalized",
-    "lastUpdate", "count", {"feeds": []}]
+    "lastUpdate", "count", {"active": true}, {"favorites_count": 0}]
 
   @skip : true
   @validate:
     url: url_validator : true
 
-  is_disable: () ->
+  last_update_in_tz: () ->
+    moment.utc(@last_update()).local()
+
+  is_empty: () ->
+    @count() == 0
+
+  is_active: () ->
+    active() is true
+
+  is_plugin_disabled: () ->
     parseInt(@state()) is 2
 
-  withPlugin: () ->
+  has_plugin: () ->
     (parseInt(@state()) is 1) || (parseInt(@state()) is 2)
 
   href: () ->
-    "/show/#{@normalized()}"
+    "/show/sources/#{@normalized()}"
 
-  href0: () ->
-    "/by/#{@normalized()}"
+  href_all: () ->
+    "#{@href()}/all"
 
   ajaxify: () ->
     JSON.stringify({url: @url(), interval: parseInt(@interval()), name: @name(), id: @id()})
 
   compare: (other) -> @id() == other.id()
 
-  add_feed: (feed) ->
-    tmp = @feeds()
-    tmp.push(feed)
-    @feeds(tmp)
+class SourceOverview extends Sirius.BaseModel
+  @attrs: ["id",
+    {"unread_count": 0}, {"favorites_count": 0},
+    {"feeds_count": 0}, "frequency", {"is_loaded_all": false}]
 
-  unread_feeds: () ->
-    @feeds().filter (f) -> !f.read()
-
-
+  @create: (json) ->
+    new SourceOverview({
+      id: json["sourceId"],
+      unread_count: json["unreadCount"],
+      favorites_count: json["favoritesCount"],
+      feeds_count: json["feedsCount"],
+      frequency: json["frequency"]
+    })
 
 class Feed extends Sirius.BaseModel
   @attrs: ["id", "sourceId", "url",
@@ -51,9 +64,6 @@ class Feed extends Sirius.BaseModel
       @_source ?= Sources.takeFirst((s) -> s.id() == source_id)
       @_source
 
-  source_name: () -> @source().name()
-  source_url : () -> @source().url()
-
   is_read: () ->
     @read()
 
@@ -62,65 +72,76 @@ class Feed extends Sirius.BaseModel
     @content(another_feed.content())
     @favorite(another_feed.favorite())
 
-  anything: () ->
-    if @content()
-      @content()
-    else if @description()
-      @description()
-    else
-      "<div>impossible extract content <a href='#{@url()}'>#{@title()}</a></div>"
+  @create: (json) ->
+    json['publishedDate'] = moment.utc(json['publishedDate']).local()
+    new Feed(json)
 
-# just a wrapper on Feed + Source Name
-class FavoriteFeed
-  constructor: (feed) ->
-    @id = feed.id()
-    @url = feed.url()
-    @title = feed.title()
-    @description = feed.description()
-    @href = feed.href()
-    @source_name = feed.source().name()
+class Setting extends Sirius.BaseModel
+  @attrs: ["key", "description", "value", "options"]
 
+  @skip: true
+
+  is_radio: () ->
+    @options()['type'] == 'radio'
+
+  is_eq: (x) ->
+    x == @value()
+
+  is_feeds_per_page: () ->
+    @key() == "feeds_per_page"
+
+  is_short_view: () ->
+    @key() == "short_view"
+
+  to_object: () ->
+    {key: @key(), value: @value()}
+
+
+Settings = new Sirius.Collection(Setting, {index: ["key"]})
 
 Sources = new Sirius.Collection(Source, {index: ['id', 'name', 'normalized']})
+
+SourceOverviews = new Sirius.Collection(SourceOverview, {index: ["id"]})
+
 Sources.subscribe "add", (source) ->
+  id = "#source-#{source.id()}"
   html = Templates.source_list.render({source: source})
   Templates.source_list_view.render(html).prepend()
-  source_view = new Sirius.View("#source-#{source.id()}")
+  source_view = new Sirius.View(id)
 
-  transformer = Sirius.Transformer.draw({
-    "normalized": {
-      to: 'a.source-url'
-      attr: 'href'
-      via: (new_value, selector, view, attribute) ->
-        view.zoom(selector).render("/show/#{new_value}").swap(attribute)
-    },
-    "name": {
-      to: 'a.source-url'
-    },
-    "count": {
-      to: 'span.source-count'
-      via: (new_value, selector, view, attribute) ->
-        x = parseInt(new_value, 10)
-        count = if isNaN(x) or x <= 0
-            "0"
-          else
-            "#{x}"
-        view.zoom(selector).render(count).toggle()
-    }
-  })
+  Sirius.Materializer.build(source, source_view)
+    .field((x) -> x.normalized)
+    .to((v) -> v.zoom("a.source-url"))
+    .transform((x) -> "/show/sources/#{x}")
+    .handle((view, value) -> view.render(value).swap("href"))
+    .field((x) -> x.active)
+    .to((v) -> v)
+    .handle((view, value) ->
+      if value
+        view.render("uk-hidden").remove_class()
+      else
+        view.render("uk-hidden").add_class()
+    )
+    .field((x) -> x.count)
+    .to((v) -> v.zoom("a.source-count"))
+    .transform((x) ->
+      x = parseInt(x, 10)
+      if isNaN(x) or x <= 0
+        "-"
+      else
+        "#{x}"
+    )
+    .handle((view, value) -> view.render(value).toggle())
+    .run()
 
-  source.bind(source_view, transformer)
 
 
   return
 
 Sources.subscribe "add", (source) ->
-  Sirius.Application.get_adapter().and_then (adapter) ->
-    if source.count() > 0
-      adapter.fire(document, "sources:fetch", source)
+  ControllerExt.change_count(source.count())
 
 Sources.subscribe "remove", (source) ->
-  # TODO unbind
   jQuery("#source-#{source.id()}").remove()
 
 

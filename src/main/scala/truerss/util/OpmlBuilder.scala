@@ -6,9 +6,9 @@ import scala.xml.Utility
 
 object OpmlBuilder {
   // util variables
-  private val exportText = "Newsfeeds exported from Truerss"
+  private val exportText = "Newsfeeds exported from TrueRSS"
 
-  def build(sources: Seq[SourceViewDto]) = {
+  def build(sources: Seq[SourceViewDto]): String = {
     val outlines = sources.map { source =>
       s"""<outline type="rss" text="${e(source.name)}" title="${e(source.name)}" xmlUrl="${e(source.url)}"></outline>"""
     }.mkString("\n")
@@ -16,8 +16,7 @@ object OpmlBuilder {
           |<opml version="1.0">
           |<head>TrueRSS Feed List Export</head>
           |<body>
-          |<outline title="$exportText" text="$exportText" description="$exportText
-" type="folder">
+          |<outline title="$exportText" text="$exportText" description="$exportText" type="folder">
           |$outlines
           |</outline>
           |</body>

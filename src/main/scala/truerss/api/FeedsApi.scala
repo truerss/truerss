@@ -1,34 +1,41 @@
 package truerss.api
 
-import akka.stream.Materializer
 import akka.http.scaladsl.server.Directives._
-import truerss.services.management.FeedsManagement
+import truerss.dto.{FeedContent, FeedDto, Page}
+import truerss.services.{ContentReaderService, FeedsService}
+import truerss.util.CommonImplicits
 
-import scala.concurrent.ExecutionContext
+class FeedsApi(feedsService: FeedsService,
+               contentReaderService: ContentReaderService
+              ) extends HttpApi {
 
-class FeedsApi(val feedsManagement: FeedsManagement)
-              (
-                implicit override val ec: ExecutionContext,
-                val materializer: Materializer
-              ) extends HttpHelper {
+  import CommonImplicits.StringExt
+  import JsonFormats._
 
-  val fm = feedsManagement
+  private val fs = feedsService
+  private val crs = contentReaderService
 
   val route = api {
     pathPrefix("feeds") {
-      (get & pathPrefix("favorites")) {
-        call(fm.favorites)
-      } ~ (get & pathPrefix(LongNumber)) { feedId =>
-        call(fm.getFeed(feedId))
+      get {
+        pathPrefix("favorites") {
+          parameters('offset ? "0", 'limit ? "100") { (offset, limit) =>
+            w[Page[FeedDto]](fs.favorites(offset.toIntOr(0), limit.toIntOr(100)))
+          }
+        } ~ pathPrefix(LongNumber) { feedId =>
+          w[FeedDto](fs.findOne(feedId))
+        } ~ pathPrefix("content" / LongNumber) { feedId =>
+          w[FeedContent](crs.fetchFeedContent(feedId))
+        }
       } ~ put {
         pathPrefix("mark" / LongNumber) { feedId =>
-          call(fm.addToFavorites(feedId))
+          w[Unit](fs.changeFav(feedId, favFlag = true))
         } ~ pathPrefix("unmark" / LongNumber) { feedId =>
-          call(fm.removeFromFavorites(feedId))
+          w[Unit](fs.changeFav(feedId, favFlag = false))
         } ~ pathPrefix("read" / LongNumber) { feedId =>
-          call(fm.markAsRead(feedId))
+          w[Unit](fs.changeRead(feedId, readFlag = true))
         } ~ pathPrefix("unread" / LongNumber) { feedId =>
-          call(fm.markAsUnread(feedId))
+          w[Unit](fs.changeRead(feedId, readFlag = false))
         }
       }
     }

@@ -1,27 +1,34 @@
 package truerss.services
 
-import truerss.db.DbLayer
+import akka.event.EventStream
+import truerss.db.{DbLayer, Source}
 import truerss.db.validation.SourceValidator
-import truerss.dto.{NewSourceDto, SourceViewDto, UpdateSourceDto}
-import truerss.services.management.DtoModelImplicits
-import truerss.util.{ApplicationPlugins, Util}
+import truerss.dto.{ApplicationPlugins, NewSourceDto, Notify, NotifyLevel, SourceViewDto, UpdateSourceDto}
+import truerss.services.actors.sync.SourcesKeeperActor
+import truerss.util.{ApplicationPluginsImplicits, EventStreamExt, FeedSourceDtoModelImplicits}
+import truerss.api.ws.WebSocketController
+import truerss.services.actors.events.EventHandlerActor
+import zio._
 
-import scala.concurrent.{ExecutionContext, Future}
+class SourcesService(private val dbLayer: DbLayer,
+                     private val appPlugins: ApplicationPlugins,
+                     private val stream: EventStream,
+                     private val sourceValidator: SourceValidator
+                    ) {
 
-class SourcesService(dbLayer: DbLayer, appPlugins: ApplicationPlugins)(implicit ec: ExecutionContext) {
+  import FeedSourceDtoModelImplicits._
+  import EventStreamExt._
+  import ApplicationPluginsImplicits._
 
-  import DtoModelImplicits._
-  import Util._
-
-  protected val sourceValidator = new SourceValidator(appPlugins)(dbLayer, ec)
-
-  def getAllForOpml: Future[Vector[SourceViewDto]] = {
+  def getAllForOpml: Task[Vector[SourceViewDto]] = {
     dbLayer.sourceDao.all.map { xs => xs.map(_.toView).toVector }
   }
 
-  def getAll: Future[Vector[SourceViewDto]] = {
-    val result = for {
-      feedsBySource <- dbLayer.feedDao.feedBySourceCount(false)
+  def findAll: Task[Vector[SourceViewDto]] = {
+    // TODO use join please
+    for {
+      feedsBySource <- dbLayer.feedDao
+        .feedBySourceCount(false)
         .map(_.toVector.toMap)
       sources <- dbLayer.sourceDao.all.map(_.toVector)
     } yield {
@@ -29,65 +36,78 @@ class SourcesService(dbLayer: DbLayer, appPlugins: ApplicationPlugins)(implicit 
         s.toView.recount(feedsBySource.getOrElse(s.id.get, 0))
       }
     }
-    result
   }
 
-  def getSource(sourceId: Long): Future[Option[SourceViewDto]] = {
-    dbLayer.sourceDao.findOne(sourceId).map {
-      case Some(source) =>
-        Some(source.toView)
-      case None =>
-        None
+  def getSource(sourceId: Long): Task[SourceViewDto] = {
+    fetchOne(sourceId) { _.toView }
+  }
+
+  def delete(sourceId: Long): Task[Unit] = {
+    for {
+      source <- dbLayer.sourceDao.findOne(sourceId)
+      view = source.toView
+      _ <- dbLayer.sourceDao.delete(sourceId)
+      _ <- dbLayer.feedDao.deleteFeedsBySource(sourceId)
+      _ <- stream.fire(SourcesKeeperActor.SourceDeleted(view))
+    } yield ()
+  }
+
+  // opml
+  def addSources(dtos: Iterable[NewSourceDto]): Task[Unit] = {
+    // todo use settings instead of constant
+    Task.collectAllParN_(10) {
+      dtos.map { dto =>
+        addSource(dto).foldM(
+        {
+          case ValidationError(errors) =>
+            stream.fire(WebSocketController.NotifyMessage(
+              Notify(errors.mkString(", "), NotifyLevel.Warning)
+            ))
+          case ex: Throwable =>
+            stream.fire(WebSocketController.NotifyMessage(
+              Notify(ex.getMessage, NotifyLevel.Warning)
+            ))
+        },
+          validSource => {
+            stream.fire(
+              EventHandlerActor.NewSourceCreated(validSource)
+            )
+          }
+        )
+      }
     }
   }
 
-  def markAsRead(sourceId: Long): Future[Option[SourceViewDto]] = {
-    dbLayer.sourceDao.findOne(sourceId).map { source =>
-      dbLayer.feedDao.markBySource(sourceId)
-      source.map(_.toView)
-    }
+  def addSource(dto: NewSourceDto): Task[SourceViewDto] = {
+    for {
+      _ <- sourceValidator.validateSource(dto)
+      source = dto.toSource
+      state = appPlugins.getState(source.url)
+      newSource = source.withState(state)
+      id <- dbLayer.sourceDao.insert(newSource).orDie
+      resultSource = newSource.withId(id).toView
+      _ <- stream.fire(SourcesKeeperActor.NewSource(resultSource))
+    } yield resultSource
   }
 
-  def delete(sourceId: Long): Future[Option[SourceViewDto]] = {
-    dbLayer.sourceDao.findOne(sourceId).map {
-      case Some(source) =>
-        dbLayer.sourceDao.delete(sourceId)
-        dbLayer.feedDao.deleteFeedsBySource(sourceId)
-        Some(source.toView)
-
-      case None =>
-        None
-    }
+  def updateSource(sourceId: Long, dto: UpdateSourceDto): Task[SourceViewDto] = {
+    for {
+      _ <- sourceValidator.validateSource(dto)
+      source = dto.toSource
+      state = appPlugins.getState(source.url)
+      updatedSource = source.withState(state).withId(sourceId)
+      _ <- dbLayer.sourceDao.updateSource(updatedSource).orDie
+      view = updatedSource.toView
+      _ <- stream.fire(SourcesKeeperActor.ReloadSource(view))
+    } yield view
   }
 
-  def addSource(dto: NewSourceDto): Future[Either[scala.List[String], SourceViewDto]] = {
-    sourceValidator.validateSource(dto).flatMap {
-      case Right(_) =>
-        val source = dto.toSource
-        val state = appPlugins.getState(source.url)
-        val newSource = source.withState(state)
-        dbLayer.sourceDao.insert(newSource).map { id =>
-          Right(newSource.withId(id).toView)
-        }
-
-      case Left(errors) =>
-        Future.successful(Left(errors))
-    }
+  def changeLastUpdateTime(sourceId: Long): Task[Int] = {
+    dbLayer.sourceDao.updateLastUpdateDate(sourceId)
   }
 
-  def updateSource(sourceId: Long, dto: UpdateSourceDto): Future[Either[scala.List[String], SourceViewDto]] = {
-    sourceValidator.validateSource(dto).flatMap {
-      case Right(_) =>
-        val source = dto.toSource.withId(sourceId)
-        val state = appPlugins.getState(source.url)
-        val updatedSource = source.withState(state).withId(sourceId)
-        dbLayer.sourceDao.updateSource(updatedSource).map { _ =>
-          Right(updatedSource.toView)
-        }
-
-      case Left(errors) =>
-        Future.successful(Left(errors))
-    }
+  private def fetchOne(sourceId: Long)(f: Source => SourceViewDto): Task[SourceViewDto] = {
+    dbLayer.sourceDao.findOne(sourceId).map(f)
   }
 
 }
