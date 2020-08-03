@@ -6,7 +6,7 @@ import Tasks._
 
 name := "TrueRSS"
 
-version := "0.0.3.4.pre.7"
+version := "1.0.0"
 
 maintainer := "mike <mike.fch1@gmail.com>"
 
@@ -43,7 +43,7 @@ lazy val mainProject = Project("truerss", file("."))
   .settings( inConfig(RealTest)(Defaults.testSettings) : _*)
   .settings(
     setup ++ Seq(installTask, buildCoffeeTask) ++ Seq(
-    //(compile in Compile) := (compile in Compile).dependsOn(buildCoffee).value,
+    (compile in Compile) := (compile in Compile).dependsOn(buildCoffee).value,
     organization := "net.truerss",
     classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.ScalaLibrary,
     name := name.value,
@@ -52,7 +52,7 @@ lazy val mainProject = Project("truerss", file("."))
     assemblyJarName in assembly := s"truerss_${version.value}.jar",
     mainClass in assembly := Some("Main"),
     assemblyMergeStrategy in assembly := {
-      case x if x.toString.contains(".conf") => MergeStrategy.concat
+      case x if x.contains(".conf") => MergeStrategy.concat
       case PathList(ps @ _*) =>
         if (ps.contains("log4j-provider.properties"))
           MergeStrategy.concat

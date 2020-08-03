@@ -1,5 +1,5 @@
 
-# TrueRSS version 0.0.3
+# TrueRSS version 1.0.0
 
 # [screenshots](https://github.com/truerss/truerss/wiki/screenshots)
 
@@ -9,11 +9,16 @@
 
 is open source feed reader with customizable plugin system for any content (atom, rss, youtube channels...).
 
+# docs
+
+read [wiki](https://github.com/truerss/truerss/wiki)
+
+
 # How to run
 
 1. install java
-2. download truerss-${version}.jar
-3. add config
+2. download release zip file 
+3. add configuration file: 
 
 ```
 // Sample config (with sqlite backend)
@@ -34,17 +39,19 @@ truerss {
 }
 ```
 
-4. run with `java -jar -Xmx150m path/to/truerss-${version}.jar &`
-5. open in browser localhost:8000/
-6. enjoy!
+4. unzip 
+5. run with `bin/truerss`
+6. open in browser localhost:8000/
+7. enjoy!
 
 # How to develop
 
 ## Before work
 
 1. install java
-2. scala, and sbt
-3. for ui part install coffeescript
+2. install docker (need for run tests with different db: postgresql, and mysql)
+3. scala, and sbt
+4. for ui part install coffeescript (run `sbt install` <- will install all js/css deps)
 
 Compile app with `rake` or with `sbt jsbuild` command
 
