@@ -53,7 +53,7 @@ object Predefined {
     description = "Number of simultaneous requests",
     value = SelectableValue(Iterable(10, 25, 45, 100), 10)
   )
-  // todo
+  // todo: need to use
   val read = PredefinedSettings(
     key = fReadContent,
     description = "Skip content",
@@ -63,7 +63,7 @@ object Predefined {
   val feedsPerPage = PredefinedSettings(
     key = fFeedsPerPage,
     description = "Feeds per page",
-    value = SelectableValue(Iterable(1, 10, 20, 30, 50, 100), 10)
+    value = SelectableValue(Iterable(10, 20, 30, 50, 100), 10)
   )
 
   val shortView = PredefinedSettings(

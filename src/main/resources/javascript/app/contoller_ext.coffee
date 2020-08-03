@@ -18,7 +18,6 @@ class AjaxService
         logger.warn(JSON.stringify(err))
 
   is_ready: () ->
-    c("===========> #{@counter}")
     @counter == 0
 
   plugins_all: (success, error) ->

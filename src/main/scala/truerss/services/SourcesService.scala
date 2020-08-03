@@ -6,7 +6,6 @@ import truerss.db.validation.SourceValidator
 import truerss.dto.{ApplicationPlugins, NewSourceDto, Notify, NotifyLevel, SourceViewDto, UpdateSourceDto}
 import truerss.services.actors.sync.SourcesKeeperActor
 import truerss.util.{ApplicationPluginsImplicits, EventStreamExt, FeedSourceDtoModelImplicits}
-import org.slf4j.LoggerFactory
 import truerss.api.ws.WebSocketController
 import truerss.services.actors.events.EventHandlerActor
 import zio._
@@ -21,14 +20,12 @@ class SourcesService(private val dbLayer: DbLayer,
   import EventStreamExt._
   import ApplicationPluginsImplicits._
 
-  private val logger = LoggerFactory.getLogger(getClass)
-
   def getAllForOpml: Task[Vector[SourceViewDto]] = {
     dbLayer.sourceDao.all.map { xs => xs.map(_.toView).toVector }
   }
 
   def findAll: Task[Vector[SourceViewDto]] = {
-    // TODO join
+    // TODO use join please
     for {
       feedsBySource <- dbLayer.feedDao
         .feedBySourceCount(false)
