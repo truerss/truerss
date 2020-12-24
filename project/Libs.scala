@@ -21,7 +21,7 @@ object Libs {
     val akkaHttpVersion = "10.1.12"
     val specsVersion = "4.10.0"
     val playJsonVersion = "2.9.0"
-    val zioVersion = "1.0.0-RC21-2"
+    val zioVersion = "1.0.3"
   }
 
   import Versions._
