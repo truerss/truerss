@@ -49,9 +49,16 @@ truerss {
 ## Before work
 
 1. install java
-2. install docker (need for run tests with different db: postgresql, and mysql)
+2. install docker (need for run tests with different dbs: postgresql, and mysql)
 3. scala, and sbt
 4. for ui part install coffeescript (run `sbt install` <- will install all js/css deps)
+
+### run tests:
+
+`sbt test` - unit tests
+
+`sbt real:test` - integration tests 
+ 
 
 Compile app with `rake` or with `sbt jsbuild` command
 
