@@ -54,6 +54,6 @@ class FeedsApi(feedsService: FeedsService,
     fs.changeRead(feedId, readFlag = false)
   }
 
-  val route = ???
+  val route = favorites :: findOne :: findContent :: markFeed :: unmarkFeed :: readFeed :: unmarkFeed
 
 }

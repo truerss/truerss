@@ -39,7 +39,7 @@ class SettingsApi(private val settingsService: SettingsService) extends HttpApi 
     ss.updateSetups(ns.included)
   }
 
-  val route = ???
+  val route = settings :: updateSettings
 
 
 }

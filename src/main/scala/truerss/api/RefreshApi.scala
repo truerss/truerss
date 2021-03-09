@@ -20,7 +20,6 @@ class RefreshApi(private val refreshSourcesService: RefreshSourcesService) exten
     refreshSourcesService.refreshSource(sourceId)
   }
 
-  val route = ???
-
+  val route = refreshAll :: refreshOne
 
 }

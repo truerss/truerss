@@ -3,7 +3,7 @@ package truerss.api
 import truerss.dto.PluginsViewDto
 import truerss.services.ApplicationPluginsService
 import com.github.fntz.omhs.macros.RoutingImplicits
-import com.github.fntz.omhs.{AsyncResult, BodyWriter, CommonResponse, ParamDSL}
+import com.github.fntz.omhs.{BodyWriter, CommonResponse, ParamDSL}
 import com.github.fntz.omhs.playjson.JsonSupport
 import io.netty.handler.codec.http.HttpResponseStatus
 import io.netty.util.CharsetUtil
@@ -45,9 +45,6 @@ class PluginsApi(private val pluginsService: ApplicationPluginsService) extends 
     ???
   }
 
-  val route = ???
-
-
-
+  val route = plugins :: js :: css
 
 }

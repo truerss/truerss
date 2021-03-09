@@ -20,10 +20,8 @@ class SearchApi(private val searchService: SearchService) extends HttpApi {
 
   private val base = "api" / "v1"
 
-  private val search = post(base / "search" / body[SearchRequest]) ~> { (q: SearchRequest) =>
+  val route = post(base / "search" / body[SearchRequest]) ~> { (q: SearchRequest) =>
     searchService.search(q)
   }
-
-  val route = ???
 
 }

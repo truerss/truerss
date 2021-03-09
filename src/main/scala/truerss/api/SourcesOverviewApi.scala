@@ -2,7 +2,7 @@ package truerss.api
 
 import truerss.dto.SourceOverview
 import truerss.services.SourceOverviewService
-import com.github.fntz.omhs.{BodyWriter, ParamDSL}
+import com.github.fntz.omhs.{BodyWriter, ParamDSL, Route}
 import com.github.fntz.omhs.macros.RoutingImplicits
 import com.github.fntz.omhs.playjson.JsonSupport
 
@@ -20,6 +20,6 @@ class SourcesOverviewApi(private val sourceOverviewService: SourceOverviewServic
     sourceOverviewService.getSourceOverview(sourceId)
   }
 
-  val route = ???
+  val route = new Route().addRule(overview)
 
 }

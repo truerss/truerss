@@ -2,9 +2,6 @@ package truerss.api
 
 import java.nio.charset.Charset
 
-import akka.http.scaladsl.model.{ContentType => C, _}
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server._
 import org.slf4j.LoggerFactory
 import play.api.libs.json._
 import truerss.services.{ContentReadError, NotFoundError, ValidationError}
@@ -16,7 +13,7 @@ import scala.util.{Failure, Try, Success => S}
   * Created by mike on 17.12.16.
   */
 trait HttpApi {
-
+/*
   import RouteResult._
   import StatusCodes._
   import HttpApi.{utf8, printErrors}
@@ -136,16 +133,16 @@ trait HttpApi {
     RouteResult.Complete(
       response(status, msg)
     )
-  }
+  } */
 
 }
 
 object HttpApi extends HttpApi {
   private final val errorF = "errors"
-  val utf8 = Charset.forName("UTF-8")
-  val javascript = MediaTypes.`application/javascript` withCharset HttpCharsets.`UTF-8`
-  val css = MediaTypes.`text/css` withCharset HttpCharsets.`UTF-8`
-  val opml = MediaTypes.`application/xml` withCharset HttpCharsets.`UTF-8`
+//  val utf8 = Charset.forName("UTF-8")
+//  val javascript = MediaTypes.`application/javascript` withCharset HttpCharsets.`UTF-8`
+//  val css = MediaTypes.`text/css` withCharset HttpCharsets.`UTF-8`
+//  val opml = MediaTypes.`application/xml` withCharset HttpCharsets.`UTF-8`
 
   def printErrors(errors: List[String]): String = {
     Json.stringify(JsObject(Seq(errorF -> JsArray(errors.map(JsString)))))

@@ -1,7 +1,6 @@
 package truerss.api
 
 import truerss.services.{FeedsService, SourcesService}
-import truerss.util.CommonImplicits
 import com.github.fntz.omhs.{BodyReader, BodyWriter, ParamDSL}
 import com.github.fntz.omhs.macros.RoutingImplicits
 import com.github.fntz.omhs.playjson.JsonSupport
@@ -13,7 +12,6 @@ class SourcesApi(feedsService: FeedsService,
 
   import QueryPage._
   import JsonFormats._
-  import CommonImplicits.StringExt
   import ZIOSupport._
   import ParamDSL._
   import RoutingImplicits._
@@ -39,6 +37,7 @@ class SourcesApi(feedsService: FeedsService,
   private val ss = sourcesService
 
   private val base = "api" / "v1" / "sources"
+
   private val all = get(base / "all") ~> { () =>
     ss.findAll
   }
@@ -67,7 +66,7 @@ class SourcesApi(feedsService: FeedsService,
     ss.delete(sourceId)
   }
 
-  val route = ???
+  val route = all :: findOne :: latest :: feeds :: newSource :: updateSource :: deleteSource
 
 
 }

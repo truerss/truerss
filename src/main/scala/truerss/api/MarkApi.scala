@@ -2,7 +2,7 @@ package truerss.api
 
 import truerss.services.MarkService
 import com.github.fntz.omhs.macros.RoutingImplicits
-import com.github.fntz.omhs.{AsyncResult, BodyWriter, ParamDSL}
+import com.github.fntz.omhs.ParamDSL
 
 class MarkApi(private val markService: MarkService) extends HttpApi {
 
@@ -18,18 +18,7 @@ class MarkApi(private val markService: MarkService) extends HttpApi {
     markService.markOne(sourceId)
   }
 
-  val route = ???
+  val route = markAll :: markSource
 
-//  val route = api {
-//    pathPrefix("mark") {
-//      put {
-//        pathEndOrSingleSlash {
-//          w[Unit](markService.markAll)
-//        } ~ pathPrefix(LongNumber) { sourceId =>
-//          w[Unit](markService.markOne(sourceId))
-//        }
-//      }
-//    }
-//  }
 
 }

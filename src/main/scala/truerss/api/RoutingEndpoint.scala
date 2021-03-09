@@ -1,11 +1,10 @@
 package truerss.api
 
-import akka.http.scaladsl.model._
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.directives.LoggingMagnet
 import akka.stream.Materializer
 import org.slf4j.LoggerFactory
 import truerss.services._
+import com.github.fntz.omhs.macros.RoutingImplicits
+import com.github.fntz.omhs.ParamDSL
 
 class RoutingEndpoint(
                        feedsService: FeedsService,
@@ -21,6 +20,9 @@ class RoutingEndpoint(
                        wsPort: Int
                      )(implicit val materializer: Materializer) {
 
+  import RoutingImplicits._
+  import ParamDSL._
+
   val sourcesApi = new SourcesApi(feedsService, sourcesService)
   val feedsApi = new FeedsApi(feedsService, contentReaderService)
   val pluginsApi = new PluginsApi(pluginsManagement)
@@ -33,26 +35,16 @@ class RoutingEndpoint(
 
   protected val logger = LoggerFactory.getLogger(getClass)
 
-  private def logIncomingRequest(req: HttpRequest): Unit = {
-    logger.debug(s"${req.method.value} ${req.uri}")
-  }
 
-  private val log = logRequest(LoggingMagnet(_ => logIncomingRequest))
-
-//  val apis =
-//    sourcesApi.route ~
-//    feedsApi.route ~
-//    pluginsApi.route ~
-//    settingsApi.route ~
-//    searchApi.route ~
-//    refreshApi.route ~
-//    opmlApi.route ~
-//    markApi.route ~
-//    sourcesOverviewApi.route
+  val apis = sourcesApi.route :: feedsApi.route :: pluginsApi.route ::
+    settingsApi.route :: searchApi.route :: refreshApi.route ::
+    opmlApi.route :: markApi.route :: sourcesOverviewApi.route
 
   val additional = new AdditionalResourcesRoutes(wsPort)
 
-  val route = ???
+  // todo read resources from dir
+
+  val route = apis :: additional.route
   /*additional.route ~ apis ~ pathPrefix("css") {
     getFromResourceDirectory("css")
   } ~

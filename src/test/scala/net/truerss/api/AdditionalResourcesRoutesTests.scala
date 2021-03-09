@@ -13,7 +13,7 @@ class AdditionalResourcesRoutesTests
   private val wsPort = 10000
   private val route = new AdditionalResourcesRoutes(wsPort).route
   private val cookie = "Set-Cookie".toLowerCase()
-  private val r = redirectToC
+  private val r = redirectToLocation
   private val o = portC
 
   "routes" should {

@@ -1,7 +1,7 @@
 package truerss
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.Http
+import com.github.fntz.omhs.OHMSServer
 import org.slf4j.LoggerFactory
 import truerss.api.RoutingEndpoint
 import truerss.api.ws.SocketServer
@@ -67,14 +67,17 @@ object AppRunner {
       wsPort = actualConfig.wsPort
     )
 
-    Http().bindAndHandle(
-      endpoint.route,
-      actualConfig.host,
-      actualConfig.port
-    ).foreach { _ =>
-      logger.info(s"Http Server: ${actualConfig.url}")
-    }(actorSystem.dispatcher)
+    import com.github.fntz.omhs.DefaultHttpHandler._
 
+
+
+    OHMSServer.run(
+      actualConfig.host,
+      actualConfig.port,
+      endpoint.route.toHandler,
+      beforeHandlers = OHMSServer.noPipelineChanges,
+      modifier = OHMSServer.noSetup
+    )
 
     val webSocketServer = SocketServer(actualConfig.wsPort, actorSystem)
     webSocketServer.start()
