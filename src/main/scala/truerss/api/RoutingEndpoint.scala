@@ -1,10 +1,14 @@
 package truerss.api
 
-import akka.stream.Materializer
 import org.slf4j.LoggerFactory
 import truerss.services._
 import com.github.fntz.omhs.macros.RoutingImplicits
-import com.github.fntz.omhs.ParamDSL
+import com.github.fntz.omhs.{AsyncResult, CommonResponse, ParamDSL}
+import io.netty.handler.codec.http.HttpResponseStatus
+import io.netty.util.CharsetUtil
+
+import java.io.File
+import scala.io.Source
 
 class RoutingEndpoint(
                        feedsService: FeedsService,
@@ -18,7 +22,7 @@ class RoutingEndpoint(
                        refreshSourcesService: RefreshSourcesService,
                        markService: MarkService,
                        wsPort: Int
-                     )(implicit val materializer: Materializer) {
+                     ) {
 
   import RoutingImplicits._
   import ParamDSL._
@@ -42,22 +46,57 @@ class RoutingEndpoint(
 
   val additional = new AdditionalResourcesRoutes(wsPort)
 
-  // todo read resources from dir
+  private def getFilesInDirectory(dir: String) = {
+    val folder = new File(getClass.getResource(s"$dir").getPath)
+    folder.listFiles().map { x =>
+      val source = Source.fromFile(x)
+      x.getPath -> (try source.mkString.getBytes(CharsetUtil.UTF_8) finally source.close())
+    }.toMap
+  }
 
-  val route = apis :: additional.route
-  /*additional.route ~ apis ~ pathPrefix("css") {
-    getFromResourceDirectory("css")
-  } ~
-    pathPrefix("js") {
-      getFromResourceDirectory("javascript")
-    } ~
-    pathPrefix("fonts") {
-      getFromResourceDirectory("fonts")
-    } ~
-    pathPrefix("templates") {
-      getFromResourceDirectory("templates")
-    } */
+  private val cssFiles = getFilesInDirectory("css")
+  private val jsFiles = getFilesInDirectory("js")
+  private val fontsFiles = getFilesInDirectory("fonts")
+  private val templatesFiles = getFilesInDirectory("templates")
 
+  private def process(map: Map[String, Array[Byte]], xs: List[String], contentType: String): AsyncResult = {
+    map.get(xs.headOption.getOrElse("")) match {
+      case Some(f) =>
+        AsyncResult.completed(CommonResponse(
+          status = HttpResponseStatus.OK,
+          contentType = contentType,
+          content = f
+        ))
+      case None =>
+        AsyncResult.completed(CommonResponse(
+          status = HttpResponseStatus.NOT_FOUND,
+          contentType = contentType,
+          content = "".getBytes(CharsetUtil.UTF_8)
+        ))
+    }
+
+  }
+
+  private val css = get("css" / *) ~> { (xs: List[String]) =>
+    process(cssFiles, xs, "text/css")
+  }
+
+  private val js = get("js" / *) ~> {(xs: List[String]) =>
+    process(jsFiles, xs, "application/javascript")
+  }
+
+  // todo content-type ?
+  private val templates = get("templates" / *) ~> {(xs: List[String]) =>
+    process(templatesFiles, xs, "application/javascript")
+  }
+
+  //todo fonts
+  private val fonts = get("templates" / *) ~> {(xs: List[String]) =>
+    process(fontsFiles, xs, "application/javascript")
+  }
+
+
+  val route = apis :: additional.route :: css :: js
 
 
 }
