@@ -90,7 +90,14 @@ object Libs {
     "org.testcontainers" % "postgresql" % "1.14.3" % Test
   )
 
+  val nettyL = Seq(
+    "io.netty" % "netty-codec-http" % "4.1.59.Final",
+    "com.github.fntz" %% "dsl" % "0.0.1-SNAPSHOT",
+    "com.github.fntz" %% "omhs-play-support" % "0.0.1-SNAPSHOT",
+    "org.scala-lang" % "scala-reflect" % scalaVersion % "compile"
+  )
+
   val deps = db ++ akka ++ truerss ++ logs ++
-    Seq(jsoup, playJson) ++ utils ++ zio ++ tests
+    Seq(jsoup, playJson) ++ utils ++ zio ++ tests ++ nettyL
 
 }

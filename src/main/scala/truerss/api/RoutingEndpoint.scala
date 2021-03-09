@@ -39,20 +39,21 @@ class RoutingEndpoint(
 
   private val log = logRequest(LoggingMagnet(_ => logIncomingRequest))
 
-  val apis =
-    sourcesApi.route ~
-    feedsApi.route ~
-    pluginsApi.route ~
-    settingsApi.route ~
-    searchApi.route ~
-    refreshApi.route ~
-    opmlApi.route ~
-    markApi.route ~
-    sourcesOverviewApi.route
+//  val apis =
+//    sourcesApi.route ~
+//    feedsApi.route ~
+//    pluginsApi.route ~
+//    settingsApi.route ~
+//    searchApi.route ~
+//    refreshApi.route ~
+//    opmlApi.route ~
+//    markApi.route ~
+//    sourcesOverviewApi.route
 
   val additional = new AdditionalResourcesRoutes(wsPort)
 
-  val route = additional.route ~ apis ~ pathPrefix("css") {
+  val route = ???
+  /*additional.route ~ apis ~ pathPrefix("css") {
     getFromResourceDirectory("css")
   } ~
     pathPrefix("js") {
@@ -63,7 +64,7 @@ class RoutingEndpoint(
     } ~
     pathPrefix("templates") {
       getFromResourceDirectory("templates")
-    }
+    } */
 
 
 

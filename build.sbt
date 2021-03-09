@@ -28,7 +28,7 @@ val setup = Seq(
     "-language:reflectiveCalls",
     "-unchecked",
     "-Xverify",
-    "-Xfuture"
+    "-Ydelambdafy:inline"
   ),
   javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
 )
@@ -43,7 +43,7 @@ lazy val mainProject = Project("truerss", file("."))
   .settings( inConfig(RealTest)(Defaults.testSettings) : _*)
   .settings(
     setup ++ Seq(installTask, buildCoffeeTask) ++ Seq(
-    (compile in Compile) := (compile in Compile).dependsOn(buildCoffee).value,
+   // (compile in Compile) := (compile in Compile).dependsOn(buildCoffee).value,
     organization := "net.truerss",
     classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.ScalaLibrary,
     name := name.value,
