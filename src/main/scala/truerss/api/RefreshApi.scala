@@ -1,13 +1,11 @@
 package truerss.api
 
 import truerss.services.RefreshSourcesService
-import com.github.fntz.omhs.macros.RoutingImplicits
-import com.github.fntz.omhs.ParamDSL
+import com.github.fntz.omhs.RoutingDSL
 
 class RefreshApi(private val refreshSourcesService: RefreshSourcesService) extends HttpApi {
 
-  import RoutingImplicits._
-  import ParamDSL._
+  import RoutingDSL._
   import ZIOSupport._
   import JsonFormats._
 

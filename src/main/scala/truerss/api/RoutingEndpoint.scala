@@ -2,8 +2,7 @@ package truerss.api
 
 import org.slf4j.LoggerFactory
 import truerss.services._
-import com.github.fntz.omhs.macros.RoutingImplicits
-import com.github.fntz.omhs.{AsyncResult, CommonResponse, ParamDSL}
+import com.github.fntz.omhs.{AsyncResult, CommonResponse, RoutingDSL}
 import io.netty.handler.codec.http.HttpResponseStatus
 import io.netty.util.CharsetUtil
 
@@ -24,8 +23,7 @@ class RoutingEndpoint(
                        wsPort: Int
                      ) {
 
-  import RoutingImplicits._
-  import ParamDSL._
+  import RoutingDSL._
 
   val sourcesApi = new SourcesApi(feedsService, sourcesService)
   val feedsApi = new FeedsApi(feedsService, contentReaderService)

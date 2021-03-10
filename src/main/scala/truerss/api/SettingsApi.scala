@@ -2,15 +2,13 @@ package truerss.api
 
 import truerss.dto.{AvailableSetup, NewSetup}
 import truerss.services.SettingsService
-import com.github.fntz.omhs.{BodyReader, BodyWriter, ParamDSL}
-import com.github.fntz.omhs.macros.RoutingImplicits
+import com.github.fntz.omhs.{BodyReader, BodyWriter, RoutingDSL}
 import com.github.fntz.omhs.playjson.JsonSupport
 
 class SettingsApi(private val settingsService: SettingsService) extends HttpApi {
 
   import JsonFormats._
-  import ParamDSL._
-  import RoutingImplicits._
+  import RoutingDSL._
   import ZIOSupport._
 
   private val ss = settingsService
@@ -35,7 +33,7 @@ class SettingsApi(private val settingsService: SettingsService) extends HttpApi 
     ss.getCurrentSetup
   }
 
-  private val updateSettings = put("api" / "v1" / "settings" / body[Setups]) ~> { (ns: Setups) =>
+  private val updateSettings = put("api" / "v1" / "settings" <<< body[Setups]) ~> { (ns: Setups) =>
     ss.updateSetups(ns.included)
   }
 

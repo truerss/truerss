@@ -70,8 +70,8 @@ object AppRunner {
       actualConfig.host,
       actualConfig.port,
       endpoint.route.toHandler,
-      beforeHandlers = OMHSServer.noPipelineChanges,
-      modifier = OMHSServer.noSetup
+      pipeLineChanges = OMHSServer.noPipelineChanges,
+      serverBootstrapChanges = OMHSServer.noServerBootstrapChanges
     )
 
     val webSocketServer = SocketServer(actualConfig.wsPort, actorSystem)

@@ -1,7 +1,6 @@
 package truerss.api
 
-import com.github.fntz.omhs.{AsyncResult, CommonResponse, CurrentHttpRequest, ParamDSL}
-import com.github.fntz.omhs.macros.RoutingImplicits
+import com.github.fntz.omhs.{AsyncResult, CommonResponse, CurrentHttpRequest, RoutingDSL}
 import io.netty.handler.codec.http.cookie.{DefaultCookie, ServerCookieEncoder}
 import io.netty.handler.codec.http.{HttpHeaderNames, HttpResponseStatus}
 import io.netty.util.CharsetUtil
@@ -11,8 +10,7 @@ import scala.io.Source
 class AdditionalResourcesRoutes(private val wsPort: Int) {
 
   import AdditionalResourcesRoutes._
-  import RoutingImplicits._
-  import ParamDSL._
+  import RoutingDSL._
   import ZIOSupport._
 
   protected val fileName = "index.html"

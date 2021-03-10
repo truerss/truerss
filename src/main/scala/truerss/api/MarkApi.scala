@@ -1,13 +1,11 @@
 package truerss.api
 
 import truerss.services.MarkService
-import com.github.fntz.omhs.macros.RoutingImplicits
-import com.github.fntz.omhs.ParamDSL
+import com.github.fntz.omhs.RoutingDSL
 
 class MarkApi(private val markService: MarkService) extends HttpApi {
 
-  import ParamDSL._
-  import RoutingImplicits._
+  import RoutingDSL._
   import ZIOSupport._
 
   private val markAll = put("api" / "v1" / "mark") ~> {() =>

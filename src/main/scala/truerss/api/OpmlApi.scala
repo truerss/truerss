@@ -3,9 +3,8 @@ package truerss.api
 import truerss.services.OpmlService
 import truerss.util.OpmlExtractor
 import zio.Task
-import com.github.fntz.omhs.macros.RoutingImplicits
 import com.github.fntz.omhs.playjson.JsonSupport
-import com.github.fntz.omhs.{AsyncResult, BodyWriter, CommonResponse, ParamDSL}
+import com.github.fntz.omhs.{AsyncResult, BodyWriter, CommonResponse, RoutingDSL}
 import io.netty.handler.codec.http.HttpResponseStatus
 import io.netty.handler.codec.http.multipart.MixedFileUpload
 import io.netty.util.CharsetUtil
@@ -14,8 +13,7 @@ class OpmlApi(private val opmlService: OpmlService) extends HttpApi {
 
   import JsonFormats._
   import OpmlExtractor._
-  import ParamDSL._
-  import RoutingImplicits._
+  import RoutingDSL._
   import ZIOSupport._
 
   private implicit val processingWriter: BodyWriter[Processing] =
@@ -36,7 +34,7 @@ class OpmlApi(private val opmlService: OpmlService) extends HttpApi {
     opmlService.build.map(Xml)
   }
 
-  private val importFile = post("api" / "v1" / "import" / file) ~> { (fs: List[MixedFileUpload]) =>
+  private val importFile = post("api" / "v1" / "import" <<< file) ~> { (fs: List[MixedFileUpload]) =>
     val content = fs.map(_.content().toString(CharsetUtil.UTF_8)).headOption.getOrElse("")
     reprocessToOpml(content)
     runImportAsync(content)

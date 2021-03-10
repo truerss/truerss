@@ -1,8 +1,7 @@
 package truerss.api
 
 import truerss.services.{FeedsService, SourcesService}
-import com.github.fntz.omhs.{BodyReader, BodyWriter, ParamDSL}
-import com.github.fntz.omhs.macros.RoutingImplicits
+import com.github.fntz.omhs.{BodyReader, BodyWriter, RoutingDSL}
 import com.github.fntz.omhs.playjson.JsonSupport
 import truerss.dto.{FeedDto, NewSourceDto, Page, SourceViewDto, UpdateSourceDto}
 
@@ -13,8 +12,7 @@ class SourcesApi(feedsService: FeedsService,
   import QueryPage._
   import JsonFormats._
   import ZIOSupport._
-  import ParamDSL._
-  import RoutingImplicits._
+  import RoutingDSL._
   import SourceFeedsFilter._
 
   implicit val pageFeedDtoWriter: BodyWriter[Page[FeedDto]] =
@@ -46,19 +44,19 @@ class SourcesApi(feedsService: FeedsService,
   }
 
   // todo to feeds api
-  private val latest = get(base / "latest" / query[QueryPage]) ~> { (q: QueryPage) =>
+  private val latest = get(base / "latest" :? query[QueryPage]) ~> { (q: QueryPage) =>
     fs.latest(q.offset, q.limit)
   }
 
-  private val feeds = get(base / long / "feeds" / query[SourceFeedsFilter]) ~> { (sourceId: Long, f: SourceFeedsFilter) =>
+  private val feeds = get(base / long / "feeds" :? query[SourceFeedsFilter]) ~> { (sourceId: Long, f: SourceFeedsFilter) =>
     fs.findBySource(sourceId, f.unreadOnly, f.offset, f.limit)
   }
 
-  private val newSource = post(base / body[NewSourceDto]) ~> { (newSource: NewSourceDto) =>
+  private val newSource = post(base <<< body[NewSourceDto]) ~> { (newSource: NewSourceDto) =>
     ss.addSource(newSource)
   }
 
-  private val updateSource = put(base / long / body[UpdateSourceDto]) ~> { (sourceId: Long, dto: UpdateSourceDto) =>
+  private val updateSource = put(base / long <<< body[UpdateSourceDto]) ~> { (sourceId: Long, dto: UpdateSourceDto) =>
     ss.updateSource(sourceId, dto)
   }
 

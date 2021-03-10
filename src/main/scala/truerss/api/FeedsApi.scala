@@ -1,10 +1,8 @@
 package truerss.api
 
-import com.github.fntz.omhs.{BodyWriter, ParamDSL, QueryReader}
+import com.github.fntz.omhs.{BodyWriter, RoutingDSL}
 import truerss.dto.{FeedContent, FeedDto, Page}
 import truerss.services.{ContentReaderService, FeedsService}
-import truerss.util.CommonImplicits
-import com.github.fntz.omhs.macros.RoutingImplicits
 import com.github.fntz.omhs.playjson.JsonSupport
 
 class FeedsApi(feedsService: FeedsService,
@@ -13,8 +11,7 @@ class FeedsApi(feedsService: FeedsService,
 
   import QueryPage._
   import JsonFormats._
-  import RoutingImplicits._
-  import ParamDSL._
+  import RoutingDSL._
   import ZIOSupport._
 
   private val fs = feedsService
@@ -26,7 +23,7 @@ class FeedsApi(feedsService: FeedsService,
 
   private val base = "api" / "v1" / "feeds"
 
-  private val favorites = get(base / "favorites" / query[QueryPage]) ~> { (q: QueryPage) =>
+  private val favorites = get(base / "favorites" :? query[QueryPage]) ~> { (q: QueryPage) =>
     fs.favorites(q.offset, q.limit)
   }
 

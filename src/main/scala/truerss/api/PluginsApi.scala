@@ -2,8 +2,7 @@ package truerss.api
 
 import truerss.dto.PluginsViewDto
 import truerss.services.ApplicationPluginsService
-import com.github.fntz.omhs.macros.RoutingImplicits
-import com.github.fntz.omhs.{BodyWriter, CommonResponse, ParamDSL}
+import com.github.fntz.omhs.{BodyWriter, CommonResponse, RoutingDSL}
 import com.github.fntz.omhs.playjson.JsonSupport
 import io.netty.handler.codec.http.HttpResponseStatus
 import io.netty.util.CharsetUtil
@@ -11,8 +10,7 @@ import io.netty.util.CharsetUtil
 class PluginsApi(private val pluginsService: ApplicationPluginsService) extends HttpApi {
 
   import JsonFormats._
-  import RoutingImplicits._
-  import ParamDSL._
+  import RoutingDSL._
   import ZIOSupport._
 
   implicit val pluginsViewWriter: BodyWriter[PluginsViewDto] =
