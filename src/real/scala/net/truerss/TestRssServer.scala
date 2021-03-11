@@ -1,11 +1,14 @@
 package net.truerss
 
 import java.util.concurrent.atomic.AtomicInteger
-
-import akka.http.scaladsl.model.{HttpCharsets, HttpEntity, HttpResponse, MediaTypes, StatusCodes}
-import akka.http.scaladsl.server.Directives._
+import com.github.fntz.omhs.{AsyncResult, CommonResponse, Route, RoutingDSL}
+import io.netty.handler.codec.http.HttpResponseStatus
+import io.netty.util.CharsetUtil
 
 case class TestRssServer(host: String, port: Int) {
+
+  import RoutingDSL._
+  import AsyncResult.Implicits._
 
   val rssStats = new AtomicInteger(0)
   val notRssStats = new AtomicInteger(0)
@@ -32,71 +35,58 @@ case class TestRssServer(host: String, port: Int) {
 
   val content = "<div>test-content</div>"
 
-  val contentOk = HttpResponse(
-    status = StatusCodes.OK,
-    entity = HttpEntity(
-      MediaTypes.`text/html` withCharset HttpCharsets.`UTF-8`,
-      content
-    )
+  val contentOk = CommonResponse(
+    status = HttpResponseStatus.OK,
+    contentType = "text/html;charset=utf-8",
+    content.getBytes(CharsetUtil.UTF_8)
   )
 
   private def sendRssFeed(content: String) = {
-    HttpResponse(
-      status = StatusCodes.OK,
-      entity = HttpEntity(
-        MediaTypes.`application/xml` withCharset HttpCharsets.`UTF-8`,
-        content
-      )
+    CommonResponse(
+      status = HttpResponseStatus.OK,
+      contentType = "application/xml",
+      content.getBytes(CharsetUtil.UTF_8)
     )
   }
 
-  val route = pathPrefix("rss" | "rss1" | "rss2") {
-    get {
-      complete {
-        p("rss")
-        rssStats.incrementAndGet()
-        if (shouldProduceNewEntities) {
-          sendRssFeed(rss1)
-        } else {
-          sendRssFeed(rss)
-        }
-      }
-    }
-  } ~ pathPrefix("error-rss") {
-    get {
-      complete {
-        if (shouldProduceErrors) {
-          sendRssFeed(rss).copy(status = StatusCodes.InternalServerError)
-        } else {
-          sendRssFeed(rss)
-        }
-      }
-    }
-  } ~ pathPrefix("boom") {
-    get {
-      complete(contentOk.copy(status = StatusCodes.InternalServerError))
-    }
-  } ~ pathPrefix("content") {
-    pathPrefix("ok") {
-      complete(contentOk)
-    } ~ pathPrefix("test") {
-      complete(contentOk)
-    } ~ pathPrefix("boom") {
-      complete(contentOk.copy(status = StatusCodes.InternalServerError))
-    }
-  } ~ pathPrefix("not-rss") {
-    complete {
-      p("not rss")
-      notRssStats.incrementAndGet()
-      HttpResponse(
-        status = StatusCodes.OK,
-        entity = HttpEntity(
-          MediaTypes.`text/css` withCharset HttpCharsets.`UTF-8`,
-          rss
-        )
-      )
+  def send: AsyncResult = {
+    p("rss")
+    rssStats.incrementAndGet()
+    if (shouldProduceNewEntities) {
+      sendRssFeed(rss1)
+    } else {
+      sendRssFeed(rss)
     }
   }
+
+  val route1 = get("rss") ~> {() => send}
+  val route2 = get("rss1") ~> {() => send}
+  val route3 = get("rss3") ~> {() => send}
+  val route4 = get("error-rss") ~> {() =>
+    if (shouldProduceErrors) {
+      sendRssFeed(rss).copy(status = HttpResponseStatus.INTERNAL_SERVER_ERROR)
+    } else {
+      sendRssFeed(rss)
+    }
+  }
+  val route5 = get("boom") ~> {() =>
+    contentOk
+      .copy(status = HttpResponseStatus.INTERNAL_SERVER_ERROR)
+  }
+  val route6 = get("content" / "ok") ~> {() => contentOk }
+  val route7 = get("content" / "test") ~> {() => contentOk}
+  val route8 = get("content" / "boom") ~> {() =>
+    contentOk
+      .copy(status = HttpResponseStatus.INTERNAL_SERVER_ERROR)
+  }
+  val route9 = get("not-rss") ~> {() =>
+    p("not rss")
+    notRssStats.incrementAndGet()
+    CommonResponse.plain(rss)
+  }
+
+  val route = new Route() :: route1 :: route2 :: route3 :: route4 ::
+    route5 :: route6 :: route7 :: route8 :: route9
 
   private def p(x: String) = {
     println(s"=============== $x ===============")

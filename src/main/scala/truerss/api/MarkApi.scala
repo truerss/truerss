@@ -9,11 +9,11 @@ class MarkApi(private val markService: MarkService) extends HttpApi {
   import ZIOSupport._
 
   private val markAll = put("api" / "v1" / "mark") ~> {() =>
-    markService.markAll
+    w(markService.markAll)
   }
 
   private val markSource = put("api" / "v1" / "mark" / long) ~> { (sourceId: Long) =>
-    markService.markOne(sourceId)
+    w(markService.markOne(sourceId))
   }
 
   val route = markAll :: markSource

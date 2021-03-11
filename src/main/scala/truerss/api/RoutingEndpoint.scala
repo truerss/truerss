@@ -6,7 +6,6 @@ import com.github.fntz.omhs.{AsyncResult, CommonResponse, RoutingDSL}
 import io.netty.handler.codec.http.HttpResponseStatus
 import io.netty.util.CharsetUtil
 
-import java.io.File
 import scala.io.Source
 
 class RoutingEndpoint(
@@ -24,6 +23,7 @@ class RoutingEndpoint(
                      ) {
 
   import RoutingDSL._
+  import AsyncResult.Implicits._
 
   val sourcesApi = new SourcesApi(feedsService, sourcesService)
   val feedsApi = new FeedsApi(feedsService, contentReaderService)
@@ -44,57 +44,60 @@ class RoutingEndpoint(
 
   val additional = new AdditionalResourcesRoutes(wsPort)
 
-  private def getFilesInDirectory(dir: String) = {
-    val folder = new File(getClass.getResource(s"$dir").getPath)
-    folder.listFiles().map { x =>
-      val source = Source.fromFile(x)
-      x.getPath -> (try source.mkString.getBytes(CharsetUtil.UTF_8) finally source.close())
-    }.toMap
-  }
-
-  private val cssFiles = getFilesInDirectory("css")
-  private val jsFiles = getFilesInDirectory("js")
-  private val fontsFiles = getFilesInDirectory("fonts")
-  private val templatesFiles = getFilesInDirectory("templates")
-
-  private def process(map: Map[String, Array[Byte]], xs: List[String], contentType: String): AsyncResult = {
-    map.get(xs.headOption.getOrElse("")) match {
-      case Some(f) =>
-        AsyncResult.completed(CommonResponse(
-          status = HttpResponseStatus.OK,
-          contentType = contentType,
-          content = f
-        ))
-      case None =>
-        AsyncResult.completed(CommonResponse(
-          status = HttpResponseStatus.NOT_FOUND,
-          contentType = contentType,
-          content = "".getBytes(CharsetUtil.UTF_8)
-        ))
-    }
-
-  }
-
   private val css = get("css" / *) ~> { (xs: List[String]) =>
-    process(cssFiles, xs, "text/css")
+    serveWith(xs, "css", "text/css")
   }
 
   private val js = get("js" / *) ~> {(xs: List[String]) =>
-    process(jsFiles, xs, "application/javascript")
+    serveWith(xs, "javascript", "application/javascript")
   }
 
-  // todo content-type ?
   private val templates = get("templates" / *) ~> {(xs: List[String]) =>
-    process(templatesFiles, xs, "application/javascript")
+    serveWith(xs, "templates", "application/javascript")
   }
 
-  //todo fonts
-  private val fonts = get("templates" / *) ~> {(xs: List[String]) =>
-    process(fontsFiles, xs, "application/javascript")
+  private val fonts = get("fonts" / *) ~> {(xs: List[String]) =>
+    // maybe probeContentType ?
+    xs.headOption match {
+      case Some(v) if v.endsWith("otf") =>
+        serveFile(s"/fonts/$v", "application/vnd.ms-opentype")
+      case Some(v) if v.endsWith("eot") =>
+        serveFile(s"/fonts/$v","application/vnd.ms-fontobject")
+      case Some(v) if v.endsWith("ttf") =>
+        serveFile(s"/fonts/$v","font/sfnt")
+      case Some(v) if v.endsWith("woff2") =>
+        serveFile(s"/fonts/$v","application/octet-stream")
+      case _ =>
+        notFound("file not found")
+    }
   }
 
+  val route = apis :: additional.route :: css :: js :: templates
 
-  val route = apis :: additional.route :: css :: js
+  private def serveWith(xs: List[String], dir: String, contentType: String): CommonResponse = {
+    xs.headOption
+      .map(x => serveFile(s"/$dir/$x", contentType))
+      .getOrElse(notFound("file not found"))
+  }
+
+  private def serveFile(path: String, contentType: String): CommonResponse = {
+    val stream = getClass.getResourceAsStream(path)
+    val source = Source.fromInputStream(stream)
+    val content = try {
+      source.mkString.getBytes(CharsetUtil.UTF_8)
+    } finally {
+      source.close()
+      stream.close()
+    }
+    CommonResponse(
+      status = HttpResponseStatus.OK,
+      contentType = contentType,
+      content = content
+    )
+  }
+
+  private def notFound(text: String): CommonResponse =
+    CommonResponse.plain(404, text)
 
 
 }

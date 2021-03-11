@@ -15,7 +15,7 @@ class SourcesOverviewApi(private val sourceOverviewService: SourceOverviewServic
     JsonSupport.writer[SourceOverview]
 
   private val overview = get("api" / "v1" / "overview" / long) ~> {(sourceId: Long) =>
-    sourceOverviewService.getSourceOverview(sourceId)
+    w(sourceOverviewService.getSourceOverview(sourceId))
   }
 
   val route = new Route().addRule(overview)

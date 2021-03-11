@@ -1,9 +1,10 @@
 package truerss.api
 
+import com.github.fntz.omhs.playjson.JsonSupport
+import com.github.fntz.omhs.{BodyReader, BodyWriter, RoutingDSL}
 import truerss.dto.{AvailableSetup, NewSetup}
 import truerss.services.SettingsService
-import com.github.fntz.omhs.{BodyReader, BodyWriter, RoutingDSL}
-import com.github.fntz.omhs.playjson.JsonSupport
+
 
 class SettingsApi(private val settingsService: SettingsService) extends HttpApi {
 
@@ -23,18 +24,16 @@ class SettingsApi(private val settingsService: SettingsService) extends HttpApi 
 
   case class Setups(included: Iterable[NewSetup[_]])
 
-  implicit lazy val setupsReader: BodyReader[Setups] = new BodyReader[Setups] {
-    override def read(str: String): Setups = {
-      Setups(newSetupReader.read(str))
-    }
+  implicit lazy val setupsReader: BodyReader[Setups] = (str: String) => {
+    Setups(newSetupReader.read(str))
   }
 
   private val settings = get("api" / "v1" / "settings" / "current") ~> {() =>
-    ss.getCurrentSetup
+    w(ss.getCurrentSetup)
   }
 
   private val updateSettings = put("api" / "v1" / "settings" <<< body[Setups]) ~> { (ns: Setups) =>
-    ss.updateSetups(ns.included)
+    w(ss.updateSetups(ns.included))
   }
 
   val route = settings :: updateSettings

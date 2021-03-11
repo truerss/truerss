@@ -64,10 +64,11 @@ lazy val mainProject = Project("truerss", file("."))
             MergeStrategy.discard
         else
           MergeStrategy.first
-      case x =>
+      case _ =>
         MergeStrategy.first
     },
     test in assembly := {},
+    updateOptions := updateOptions.value.withLatestSnapshots(true),
     fork in compile := true,
     publishArtifact in Test := false,
     licenses += ("MIT", url("http://opensource.org/licenses/MIT")),

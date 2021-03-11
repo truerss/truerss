@@ -5,7 +5,7 @@ import org.specs2.specification.BeforeAfterAll
 import org.testcontainers.containers.PostgreSQLContainer
 import truerss.AppRunner
 import truerss.util.DbConfig
-
+/*
 class PostgresTests extends AllTestsTogether with BeforeAfterAll with Resources {
 
   override def suiteName: String = "posgtres-tests"
@@ -34,3 +34,4 @@ class PostgresTests extends AllTestsTogether with BeforeAfterAll with Resources 
   }
 
 }
+*/

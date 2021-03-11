@@ -1,7 +1,7 @@
 package truerss.api
 
 import truerss.services.{FeedsService, SourcesService}
-import com.github.fntz.omhs.{BodyReader, BodyWriter, RoutingDSL}
+import com.github.fntz.omhs.{BodyReader, BodyWriter, Route, RoutingDSL}
 import com.github.fntz.omhs.playjson.JsonSupport
 import truerss.dto.{FeedDto, NewSourceDto, Page, SourceViewDto, UpdateSourceDto}
 
@@ -37,31 +37,31 @@ class SourcesApi(feedsService: FeedsService,
   private val base = "api" / "v1" / "sources"
 
   private val all = get(base / "all") ~> { () =>
-    ss.findAll
+    w(ss.findAll)
   }
   private val findOne = get(base / long) ~> { (sourceId: Long) =>
-    ss.getSource(sourceId)
+    w(ss.getSource(sourceId))
   }
 
   // todo to feeds api
   private val latest = get(base / "latest" :? query[QueryPage]) ~> { (q: QueryPage) =>
-    fs.latest(q.offset, q.limit)
+    w(fs.latest(q.offset, q.limit))
   }
 
   private val feeds = get(base / long / "feeds" :? query[SourceFeedsFilter]) ~> { (sourceId: Long, f: SourceFeedsFilter) =>
-    fs.findBySource(sourceId, f.unreadOnly, f.offset, f.limit)
+    w(fs.findBySource(sourceId, f.unreadOnly, f.offset, f.limit))
   }
 
   private val newSource = post(base <<< body[NewSourceDto]) ~> { (newSource: NewSourceDto) =>
-    ss.addSource(newSource)
+    w(ss.addSource(newSource))
   }
 
   private val updateSource = put(base / long <<< body[UpdateSourceDto]) ~> { (sourceId: Long, dto: UpdateSourceDto) =>
-    ss.updateSource(sourceId, dto)
+    w(ss.updateSource(sourceId, dto))
   }
 
   private val deleteSource = delete(base / long) ~> { (sourceId: Long) =>
-    ss.delete(sourceId)
+    w(ss.delete(sourceId))
   }
 
   val route = all :: findOne :: latest :: feeds :: newSource :: updateSource :: deleteSource

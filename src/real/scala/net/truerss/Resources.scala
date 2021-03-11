@@ -2,9 +2,10 @@ package net.truerss
 
 import java.net.ServerSocket
 import java.util.concurrent.TimeUnit
-
 import akka.actor.ActorSystem
-import akka.http.scaladsl.Http
+import com.github.fntz.omhs.OMHSServer
+import io.netty.channel.ChannelFuture
+import io.netty.util.concurrent.{Future, GenericFutureListener}
 import truerss.util.TrueRSSConfig
 
 trait Resources {
@@ -61,14 +62,28 @@ trait Resources {
 
   protected var wsClient: WSClient = _
 
+  protected var thread: Thread = null
+
   def startServer() = {
-    Http()(system).bindAndHandle(
-      server.route,
-      host,
-      serverPort
-    ).foreach { _ =>
-      println(s"=============> run test server on: $host:$serverPort")
-    }(system.dispatcher)
+    val thread = new Thread {
+      override def run(): Unit = {
+        OMHSServer.run(
+          host,
+          serverPort,
+          server.route.toHandler,
+          OMHSServer.noPipelineChanges,
+          OMHSServer.noServerBootstrapChanges
+        ).addListener(new GenericFutureListener[Future[_ >: Void]] {
+          override def operationComplete(future: Future[_ >: Void]): Unit = {
+            println(s"=-============> started")
+          }
+        })
+
+      }
+    }
+
+    thread.start()
+
   }
 
   def startWsClient(): Unit = {
@@ -87,11 +102,10 @@ trait Resources {
   }
 
   def shutdown() = {
-    wsClient.closeBlocking()
     allocated.foreach(_.close())
-    Http().shutdownAllConnectionPools().foreach { _ =>
-      system.terminate()
-    }(system.dispatcher)
+    if (wsClient != null)
+      wsClient.closeBlocking()
+    thread.interrupt()
   }
 
 }

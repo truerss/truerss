@@ -16,10 +16,8 @@ class SearchApi(private val searchService: SearchService) extends HttpApi {
   private implicit val pageFeedDtoWriter: BodyWriter[Page[FeedDto]] =
     JsonSupport.writer[Page[FeedDto]]
 
-  private val base = "api" / "v1"
-
-  val route = post(base / "search" <<< body[SearchRequest]) ~> { (q: SearchRequest) =>
-    searchService.search(q)
+  val route = post("api" / "v1" / "search" <<< body[SearchRequest]) ~> { (q: SearchRequest) =>
+    w(searchService.search(q))
   }
 
 }

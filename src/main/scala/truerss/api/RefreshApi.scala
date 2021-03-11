@@ -7,15 +7,14 @@ class RefreshApi(private val refreshSourcesService: RefreshSourcesService) exten
 
   import RoutingDSL._
   import ZIOSupport._
-  import JsonFormats._
 
   private val base = "api" / "v1" / "refresh"
   private val refreshAll = put(base / "all") ~> { () =>
-    refreshSourcesService.refreshAll
+    w(refreshSourcesService.refreshAll)
   }
 
   private val refreshOne = put(base / long) ~> { (sourceId: Long) =>
-    refreshSourcesService.refreshSource(sourceId)
+    w(refreshSourcesService.refreshSource(sourceId))
   }
 
   val route = refreshAll :: refreshOne

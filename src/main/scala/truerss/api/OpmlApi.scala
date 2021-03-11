@@ -31,14 +31,14 @@ class OpmlApi(private val opmlService: OpmlService) extends HttpApi {
   }
 
   private val opml = get("api" / "v1" / "opml") ~> { () =>
-    opmlService.build.map(Xml)
+    w(opmlService.build.map(Xml))
   }
 
   private val importFile = post("api" / "v1" / "import" <<< file) ~> { (fs: List[MixedFileUpload]) =>
     val content = fs.map(_.content().toString(CharsetUtil.UTF_8)).headOption.getOrElse("")
     reprocessToOpml(content)
     runImportAsync(content)
-    Task(Processing()) // check status mb 201 ?
+    w(Task(Processing()))
   }
 
   val route = opml :: importFile

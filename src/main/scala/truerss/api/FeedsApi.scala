@@ -24,33 +24,35 @@ class FeedsApi(feedsService: FeedsService,
   private val base = "api" / "v1" / "feeds"
 
   private val favorites = get(base / "favorites" :? query[QueryPage]) ~> { (q: QueryPage) =>
-    fs.favorites(q.offset, q.limit)
+    w(fs.favorites(q.offset, q.limit))
   }
 
   private val findOne = get(base / long) ~> { (feedId: Long) =>
-    fs.findOne(feedId)
+    w(fs.findOne(feedId))
   }
 
   private val findContent = get(base / "content" / long) ~> { (feedId: Long) =>
-    crs.fetchFeedContent(feedId)
+    w(crs.fetchFeedContent(feedId))
   }
 
   private val markFeed = put(base / "mark" / long) ~> { (feedId: Long) =>
-    fs.changeFav(feedId, favFlag = true)
+    w(fs.changeFav(feedId, favFlag = true))
   }
 
   private val unmarkFeed = put(base / "unmark" / long) ~> { (feedId: Long) =>
-    fs.changeFav(feedId, favFlag = false)
+    w(fs.changeFav(feedId, favFlag = false))
   }
 
   private val readFeed = put(base / "read" / long) ~> { (feedId: Long) =>
-    fs.changeRead(feedId, readFlag = true)
+    w(fs.changeRead(feedId, readFlag = true))
   }
 
   private val unreadFeed = put(base / "unread" / long) ~> { (feedId: Long) =>
-    fs.changeRead(feedId, readFlag = false)
+    w(fs.changeRead(feedId, readFlag = false))
   }
 
-  val route = favorites :: findOne :: findContent :: markFeed :: unmarkFeed :: readFeed :: unmarkFeed
+  val route = favorites :: findOne :: findContent :: markFeed ::
+    unmarkFeed :: readFeed :: unmarkFeed ::
+    unreadFeed
 
 }
