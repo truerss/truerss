@@ -257,7 +257,6 @@ trait FullFlowTests extends Specification with Resources with BeforeAfterAll {
 
       p("Import sources")
       val result = opmlApiClient.importFile(opmlFile).e
-
       result must beRight
 
       sleep()

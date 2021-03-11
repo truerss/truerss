@@ -62,10 +62,10 @@ trait Resources {
 
   protected var wsClient: WSClient = _
 
-  protected var thread: Thread = null
+  protected var thread: Thread = _
 
   def startServer() = {
-    val thread = new Thread {
+    thread = new Thread {
       override def run(): Unit = {
         OMHSServer.run(
           host,
@@ -105,7 +105,7 @@ trait Resources {
     allocated.foreach(_.close())
     if (wsClient != null)
       wsClient.closeBlocking()
-    thread.interrupt()
+    thread.stop()
   }
 
 }

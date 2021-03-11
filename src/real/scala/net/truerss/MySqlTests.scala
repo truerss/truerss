@@ -5,7 +5,7 @@ import org.specs2.specification.BeforeAfterAll
 import org.testcontainers.containers.MySQLContainer
 import truerss.AppRunner
 import truerss.util.DbConfig
-/*
+
 class MySqlTests extends AllTestsTogether with BeforeAfterAll with Resources {
 
   override def suiteName: String = "mysql-tests"
@@ -33,4 +33,3 @@ class MySqlTests extends AllTestsTogether with BeforeAfterAll with Resources {
     container.stop()
   }
 }
-*/

@@ -61,7 +61,7 @@ case class TestRssServer(host: String, port: Int) {
 
   val route1 = get("rss") ~> {() => send}
   val route2 = get("rss1") ~> {() => send}
-  val route3 = get("rss3") ~> {() => send}
+  val route3 = get("rss2") ~> {() => send}
   val route4 = get("error-rss") ~> {() =>
     if (shouldProduceErrors) {
       sendRssFeed(rss).copy(status = HttpResponseStatus.INTERNAL_SERVER_ERROR)

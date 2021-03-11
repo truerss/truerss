@@ -26,20 +26,20 @@ class SourceUrlValidator extends Request {
       makeRequest(dto.url).get(contentTypeHeaderName).map(isValid)
     }.toOption.flatten match {
       case Some(true) => dto.right
-      case x =>
+      case _ =>
         logger.warn(s"${dto.url} is not valid")
         buildError(dto.url).left
     }
   }
 
   protected def makeRequest(url: String): Map[String, String] = {
-    getRequestHeaders(url)
+    getRequestHeaders(url).map(x => x._1.toLowerCase -> x._2)
   }
 
 }
 
 object SourceUrlValidator {
-  val contentTypeHeaderName = "Content-Type"
+  val contentTypeHeaderName = "content-type"
 
   def isValid(value: String): Boolean = {
     value.contains("xml")

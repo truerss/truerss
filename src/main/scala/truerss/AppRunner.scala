@@ -2,6 +2,7 @@ package truerss
 
 import akka.actor.ActorSystem
 import com.github.fntz.omhs.OMHSServer
+import io.netty.handler.logging.{LogLevel, LoggingHandler}
 import org.slf4j.LoggerFactory
 import truerss.api.RoutingEndpoint
 import truerss.api.ws.SocketServer
@@ -72,7 +73,9 @@ object AppRunner {
           actualConfig.host,
           actualConfig.port,
           endpoint.route.toHandler,
-          pipeLineChanges = OMHSServer.noPipelineChanges,
+          pipeLineChanges = p => {
+            p.addLast("logger", new LoggingHandler(LogLevel.DEBUG))
+          },
           serverBootstrapChanges = OMHSServer.noServerBootstrapChanges
         )
       }

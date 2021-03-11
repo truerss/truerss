@@ -6,7 +6,7 @@ import zio.Task
 import com.github.fntz.omhs.playjson.JsonSupport
 import com.github.fntz.omhs.{AsyncResult, BodyWriter, CommonResponse, RoutingDSL}
 import io.netty.handler.codec.http.HttpResponseStatus
-import io.netty.handler.codec.http.multipart.MixedFileUpload
+import io.netty.handler.codec.http.multipart.{FileUpload, MixedFileUpload}
 import io.netty.util.CharsetUtil
 
 class OpmlApi(private val opmlService: OpmlService) extends HttpApi {
@@ -34,11 +34,11 @@ class OpmlApi(private val opmlService: OpmlService) extends HttpApi {
     w(opmlService.build.map(Xml))
   }
 
-  private val importFile = post("api" / "v1" / "import" <<< file) ~> { (fs: List[MixedFileUpload]) =>
+  private val importFile = post("api" / "v1" / "opml" / "import" <<< file("import")) ~> { (fs: List[FileUpload]) =>
     val content = fs.map(_.content().toString(CharsetUtil.UTF_8)).headOption.getOrElse("")
     reprocessToOpml(content)
     runImportAsync(content)
-    w(Task(Processing()))
+    w(Task.unit)
   }
 
   val route = opml :: importFile

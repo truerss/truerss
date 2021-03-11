@@ -15,15 +15,15 @@ class OpmlApiHttpClient(baseUrl: String) extends BaseHttpClient(baseUrl) {
   protected val defaultFileName = "import"
 
   def importFile(opml: String): Task[Unit] = {
-    handleRequest[Processing](
+    handleRequest[Unit](
       Http(s"$opmlUrl/import").postMulti(
         MultiPart(defaultName, defaultFileName, "application/xml", opml)
       )
-    ).unit
+    )
   }
 
   def download: Task[String] = {
-    rawGet(s"$baseUrl/opml")
+    rawGet(opmlUrl)
   }
 
 }
