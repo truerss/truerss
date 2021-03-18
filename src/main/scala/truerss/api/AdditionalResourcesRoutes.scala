@@ -20,14 +20,17 @@ class AdditionalResourcesRoutes(private val wsPort: Int) {
     val headers = redirectTo.map { location =>
       val cookie = new DefaultCookie(redirectToLocation, location)
       val result = ServerCookieEncoder.STRICT.encode(cookie)
-      Map(HttpHeaderNames.COOKIE.toString -> result)
-    }.getOrElse(Map.empty)
+      Iterable(HttpHeaderNames.SET_COOKIE.toString -> result)
+    }.getOrElse(Iterable.empty)
+    val wsPorkCookie = ServerCookieEncoder.STRICT.encode(
+      new DefaultCookie(s"$portC", wsPort.toString)
+    )
     AsyncResult.completed(
       CommonResponse(
         status = HttpResponseStatus.OK,
         contentType = "text/html",
         content = indexStr.getBytes(CharsetUtil.UTF_8),
-        headers = headers
+        headers = headers ++ Iterable(HttpHeaderNames.SET_COOKIE.toString -> wsPorkCookie)
       )
     )
   }
@@ -37,7 +40,7 @@ class AdditionalResourcesRoutes(private val wsPort: Int) {
   }
 
   private val commonHandler = (c: CurrentHttpRequest) => {
-    if (c.isXhr) {
+    if (c.isXHR) {
       AsyncResult.completed(aboutResponse)
     } else {
       pass(Some(c.path))
@@ -56,16 +59,8 @@ class AdditionalResourcesRoutes(private val wsPort: Int) {
 
 object AdditionalResourcesRoutes {
 
-  implicit class CurrentHttpRequestExt(val c: CurrentHttpRequest) extends AnyVal {
-    def isXhr: Boolean = {
-      Option(c.headers.get(xhrHeaderName)).forall(_ == xhrHeaderValue)
-    }
-  }
-
   final val portC = "port"
   final val redirectToLocation = "redirectTo"
-  final val xhrHeaderName =  "X-Requested-With"
-  final val xhrHeaderValue = "XMLHttpRequest"
 
   final val aboutResponse = CommonResponse(
     status = HttpResponseStatus.OK,

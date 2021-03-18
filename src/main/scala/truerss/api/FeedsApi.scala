@@ -52,7 +52,6 @@ class FeedsApi(feedsService: FeedsService,
   }
 
   val route = favorites :: findOne :: findContent :: markFeed ::
-    unmarkFeed :: readFeed :: unmarkFeed ::
-    unreadFeed
+    unmarkFeed :: readFeed :: unreadFeed
 
 }

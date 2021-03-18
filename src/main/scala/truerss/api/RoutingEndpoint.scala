@@ -53,7 +53,7 @@ class RoutingEndpoint(
   }
 
   private val templates = get("templates" / *) ~> {(xs: List[String]) =>
-    serveWith(xs, "templates", "application/javascript")
+    serveWith(xs, "templates", "application/x-template")
   }
 
   private val fonts = get("fonts" / *) ~> {(xs: List[String]) =>

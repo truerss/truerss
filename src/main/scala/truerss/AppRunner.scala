@@ -67,28 +67,20 @@ object AppRunner {
       wsPort = actualConfig.wsPort
     )
 
-    val thread = new Thread {
-      override def run(): Unit = {
-        OMHSServer.run(
-          actualConfig.host,
-          actualConfig.port,
-          endpoint.route.toHandler,
-          pipeLineChanges = p => {
-            p.addLast("logger", new LoggingHandler(LogLevel.DEBUG))
-          },
-          serverBootstrapChanges = OMHSServer.noServerBootstrapChanges
-        )
-      }
-    }
-    thread.start()
-
     val webSocketServer = SocketServer(actualConfig.wsPort, actorSystem)
     webSocketServer.start()
 
     actorSystem.registerOnTermination {
       webSocketServer.stop()
-      thread.interrupt()
       logger.info(s"========> ActorSytem[${actorSystem.name}] is terminating...")
     }
+
+    OMHSServer.run(
+      actualConfig.host,
+      actualConfig.port,
+      endpoint.route.toHandler,
+      None,
+      OMHSServer.noServerBootstrapChanges
+    )
   }
 }
