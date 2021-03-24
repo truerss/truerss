@@ -2,7 +2,6 @@ package truerss
 
 import akka.actor.ActorSystem
 import com.github.fntz.omhs.OMHSServer
-import io.netty.handler.logging.{LogLevel, LoggingHandler}
 import org.slf4j.LoggerFactory
 import truerss.api.RoutingEndpoint
 import truerss.api.ws.SocketServer
@@ -21,7 +20,7 @@ object AppRunner {
 
   def run(actualConfig: TrueRSSConfig,
           dbConf: DbConfig,
-          isUserConf: Boolean)(implicit actorSystem: ActorSystem): Unit = {
+          isUserConf: Boolean)(implicit actorSystem: ActorSystem): OMHSServer.Instance = {
     val dbLayer = DbInitializer.initialize(dbConf, isUserConf)
 
     val stream = actorSystem.eventStream
@@ -67,20 +66,21 @@ object AppRunner {
       wsPort = actualConfig.wsPort
     )
 
-    val webSocketServer = SocketServer(actualConfig.wsPort, actorSystem)
-    webSocketServer.start()
-
-    actorSystem.registerOnTermination {
-      webSocketServer.stop()
-      logger.info(s"========> ActorSytem[${actorSystem.name}] is terminating...")
-    }
-
-    OMHSServer.run(
+    val server = OMHSServer.init(
       actualConfig.host,
       actualConfig.port,
       endpoint.route.toHandler,
       None,
       OMHSServer.noServerBootstrapChanges
     )
+
+    val webSocketServer = SocketServer(actualConfig.wsPort, actorSystem)
+    webSocketServer.start()
+    actorSystem.registerOnTermination {
+      webSocketServer.stop()
+      server.stop()
+      logger.info(s"========> ActorSytem[${actorSystem.name}] is terminating...")
+    }
+    server
   }
 }

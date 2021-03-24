@@ -4,8 +4,6 @@ import java.net.ServerSocket
 import java.util.concurrent.TimeUnit
 import akka.actor.ActorSystem
 import com.github.fntz.omhs.OMHSServer
-import io.netty.channel.ChannelFuture
-import io.netty.util.concurrent.{Future, GenericFutureListener}
 import truerss.util.TrueRSSConfig
 
 trait Resources {
@@ -62,28 +60,16 @@ trait Resources {
 
   protected var wsClient: WSClient = _
 
-  protected var thread: Thread = _
+  protected val testServer = OMHSServer.init(
+    host,
+    serverPort,
+    server.route.toHandler,
+    None,
+    OMHSServer.noServerBootstrapChanges
+  )
 
   def startServer() = {
-    thread = new Thread {
-      override def run(): Unit = {
-        OMHSServer.run(
-          host,
-          serverPort,
-          server.route.toHandler,
-          OMHSServer.noPipelineChanges,
-          OMHSServer.noServerBootstrapChanges
-        ).addListener(new GenericFutureListener[Future[_ >: Void]] {
-          override def operationComplete(future: Future[_ >: Void]): Unit = {
-            println(s"=-============> started")
-          }
-        })
-
-      }
-    }
-
-    thread.start()
-
+    testServer.start()
   }
 
   def startWsClient(): Unit = {
@@ -105,7 +91,7 @@ trait Resources {
     allocated.foreach(_.close())
     if (wsClient != null)
       wsClient.closeBlocking()
-    thread.stop()
+    testServer.stop()
   }
 
 }

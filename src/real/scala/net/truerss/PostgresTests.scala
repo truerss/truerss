@@ -1,5 +1,6 @@
 package net.truerss
 
+import com.github.fntz.omhs.OMHSServer
 import net.truerss.tests.AllTestsTogether
 import org.specs2.specification.BeforeAfterAll
 import org.testcontainers.containers.PostgreSQLContainer
@@ -12,8 +13,15 @@ class PostgresTests extends AllTestsTogether with BeforeAfterAll with Resources 
 
   val container = new PostgreSQLContainer()
 
+  println("@"*100)
+
+
+  private var appServer: OMHSServer.Instance = _
+
   override def beforeAll(): Unit = {
     container.start()
+    println("~"*100)
+    println(container.getJdbcUrl)
     startServer()
     val isUserConf = false
     val dbConf = new DbConfig(
@@ -24,12 +32,14 @@ class PostgresTests extends AllTestsTogether with BeforeAfterAll with Resources 
       dbUsername = container.getUsername,
       dbPassword = container.getPassword
     )
-    AppRunner.run(actualConfig, dbConf, isUserConf)(system)
+    appServer = AppRunner.run(actualConfig, dbConf, isUserConf)(system)
+    appServer.start()
     startWsClient()
   }
 
   override def afterAll(): Unit = {
     shutdown()
+    appServer.stop()
     container.stop()
   }
 
