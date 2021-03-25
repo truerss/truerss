@@ -84,8 +84,8 @@ object Libs {
   val nettyL = Seq(
     "io.netty" % "netty-codec-http" % "4.1.60.Final",
     "io.netty" % "netty-codec-http2" % "4.1.60.Final",
-    "com.github.fntz" %% "omhs-dsl" % "0.0.2",
-    "com.github.fntz" %% "omhs-play-support" % "0.0.2",
+    "com.github.fntz" %% "omhs-dsl" % "0.0.3",
+    "com.github.fntz" %% "omhs-play-support" % "0.0.3",
     "org.scala-lang" % "scala-reflect" % scalaVersion % "compile"
   )
 
