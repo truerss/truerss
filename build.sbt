@@ -28,7 +28,8 @@ val setup = Seq(
     "-language:reflectiveCalls",
     "-unchecked",
     "-Xverify",
-    "-Xfuture"
+    "-Xfuture",
+    "-Ydelambdafy:inline"
   ),
   javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
 )
@@ -64,7 +65,7 @@ lazy val mainProject = Project("truerss", file("."))
             MergeStrategy.discard
         else
           MergeStrategy.first
-      case x =>
+      case _ =>
         MergeStrategy.first
     },
     test in assembly := {},
