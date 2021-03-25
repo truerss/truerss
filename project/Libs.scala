@@ -18,9 +18,8 @@ object Libs {
     val logbackVersion = "1.1.2"
     val baseVersion = "0.0.6"
     val jsoupVersion = "1.8.3"
-    val akkaHttpVersion = "10.1.12"
     val specsVersion = "4.10.0"
-    val playJsonVersion = "2.9.0"
+    val playJsonVersion = "2.9.2"
     val zioVersion = "1.0.3"
   }
 
@@ -53,10 +52,7 @@ object Libs {
 
   val akka = Seq(
     "com.typesafe.akka" %% "akka-actor" % akkaVersion exclude("com.typesafe.akka", "akka-protobuf-v3"),
-    "com.typesafe.akka" %% "akka-stream" % akkaVersion,
-    "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
-    "com.typesafe.akka" %% "akka-http-core" % akkaHttpVersion,
-    "com.typesafe.akka" %% "akka-http" % akkaHttpVersion
+    "com.typesafe.akka" %% "akka-slf4j" % akkaVersion
   )
 
   val utils = Seq(
@@ -69,8 +65,7 @@ object Libs {
       .exclude("commons-collections", "commons-collections"),
     "com.typesafe" % "config" % configVersion,
     "com.github.scopt" %% "scopt" % scoptVersion,
-    "org.java-websocket" % "Java-WebSocket" % jwsVersion,
-    "dev.zio" %% "zio" % "1.0.0-RC21-2"
+    "org.java-websocket" % "Java-WebSocket" % jwsVersion
   )
 
   val zio = Seq(
@@ -81,16 +76,20 @@ object Libs {
     "org.specs2" %% "specs2-core" % specsVersion % Test,
     "org.specs2" %% "specs2-mock" % specsVersion % Test,
 
-    "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion % Test,
-    "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion % Test,
-    "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test,
+    "org.testcontainers" % "testcontainers" % "1.15.2" % Test,
+    "org.testcontainers" % "mysql" % "1.15.2" % Test,
+    "org.testcontainers" % "postgresql" % "1.15.2" % Test
+  )
 
-    "org.testcontainers" % "testcontainers" % "1.14.3" % Test,
-    "org.testcontainers" % "mysql" % "1.14.3" % Test,
-    "org.testcontainers" % "postgresql" % "1.14.3" % Test
+  val nettyL = Seq(
+    "io.netty" % "netty-codec-http" % "4.1.60.Final",
+    "io.netty" % "netty-codec-http2" % "4.1.60.Final",
+    "com.github.fntz" %% "omhs-dsl" % "0.0.2",
+    "com.github.fntz" %% "omhs-play-support" % "0.0.2",
+    "org.scala-lang" % "scala-reflect" % scalaVersion % "compile"
   )
 
   val deps = db ++ akka ++ truerss ++ logs ++
-    Seq(jsoup, playJson) ++ utils ++ zio ++ tests
+    Seq(jsoup, playJson) ++ utils ++ zio ++ tests ++ nettyL
 
 }

@@ -16,7 +16,7 @@ object Main extends App {
 
       implicit val system: ActorSystem = ActorSystem("truerss")
 
-      AppRunner.run(actualConfig, dbConf, isUserConf)
+      AppRunner.run(actualConfig, dbConf, isUserConf).start()
 
     case None =>
       Console.err.println("Unknown argument")

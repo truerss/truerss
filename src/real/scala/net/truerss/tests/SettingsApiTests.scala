@@ -28,7 +28,6 @@ trait SettingsApiTests extends Specification with Resources {
       )
 
       settingsClient.update(Iterable(newValue)).err[BadRequestError] === BadRequestError(Iterable(s"Incorrect value: $value"))
-
       val newAvailableValue = parallelism.options
         .asInstanceOf[AvailableSelect].predefined.filter(x => x != parallelismValue).head
 

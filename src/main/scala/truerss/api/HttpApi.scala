@@ -1,11 +1,9 @@
 package truerss.api
 
-import java.nio.charset.Charset
+import com.github.fntz.omhs.{BodyWriter, CommonResponse}
+import io.netty.handler.codec.http.HttpResponseStatus
+import io.netty.util.CharsetUtil
 
-import akka.http.scaladsl.model.{ContentType => C, _}
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server._
-import org.slf4j.LoggerFactory
 import play.api.libs.json._
 import truerss.services.{ContentReadError, NotFoundError, ValidationError}
 import zio.Task
@@ -17,6 +15,35 @@ import scala.util.{Failure, Try, Success => S}
   */
 trait HttpApi {
 
+  import ZIOSupport._
+  import HttpApi._
+
+  def w[T](task: Task[T])(implicit writer: BodyWriter[T]): Task[CommonResponse] = {
+    task.map {
+      case _: Processing =>
+        accepted
+      case _: Unit =>
+        noContent
+      case x =>
+        writer.write(x)
+    }.fold({
+      case ValidationError(errors) =>
+        CommonResponse(
+          status = HttpResponseStatus.BAD_REQUEST,
+          contentType = json,
+          content = HttpApi.printErrors(errors).getBytes(CharsetUtil.UTF_8)
+        )
+      case ContentReadError(error) =>
+        CommonResponse(
+          status = HttpResponseStatus.INTERNAL_SERVER_ERROR,
+          contentType = json,
+          content = HttpApi.printErrors(error :: Nil).getBytes(CharsetUtil.UTF_8)
+        )
+      case NotFoundError(_) => notFound
+      case _ => internal
+    }, identity)
+  }
+  /*
   import RouteResult._
   import StatusCodes._
   import HttpApi.{utf8, printErrors}
@@ -136,16 +163,23 @@ trait HttpApi {
     RouteResult.Complete(
       response(status, msg)
     )
-  }
+  } */
 
 }
 
 object HttpApi extends HttpApi {
+
+  val accepted = CommonResponse.empty.copy(status = HttpResponseStatus.ACCEPTED)
+  val noContent = CommonResponse.empty.copy(status = HttpResponseStatus.NO_CONTENT)
+  val notFound = CommonResponse.empty.copy(status = HttpResponseStatus.NOT_FOUND)
+  val internal = CommonResponse.empty.copy(status = HttpResponseStatus.INTERNAL_SERVER_ERROR)
+
+  private final val json = "application/json"
   private final val errorF = "errors"
-  val utf8 = Charset.forName("UTF-8")
-  val javascript = MediaTypes.`application/javascript` withCharset HttpCharsets.`UTF-8`
-  val css = MediaTypes.`text/css` withCharset HttpCharsets.`UTF-8`
-  val opml = MediaTypes.`application/xml` withCharset HttpCharsets.`UTF-8`
+//  val utf8 = Charset.forName("UTF-8")
+//  val javascript = MediaTypes.`application/javascript` withCharset HttpCharsets.`UTF-8`
+//  val css = MediaTypes.`text/css` withCharset HttpCharsets.`UTF-8`
+//  val opml = MediaTypes.`application/xml` withCharset HttpCharsets.`UTF-8`
 
   def printErrors(errors: List[String]): String = {
     Json.stringify(JsObject(Seq(errorF -> JsArray(errors.map(JsString)))))

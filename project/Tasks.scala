@@ -13,7 +13,7 @@ object Tasks {
   val uiKitVersion = "3.4.2"
 
   val jsLibs = Seq(
-    "https://code.jquery.com/jquery-2.1.4.min.js",
+    "https://code.jquery.com/jquery-3.6.0.min.js",
     "https://github.com/mde/ejs/releases/download/v2.3.4/ejs.min.js",
     s"https://cdnjs.cloudflare.com/ajax/libs/moment.js/$momentJsVersion/moment.min.js",
     "https://raw.githubusercontent.com/fntz/sirius/master/sirius.min.js",

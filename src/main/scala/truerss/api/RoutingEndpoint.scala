@@ -1,11 +1,12 @@
 package truerss.api
 
-import akka.http.scaladsl.model._
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.directives.LoggingMagnet
-import akka.stream.Materializer
 import org.slf4j.LoggerFactory
 import truerss.services._
+import com.github.fntz.omhs.{AsyncResult, CommonResponse, RoutingDSL}
+import io.netty.handler.codec.http.HttpResponseStatus
+import io.netty.util.CharsetUtil
+
+import scala.io.Source
 
 class RoutingEndpoint(
                        feedsService: FeedsService,
@@ -19,7 +20,10 @@ class RoutingEndpoint(
                        refreshSourcesService: RefreshSourcesService,
                        markService: MarkService,
                        wsPort: Int
-                     )(implicit val materializer: Materializer) {
+                     ) {
+
+  import RoutingDSL._
+  import AsyncResult.Implicits._
 
   val sourcesApi = new SourcesApi(feedsService, sourcesService)
   val feedsApi = new FeedsApi(feedsService, contentReaderService)
@@ -33,38 +37,67 @@ class RoutingEndpoint(
 
   protected val logger = LoggerFactory.getLogger(getClass)
 
-  private def logIncomingRequest(req: HttpRequest): Unit = {
-    logger.debug(s"${req.method.value} ${req.uri}")
-  }
 
-  private val log = logRequest(LoggingMagnet(_ => logIncomingRequest))
-
-  val apis =
-    sourcesApi.route ~
-    feedsApi.route ~
-    pluginsApi.route ~
-    settingsApi.route ~
-    searchApi.route ~
-    refreshApi.route ~
-    opmlApi.route ~
-    markApi.route ~
-    sourcesOverviewApi.route
+  val apis = sourcesApi.route :: feedsApi.route :: pluginsApi.route ::
+    settingsApi.route :: searchApi.route :: refreshApi.route ::
+    opmlApi.route :: markApi.route :: sourcesOverviewApi.route
 
   val additional = new AdditionalResourcesRoutes(wsPort)
 
-  val route = additional.route ~ apis ~ pathPrefix("css") {
-    getFromResourceDirectory("css")
-  } ~
-    pathPrefix("js") {
-      getFromResourceDirectory("javascript")
-    } ~
-    pathPrefix("fonts") {
-      getFromResourceDirectory("fonts")
-    } ~
-    pathPrefix("templates") {
-      getFromResourceDirectory("templates")
-    }
+  private val css = get("css" / *) ~> { (xs: List[String]) =>
+    serveWith(xs, "css", "text/css")
+  }
 
+  private val js = get("js" / *) ~> {(xs: List[String]) =>
+    serveWith(xs, "javascript", "application/javascript")
+  }
+
+  private val templates = get("templates" / *) ~> {(xs: List[String]) =>
+    serveWith(xs, "templates", "application/x-template")
+  }
+
+  private val fonts = get("fonts" / *) ~> {(xs: List[String]) =>
+    // maybe probeContentType ?
+    xs.headOption match {
+      case Some(v) if v.endsWith("otf") =>
+        serveFile(s"/fonts/$v", "application/vnd.ms-opentype")
+      case Some(v) if v.endsWith("eot") =>
+        serveFile(s"/fonts/$v","application/vnd.ms-fontobject")
+      case Some(v) if v.endsWith("ttf") =>
+        serveFile(s"/fonts/$v","font/sfnt")
+      case Some(v) if v.endsWith("woff2") =>
+        serveFile(s"/fonts/$v","application/octet-stream")
+      case _ =>
+        notFound("file not found")
+    }
+  }
+
+  val route = apis :: additional.route :: css :: js :: templates
+
+  private def serveWith(xs: List[String], dir: String, contentType: String): CommonResponse = {
+    xs.headOption
+      .map(x => serveFile(s"/$dir/$x", contentType))
+      .getOrElse(notFound("file not found"))
+  }
+
+  private def serveFile(path: String, contentType: String): CommonResponse = {
+    val stream = getClass.getResourceAsStream(path)
+    val source = Source.fromInputStream(stream)
+    val content = try {
+      source.mkString.getBytes(CharsetUtil.UTF_8)
+    } finally {
+      source.close()
+      stream.close()
+    }
+    CommonResponse(
+      status = HttpResponseStatus.OK,
+      contentType = contentType,
+      content = content
+    )
+  }
+
+  private def notFound(text: String): CommonResponse =
+    CommonResponse.plain(404, text)
 
 
 }

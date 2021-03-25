@@ -1,17 +1,23 @@
 package truerss.api
 
-import akka.http.scaladsl.server.Directives._
 import truerss.dto.SourceOverview
 import truerss.services.SourceOverviewService
+import com.github.fntz.omhs.{BodyWriter, RoutingDSL, Route}
+import com.github.fntz.omhs.playjson.JsonSupport
 
 class SourcesOverviewApi(private val sourceOverviewService: SourceOverviewService) extends HttpApi {
 
   import JsonFormats._
+  import ZIOSupport._
+  import RoutingDSL._
 
-  val route = api {
-    pathPrefix("overview" / LongNumber) { sourceId =>
-      w[SourceOverview](sourceOverviewService.getSourceOverview(sourceId))
-    }
+  implicit val sourceOverviewWriter: BodyWriter[SourceOverview] =
+    JsonSupport.writer[SourceOverview]
+
+  private val overview = get("api" / "v1" / "overview" / long) ~> {(sourceId: Long) =>
+    w(sourceOverviewService.getSourceOverview(sourceId))
   }
+
+  val route = new Route().addRule(overview)
 
 }

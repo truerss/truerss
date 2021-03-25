@@ -1,22 +1,22 @@
 package truerss.api
 
-import akka.http.scaladsl.server.Directives._
 import truerss.services.RefreshSourcesService
+import com.github.fntz.omhs.RoutingDSL
 
 class RefreshApi(private val refreshSourcesService: RefreshSourcesService) extends HttpApi {
 
-  import JsonFormats._
+  import RoutingDSL._
+  import ZIOSupport._
 
-  val route = api {
-    pathPrefix("refresh") {
-      put {
-        pathPrefix("all") {
-          w[Unit](refreshSourcesService.refreshAll)
-        } ~ pathPrefix(LongNumber) { sourceId =>
-          w[Unit](refreshSourcesService.refreshSource(sourceId))
-        }
-      }
-    }
+  private val base = "api" / "v1" / "refresh"
+  private val refreshAll = put(base / "all") ~> { () =>
+    w(refreshSourcesService.refreshAll)
   }
+
+  private val refreshOne = put(base / long) ~> { (sourceId: Long) =>
+    w(refreshSourcesService.refreshSource(sourceId))
+  }
+
+  val route = refreshAll :: refreshOne
 
 }

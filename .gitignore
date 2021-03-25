@@ -33,3 +33,4 @@ truerss.db
 *.tdb
 Gemfile.lock
 .java-version
+.bsp
