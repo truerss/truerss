@@ -11,16 +11,12 @@ class PostgresTests extends AllTestsTogether with BeforeAfterAll with Resources 
 
   override def suiteName: String = "posgtres-tests"
 
-  val container = new PostgreSQLContainer()
-
-  println("@"*100)
-
+  val container = new PostgreSQLContainer("postgres:9.6.12")
 
   private var appServer: OMHSServer.Instance = _
 
   override def beforeAll(): Unit = {
     container.start()
-    println("~"*100)
     println(container.getJdbcUrl)
     startServer()
     val isUserConf = false

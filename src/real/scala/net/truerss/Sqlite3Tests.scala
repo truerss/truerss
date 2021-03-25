@@ -9,9 +9,7 @@ import org.specs2.specification.BeforeAfterAll
 import truerss.AppRunner
 import truerss.util.DbConfig
 
-import java.lang
-
-private class Sqlite3Tests
+class Sqlite3Tests
   extends AllTestsTogether
     with BeforeAfterAll with Resources {
 
