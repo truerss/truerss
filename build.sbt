@@ -6,7 +6,7 @@ import Tasks._
 
 name := "TrueRSS"
 
-version := "1.0.2"
+version := "1.0.3"
 
 maintainer := "mike <mike.fch1@gmail.com>"
 
@@ -28,7 +28,7 @@ val setup = Seq(
     "-language:reflectiveCalls",
     "-unchecked",
     "-Xverify",
-    "-Ydelambdafy:inline"
+    "-Xfuture"
   ),
   javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
 )
@@ -64,11 +64,10 @@ lazy val mainProject = Project("truerss", file("."))
             MergeStrategy.discard
         else
           MergeStrategy.first
-      case _ =>
+      case x =>
         MergeStrategy.first
     },
     test in assembly := {},
-    updateOptions := updateOptions.value.withLatestSnapshots(true),
     fork in compile := true,
     publishArtifact in Test := false,
     licenses += ("MIT", url("http://opensource.org/licenses/MIT")),
