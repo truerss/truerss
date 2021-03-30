@@ -42,7 +42,7 @@ class RoutingEndpoint(
     settingsApi.route :: searchApi.route :: refreshApi.route ::
     opmlApi.route :: markApi.route :: sourcesOverviewApi.route
 
-  val additional = new AdditionalResourcesRoutes(wsPort)
+  val additional = new RespourcesRoute(wsPort)
 
   private val css = get("css" / *) ~> { (xs: List[String]) =>
     serveWith(xs, "css", "text/css")
