@@ -6,7 +6,7 @@ import Tasks._
 
 name := "TrueRSS"
 
-version := "1.0.3"
+version := "1.0.4"
 
 maintainer := "mike <mike.fch1@gmail.com>"
 
