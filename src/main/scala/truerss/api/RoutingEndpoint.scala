@@ -37,7 +37,6 @@ class RoutingEndpoint(
 
   protected val logger = LoggerFactory.getLogger(getClass)
 
-
   val apis = sourcesApi.route :: feedsApi.route :: pluginsApi.route ::
     settingsApi.route :: searchApi.route :: refreshApi.route ::
     opmlApi.route :: markApi.route :: sourcesOverviewApi.route

@@ -18,6 +18,10 @@ class OpmlApi(private val opmlService: OpmlService) {
     opmlService.build.map(Xml)
   }
 
+  private val rawOpml = get("opml") ~> {() =>
+    opmlService.build.map(Xml)
+  }
+
   private val importFile = post("api" / "v1" / "opml" / "import" <<< file("import")) ~> { (fs: List[FileUpload]) =>
     val content = fs.map(_.content().toString(CharsetUtil.UTF_8)).headOption.getOrElse("")
     reprocessToOpml(content)
@@ -25,7 +29,7 @@ class OpmlApi(private val opmlService: OpmlService) {
     Task.unit
   }
 
-  val route = opml :: importFile
+  val route = opml :: importFile :: rawOpml
 
   private def runImportAsync(text: String) = {
     zio.Runtime.default.unsafeRunTask(opmlService.create(text).forkDaemon)

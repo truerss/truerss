@@ -11,7 +11,6 @@ class RespourcesRoute(private val wsPort: Int) {
 
   import RespourcesRoute._
   import RoutingDSL._
-  import ZIOSupport._
 
   protected val fileName = "index.html"
   private val indexStr = Source.fromInputStream(getClass.getResourceAsStream(s"/$fileName")).mkString
@@ -47,13 +46,12 @@ class RespourcesRoute(private val wsPort: Int) {
     }
   }
 
-  private val about = get("about") ~> {(c: CurrentHttpRequest) => commonHandler(c) }
-  private val settings = get("settings") ~> {(c: CurrentHttpRequest) => commonHandler(c) }
-  private val favorites = get("favorites") ~> {(c: CurrentHttpRequest) => commonHandler(c) }
-  private val show = get("show") ~> {(c: CurrentHttpRequest) => commonHandler(c) }
-  private val search = get("search") ~> {(c: CurrentHttpRequest) => commonHandler(c) }
+  private val orRoutes = get("about" | "settings" | "plugins" |
+    "favorites" | "show" | "search") ~> { (_: String, c: CurrentHttpRequest) =>
+    commonHandler(c)
+  }
 
-  val route = indexR :: about :: settings :: favorites :: show :: search
+  val route = indexR :: orRoutes
 
 }
 
