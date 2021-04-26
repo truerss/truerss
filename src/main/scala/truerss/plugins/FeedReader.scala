@@ -21,7 +21,7 @@ trait FeedParser {
   def parse(x: Elem): Iterable[EntryDto]
 
   def getDate(x: String)(implicit format: DateTimeFormatter): Option[Date] = {
-    Try(LocalDateTime.parse(x.toCharArray, format)).toOption.map(_.toDate)
+    Try(LocalDateTime.parse(x, format)).toOption.map(_.toDate)
   }
 }
 

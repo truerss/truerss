@@ -16,7 +16,7 @@ object Libs {
     val hikariCPVersion = "3.4.5"
     val jwsVersion = "1.5.1"
     val logbackVersion = "1.1.2"
-    val baseVersion = "0.0.6"
+    val basePluginVersion = "1.0.0"
     val jsoupVersion = "1.8.3"
     val specsVersion = "4.10.0"
     val playJsonVersion = "2.9.2"
@@ -41,7 +41,7 @@ object Libs {
 
   val truerss = Seq(
     "com.github.truerss" % "content-extractor" % truerssBaseVersion,
-    "com.github.truerss" %% "base" % baseVersion
+    "io.github.truerss" %% "base" % basePluginVersion
   )
 
   val logs = Seq(

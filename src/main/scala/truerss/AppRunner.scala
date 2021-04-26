@@ -10,11 +10,13 @@ import truerss.db.driver.DbInitializer
 import truerss.db.validation.{SourceUrlValidator, SourceValidator}
 import truerss.services._
 import truerss.services.actors.MainActor
-import truerss.util.{DbConfig, TrueRSSConfig}
+import truerss.util.{DbConfig, TrueRSSConfig, TaskImplicits}
 
 import scala.language.postfixOps
 
 object AppRunner {
+
+  import TaskImplicits._
 
   private val logger = LoggerFactory.getLogger(getClass)
 
@@ -39,12 +41,10 @@ object AppRunner {
     val refreshSourcesService = new RefreshSourcesService(stream)
     val markService = new MarkService(dbLayer)
 
-    val feedParallelism = zio.Runtime.default.unsafeRunTask(
-      settingsService.where[Int](
-        Predefined.parallelism.toKey,
-        Predefined.parallelism.default[Int]
-      )
-    ).value
+    val feedParallelism = settingsService.where[Int](
+      Predefined.parallelism.toKey,
+      Predefined.parallelism.default[Int]
+    ).materialize.value
 
     actorSystem.actorOf(
       MainActor.props(actualConfig.withParallelism(feedParallelism),
