@@ -17,7 +17,7 @@ val setup = Seq(
   resolvers += "JCenter" at "https://jcenter.bintray.com/",
   resolvers += "karussell_releases" at "https://github.com/karussell/mvnrepo",
   resolvers += Resolver.bintrayRepo("truerss", "maven"),
-  scalaVersion := "2.12.13",
+  scalaVersion := "2.13.5",
   scalacOptions ++= Seq(
     "-deprecation",
     "-encoding", "UTF-8",
