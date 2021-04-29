@@ -15,7 +15,7 @@ import scala.util.Try
 
 object PluginLoader {
 
-  import scala.collection.JavaConverters._
+  import scala.jdk.CollectionConverters._
 
   val contentPluginName = "com.github.truerss.base.BaseContentPlugin"
   val feedPluginName = "com.github.truerss.base.BaseFeedPlugin"

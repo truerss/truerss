@@ -8,7 +8,7 @@ import truerss.dto.ApplicationPlugins
 import truerss.plugins.YoutubePlugin
 
 import scala.util.control.Exception._
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 case class TrueRSSConfig(
   appDir: String = s"${System.getProperty("user.home")}/.truerss",

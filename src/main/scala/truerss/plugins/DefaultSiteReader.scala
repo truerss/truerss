@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory
 import scalaj.http.HttpResponse
 import truerss.http_support.Request
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import truerss.util.syntax.{\/, ext}
 import truerss.util.{EntryImplicits, CommonImplicits}
 

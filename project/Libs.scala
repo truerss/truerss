@@ -16,7 +16,7 @@ object Libs {
     val hikariCPVersion = "3.4.5"
     val jwsVersion = "1.5.1"
     val logbackVersion = "1.1.2"
-    val basePluginVersion = "1.0.0"
+    val basePluginVersion = "1.0.1"
     val jsoupVersion = "1.8.3"
     val specsVersion = "4.10.0"
     val playJsonVersion = "2.9.2"
@@ -32,7 +32,7 @@ object Libs {
     "com.zaxxer" % "HikariCP" % hikariCPVersion,
     "com.typesafe.slick" %% "slick" %  slickVersion,
     "com.typesafe.slick" %% "slick-hikaricp" %  slickVersion,
-    //"io.github.nafg" %% "slick-migration-api" % "0.4.2"
+    "io.github.nafg.slick-migration-api" %% "slick-migration-api" % "0.8.2"
   )
 
   val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
