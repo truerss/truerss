@@ -3,8 +3,6 @@ package truerss.db
 import slick.jdbc.JdbcBackend
 import truerss.db.driver.CurrentDriver
 
-import scala.concurrent.ExecutionContext
-
 /**
   * Created by mike on 3.5.17.
   */
@@ -15,4 +13,5 @@ case class DbLayer(
   val feedDao = new FeedsDao(db)(driver)
   val settingsDao = new PredefinedSettingsDao(db)(driver)
   val userSettingsDao = new UserSettingsDao(db)(driver)
+  val pluginSourcesDao = new PluginSourcesDao(db)(driver)
 }

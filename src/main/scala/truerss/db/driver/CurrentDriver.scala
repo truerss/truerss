@@ -153,6 +153,13 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
     override def * = (key, description, valueInt, valueBoolean, valueString) <> (UserSettings.tupled, UserSettings.unapply)
   }
 
+  class PluginSourcesTable(tag: Tag) extends Table[PluginSource](tag, tableNames.pluginSources) {
+    def id = column[Long]("id", O.PrimaryKey)
+    def url = column[String]("url")
+
+    override def * = (id, url) <> (PluginSource.tupled, PluginSource.unapply)
+  }
+
   object query {
     lazy val sources = TableQuery[Sources]
     lazy val feeds = TableQuery[Feeds]
@@ -166,6 +173,7 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
     lazy val versions = TableQuery[Versions]
     lazy val predefinedSettings = TableQuery[PredefinedSettingsTable]
     lazy val userSettings = TableQuery[UserSettingsTable]
+    lazy val pluginSources = TableQuery[PluginSourcesTable]
 
     implicit class FeedsTQExt(val x: TableQuery[Feeds]) {
       def unreadOnly: Query[Feeds, Feed, Seq] = {
@@ -197,7 +205,8 @@ case class TableNames(sources: String,
                       feeds: String,
                       versions: String,
                       predefinedSettings: String,
-                      userSettings: String
+                      userSettings: String,
+                      pluginSources: String
                      )
 object TableNames {
   val default = TableNames(
@@ -205,7 +214,8 @@ object TableNames {
     feeds = "feeds",
     versions = "versions",
     predefinedSettings = "predefined_settings",
-    userSettings = "user_settings"
+    userSettings = "user_settings",
+    pluginSources = "plugin_sources"
   )
 
   def withPrefix(prefix: String): TableNames = {
@@ -214,7 +224,8 @@ object TableNames {
       feeds = s"${prefix}_feeds",
       versions = s"${prefix}_versions",
       predefinedSettings = s"${prefix}_predefined_settings",
-      userSettings = s"${prefix}_user_settings"
+      userSettings = s"${prefix}_user_settings",
+      pluginSources = s"${prefix}_plugin_sources"
     )
   }
 }
