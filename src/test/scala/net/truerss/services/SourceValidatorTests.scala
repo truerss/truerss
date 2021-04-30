@@ -7,7 +7,7 @@ import org.specs2.specification.Scope
 import truerss.db.driver.CurrentDriver
 import truerss.db.{DbLayer, SourcesDao}
 import truerss.db.validation.{SourceUrlValidator, SourceValidator}
-import truerss.dto.{ApplicationPlugins, NewSourceDto}
+import truerss.dto.ApplicationPlugins
 import truerss.services.ValidationError
 import zio.Task
 
