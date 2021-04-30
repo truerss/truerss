@@ -1,6 +1,7 @@
 package truerss.util
 
 import org.slf4j.LoggerFactory
+import truerss.services.PluginNotFoundError
 
 import sys.process._
 import zio.Task
@@ -22,6 +23,16 @@ class PluginInstaller(private val pluginHomeDir: String) {
         new URL(urlToJar) #> new File(fileName) !!
       }
     } yield ()
+  }
+
+  def remove(urlToJar: String): Task[Unit] = {
+    val fileName = toFilePath(pluginHomeDir, urlToJar)
+    val file = new File(fileName)
+    if (file.exists()) {
+      Task(file.delete())
+    } else {
+      Task.fail(PluginNotFoundError)
+    }
   }
 
 }

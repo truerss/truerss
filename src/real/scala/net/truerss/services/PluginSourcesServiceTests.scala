@@ -5,9 +5,9 @@ import org.specs2.specification.AfterAll
 import truerss.db.validation.PluginSourceValidator
 import truerss.db.{DbLayer, PluginSource, PluginSourcesDao}
 import truerss.dto.NewPluginSource
-import truerss.services.{PluginSourcesService, ValidationError}
+import truerss.services.{PluginNotFoundError, PluginSourcesService, ValidationError}
 import truerss.util.{PluginInstaller, TaskImplicits}
-import zio.{Cause, Task}
+import zio.Task
 
 import java.io.File
 import java.util.UUID
@@ -95,9 +95,14 @@ class PluginSourcesServiceTests extends Specification with AfterAll {
       service.deletePluginSource(available.head.id).materialize
       service.availablePluginSources.materialize must be empty
 
-      // todo remove one plugin
+      // remove plugin
+      (for { _ <- service.removePlugin("foo-bar.jar").fold(
+        err => err must haveClass[PluginNotFoundError.type],
+        _ => failure("bad branch")
+      )} yield ()).materialize
 
-      success
+      service.removePlugin(first).materialize
+      (new File(fileName)).exists() must beFalse
     }
   }
 

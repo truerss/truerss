@@ -24,10 +24,14 @@ class PluginSourcesApi(private val service: PluginSourcesService) {
     service.deletePluginSource(id)
   }
 
+  private def removePlugin = delete(base / string) ~> {(name: String) =>
+    service.removePlugin(name)
+  }
+
   private val install = post(base / "install" <<< body[InstallPlugin]) ~> {(p: InstallPlugin) =>
     service.installPlugin(p.url)
   }
 
-  val route = all :: install :: deletePluginSource :: addNew
+  val route = all :: install :: deletePluginSource :: removePlugin :: addNew
 
 }

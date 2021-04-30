@@ -19,6 +19,9 @@ class PluginSourcesService(
     pluginInstaller.install(urlToJar)
   }
 
+  def removePlugin(urlToJar: String): Task[Unit] = {
+    pluginInstaller.remove(urlToJar)
+  }
 
   def availablePluginSources: Task[Iterable[PluginSourceDto]] = {
     for {
