@@ -23,7 +23,7 @@ class PluginSourceValidator(private val dbLayer: DbLayer) {
     val url = newPluginSource.url
     for {
       count <- dbLayer.pluginSourcesDao.findByUrl(url).orDie
-      _ <- IO.fail(ValidationError(urlError(url))).when(count > 0)
+      _ <- IO.fail(ValidationError(notUniqueUrlError(url))).when(count > 0)
     } yield newPluginSource
   }
 
@@ -41,7 +41,7 @@ object PluginSourceValidator {
   private final val urlValidator = new UrlValidator(UrlValidator.ALLOW_LOCAL_URLS)
 
   final val urlError = "Not valid url"
-  def urlError(url: String) = s"Url '$url' is not unique"
+  def notUniqueUrlError(url: String) = s"Url '$url' is not unique"
   def unknownSource(url: String) = s"Plugin source: '$url' is unknown, available: $availableSourceUrls"
 
   private def isValidSourceUrl(newPluginSource: NewPluginSource): R = {

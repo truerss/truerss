@@ -3,7 +3,7 @@ package truerss.services
 import truerss.db.validation.PluginSourceValidator
 import truerss.db.{DbLayer, PluginSource}
 import truerss.dto.{NewPluginSource, PluginSourceDto}
-import truerss.plugins_discrovery.Discovery
+import truerss.plugins_discrovery.DiscoveryProvider
 import truerss.util.PluginInstaller
 import zio.Task
 
@@ -11,7 +11,7 @@ class PluginSourcesService(
                            private val dbLayer: DbLayer,
                            private val pluginInstaller: PluginInstaller,
                            private val validator: PluginSourceValidator
-                          ) {
+                          ) extends DiscoveryProvider {
 
   import PluginSourcesService._
 
@@ -37,7 +37,7 @@ class PluginSourcesService(
 
   private def fetch(p: PluginSource): Task[PluginSourceDto] = {
     for {
-      jars <- Discovery.fetch(p.url)
+      jars <- fetch(p.url)
     } yield PluginSourceDto(
       id = p.id.get, // ^
       url = p.url,

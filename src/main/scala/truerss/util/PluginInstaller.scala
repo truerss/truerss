@@ -9,12 +9,13 @@ import java.io.File
 import java.net.URL
 
 class PluginInstaller(private val pluginHomeDir: String) {
+  import PluginInstaller._
 
   private val logger = LoggerFactory.getLogger(getClass)
 
   // todo Request
   def install(urlToJar: String): Task[Unit] = {
-    val fileName = s"$pluginHomeDir/${urlToJar.split("/").last}"
+    val fileName = toFilePath(pluginHomeDir, urlToJar)
     for {
       _ <- Task.effectTotal(logger.debug(s"Install $urlToJar to $fileName"))
       _ <- Task {
@@ -23,4 +24,10 @@ class PluginInstaller(private val pluginHomeDir: String) {
     } yield ()
   }
 
+}
+
+object PluginInstaller {
+  def toFilePath(pluginHomeDir: String, urlToJar: String): String = {
+    s"$pluginHomeDir/${urlToJar.split("/").last}"
+  }
 }

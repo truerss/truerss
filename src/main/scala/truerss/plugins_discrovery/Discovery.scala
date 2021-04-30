@@ -41,9 +41,12 @@ case object GithubPluginDiscovery extends Discovery {
 
   private def fromHtml(html: String): Iterable[PluginJar] = {
     val doc = Jsoup.parse(html)
-    val elements = doc.body().select("details a[rel='nofollow']")
-    elements.asScala.map(_.attr("href"))
+    val elements = doc.body().select("details a")
+    elements.asScala
+      .filter(_.attr("rel") == "nofollow")
+      .map(_.attr("href"))
       .filter(_.endsWith(".jar"))
+      .map { u => s"$url/$u" }
       .map(PluginJar)
   }
 

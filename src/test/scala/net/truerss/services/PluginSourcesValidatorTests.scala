@@ -26,7 +26,7 @@ class PluginSourcesValidatorTests extends Specification with Mockito {
 
     "be unique" in new MyTest(1) {
       validator.validate(NewPluginSource(url)).e must beLeft(
-        ValidationError(PluginSourceValidator.urlError(url))
+        ValidationError(PluginSourceValidator.notUniqueUrlError(url))
       )
     }
 
