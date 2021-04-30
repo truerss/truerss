@@ -10,7 +10,7 @@ import truerss.db.driver.DbInitializer
 import truerss.db.validation.{PluginSourceValidator, SourceUrlValidator, SourceValidator}
 import truerss.services._
 import truerss.services.actors.MainActor
-import truerss.util.{DbConfig, TaskImplicits, TrueRSSConfig}
+import truerss.util.{DbConfig, PluginInstaller, TaskImplicits, TrueRSSConfig}
 
 import scala.language.postfixOps
 
@@ -40,8 +40,9 @@ object AppRunner {
     val searchService = new SearchService(dbLayer)
     val refreshSourcesService = new RefreshSourcesService(stream)
     val markService = new MarkService(dbLayer)
+    val pluginInstaller = new PluginInstaller(actualConfig.pluginsDir)
     val pluginSourcesValidator = new PluginSourceValidator(dbLayer)
-    val pluginSourcesService = new PluginSourcesService(dbLayer, pluginSourcesValidator)
+    val pluginSourcesService = new PluginSourcesService(dbLayer, pluginInstaller, pluginSourcesValidator)
 
     val feedParallelism = settingsService.where[Int](
       Predefined.parallelism.toKey,

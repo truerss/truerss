@@ -4,13 +4,20 @@ import truerss.db.validation.PluginSourceValidator
 import truerss.db.{DbLayer, PluginSource}
 import truerss.dto.{NewPluginSource, PluginSourceDto}
 import truerss.plugins_discrovery.Discovery
+import truerss.util.PluginInstaller
 import zio.Task
 
-class PluginSourcesService(private val dbLayer: DbLayer,
+class PluginSourcesService(
+                           private val dbLayer: DbLayer,
+                           private val pluginInstaller: PluginInstaller,
                            private val validator: PluginSourceValidator
                           ) {
 
   import PluginSourcesService._
+
+  def installPlugin(urlToJar: String): Task[Unit] = {
+    pluginInstaller.install(urlToJar)
+  }
 
   def availablePluginSources: Task[Iterable[PluginSourceDto]] = {
     for {

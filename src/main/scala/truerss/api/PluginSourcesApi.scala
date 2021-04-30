@@ -1,7 +1,7 @@
 package truerss.api
 
 import com.github.fntz.omhs.RoutingDSL
-import truerss.dto.NewPluginSource
+import truerss.dto.{InstallPlugin, NewPluginSource}
 import truerss.services.PluginSourcesService
 
 class PluginSourcesApi(private val service: PluginSourcesService) {
@@ -20,6 +20,10 @@ class PluginSourcesApi(private val service: PluginSourcesService) {
     service.addNew(p)
   }
 
-  val route = all :: addNew
+  private val install = post(base / "install" <<< body[InstallPlugin]) ~> {(p: InstallPlugin) =>
+    service.installPlugin(p.url)
+  }
+
+  val route = all :: install :: addNew
 
 }

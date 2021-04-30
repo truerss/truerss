@@ -25,6 +25,8 @@ case class TrueRSSConfig(
   def withParallelism(count: Int): TrueRSSConfig = {
     copy(feedParallelism = count)
   }
+
+  val pluginsDir = s"$appDir/plugins"
 }
 
 case class DbConfig(
