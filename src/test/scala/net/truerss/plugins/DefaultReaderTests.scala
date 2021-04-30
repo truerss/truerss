@@ -13,7 +13,7 @@ import scalaj.http.HttpResponse
 import truerss.plugins.DefaultSiteReader
 
 import scala.concurrent.duration._
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class DefaultReaderTests extends Specification {
 
@@ -49,7 +49,7 @@ class DefaultReaderTests extends Specification {
     "return new entries when parse valid rss or atom" in new ReaderScope(HtmlFixtures.rss.toString) {
       val result = defaultReader.newEntries(okRss)
       result.isRight must beTrue
-      val entries = result.right.get
+      val entries = result.getOrElse(Vector.empty)
       entries must have size 3
       val need = Seq(
         "Brains Sweep Themselves Clean of Toxins During Sleep (2013)",
@@ -64,7 +64,8 @@ class DefaultReaderTests extends Specification {
       val result = defaultReader.newEntries(badRss)
       println(result)
       result.isLeft must beTrue
-      result.left.get must haveClass[UnexpectedError]
+      result.swap.map { _ must haveClass[UnexpectedError] }
+      success
     }
 
     "return error when connection failed" in new ReaderScope("foo", 503) {
@@ -77,7 +78,8 @@ class DefaultReaderTests extends Specification {
     "extract content" in new ReaderScope(HtmlFixtures.content) {
       val result = defaultReader.content(UrlRequest(new URL(content1Url)))
       result.isRight must beTrue
-      result.right.get.get must contain(HtmlFixtures.text)
+      result.map { _.get must contain(HtmlFixtures.text) }
+      success
     }
     "#parseContent" in {
       val result = DefaultSiteReader.parseContent(url, HtmlFixtures.content)

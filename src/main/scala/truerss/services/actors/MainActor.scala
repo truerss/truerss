@@ -36,7 +36,7 @@ class MainActor(config: TrueRSSConfig,
 
   def receive = {
     case x =>
-      log.warning(s"Unhandled message: $x, from: $sender")
+      log.warning(s"Unhandled message: $x, from: ${sender()}")
   }
 
   private def create(props: Props, name: String): ActorRef = {

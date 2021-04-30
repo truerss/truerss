@@ -3,7 +3,7 @@ import sbt._
 object Libs {
   object Versions {
     val scalaVersion = "2.12.4"
-    val scalajVersion = "2.4.1"
+    val scalajVersion = "2.4.2"
     val postgresqlVersion = "42.2.14"
     val mysqlVersion = "8.0.21"
     val sqliteVersion = "3.32.3"
@@ -12,11 +12,11 @@ object Libs {
     val akkaVersion  = "2.6.3"
     val slickVersion = "3.3.2"
     val configVersion = "1.3.0"
-    val scoptVersion = "3.7.0"
+    val scoptVersion = "4.0.1"
     val hikariCPVersion = "3.4.5"
     val jwsVersion = "1.5.1"
     val logbackVersion = "1.1.2"
-    val baseVersion = "0.0.6"
+    val basePluginVersion = "1.0.1"
     val jsoupVersion = "1.8.3"
     val specsVersion = "4.10.0"
     val playJsonVersion = "2.9.2"
@@ -32,7 +32,7 @@ object Libs {
     "com.zaxxer" % "HikariCP" % hikariCPVersion,
     "com.typesafe.slick" %% "slick" %  slickVersion,
     "com.typesafe.slick" %% "slick-hikaricp" %  slickVersion,
-    "io.github.nafg" %% "slick-migration-api" % "0.4.2"
+    "io.github.nafg.slick-migration-api" %% "slick-migration-api" % "0.8.2"
   )
 
   val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
@@ -41,7 +41,7 @@ object Libs {
 
   val truerss = Seq(
     "com.github.truerss" % "content-extractor" % truerssBaseVersion,
-    "com.github.truerss" %% "base" % baseVersion
+    "io.github.truerss" %% "base" % basePluginVersion
   )
 
   val logs = Seq(
@@ -57,7 +57,7 @@ object Libs {
 
   val utils = Seq(
     "org.scalaj" %% "scalaj-http" % scalajVersion,
-    "org.scala-lang.modules" %% "scala-xml" % "1.0.6",
+    "org.scala-lang.modules" %% "scala-xml" % "1.3.0",
    ("commons-validator" % "commons-validator" % commonValidatorVersion)
       .exclude("commons-beanutils", "commons-beanutils")
       .exclude("commons-logging", "commons-logging")

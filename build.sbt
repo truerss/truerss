@@ -17,7 +17,7 @@ val setup = Seq(
   resolvers += "JCenter" at "https://jcenter.bintray.com/",
   resolvers += "karussell_releases" at "https://github.com/karussell/mvnrepo",
   resolvers += Resolver.bintrayRepo("truerss", "maven"),
-  scalaVersion := "2.12.4",
+  scalaVersion := "2.13.5",
   scalacOptions ++= Seq(
     "-deprecation",
     "-encoding", "UTF-8",
@@ -28,7 +28,6 @@ val setup = Seq(
     "-language:reflectiveCalls",
     "-unchecked",
     "-Xverify",
-    "-Xfuture",
     "-Ydelambdafy:inline"
   ),
   javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
@@ -41,18 +40,18 @@ lazy val RealTest = config("real") extend(Test)
 
 lazy val mainProject = Project("truerss", file("."))
   .configs(RealTest)
-  .settings( inConfig(RealTest)(Defaults.testSettings) : _*)
+  .settings(inConfig(RealTest)(Defaults.testSettings) : _*)
   .settings(
     setup ++ Seq(installTask, buildCoffeeTask) ++ Seq(
-    (compile in Compile) := (compile in Compile).dependsOn(buildCoffee).value,
+    (Compile / compile) := (Compile / compile).dependsOn(buildCoffee).value,
     organization := "net.truerss",
     classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.ScalaLibrary,
     name := name.value,
     version := version.value,
-    parallelExecution in Test := true,
-    assemblyJarName in assembly := s"truerss_${version.value}.jar",
-    mainClass in assembly := Some("Main"),
-    assemblyMergeStrategy in assembly := {
+    Test / parallelExecution := true,
+    assembly / assemblyJarName := s"truerss_${version.value}.jar",
+    assembly / mainClass := Some("Main"),
+    assembly / assemblyMergeStrategy := {
       case x if x.contains(".conf") => MergeStrategy.concat
       case PathList(ps @ _*) =>
         if (ps.contains("log4j-provider.properties"))
@@ -68,9 +67,8 @@ lazy val mainProject = Project("truerss", file("."))
       case _ =>
         MergeStrategy.first
     },
-    test in assembly := {},
-    fork in compile := true,
-    publishArtifact in Test := false,
+    assembly / test := {},
+    Test / publishArtifact := false,
     licenses += ("MIT", url("http://opensource.org/licenses/MIT")),
     packageOptions := Seq(ManifestAttributes(("Built-By", s"${new Date()}"))),
     libraryDependencies ++= deps

@@ -49,7 +49,7 @@ class SourcesKeeperActor(config: SourcesKeeperActor.SourcesSettings,
 
     case Update =>
       log.info(s"Update for ${context.children.size} actors")
-      context.children.foreach{ _ ! Update }
+      context.children.foreach { _ ! Update }
 
     case UpdateMe(ref) =>
       ticker.push(ref) match {

@@ -2,8 +2,8 @@ package truerss.services.actors.events
 
 import java.time.ZoneOffset
 import java.util.Date
-
 import akka.actor.{Actor, ActorLogging}
+import com.github.truerss.base.PublishActions.NewEntries
 import com.github.truerss.base.{BasePublishPlugin, Entry, PublishActions}
 import truerss.dto.FeedDto
 
@@ -14,17 +14,22 @@ class PublishPluginActor(plugins: Vector[BasePublishPlugin])
   import PublishPluginActor._
 
   def receive: Receive = {
-    case PublishEvent(feed) =>
+    case AddToFavorites(feed) =>
       plugins.foreach { pp =>
         log.info(s"Publish to ${pp.pluginName}")
-        pp.publish(Favorite, feed.toEntry)
+        pp.publish(Favorite(feed.toEntry))
       }
+
+    case NewEntriesReceived(xs) =>
+      plugins.foreach(_.publish(NewEntries(xs.map(_.toEntry))))
   }
 
 }
 
 object PublishPluginActor {
-  case class PublishEvent(feed: FeedDto)
+  sealed trait PublishEvent
+  case class AddToFavorites(feed: FeedDto) extends PublishEvent
+  case class NewEntriesReceived(feeds: Iterable[FeedDto]) extends PublishEvent
 
   implicit class FeedDtoExt(val x: FeedDto) extends AnyVal {
     def toEntry: Entry = {

@@ -64,7 +64,7 @@ trait FullFlowTests extends Specification with Resources with BeforeAfterAll {
         .err[BadRequestError].errors ==== Iterable(s"${newSourceWithNotRssUrl.url} is not a valid RSS/Atom feed")
 
       p("Try to get not existing source")
-      sourceApiClient.findOne(1000).e must beLeft(EntityNotFoundError)
+      sourceApiClient.findOne(1000).e must be equalTo Left(EntityNotFoundError)
 
       p("Try to get all sources")
       sourceApiClient.findAll.m must have size 1
@@ -119,7 +119,7 @@ trait FullFlowTests extends Specification with Resources with BeforeAfterAll {
       overview.favoritesCount ==== 0
 
       p("Get Overview for not existing source")
-      overviewApiClient.overview(1000).e must beLeft(EntityNotFoundError)
+      overviewApiClient.overview(1000).e must be equalTo Left(EntityNotFoundError)
 
       sourceApiClient.unread(sourceId, 0, 10).m.resources must have size 1
       val latest = sourceApiClient.latest(0, 100).m
@@ -300,8 +300,8 @@ trait FullFlowTests extends Specification with Resources with BeforeAfterAll {
       // delete source
       sourceApiClient.deleteOne(sourceId).m
 
-      sourceApiClient.findOne(sourceId).e must beLeft(EntityNotFoundError)
-      feedsApiClient.findOne(feedId).e must beLeft(EntityNotFoundError)
+      sourceApiClient.findOne(sourceId).e must be equalTo Left(EntityNotFoundError)
+      feedsApiClient.findOne(feedId).e must be equalTo Left(EntityNotFoundError)
       sourceApiClient.unread(sourceId, 0, 10).m.resources must be empty
 
       success
