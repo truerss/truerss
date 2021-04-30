@@ -42,6 +42,11 @@ class PluginSourcesServiceTests extends Specification with AfterAll {
       override def findByUrl(url: String): Task[Int] = {
         Task.effectTotal(hm.values.count(p => p.url == url))
       }
+
+      override def delete(id: Long): Task[Int] = {
+        hm -= id
+        Task.effectTotal(1)
+      }
     }
   }
   private val validator = new PluginSourceValidator(dbLayer)
@@ -86,7 +91,11 @@ class PluginSourcesServiceTests extends Specification with AfterAll {
 
       (new File(fileName)).exists() must beTrue
 
-      // todo remove one plugin and plugin source
+      // remove plugin source
+      service.deletePluginSource(available.head.id).materialize
+      service.availablePluginSources.materialize must be empty
+
+      // todo remove one plugin
 
       success
     }

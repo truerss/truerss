@@ -19,11 +19,17 @@ class PluginSourcesService(
     pluginInstaller.install(urlToJar)
   }
 
+
   def availablePluginSources: Task[Iterable[PluginSourceDto]] = {
     for {
       all <- dbLayer.pluginSourcesDao.all
       pluginJars <- Task.foreachPar(all)(fetch)
     } yield pluginJars
+  }
+
+  // @note I remove without plugins for the plugin source
+  def deletePluginSource(id: Long): Task[Unit] = {
+    dbLayer.pluginSourcesDao.delete(id).unit
   }
 
   def addNew(newPluginSource: NewPluginSource): Task[PluginSourceDto] = {
