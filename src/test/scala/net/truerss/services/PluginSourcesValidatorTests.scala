@@ -14,9 +14,17 @@ class PluginSourcesValidatorTests extends Specification with Mockito {
 
   import ZIOMaterializer._
 
+  val url = "https://github.com/foo/bar/releases/tag/123"
+
   "validate/url" should {
+    "be valid source" in new MyTest(1) {
+      val tmp = "http://example.com"
+      validator.validate(NewPluginSource(tmp)).e must beLeft(
+        ValidationError(PluginSourceValidator.unknownSource(tmp))
+      )
+    }
+
     "be unique" in new MyTest(1) {
-      val url = "https://github.com"
       validator.validate(NewPluginSource(url)).e must beLeft(
         ValidationError(PluginSourceValidator.urlError(url))
       )
@@ -29,7 +37,7 @@ class PluginSourcesValidatorTests extends Specification with Mockito {
     }
 
     "success flow" in new MyTest(0) {
-      val n = NewPluginSource("https://example.com")
+      val n = NewPluginSource(url)
       validator.validate(n).m ==== n
     }
   }

@@ -68,6 +68,7 @@ lazy val mainProject = Project("truerss", file("."))
         MergeStrategy.first
     },
     assembly / test := {},
+    assembly / target := file("."),
     Test / publishArtifact := false,
     licenses += ("MIT", url("http://opensource.org/licenses/MIT")),
     packageOptions := Seq(ManifestAttributes(("Built-By", s"${new Date()}"))),
