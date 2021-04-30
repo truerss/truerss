@@ -19,4 +19,8 @@ class PluginSourcesDao(val db: DatabaseDef)(implicit
     ((pluginSources returning pluginSources.map(_.id)) += p) ~> db
   }
 
+  def findByUrl(url: String): Task[Int] = {
+    pluginSources.filter(_.url === url).length.result ~> db
+  }
+
 }

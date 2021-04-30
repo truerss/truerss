@@ -4,7 +4,7 @@ import com.github.fntz.omhs.{BodyReader, BodyWriter, CommonResponse}
 import com.github.fntz.omhs.playjson.JsonSupport
 import io.netty.handler.codec.http.HttpResponseStatus
 import io.netty.util.CharsetUtil
-import truerss.dto.{AvailableSetup, FeedContent, FeedDto, NewSetup, NewSourceDto, Page, PluginsViewDto, SearchRequest, SourceOverview, SourceViewDto, UpdateSourceDto}
+import truerss.dto.{AvailableSetup, FeedContent, FeedDto, NewPluginSource, NewSetup, NewSourceDto, Page, PluginSourceDto, PluginsViewDto, SearchRequest, SourceOverview, SourceViewDto, UpdateSourceDto}
 
 object OMHSSupport {
   import JsonFormats._
@@ -54,6 +54,15 @@ object OMHSSupport {
 
   implicit val processingWriter: BodyWriter[Processing] =
     JsonSupport.writer[Processing]()
+
+  implicit val newPluginSourceReader: BodyReader[NewPluginSource] =
+    JsonSupport.reader[NewPluginSource]()
+
+  implicit val pluginSourceDtoWriter: BodyWriter[PluginSourceDto] =
+    JsonSupport.writer[PluginSourceDto]()
+
+  implicit val pluginSourceDtoIterableWriter: BodyWriter[Iterable[PluginSourceDto]] =
+    JsonSupport.writer[Iterable[PluginSourceDto]]()
 
   case class Xml(text: String)
   implicit val xmlWriter: BodyWriter[Xml] = new BodyWriter[Xml] {

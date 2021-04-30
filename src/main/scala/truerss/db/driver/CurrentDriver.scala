@@ -157,7 +157,7 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
     def id = column[Long]("id", O.PrimaryKey)
     def url = column[String]("url")
 
-    override def * = (id, url) <> (PluginSource.tupled, PluginSource.unapply)
+    override def * = (id.?, url) <> (PluginSource.tupled, PluginSource.unapply)
   }
 
   object query {

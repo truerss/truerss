@@ -7,10 +7,10 @@ import truerss.api.RoutingEndpoint
 import truerss.api.ws.SocketServer
 import truerss.db.Predefined
 import truerss.db.driver.DbInitializer
-import truerss.db.validation.{SourceUrlValidator, SourceValidator}
+import truerss.db.validation.{PluginSourceValidator, SourceUrlValidator, SourceValidator}
 import truerss.services._
 import truerss.services.actors.MainActor
-import truerss.util.{DbConfig, TrueRSSConfig, TaskImplicits}
+import truerss.util.{DbConfig, TaskImplicits, TrueRSSConfig}
 
 import scala.language.postfixOps
 
@@ -40,6 +40,8 @@ object AppRunner {
     val searchService = new SearchService(dbLayer)
     val refreshSourcesService = new RefreshSourcesService(stream)
     val markService = new MarkService(dbLayer)
+    val pluginSourcesValidator = new PluginSourceValidator(dbLayer)
+    val pluginSourcesService = new PluginSourcesService(dbLayer, pluginSourcesValidator)
 
     val feedParallelism = settingsService.where[Int](
       Predefined.parallelism.toKey,
@@ -63,6 +65,7 @@ object AppRunner {
       contentReaderService = contentReaderService,
       refreshSourcesService = refreshSourcesService,
       markService = markService,
+      pluginSourcesService = pluginSourcesService,
       wsPort = actualConfig.wsPort
     )
 

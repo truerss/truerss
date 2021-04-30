@@ -176,7 +176,6 @@ object JsonFormats {
     }
   }
 
-
   implicit lazy val newSetupFormat: Format[NewSetup[_]] = new Format[NewSetup[_]] {
     private final val fKey = "key"
     private final val fValue = "value"
@@ -222,7 +221,8 @@ object JsonFormats {
 
   implicit val searchRequestFormat: Format[SearchRequest] = Json.format[SearchRequest]
 
-
+  implicit val newPluginSourceFormat: Format[NewPluginSource] = Json.format[NewPluginSource]
+  implicit val pluginSourceDtoFormat: Format[PluginSourceDto] = Json.format[PluginSourceDto]
 
   implicit def pageWriter[T](implicit f: Writes[T]): Writes[Page[T]] = new Writes[Page[T]] {
     override def writes(o: Page[T]): JsValue = {
