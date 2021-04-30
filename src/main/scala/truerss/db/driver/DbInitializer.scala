@@ -9,7 +9,7 @@ import slick.migration.api.{GenericDialect, ReversibleMigrationSeq, TableMigrati
 import truerss.db.{DbLayer, Predefined, Version}
 import truerss.util.DbConfig
 
-import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.Await
 import scala.concurrent.duration._
 
 object DbInitializer {
@@ -88,6 +88,11 @@ object DbInitializer {
       // no versions
       run("create versions table", driver.query.versions.schema.create)
     }
+
+    if (!tableNames.contains(names.pluginSources)) {
+      // no plugin sources
+      run("create plugin_sources table", driver.query.pluginSources.schema.create)
+    }
   }
 
   private def runMigrations(db: JdbcBackend.DatabaseDef, dbProfile: DBProfile, driver: CurrentDriver): Unit = {
@@ -100,7 +105,7 @@ object DbInitializer {
 
     val v1 = Migration.addIndexes(dbProfile, driver, currentSourceIndexes)
 
-    runPredefinedChanges(db, dbProfile, driver)
+    runPredefinedChanges(db, driver)
 
     val all = Vector(
       v1
@@ -130,7 +135,7 @@ object DbInitializer {
     Console.out.println("completed...")
   }
 
-  def runPredefinedChanges(db: JdbcBackend.DatabaseDef, dbProfile: DBProfile, driver: CurrentDriver): Unit = {
+  def runPredefinedChanges(db: JdbcBackend.DatabaseDef, driver: CurrentDriver): Unit = {
     import driver.profile.api._
     Predefined.predefined.foreach { p =>
       val q = Await.result(
