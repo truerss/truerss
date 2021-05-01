@@ -61,17 +61,18 @@ class PluginSourcesServiceTests extends Specification with AfterAll {
 
   "service" should {
     "follow api" in {
+      val total = 5
       // get available
       service.availablePluginSources.materialize must have size 0
       // add new one
       val added = service.addNew(NewPluginSource(url)).materialize
       added.url ==== url
-      added.plugins must have size 4
+      added.plugins must have size total
 
       // install one
       val available = service.availablePluginSources.materialize
       available must have size 1
-      available.head.plugins must have size 4
+      available.head.plugins must have size total
 
       // add again
       (for {
@@ -89,7 +90,7 @@ class PluginSourcesServiceTests extends Specification with AfterAll {
       val fileName = PluginInstaller.toFilePath(tempDir.getPath, first)
       installedPlugins += fileName
 
-      (new File(fileName)).exists() must beTrue
+      new File(fileName).exists() must beTrue
 
       // remove plugin source
       service.deletePluginSource(available.head.id).materialize
