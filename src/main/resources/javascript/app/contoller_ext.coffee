@@ -12,6 +12,7 @@ class AjaxService
     @mark_api = "/api/v1/mark"
     @refresh_api = "/api/v1/refresh"
     @overview_api = "/api/v1/overview"
+    @plugin_sources_api = "/api/v1/plugin-sources"
     @k = (err) ->
       if err # otherwise: 204 no content
         c(JSON.stringify(err))
@@ -19,6 +20,9 @@ class AjaxService
 
   is_ready: () ->
     @counter == 0
+
+  available_plugins: (success) ->
+    @_get("#{@plugin_sources_api}", success, @k)
 
   plugins_all: (success, error) ->
     @_get("#{@plugin_api}/all", success, error)

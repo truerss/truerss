@@ -44,6 +44,20 @@
 
             </div>
         </div>
+        <div class="uk-section uk-padding-small">
+           <h3>Available<h3>
+           <% for (var i = 0; i < available.length; i++) { %>
+              <h4 id="plugin-source-<%= available[i].id %>"><%= available[i].url %></h4>
+              <ul class="uk-list">
+                  <% for (var j = 0; j < available[i].plugins.length; j++) { %>
+                    <% var arr = available[i].plugins[j].split("/"); %>
+                    <li data-url="<%= available[i].plugins[j] %>">
+                        <%= arr[arr.length - 1].replace(".jar", "") %>
+                    </li>
+                  <% } %>
+              </ul>
+           <% } %>
+        </div>
     </div>
 </div>
 

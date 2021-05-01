@@ -1,12 +1,11 @@
 package truerss.db.driver
 
 import java.time.{Clock, LocalDateTime}
-
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 import slick.jdbc.JdbcBackend
 import slick.jdbc.meta.MTable
 import slick.migration.api.{GenericDialect, ReversibleMigrationSeq, TableMigration}
-import truerss.db.{DbLayer, Predefined, Version}
+import truerss.db.{DbLayer, PluginSource, Predefined, Version}
 import truerss.util.DbConfig
 
 import scala.concurrent.Await
@@ -107,6 +106,8 @@ object DbInitializer {
 
     runPredefinedChanges(db, driver)
 
+    addDefaultSource(db, driver)
+
     val all = Vector(
       v1
     )
@@ -133,6 +134,25 @@ object DbInitializer {
     }
 
     Console.out.println("completed...")
+  }
+  // todo remove
+  def addDefaultSource(db: JdbcBackend.DatabaseDef, driver: CurrentDriver): Unit = {
+    import driver.profile.api._
+    val url = "https://github.com/truerss/plugins/releases/tag/1.0.0"
+    val length = Await.result(
+      db.run {
+        driver.query.pluginSources.filter(_.url === url).length.result
+      }, waitTime
+    )
+    if (length == 0) {
+      Console.println(s"Write: default plugin source")
+      Await.ready(
+        db.run {
+          driver.query.pluginSources ++= PluginSource(id = None, url = url) :: Nil
+        }, waitTime
+      )
+    }
+
   }
 
   def runPredefinedChanges(db: JdbcBackend.DatabaseDef, driver: CurrentDriver): Unit = {

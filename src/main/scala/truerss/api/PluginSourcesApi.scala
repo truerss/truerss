@@ -24,7 +24,7 @@ class PluginSourcesApi(private val service: PluginSourcesService) {
     service.deletePluginSource(id)
   }
 
-  private def removePlugin = delete(base / string) ~> {(name: String) =>
+  private val removePlugin = delete(base / "plugin" / string) ~> {(name: String) =>
     service.removePlugin(name)
   }
 
