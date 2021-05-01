@@ -5,7 +5,6 @@ import java.io.File
 import com.typesafe.config.{Config, ConfigException, ConfigFactory}
 import scopt.OptionParser
 import truerss.dto.ApplicationPlugins
-import truerss.plugins.YoutubePlugin
 
 import scala.util.control.Exception._
 import scala.jdk.CollectionConverters._
@@ -150,7 +149,6 @@ object TrueRSSConfig {
       appConfig.getInt(fWsPort) fold(_ => trueRSSConfig.wsPort, identity)
 
     val appPlugins = PluginLoader.load(pluginDir, pluginConf)
-      .addPlugin(new YoutubePlugin(pluginConf))
 
     val dbConf = appConfig.getConfig(fDbb)
     val dbConfig = DbConfig.load(dbConf)
