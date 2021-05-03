@@ -12,6 +12,7 @@ import truerss.services._
 import truerss.services.actors.MainActor
 import truerss.util.{DbConfig, PluginInstaller, TaskImplicits, TrueRSSConfig}
 
+import java.io.File
 import scala.language.postfixOps
 
 object AppRunner {

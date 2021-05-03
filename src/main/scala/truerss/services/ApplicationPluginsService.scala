@@ -2,7 +2,7 @@ package truerss.services
 
 import java.net.URL
 import com.github.truerss.base._
-import com.typesafe.config.Config
+import com.typesafe.config.{Config, ConfigFactory}
 import truerss.dto.{ApplicationPlugins, PluginDto, PluginWithSourcePath, PluginsViewDto, SourceViewDto}
 import truerss.db.{SourceState, SourceStates}
 import truerss.plugins.PluginLoader
@@ -10,15 +10,18 @@ import zio.{Task, UIO}
 
 import scala.util.Try
 
-class ApplicationPluginsService(val pluginDir: String, val config: Config) {
+class ApplicationPluginsService(private val pluginDir: String, private val config: Config) {
 
   import ApplicationPluginsService._
   private type CR = BaseContentReader with UrlMatcher with Priority with PluginInfo
 
   @volatile protected var currentState: ApplicationPlugins = ApplicationPlugins()
 
+  private val empty = ConfigFactory.empty()
+
   def reload(): Unit = {
-    currentState = PluginLoader.load(pluginDir, config.getConfig(fPlugins))
+    val c = Try(config.getConfig(fPlugins)).getOrElse(empty)
+    currentState = PluginLoader.load(pluginDir, c)
   }
 
   def publishPlugins: Vector[BasePublishPlugin] =

@@ -1,16 +1,21 @@
 package net.truerss.services
 
+import akka.actor.{Actor, ActorSystem, Props}
+import com.typesafe.config.ConfigFactory
 import org.specs2.mutable.Specification
 import org.specs2.specification.AfterAll
 import truerss.db.validation.PluginSourceValidator
 import truerss.db.{DbLayer, PluginSource, PluginSourcesDao}
 import truerss.dto.NewPluginSource
-import truerss.services.{PluginNotFoundError, PluginSourcesService, ValidationError}
+import truerss.services.actors.MainActor
+import truerss.services.{ApplicationPluginsService, PluginNotFoundError, PluginSourcesService, ValidationError}
 import truerss.util.{PluginInstaller, TaskImplicits}
 import zio.Task
 
 import java.io.File
 import java.util.UUID
+import scala.concurrent.Await
+import scala.concurrent.duration._
 
 class PluginSourcesServiceTests extends Specification with AfterAll {
 
@@ -20,6 +25,7 @@ class PluginSourcesServiceTests extends Specification with AfterAll {
   tempDir.delete()
   tempDir.mkdir()
   private val installedPlugins = scala.collection.mutable.ArrayBuffer[String]()
+  private val system = ActorSystem("plugin-sources-service-tests")
 
   println(s"-------> path to config: ${tempDir.getPath}")
 
@@ -51,11 +57,36 @@ class PluginSourcesServiceTests extends Specification with AfterAll {
   }
   private val validator = new PluginSourceValidator(dbLayer)
 
+  private val stream = system.eventStream
+
+  private var reloadTimes = 0
+  private val appPluginService = new ApplicationPluginsService(
+    tempDir.getPath, ConfigFactory.empty()
+  ) {
+    override def reload(): Unit = {
+      reloadTimes = reloadTimes + 1
+      super.reload()
+    }
+  }
+  appPluginService.reload()
+
   private val service = new PluginSourcesService(
     dbLayer = dbLayer,
     pluginInstaller = installer,
-    validator = validator
+    validator = validator,
+    appPluginsService = appPluginService,
+    stream = stream
   )
+
+  private var reloadActorTimes = 0
+  private class TestActor extends Actor {
+    def receive = {
+      case _ =>
+        reloadActorTimes = reloadActorTimes + 1
+    }
+  }
+  private val ref = system.actorOf(Props(new TestActor()))
+  stream.subscribe(ref, classOf[MainActor.MainActorMessage])
 
   private val url = "https://github.com/truerss/plugins/releases/tag/1.0.0"
 
@@ -73,6 +104,8 @@ class PluginSourcesServiceTests extends Specification with AfterAll {
       val available = service.availablePluginSources.materialize
       available must have size 1
       available.head.plugins must have size total
+
+      appPluginService.view.materialize.size ==== 0
 
       // add again
       (for {
@@ -92,9 +125,14 @@ class PluginSourcesServiceTests extends Specification with AfterAll {
 
       new File(fileName).exists() must beTrue
 
+      appPluginService.view.materialize.size ==== 1
+
       // remove plugin source
       service.deletePluginSource(available.head.id).materialize
       service.availablePluginSources.materialize must be empty
+
+      // plugin should be stay in the same place
+      appPluginService.view.materialize.size ==== 1
 
       // remove plugin
       (for { _ <- service.removePlugin("foo-bar.jar").fold(
@@ -102,13 +140,19 @@ class PluginSourcesServiceTests extends Specification with AfterAll {
         _ => failure("bad branch")
       )} yield ()).materialize
 
+      appPluginService.view.materialize.size ==== 1
+
       service.removePlugin(first).materialize
       (new File(fileName)).exists() must beFalse
+      appPluginService.view.materialize.size ==== 0
+      reloadTimes ==== 3
+      reloadActorTimes ==== 2
     }
   }
 
   override def afterAll(): Unit = {
     installedPlugins.foreach(x => new File(x).delete())
     tempDir.delete()
+    Await.result(system.terminate(), 1 seconds)
   }
 }

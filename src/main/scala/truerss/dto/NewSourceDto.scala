@@ -54,7 +54,9 @@ case class PluginsViewDto(
                            content: Vector[PluginDto] = Vector.empty,
                            publish: Vector[PluginDto] = Vector.empty,
                            site: Vector[PluginDto] = Vector.empty
-                         )
+                         ) {
+  val size: Int = feed.size + content.size + publish.size + site.size
+}
 case class FeedContent(content: Option[String])
 
 case class FeedDto(

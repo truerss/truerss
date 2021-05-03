@@ -10,7 +10,7 @@ class DiscoveryTests extends Specification {
   private val url = "https://github.com/truerss/plugins/releases/tag/1.0.0"
 
   "fetch" in {
-    Discovery.fetch(url).materialize must have size 4
+    Discovery.fetch(url).materialize must have size 5
   }
 
 }
