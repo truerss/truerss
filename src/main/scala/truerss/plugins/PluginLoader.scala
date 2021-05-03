@@ -1,6 +1,6 @@
 package truerss.plugins
 
-import com.github.truerss.base.{BaseFeedPlugin, _}
+import com.github.truerss.base.{BaseContentPlugin, BaseFeedPlugin, _}
 import com.typesafe.config.Config
 
 import java.io.File
@@ -11,14 +11,13 @@ import scala.language.existentials
 
 object PluginLoader {
 
-  import scala.jdk.CollectionConverters._
   import JarImplicits._
 
-  val base = "com.github.truerss.base"
-  val contentPluginName = s"$base.BaseContentPlugin"
-  val feedPluginName = s"$base.BaseFeedPlugin"
-  val publishPluginName = s"$base.BasePublishPlugin"
-  val sitePluginName = s"$base.BaseSitePlugin"
+  private val base = "com.github.truerss.base"
+  private val contentPluginName = s"$base.BaseContentPlugin"
+  private val feedPluginName = s"$base.BaseFeedPlugin"
+  private val publishPluginName = s"$base.BasePublishPlugin"
+  private val sitePluginName = s"$base.BaseSitePlugin"
 
   def load(dirName: String,
            pluginConfig: Config): ApplicationPlugins = {
@@ -43,6 +42,13 @@ object PluginLoader {
       constructor.newInstance(pluginConfig).asInstanceOf[T]
     }
 
+    val initMap = Map(
+      `contentPluginName` -> ((clz: Class[_]) => init[BaseContentPlugin](clz)),
+      `feedPluginName` -> ((clz: Class[_]) => init[BaseFeedPlugin](clz)),
+      `publishPluginName` -> ((clz: Class[_]) => init[BasePublishPlugin](clz)),
+      `sitePluginName` -> ((clz: Class[_]) => init[BaseSitePlugin](clz))
+    )
+    try {
     jars.foreach { file =>
       val sourcePath = file.getAbsolutePath
       val jar = new JarFile(sourcePath)
@@ -50,48 +56,31 @@ object PluginLoader {
       val js = jar.reads(".js")
 
       val css = jar.reads(".css")
-
-      jar.classes.foreach { entry =>
+      for {entry <- jar.classes.toVector} yield {
         val clz = classLoader.loadClass(entry.klass)
-        try {
-          val superClass = clz.getSuperclass
-
-          if (superClass != null) {
-            superClass.getCanonicalName match {
-              case `contentPluginName` =>
-                val instance = init[BaseContentPlugin](clz)
-                contentPlugins += PluginWithSourcePath(instance, sourcePath)
-                readAssets(instance, js).foreach(jsFiles += _)
-                readAssets(instance, css).foreach(cssFiles += _)
-
-              case `feedPluginName` =>
-                val instance = init[BaseFeedPlugin](clz)
-                feedPlugins += PluginWithSourcePath(instance, sourcePath)
-                readAssets(instance, js).foreach(jsFiles += _)
-                readAssets(instance, css).foreach(cssFiles += _)
-
-              case `publishPluginName` =>
-                val instance = init[BasePublishPlugin](clz)
-                publishPlugins += PluginWithSourcePath(instance, sourcePath)
-                readAssets(instance, js).foreach(jsFiles += _)
-                readAssets(instance, css).foreach(cssFiles += _)
-
-              case `sitePluginName` =>
-                val instance = init[BaseSitePlugin](clz)
-                sitePlugins += PluginWithSourcePath(instance, sourcePath)
-                readAssets(instance, js).foreach(jsFiles += _)
-                readAssets(instance, css).foreach(cssFiles += _)
-
-              case _ =>
-            }
-
+        val superClass = clz.getSuperclass
+        Option(superClass).map(_.getCanonicalName).flatMap { x =>
+          initMap.get(x).map { f => f.apply(clz) }
+        }.foreach { instance =>
+          instance match {
+            case plugin: BaseContentPlugin =>
+              contentPlugins += PluginWithSourcePath(plugin, sourcePath)
+            case plugin: BaseFeedPlugin =>
+              feedPlugins += PluginWithSourcePath(plugin, sourcePath)
+            case plugin: BasePublishPlugin =>
+              publishPlugins += PluginWithSourcePath(plugin, sourcePath)
+            case plugin: BaseSitePlugin =>
+              sitePlugins += PluginWithSourcePath(plugin, sourcePath)
           }
-        } catch {
-          case _: java.lang.reflect.InvocationTargetException =>
-            Console.err.println("Error on plugin initialization")
-            sys.exit(1)
+          readAssets(instance, js).foreach(jsFiles += _)
+          readAssets(instance, css).foreach(cssFiles += _)
         }
       }
+      }
+    } catch {
+      case _: java.lang.reflect.InvocationTargetException =>
+        Console.err.println("Error on plugin initialization")
+        sys.exit(1)
     }
 
     ApplicationPlugins(
