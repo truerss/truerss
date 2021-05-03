@@ -2,12 +2,11 @@ package truerss.clients
 
 import scalaj.http.Http
 import truerss.dto.PluginsViewDto
-import truerss.json.JsonFormats
 import zio.Task
 
 class PluginsApiHttpClient(baseUrl: String) extends BaseHttpClient(baseUrl) {
 
-  import JsonFormats._
+  import JsonSupport._
 
   protected val pluginsUrl = s"$baseUrl/$api/plugins"
 

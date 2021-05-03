@@ -1,11 +1,10 @@
 package truerss.clients
 
-import truerss.json.JsonFormats
 import zio.Task
 
 class MarkApiHttpClient(baseUrl: String) extends BaseHttpClient(baseUrl) {
 
-  import JsonFormats._
+  import JsonSupport._
 
   protected val markUrl = s"$baseUrl/$api/mark"
 

@@ -1,14 +1,14 @@
 package truerss.clients
 
 import org.slf4j.LoggerFactory
-import play.api.libs.json.{Json, Reads}
 import scalaj.http.{Http, HttpRequest, HttpResponse}
-import zio.blocking.Blocking
 import zio.{RIO, Task}
+
+import play.api.libs.json.{Json, Reads}
 
 class BaseHttpClient(val baseUrl: String) {
 
-  import JsonFormatsError._
+  import JsonSupport._
 
   protected val logger = LoggerFactory.getLogger(getClass)
 

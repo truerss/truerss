@@ -1,12 +1,11 @@
 package truerss.clients
 
 import scalaj.http.{Http, MultiPart}
-import truerss.dto.{Processing, SourceViewDto}
 import zio.Task
 
 class OpmlApiHttpClient(baseUrl: String) extends BaseHttpClient(baseUrl) {
 
-  import truerss.json.JsonFormats._
+  import JsonSupport._
 
   protected val opmlUrl = s"$baseUrl/$api/opml"
 

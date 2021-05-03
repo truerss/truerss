@@ -1,4 +1,4 @@
-package truerss.json
+package truerss.api
 
 import play.api.libs.json._
 import truerss.dto._
@@ -24,12 +24,6 @@ object JsonFormats {
 
     override def writes(o: Date): JsValue = {
       JsString(f.format(o))
-    }
-  }
-
-  implicit lazy val unitWrites: Writes[Unit] = new Writes[Unit] {
-    override def writes(o: Unit): JsValue = {
-      JsNull
     }
   }
 
@@ -68,31 +62,6 @@ object JsonFormats {
       JsNumber(o.id)
     }
   }
-
-//  implicit object StateFormat extends Format[SourceState] {
-//    override def reads(json: JsValue): JsResult[SourceState] = {
-//      json match {
-//        case JsNumber(value) if value == SourceStates.Neutral.number =>
-//          JsSuccess(SourceStates.Neutral)
-//
-//        case JsNumber(value) if value == SourceStates.Enable.number =>
-//          JsSuccess(SourceStates.Enable)
-//
-//        case JsNumber(value) if value == SourceStates.Disable.number =>
-//          JsSuccess(SourceStates.Disable)
-//
-//        case JsNumber(_) =>
-//          JsError("Invalid state")
-//
-//        case _ =>
-//          JsError("Number required")
-//      }
-//    }
-//
-//    override def writes(o: SourceState): JsValue = {
-//      JsNumber(o.number)
-//    }
-//  }
 
   implicit lazy val newSourceDtoFormat = Json.format[NewSourceDto]
   implicit lazy val updateSourceDtoFormat = Json.format[UpdateSourceDto]

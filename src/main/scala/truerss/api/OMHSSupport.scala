@@ -7,7 +7,7 @@ import io.netty.util.CharsetUtil
 import truerss.dto.{AvailableSetup, FeedContent, FeedDto, InstallPlugin, NewPluginSource, NewSetup, NewSourceDto, Page, PluginSourceDto, PluginsViewDto, Processing, SearchRequest, SourceOverview, SourceViewDto, UninstallPlugin, UpdateSourceDto}
 
 object OMHSSupport {
-  import truerss.json.JsonFormats._
+  import JsonFormats._
 
   implicit val pageWriter: BodyWriter[Page[FeedDto]] = JsonSupport.writer[Page[FeedDto]]()
   implicit val feedDtoWriter: BodyWriter[FeedDto] = JsonSupport.writer[FeedDto]()

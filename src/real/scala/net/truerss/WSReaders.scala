@@ -1,10 +1,10 @@
 package net.truerss
 
 import play.api.libs.json._
+import truerss.api.JsonFormats
 import truerss.api.ws.{Notify, NotifyLevel, WSMessageType}
 import truerss.api.ws.WebSocketController.{NewFeeds, NewSource, NotifyMessage, WSMessage}
 import truerss.dto.{FeedDto, SourceViewDto}
-import truerss.json.JsonFormats
 
 object WSReaders {
 
