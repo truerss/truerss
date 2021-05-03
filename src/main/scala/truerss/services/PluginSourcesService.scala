@@ -1,26 +1,41 @@
 package truerss.services
 
+import akka.event.EventStream
 import truerss.db.validation.PluginSourceValidator
 import truerss.db.{DbLayer, PluginSource}
 import truerss.dto.{NewPluginSource, PluginSourceDto}
 import truerss.plugins_discrovery.DiscoveryProvider
-import truerss.util.PluginInstaller
+import truerss.services.actors.MainActor
+import truerss.util.{EventStreamExt, PluginInstaller}
 import zio.Task
 
 class PluginSourcesService(
                            private val dbLayer: DbLayer,
                            private val pluginInstaller: PluginInstaller,
-                           private val validator: PluginSourceValidator
+                           private val validator: PluginSourceValidator,
+                           private val appPluginsService: ApplicationPluginsService,
+                           private val stream: EventStream
                           ) extends DiscoveryProvider {
 
   import PluginSourcesService._
+  import EventStreamExt._
 
   def installPlugin(urlToJar: String): Task[Unit] = {
-    pluginInstaller.install(urlToJar)
+    for {
+      _ <- pluginInstaller.install(urlToJar)
+      _ <- Task(appPluginsService.reload())
+      _ <- stream.fire(MainActor.Restart)
+    } yield()
+
   }
 
   def removePlugin(urlToJar: String): Task[Unit] = {
-    pluginInstaller.remove(urlToJar)
+    for {
+      _ <- pluginInstaller.remove(urlToJar)
+      _ <- Task(appPluginsService.reload())
+      _ <- stream.fire(MainActor.Restart)
+    } yield ()
+
   }
 
   def availablePluginSources: Task[Iterable[PluginSourceDto]] = {

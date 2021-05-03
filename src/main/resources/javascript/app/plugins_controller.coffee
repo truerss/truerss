@@ -12,19 +12,25 @@ PluginsController =
           for e in v
             arr = e.jarSourcePath.split("/")
             arr.last() # foo.jar
+            e.jarSourcePath
 
         sources = sources.flat()
+
         available = available.map (obj) ->
           obj.plugins = obj.plugins.map (url) ->
             tmp = url.split("/")
             last = tmp.last()
             installed = false
-            if sources.contains(last)
+            jarSourcePath = ""
+            need = sources.find (jar) -> jar.split("/").last() == last
+            if need
               installed = true
+              jarSourcePath = need
             {
               url: url,
               name: last.replace(".jar", ""),
-              installed: installed
+              installed: installed,
+              jarSourcePath: jarSourcePath
             }
           obj
 
@@ -38,10 +44,8 @@ PluginsController =
     @_modal.show()
 
   install: (e, url) ->
-    c(e)
     ajax.install_plugin(url)
 
   remove: (e, url) ->
-    c(e)
     ajax.remove_plugin(url)
 

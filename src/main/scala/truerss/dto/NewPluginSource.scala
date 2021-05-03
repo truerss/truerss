@@ -6,3 +6,5 @@ case class NewPluginSource(url: String)
 case class PluginSourceDto(id: Long, url: String, plugins: Iterable[String])
 
 case class InstallPlugin(url: String)
+
+case class UninstallPlugin(url: String)

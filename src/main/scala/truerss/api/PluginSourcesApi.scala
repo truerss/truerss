@@ -1,7 +1,7 @@
 package truerss.api
 
 import com.github.fntz.omhs.RoutingDSL
-import truerss.dto.{InstallPlugin, NewPluginSource}
+import truerss.dto.{UninstallPlugin, InstallPlugin, NewPluginSource}
 import truerss.services.PluginSourcesService
 
 class PluginSourcesApi(private val service: PluginSourcesService) {
@@ -24,14 +24,14 @@ class PluginSourcesApi(private val service: PluginSourcesService) {
     service.deletePluginSource(id)
   }
 
-  private val removePlugin = delete(base / "plugin" / string) ~> {(name: String) =>
-    service.removePlugin(name)
+  private val uninstallPlugin = post(base / "uninstall" <<< body[UninstallPlugin]) ~> { (action: UninstallPlugin) =>
+    service.removePlugin(action.url)
   }
 
   private val install = post(base / "install" <<< body[InstallPlugin]) ~> {(p: InstallPlugin) =>
     service.installPlugin(p.url)
   }
 
-  val route = all :: install :: deletePluginSource :: removePlugin :: addNew
+  val route = all :: install :: deletePluginSource :: uninstallPlugin :: addNew
 
 }

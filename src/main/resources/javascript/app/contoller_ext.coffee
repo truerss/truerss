@@ -25,7 +25,10 @@ class AjaxService
     @_get("#{@plugin_sources_api}", success, @k)
 
   remove_plugin: (url) ->
-    @_delete("#{@plugin_sources_api}/plugin/#{url}", @k, @k)
+    params = JSON.stringify({
+      url: url
+    })
+    @_post("#{@plugin_sources_api}/uninstall", params, @k, @k)
 
   install_plugin: (url) ->
     params = JSON.stringify({

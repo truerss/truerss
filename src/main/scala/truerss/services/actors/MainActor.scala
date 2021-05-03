@@ -1,6 +1,6 @@
 package truerss.services.actors
 
-import akka.actor.{Actor, ActorLogging, ActorRef, Props}
+import akka.actor.{Actor, ActorLogging, ActorRef, Kill, Props}
 import akka.event.EventStream
 import truerss.services.actors.events.{EventHandlerActor, PublishPluginActor}
 import truerss.services.actors.sync.SourcesKeeperActor
@@ -15,15 +15,12 @@ class MainActor(config: TrueRSSConfig,
 
   private val stream: EventStream = context.system.eventStream
 
+  private var sourcesRef: ActorRef = context.system.deadLetters
+  private var index = 0
+
   val eventHandlerActor = create(
     EventHandlerActor.props(sourcesService, feedsService),
     "event-handler-actor")
-
-  val sourcesRef = create(SourcesKeeperActor.props(
-    SourcesKeeperActor.SourcesSettings(config.feedParallelism),
-    applicationPluginsService,
-    sourcesService
-  ), "sources-root-actor")
 
   val publishActor = create(Props(
     classOf[PublishPluginActor], applicationPluginsService),
@@ -31,10 +28,28 @@ class MainActor(config: TrueRSSConfig,
 
   stream.subscribe(publishActor, classOf[PublishPluginActor.PublishEvent])
   stream.subscribe(eventHandlerActor, classOf[EventHandlerActor.EventHandlerActorMessage])
-  stream.subscribe(sourcesRef, classOf[SourcesKeeperActor.SourcesMessage])
 
+  stream.subscribe(self, classOf[MainActor.MainActorMessage])
+
+  private def startSourcesKeeperActor(): Unit = {
+    index = index + 1
+    sourcesRef = create(SourcesKeeperActor.props(
+      SourcesKeeperActor.SourcesSettings(config.feedParallelism),
+      applicationPluginsService,
+      sourcesService
+    ), s"source-keeper-actor-$index")
+
+    stream.subscribe(sourcesRef, classOf[SourcesKeeperActor.SourcesMessage])
+  }
+
+  startSourcesKeeperActor()
 
   def receive = {
+    case MainActor.Restart =>
+      log.info("Restart SourcesKeeperActor")
+      sourcesRef ! Kill
+      startSourcesKeeperActor()
+
     case x =>
       log.warning(s"Unhandled message: $x, from: ${sender()}")
   }
@@ -46,6 +61,10 @@ class MainActor(config: TrueRSSConfig,
 }
 
 object MainActor {
+
+  sealed trait MainActorMessage
+  case object Restart extends MainActorMessage
+
   def props(config: TrueRSSConfig,
             applicationPluginsService: ApplicationPluginsService,
             sourcesService: SourcesService,

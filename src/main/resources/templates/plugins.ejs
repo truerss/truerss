@@ -57,7 +57,7 @@
                     <td>
                         <% if (available[i].plugins[j].installed) { %>
                             <button
-                                data-plugin-url="<%= available[i].plugins[j].url %>"
+                                data-plugin-url="<%= available[i].plugins[j].jarSourcePath %>"
                                 class="plugin-remove uk-button uk-button-default uk-button-small">Remove</button>
                         <% } else { %>
                             <button
