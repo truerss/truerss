@@ -47,9 +47,12 @@ PluginsController =
     @_modal.show()
 
   install: (e, url) ->
+    $("#cover").fadeIn(100)
     ajax.install_plugin url, () ->
       Sirius.Application.get_adapter().and_then (adapter) =>
+        $("#cover").fadeOut(100)
         adapter.fire(document, "plugins:load")
+
 
   uninstall: (e, url) ->
     ajax.uninstall_plugin url, () ->
