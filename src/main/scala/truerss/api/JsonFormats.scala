@@ -52,30 +52,48 @@ object JsonFormats {
     }
   }
 
-  implicit object StateFormat extends Format[SourceState] {
-    override def reads(json: JsValue): JsResult[SourceState] = {
+  implicit object StateFormat1 extends Format[State.Value] {
+    override def reads(json: JsValue): JsResult[State.Value] = {
       json match {
-        case JsNumber(value) if value == SourceStates.Neutral.number =>
-          JsSuccess(SourceStates.Neutral)
-
-        case JsNumber(value) if value == SourceStates.Enable.number =>
-          JsSuccess(SourceStates.Enable)
-
-        case JsNumber(value) if value == SourceStates.Disable.number =>
-          JsSuccess(SourceStates.Disable)
-
-        case JsNumber(_) =>
-          JsError("Invalid state")
+        case JsNumber(value) =>
+          State.values.find(_.id == value)
+            .map(JsSuccess(_))
+            .getOrElse(JsError(s"Invalid state: $value"))
 
         case _ =>
           JsError("Number required")
       }
     }
 
-    override def writes(o: SourceState): JsValue = {
-      JsNumber(o.number)
+    override def writes(o: State.Value): JsValue = {
+      JsNumber(o.id)
     }
   }
+
+//  implicit object StateFormat extends Format[SourceState] {
+//    override def reads(json: JsValue): JsResult[SourceState] = {
+//      json match {
+//        case JsNumber(value) if value == SourceStates.Neutral.number =>
+//          JsSuccess(SourceStates.Neutral)
+//
+//        case JsNumber(value) if value == SourceStates.Enable.number =>
+//          JsSuccess(SourceStates.Enable)
+//
+//        case JsNumber(value) if value == SourceStates.Disable.number =>
+//          JsSuccess(SourceStates.Disable)
+//
+//        case JsNumber(_) =>
+//          JsError("Invalid state")
+//
+//        case _ =>
+//          JsError("Number required")
+//      }
+//    }
+//
+//    override def writes(o: SourceState): JsValue = {
+//      JsNumber(o.number)
+//    }
+//  }
 
   implicit lazy val newSourceDtoFormat = Json.format[NewSourceDto]
   implicit lazy val updateSourceDtoFormat = Json.format[UpdateSourceDto]

@@ -4,7 +4,7 @@ import akka.actor.{Actor, ActorLogging}
 import org.java_websocket.WebSocket
 import truerss.api.JsonFormats
 import play.api.libs.json._
-import truerss.dto.{FeedDto, Notify, SourceViewDto, WSMessageType}
+import truerss.dto.{FeedDto, Notify, SourceViewDto}
 
 // one actor per one user connection
 class WebSocketController(private val ws: WebSocket) extends Actor with ActorLogging {

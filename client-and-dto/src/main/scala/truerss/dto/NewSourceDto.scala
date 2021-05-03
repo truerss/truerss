@@ -3,7 +3,10 @@ package truerss.dto
 import java.time.LocalDateTime
 import java.util.Date
 
-import truerss.db.{SourceState, SourceStates}
+object State extends Enumeration {
+  type State = Value
+  val Neutral, Enable, Disable = Value
+}
 
 
 sealed trait SourceDto {
@@ -29,14 +32,14 @@ case class SourceViewDto(id: Long,
                          url: String,
                          name: String,
                          interval: Int,
-                         state: SourceState,
+                         state: State.Value,
                          normalized: String,
                          lastUpdate: LocalDateTime,
                          count: Int = 0) {
   def recount(x: Int): SourceViewDto = copy(count = x)
 
   def isEnabled: Boolean = {
-    state != SourceStates.Disable
+    state != State.Disable
   }
 }
 

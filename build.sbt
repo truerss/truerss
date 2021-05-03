@@ -37,8 +37,13 @@ val setup = Seq(
 
 lazy val RealTest = config("real") extend(Test)
 
+val clientAndDtos = Project("client-and-dto", file("client-and-dto"))
+  .settings(
+    setup,
+    libraryDependencies ++= deps
+  )
 
-lazy val mainProject = Project("truerss", file("."))
+val mainProject = Project("truerss", file("."))
   .configs(RealTest)
   .settings(inConfig(RealTest)(Defaults.testSettings) : _*)
   .settings(
@@ -74,4 +79,4 @@ lazy val mainProject = Project("truerss", file("."))
     packageOptions := Seq(ManifestAttributes(("Built-By", s"${new Date()}"))),
     libraryDependencies ++= deps
   )
-).enablePlugins(JDKPackagerPlugin)
+).dependsOn(clientAndDtos)
