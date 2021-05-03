@@ -1,15 +1,13 @@
 package truerss.services.actors.sync
 
-import java.time.ZoneOffset
-import java.util.Date
 import akka.actor.{Actor, ActorLogging, Props}
-import com.github.truerss.base._
 import truerss.api.ws.WebSocketController
 import truerss.dto.{Notify, NotifyLevel, SourceViewDto}
 import truerss.services.ApplicationPluginsService
 import truerss.services.actors.events.EventHandlerActor
 import truerss.services.actors.sync.SourcesKeeperActor.{Update, UpdateMe, Updated}
 
+import java.time.{Clock, Instant, ZoneOffset}
 import scala.concurrent.duration._
 
 class SourceActor(source: SourceViewDto, appPluginsService: ApplicationPluginsService)
@@ -17,12 +15,11 @@ class SourceActor(source: SourceViewDto, appPluginsService: ApplicationPluginsSe
 
   import SourceActor._
   import context.dispatcher
-
   import util._
 
   val stream = context.system.eventStream
 
-  val updTime = UpdateTime(source.lastUpdate.toInstant(ZoneOffset.UTC).getEpochSecond, source.interval)
+  val updTime = UpdateTime(source)
 
   log.info(s"Next time update for ${source.name} -> ${updTime.tickTime}; " +
     s"Interval: ${updTime.interval}")
@@ -65,19 +62,22 @@ object SourceActor {
                        )
 
   object UpdateTime {
-    def apply(lastUpdate: Long, sourceInterval: Long): UpdateTime = {
-      val currentTime = new Date().getTime
-      val interval = sourceInterval * 60 // interval in hours
-      val diff = (currentTime - lastUpdate) / (60 * 1000)
-
-      val tickTime = if ((diff > interval) || diff == 0) {
-        0 seconds
+    def apply(source: SourceViewDto): UpdateTime = {
+      val interval = source.interval
+      val lastUpdate = source.lastUpdate
+        .plusHours(interval)
+        .toInstant(ZoneOffset.UTC)
+      val now = Instant.now(Clock.systemUTC())
+      val tmp = java.time.Duration.between(now, lastUpdate)
+      val between = if (tmp.isNegative) {
+        0L
       } else {
-        (interval - diff) minutes
+        tmp.getSeconds
       }
+
       UpdateTime(
-        tickTime = tickTime,
-        interval = interval minutes
+        tickTime = between seconds,
+        interval = interval hours
       )
     }
   }
