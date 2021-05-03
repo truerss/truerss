@@ -1,26 +1,24 @@
-package truerss.util
-
-import java.io.File
-import java.net.{URL, URLClassLoader}
-import java.util.jar._
+package truerss.plugins
 
 import com.github.truerss.base.{BaseFeedPlugin, _}
-import com.typesafe.config.{Config, ConfigFactory}
-import truerss.dto.ApplicationPlugins
-import truerss.plugins.DefaultSiteReader
+import com.typesafe.config.Config
+import truerss.dto.{ApplicationPlugins, PluginWithSourcePath}
 
+import java.io.File
+import java.net.URLClassLoader
+import java.util.jar._
 import scala.collection.mutable.ArrayBuffer
 import scala.language.existentials
-import scala.util.Try
 
 object PluginLoader {
 
   import scala.jdk.CollectionConverters._
 
-  val contentPluginName = "com.github.truerss.base.BaseContentPlugin"
-  val feedPluginName = "com.github.truerss.base.BaseFeedPlugin"
-  val publishPluginName = "com.github.truerss.base.BasePublishPlugin"
-  val sitePluginName = "com.github.truerss.base.BaseSitePlugin"
+  val base = "com.github.truerss.base"
+  val contentPluginName = s"$base.BaseContentPlugin"
+  val feedPluginName = s"$base.BaseFeedPlugin"
+  val publishPluginName = s"$base.BasePublishPlugin"
+  val sitePluginName = s"$base.BaseSitePlugin"
 
   def read(instance: PluginInfo, files: Iterator[String]): Vector[String] = {
     files.map { file =>
@@ -31,10 +29,10 @@ object PluginLoader {
 
   def load(dirName: String,
            pluginConfig: Config): ApplicationPlugins = {
-    val feedPlugins = ArrayBuffer[BaseFeedPlugin]()
-    val contentPlugins = ArrayBuffer[BaseContentPlugin]()
-    val publishPlugins = ArrayBuffer[BasePublishPlugin]()
-    val sitePlugins = ArrayBuffer[BaseSitePlugin]()
+    val feedPlugins = ArrayBuffer[PluginWithSourcePath[BaseFeedPlugin]]()
+    val contentPlugins = ArrayBuffer[PluginWithSourcePath[BaseContentPlugin]]()
+    val publishPlugins = ArrayBuffer[PluginWithSourcePath[BasePublishPlugin]]()
+    val sitePlugins = ArrayBuffer[PluginWithSourcePath[BaseSitePlugin]]()
     val cssFiles = ArrayBuffer[String]()
     val jsFiles = ArrayBuffer[String]()
 
@@ -48,7 +46,8 @@ object PluginLoader {
     val classLoader = URLClassLoader.newInstance(packages, getClass.getClassLoader)
 
     jars.foreach { file =>
-      val jar = new JarFile(file.getAbsolutePath)
+      val sourcePath = file.getAbsolutePath
+      val jar = new JarFile(sourcePath)
 
       val js = jar.entries().asScala.filter(x => x.getName.endsWith(".js")).map(_.getName)
 
@@ -68,7 +67,7 @@ object PluginLoader {
                 val instance = constructor.newInstance(pluginConfig)
                   .asInstanceOf[BaseContentPlugin]
 
-                contentPlugins += instance
+                contentPlugins += PluginWithSourcePath(instance, sourcePath)
                 read(instance, js).foreach(jsFiles += _)
                 read(instance, css).foreach(cssFiles += _)
 
@@ -76,7 +75,7 @@ object PluginLoader {
                 val constructor = clz.getConstructor(classOf[Config])
                 val instance = constructor.newInstance(pluginConfig)
                   .asInstanceOf[BaseFeedPlugin]
-                feedPlugins += instance
+                feedPlugins += PluginWithSourcePath(instance, sourcePath)
                 read(instance, js).foreach(jsFiles += _)
                 read(instance, css).foreach(cssFiles += _)
 
@@ -84,7 +83,7 @@ object PluginLoader {
                 val constructor = clz.getConstructor(classOf[Config])
                 val instance = constructor.newInstance(pluginConfig)
                   .asInstanceOf[BasePublishPlugin]
-                publishPlugins += instance
+                publishPlugins += PluginWithSourcePath(instance, sourcePath)
                 read(instance, js).foreach(jsFiles += _)
                 read(instance, css).foreach(cssFiles += _)
 
@@ -92,7 +91,7 @@ object PluginLoader {
                 val constructor = clz.getConstructor(classOf[Config])
                 val instance = constructor.newInstance(pluginConfig)
                   .asInstanceOf[BaseSitePlugin]
-                sitePlugins += instance
+                sitePlugins += PluginWithSourcePath(instance, sourcePath)
                 read(instance, js).foreach(jsFiles += _)
                 read(instance, css).foreach(cssFiles += _)
 

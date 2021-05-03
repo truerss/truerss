@@ -45,7 +45,8 @@ case class NewSourceFromFileWithErrors(url: String, name: String, errors: Iterab
 case class PluginDto(author: String,
                      about: String,
                      version: String,
-                     pluginName: String
+                     pluginName: String,
+                     jarSourcePath: String
                     )
 
 case class PluginsViewDto(

@@ -26,7 +26,7 @@ class MainActor(config: TrueRSSConfig,
   ), "sources-root-actor")
 
   val publishActor = create(Props(
-    classOf[PublishPluginActor], config.appPlugins.publishPlugins),
+    classOf[PublishPluginActor], applicationPluginsService),
     "publish-plugin-actor")
 
   stream.subscribe(publishActor, classOf[PublishPluginActor.PublishEvent])

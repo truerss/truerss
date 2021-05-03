@@ -3,22 +3,21 @@ package truerss.services
 import akka.event.EventStream
 import truerss.db.{DbLayer, Source}
 import truerss.db.validation.SourceValidator
-import truerss.dto.{ApplicationPlugins, NewSourceDto, Notify, NotifyLevel, SourceViewDto, UpdateSourceDto}
+import truerss.dto.{NewSourceDto, Notify, NotifyLevel, SourceViewDto, UpdateSourceDto}
 import truerss.services.actors.sync.SourcesKeeperActor
-import truerss.util.{ApplicationPluginsImplicits, EventStreamExt, FeedSourceDtoModelImplicits}
+import truerss.util.{EventStreamExt, FeedSourceDtoModelImplicits}
 import truerss.api.ws.WebSocketController
 import truerss.services.actors.events.EventHandlerActor
 import zio._
 
 class SourcesService(private val dbLayer: DbLayer,
-                     private val appPlugins: ApplicationPlugins,
+                     private val appPluginService: ApplicationPluginsService,
                      private val stream: EventStream,
                      private val sourceValidator: SourceValidator
                     ) {
 
   import FeedSourceDtoModelImplicits._
   import EventStreamExt._
-  import ApplicationPluginsImplicits._
 
   def getAllForOpml: Task[Vector[SourceViewDto]] = {
     dbLayer.sourceDao.all.map { xs => xs.map(_.toView).toVector }
@@ -82,7 +81,7 @@ class SourcesService(private val dbLayer: DbLayer,
     for {
       _ <- sourceValidator.validateSource(dto)
       source = dto.toSource
-      state = appPlugins.getState(source.url)
+      state = appPluginService.getState(source.url)
       newSource = source.withState(state)
       id <- dbLayer.sourceDao.insert(newSource).orDie
       resultSource = newSource.withId(id).toView
@@ -94,7 +93,7 @@ class SourcesService(private val dbLayer: DbLayer,
     for {
       _ <- sourceValidator.validateSource(dto)
       source = dto.toSource
-      state = appPlugins.getState(source.url)
+      state = appPluginService.getState(source.url)
       updatedSource = source.withState(state).withId(sourceId)
       _ <- dbLayer.sourceDao.updateSource(updatedSource).orDie
       view = updatedSource.toView

@@ -45,17 +45,29 @@
             </div>
         </div>
         <div class="uk-section uk-padding-small">
-           <h3>Available<h3>
+           <h5>Available<h5>
            <% for (var i = 0; i < available.length; i++) { %>
-              <h4 id="plugin-source-<%= available[i].id %>"><%= available[i].url %></h4>
-              <ul class="uk-list">
+              <h6 id="plugin-source-<%= available[i].id %>"><a href="<%= available[i].url %>"><%= available[i].url %></a></h6>
+              <table class="uk-table">
                   <% for (var j = 0; j < available[i].plugins.length; j++) { %>
-                    <% var arr = available[i].plugins[j].split("/"); %>
-                    <li data-url="<%= available[i].plugins[j] %>">
-                        <%= arr[arr.length - 1].replace(".jar", "") %>
-                    </li>
+                    <tbody>
+                    <td>
+                        <%= available[i].plugins[j].name %>
+                    </td>
+                    <td>
+                        <% if (available[i].plugins[j].installed) { %>
+                            <button
+                                data-plugin-url="<%= available[i].plugins[j].url %>"
+                                class="plugin-remove uk-button uk-button-default uk-button-small">Remove</button>
+                        <% } else { %>
+                            <button
+                                data-plugin-url="<%= available[i].plugins[j].url %>"
+                                class="plugin-install uk-button uk-button-default uk-button-small">Install</button>
+                        <% } %>
+                    </td>
+                    </tbody>
                   <% } %>
-              </ul>
+              </table>
            <% } %>
         </div>
     </div>

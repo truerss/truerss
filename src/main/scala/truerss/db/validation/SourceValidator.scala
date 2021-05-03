@@ -3,14 +3,14 @@ package truerss.db.validation
 import org.apache.commons.validator.routines.UrlValidator
 import truerss.db.DbLayer
 import truerss.db.driver.CurrentDriver
-import truerss.dto.{ApplicationPlugins, NewSourceDto, SourceDto}
-import truerss.services.ValidationError
+import truerss.dto.SourceDto
+import truerss.services.{ApplicationPluginsService, ValidationError}
 import zio._
 
 // appPlugins is needed for custom content readers (non rss/atom)
 class SourceValidator(private val dbLayer: DbLayer,
                       private val sourceUrlValidator: SourceUrlValidator,
-                      private val appPlugins: ApplicationPlugins) {
+                      private val appPluginsService: ApplicationPluginsService) {
 
   import SourceValidator._
 
@@ -45,7 +45,7 @@ class SourceValidator(private val dbLayer: DbLayer,
   }
 
   private def isPlugin(source: SourceDto): Boolean = {
-    appPlugins.matchUrl(source.url)
+    appPluginsService.matchUrl(source.url)
   }
 
   private def urlIsUnique(source: SourceDto): IO[ValidationError, Unit] = {

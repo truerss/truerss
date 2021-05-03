@@ -27,22 +27,27 @@ object AppRunner {
 
     val stream = actorSystem.eventStream
 
+    val appPluginService = new ApplicationPluginsService(actualConfig.pluginsDir, actualConfig.config)
     val settingsService = new SettingsService(dbLayer)
     val sourceOverviewService = new SourceOverviewService(dbLayer)
     val sourceUrlValidator = new SourceUrlValidator()
-    val sourceValidator = new SourceValidator(dbLayer, sourceUrlValidator, actualConfig.appPlugins)
-    val sourcesService = new SourcesService(dbLayer, actualConfig.appPlugins, stream, sourceValidator)
-    val applicationPluginsService = new ApplicationPluginsService(actualConfig.appPlugins)
+    val sourceValidator = new SourceValidator(dbLayer, sourceUrlValidator, appPluginService)
+    val sourcesService = new SourcesService(dbLayer, appPluginService, stream, sourceValidator)
+
     val opmlService = new OpmlService(sourcesService)
     val feedsService = new FeedsService(dbLayer)
-    val readerClient = new ReaderClient(applicationPluginsService)
+    val readerClient = new ReaderClient(appPluginService)
     val contentReaderService = new ContentReaderService(feedsService, readerClient)
     val searchService = new SearchService(dbLayer)
     val refreshSourcesService = new RefreshSourcesService(stream)
     val markService = new MarkService(dbLayer)
     val pluginInstaller = new PluginInstaller(actualConfig.pluginsDir)
     val pluginSourcesValidator = new PluginSourceValidator(dbLayer)
-    val pluginSourcesService = new PluginSourcesService(dbLayer, pluginInstaller, pluginSourcesValidator)
+    val pluginSourcesService = new PluginSourcesService(
+      dbLayer,
+      pluginInstaller,
+      pluginSourcesValidator
+    )
 
     val feedParallelism = settingsService.where[Int](
       Predefined.parallelism.toKey,
@@ -51,14 +56,14 @@ object AppRunner {
 
     actorSystem.actorOf(
       MainActor.props(actualConfig.withParallelism(feedParallelism),
-        applicationPluginsService, sourcesService,  feedsService),
+        appPluginService, sourcesService,  feedsService),
       "main-actor"
     )
 
     val endpoint = new RoutingEndpoint(
       feedsService = feedsService,
       sourcesService = sourcesService,
-      pluginsManagement = applicationPluginsService,
+      pluginsManagement = appPluginService,
       searchService = searchService,
       opmlService = opmlService,
       sourceOverviewService = sourceOverviewService,
