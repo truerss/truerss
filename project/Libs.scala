@@ -55,8 +55,10 @@ object Libs {
     "com.typesafe.akka" %% "akka-slf4j" % akkaVersion
   )
 
+  val scalaj = "org.scalaj" %% "scalaj-http" % scalajVersion
+
   val utils = Seq(
-    "org.scalaj" %% "scalaj-http" % scalajVersion,
+    scalaj,
     "org.scala-lang.modules" %% "scala-xml" % "1.3.0",
    ("commons-validator" % "commons-validator" % commonValidatorVersion)
       .exclude("commons-beanutils", "commons-beanutils")

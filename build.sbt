@@ -43,6 +43,12 @@ val clientAndDtos = Project("client-and-dto", file("client-and-dto"))
     libraryDependencies ++= deps
   )
 
+val client = project.in(file("clients"))
+  .settings(setup)
+  .settings(
+    libraryDependencies ++= zio ++ logs ++ Seq(scalaj, playJson)
+  ).dependsOn(clientAndDtos)
+
 val mainProject = Project("truerss", file("."))
   .configs(RealTest)
   .settings(inConfig(RealTest)(Defaults.testSettings) : _*)

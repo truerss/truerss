@@ -32,7 +32,7 @@ object JsonSupport {
     }
   }
 
-  
+
 
   implicit lazy val processingReads: Reads[Processing] = new Reads[Processing] {
     override def reads(json: JsValue): JsResult[Processing] = {
