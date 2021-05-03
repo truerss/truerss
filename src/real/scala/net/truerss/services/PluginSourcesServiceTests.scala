@@ -1,21 +1,17 @@
 package net.truerss.services
 
-import akka.actor.{Actor, ActorSystem, Props}
 import com.typesafe.config.ConfigFactory
 import org.specs2.mutable.Specification
 import org.specs2.specification.AfterAll
 import truerss.db.validation.PluginSourceValidator
 import truerss.db.{DbLayer, PluginSource, PluginSourcesDao}
 import truerss.dto.NewPluginSource
-import truerss.services.actors.MainActor
 import truerss.services.{ApplicationPluginsService, PluginNotFoundError, PluginSourcesService, ValidationError}
 import truerss.util.{PluginInstaller, TaskImplicits}
 import zio.Task
 
 import java.io.File
 import java.util.UUID
-import scala.concurrent.Await
-import scala.concurrent.duration._
 
 class PluginSourcesServiceTests extends Specification with AfterAll {
 
@@ -67,19 +63,12 @@ class PluginSourcesServiceTests extends Specification with AfterAll {
   }
   appPluginService.reload()
 
-  private var reloadActorTimes = 0
   private val service = new PluginSourcesService(
     dbLayer = dbLayer,
     pluginInstaller = installer,
     validator = validator,
     appPluginsService = appPluginService,
-    stream = null
-  ) {
-    override def fire(x: Any): Task[Unit] = {
-      reloadActorTimes = reloadActorTimes + 1
-      Task.unit
-    }
-  }
+  )
 
   private val url = "https://github.com/truerss/plugins/releases/tag/1.0.0"
 
@@ -139,7 +128,6 @@ class PluginSourcesServiceTests extends Specification with AfterAll {
       (new File(fileName)).exists() must beFalse
       appPluginService.view.materialize.size ==== 0
       reloadTimes ==== 3
-      reloadActorTimes ==== 2
     }
   }
 

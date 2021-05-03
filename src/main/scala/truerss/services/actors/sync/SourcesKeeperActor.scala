@@ -92,9 +92,8 @@ class SourcesKeeperActor(config: SourcesKeeperActor.SourcesSettings,
   def receive: Receive = uninitialized
 
   private def startSourceActor(source: SourceViewDto): Unit = {
-    val feedReader = appPluginService.getSourceReader(source)
     log.info(s"Start source actor for ${source.normalized} -> ${source.id}, state=${source.state}")
-    val props = SourceActor.props(source, feedReader)
+    val props = SourceActor.props(source, appPluginService)
     val ref = context.actorOf(props)
     ticker.addOne(source.id, ref)
   }

@@ -2,17 +2,17 @@ package truerss.services.actors.sync
 
 import java.time.ZoneOffset
 import java.util.Date
-
 import akka.actor.{Actor, ActorLogging, Props}
 import com.github.truerss.base._
 import truerss.api.ws.WebSocketController
 import truerss.dto.{Notify, NotifyLevel, SourceViewDto}
+import truerss.services.ApplicationPluginsService
 import truerss.services.actors.events.EventHandlerActor
 import truerss.services.actors.sync.SourcesKeeperActor.{Update, UpdateMe, Updated}
 
 import scala.concurrent.duration._
 
-class SourceActor(source: SourceViewDto, feedReader: BaseFeedReader)
+class SourceActor(source: SourceViewDto, appPluginsService: ApplicationPluginsService)
   extends Actor with ActorLogging {
 
   import SourceActor._
@@ -37,7 +37,7 @@ class SourceActor(source: SourceViewDto, feedReader: BaseFeedReader)
   def receive = {
     case Update =>
       log.info(s"Update ${source.normalized} -> ${source.url}")
-      feedReader.newEntries(source.url) match {
+      appPluginsService.getSourceReader(source).newEntries(source.url) match {
         case Right(xs) =>
           stream.publish(EventHandlerActor.RegisterNewFeeds(source.id, xs))
         case Left(error) =>
@@ -55,8 +55,8 @@ class SourceActor(source: SourceViewDto, feedReader: BaseFeedReader)
 }
 
 object SourceActor {
-  def props(source: SourceViewDto, feedReader: BaseFeedReader): Props = {
-    Props(classOf[SourceActor], source, feedReader)
+  def props(source: SourceViewDto, appPluginsService: ApplicationPluginsService): Props = {
+    Props(classOf[SourceActor], source, appPluginsService)
   }
 
   case class UpdateTime(

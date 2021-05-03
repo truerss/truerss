@@ -49,8 +49,7 @@ object AppRunner {
       dbLayer = dbLayer,
       pluginInstaller = pluginInstaller,
       validator = pluginSourcesValidator,
-      appPluginsService = appPluginsService,
-      stream = stream
+      appPluginsService = appPluginsService
     )
 
     val feedParallelism = settingsService.where[Int](

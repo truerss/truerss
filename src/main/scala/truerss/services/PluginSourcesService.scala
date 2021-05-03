@@ -14,8 +14,7 @@ class PluginSourcesService(
                            val pluginInstaller: PluginInstaller,
                            val validator: PluginSourceValidator,
                            val appPluginsService: ApplicationPluginsService,
-                           override val stream: EventStream
-                          ) extends DiscoveryProvider with StreamProvider {
+                          ) extends DiscoveryProvider {
 
   import PluginSourcesService._
 
@@ -23,7 +22,6 @@ class PluginSourcesService(
     for {
       _ <- pluginInstaller.install(urlToJar)
       _ <- Task(appPluginsService.reload())
-      _ <- fire(MainActor.Restart)
     } yield()
   }
 
@@ -31,7 +29,6 @@ class PluginSourcesService(
     for {
       _ <- pluginInstaller.remove(urlToJar)
       _ <- Task(appPluginsService.reload())
-      _ <- fire(MainActor.Restart)
     } yield ()
 
   }
