@@ -6,6 +6,9 @@ import akka.actor.ActorSystem
 import com.github.fntz.omhs.OMHSServer
 import truerss.util.TrueRSSConfig
 
+import java.io.File
+import java.util.UUID
+
 trait Resources {
 
   private val allocated = scala.collection.mutable.ArrayBuffer[ServerSocket]()
@@ -38,10 +41,17 @@ trait Resources {
 
   def sleep() = Thread.sleep(1000)
 
+  private val tempDir = File.createTempFile(s"test-truerss-123", "")
+  tempDir.delete()
+  tempDir.mkdir()
+  val pluginDir = new File(s"${tempDir.getPath}/plugins")
+  pluginDir.mkdir()
+
   val actualConfig = TrueRSSConfig().copy(
     host = host,
     port = port,
-    wsPort = wsPort
+    wsPort = wsPort,
+    appDir = tempDir.getPath
   )
 
   println(s" [$suiteName] ==========> port=$port, wsPort=$wsPort, serverPort=$serverPort")
@@ -92,6 +102,8 @@ trait Resources {
     if (wsClient != null)
       wsClient.closeBlocking()
     testServer.stop()
+    pluginDir.delete()
+    tempDir.delete()
   }
 
 }

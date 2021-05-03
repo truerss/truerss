@@ -5,36 +5,32 @@ import akka.event.EventStream
 import com.github.truerss.base.Entry
 import truerss.api.ws.WebSocketController
 import truerss.dto.SourceViewDto
-import truerss.services.{FeedsService, SourcesService}
-import truerss.util.EventStreamExt
+import truerss.util.TaskImplicits
+import truerss.services.{FeedsService, SourcesService, StreamProvider}
 
 class EventHandlerActor(private val sourcesService: SourcesService,
                         feedsService: FeedsService)
-  extends Actor with ActorLogging {
+  extends Actor with ActorLogging with StreamProvider {
 
   import EventHandlerActor._
-  import EventStreamExt._
+  import TaskImplicits._
 
-  val stream: EventStream = context.system.eventStream
+  override val stream: EventStream = context.system.eventStream
 
   def receive: Receive = {
     case RegisterNewFeeds(sourceId, entries) =>
       val f = for {
         feeds <- feedsService.registerNewFeeds(sourceId, entries)
-        _ <- stream.fire(PublishPluginActor.NewEntriesReceived(feeds)).when(feeds.nonEmpty)
-        _ <- stream.fire(WebSocketController.NewFeeds(feeds)).when(feeds.nonEmpty)
+        _ <- fire(PublishPluginActor.NewEntriesReceived(feeds)).when(feeds.nonEmpty)
+        _ <- fire(WebSocketController.NewFeeds(feeds)).when(feeds.nonEmpty)
       } yield ()
-      zio.Runtime.default.unsafeRunTask(f)
+      f.materialize
 
     case ModifySource(sourceId) =>
-      zio.Runtime.default.unsafeRunTask(
-        sourcesService.changeLastUpdateTime(sourceId)
-      )
+      sourcesService.changeLastUpdateTime(sourceId).materialize
 
     case NewSourceCreated(source) =>
-      zio.Runtime.default.unsafeRunTask(
-        stream.fire(WebSocketController.NewSource(source))
-      )
+      fire(WebSocketController.NewSource(source)).materialize
 
   }
 }

@@ -98,6 +98,12 @@ Array::add_to = (el) ->
 Array::contains = (el) ->
   @indexOf(el) != -1
 
+Array::first = () ->
+  @[0]
+
+Array::last = () ->
+  @[@.length - 1]
+
 Array::is_empty = () ->
   @length == 0
 

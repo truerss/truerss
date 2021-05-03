@@ -1,46 +1,69 @@
 package truerss.services
 
 import java.net.URL
-
 import com.github.truerss.base._
-import truerss.dto.{ApplicationPlugins, PluginDto, PluginsViewDto, SourceViewDto}
-import truerss.db.SourceStates
+import com.typesafe.config.{Config, ConfigFactory}
+import truerss.dto.{PluginDto, PluginsViewDto, SourceViewDto}
+import truerss.db.{SourceState, SourceStates}
+import truerss.plugins.{ApplicationPlugins, PluginLoader, PluginWithSourcePath}
 import zio.{Task, UIO}
 
-class ApplicationPluginsService(appPlugins: ApplicationPlugins) {
+import scala.util.Try
+
+class ApplicationPluginsService(private val pluginDir: String, private val config: Config) {
 
   import ApplicationPluginsService._
   private type CR = BaseContentReader with UrlMatcher with Priority with PluginInfo
 
-  def js: UIO[String] = Task.effectTotal(appPlugins.js.mkString)
+  @volatile protected var currentState: ApplicationPlugins = ApplicationPlugins()
 
-  def css: UIO[String] = Task.effectTotal(appPlugins.css.mkString)
+  private val empty = ConfigFactory.empty()
+
+  def reload(): Unit = {
+    val c = Try(config.getConfig(fPlugins)).getOrElse(empty)
+    currentState = PluginLoader.load(pluginDir, c)
+  }
+
+  def publishPlugins: Vector[BasePublishPlugin] =
+    currentState.publishPlugins.map(_.plugin)
+
+  def js: UIO[String] = Task.effectTotal(currentState.js.mkString)
+
+  def css: UIO[String] = Task.effectTotal(currentState.css.mkString)
+
+  def getState(url: String): SourceState = {
+    currentState.getState(url)
+  }
+
+  def matchUrl(url: String): Boolean = {
+    Try(matchUrl(new URL(url))).getOrElse(false)
+  }
 
   def matchUrl(url: URL): Boolean = {
-    appPlugins.inFeed(url) ||
-      appPlugins.inContent(url) ||
-      appPlugins.inSite(url)
+    currentState.inFeed(url) ||
+      currentState.inContent(url) ||
+      currentState.inSite(url)
   }
 
   def getFeedReader(url: URL): Option[BasePlugin] = {
-    appPlugins.getFeedReader(url)
+    currentState.getFeedReader(url)
   }
 
   def getContentReader(url: URL): Option[BasePlugin] = {
-    appPlugins.getContentReader(url)
+    currentState.getContentReader(url)
   }
 
   def getContentReaderOrDefault(url: URL): BasePlugin = {
-    appPlugins.getContentReaderOrDefault(url)
+    currentState.getContentReaderOrDefault(url)
   }
 
   def view: UIO[PluginsViewDto] = {
     UIO.effectTotal {
       PluginsViewDto(
-        feed = appPlugins.feedPlugins.map(baseToDto),
-        content = appPlugins.contentPlugins.map(baseToDto),
-        publish = appPlugins.publishPlugins.map(baseToDto),
-        site = appPlugins.sitePlugins.map(baseToDto)
+        feed = currentState.feedPlugins.map(baseToDto),
+        content = currentState.contentPlugins.map(baseToDto),
+        publish = currentState.publishPlugins.map(baseToDto),
+        site = currentState.sitePlugins.map(baseToDto)
       )
     }
   }
@@ -49,21 +72,33 @@ class ApplicationPluginsService(appPlugins: ApplicationPlugins) {
     val url = new URL(source.url)
     source.state match {
       case SourceStates.Enable =>
-        appPlugins.getSourceReader(url)
+        currentState.getSourceReader(url)
       case SourceStates.Neutral | SourceStates.Disable =>
-        appPlugins.defaultPlugin
+        currentState.defaultPlugin
     }
   }
 
 }
 
 object ApplicationPluginsService {
-  private def baseToDto[T <: PluginInfo](x: T): PluginDto = {
+  private val fPlugins = "plugins"
+  private def baseToDto[T <: PluginInfo](x: PluginWithSourcePath[T]): PluginDto = {
     PluginDto(
-      author = x.author,
-      about = x.about,
-      version = x.version,
-      pluginName = x.pluginName
+      author = x.plugin.author,
+      about = x.plugin.about,
+      version = x.plugin.version,
+      pluginName = x.plugin.pluginName,
+      jarSourcePath = x.jarSourcePath
     )
+  }
+
+  implicit class ApplicationPluginsExt(val a: ApplicationPlugins) extends AnyVal {
+    def getState(url: String): SourceState = {
+      if (a.matchUrl(url)) {
+        SourceStates.Enable
+      } else {
+        SourceStates.Neutral
+      }
+    }
   }
 }

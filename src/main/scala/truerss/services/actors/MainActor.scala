@@ -19,20 +19,19 @@ class MainActor(config: TrueRSSConfig,
     EventHandlerActor.props(sourcesService, feedsService),
     "event-handler-actor")
 
+  val publishActor = create(Props(
+    classOf[PublishPluginActor], applicationPluginsService),
+    "publish-plugin-actor")
+
   val sourcesRef = create(SourcesKeeperActor.props(
     SourcesKeeperActor.SourcesSettings(config.feedParallelism),
     applicationPluginsService,
     sourcesService
-  ), "sources-root-actor")
-
-  val publishActor = create(Props(
-    classOf[PublishPluginActor], config.appPlugins.publishPlugins),
-    "publish-plugin-actor")
+  ), s"source-keeper-actor")
 
   stream.subscribe(publishActor, classOf[PublishPluginActor.PublishEvent])
   stream.subscribe(eventHandlerActor, classOf[EventHandlerActor.EventHandlerActorMessage])
   stream.subscribe(sourcesRef, classOf[SourcesKeeperActor.SourcesMessage])
-
 
   def receive = {
     case x =>
@@ -46,6 +45,7 @@ class MainActor(config: TrueRSSConfig,
 }
 
 object MainActor {
+
   def props(config: TrueRSSConfig,
             applicationPluginsService: ApplicationPluginsService,
             sourcesService: SourcesService,

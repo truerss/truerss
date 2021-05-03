@@ -23,6 +23,7 @@ class SourcesApi(feedsService: FeedsService,
   private val all = get(base / "all") ~> { () =>
     ss.findAll
   }
+
   private val findOne = get(base / long) ~> { (sourceId: Long) =>
     ss.getSource(sourceId)
   }

@@ -3,22 +3,20 @@ package truerss.services
 import akka.event.EventStream
 import truerss.db.{DbLayer, Source}
 import truerss.db.validation.SourceValidator
-import truerss.dto.{ApplicationPlugins, NewSourceDto, Notify, NotifyLevel, SourceViewDto, UpdateSourceDto}
+import truerss.dto.{NewSourceDto, Notify, NotifyLevel, SourceViewDto, UpdateSourceDto}
 import truerss.services.actors.sync.SourcesKeeperActor
-import truerss.util.{ApplicationPluginsImplicits, EventStreamExt, FeedSourceDtoModelImplicits}
+import truerss.util.FeedSourceDtoModelImplicits
 import truerss.api.ws.WebSocketController
 import truerss.services.actors.events.EventHandlerActor
 import zio._
 
-class SourcesService(private val dbLayer: DbLayer,
-                     private val appPlugins: ApplicationPlugins,
-                     private val stream: EventStream,
-                     private val sourceValidator: SourceValidator
-                    ) {
+class SourcesService(val dbLayer: DbLayer,
+                     val appPluginService: ApplicationPluginsService,
+                     override val stream: EventStream,
+                     val sourceValidator: SourceValidator
+                    ) extends StreamProvider {
 
   import FeedSourceDtoModelImplicits._
-  import EventStreamExt._
-  import ApplicationPluginsImplicits._
 
   def getAllForOpml: Task[Vector[SourceViewDto]] = {
     dbLayer.sourceDao.all.map { xs => xs.map(_.toView).toVector }
@@ -48,7 +46,7 @@ class SourcesService(private val dbLayer: DbLayer,
       view = source.toView
       _ <- dbLayer.sourceDao.delete(sourceId)
       _ <- dbLayer.feedDao.deleteFeedsBySource(sourceId)
-      _ <- stream.fire(SourcesKeeperActor.SourceDeleted(view))
+      _ <- fire(SourcesKeeperActor.SourceDeleted(view))
     } yield ()
   }
 
@@ -60,16 +58,16 @@ class SourcesService(private val dbLayer: DbLayer,
         addSource(dto).foldM(
         {
           case ValidationError(errors) =>
-            stream.fire(WebSocketController.NotifyMessage(
+            fire(WebSocketController.NotifyMessage(
               Notify(errors.mkString(", "), NotifyLevel.Warning)
             ))
           case ex: Throwable =>
-            stream.fire(WebSocketController.NotifyMessage(
+            fire(WebSocketController.NotifyMessage(
               Notify(ex.getMessage, NotifyLevel.Warning)
             ))
         },
           validSource => {
-            stream.fire(
+            fire(
               EventHandlerActor.NewSourceCreated(validSource)
             )
           }
@@ -82,11 +80,11 @@ class SourcesService(private val dbLayer: DbLayer,
     for {
       _ <- sourceValidator.validateSource(dto)
       source = dto.toSource
-      state = appPlugins.getState(source.url)
+      state = appPluginService.getState(source.url)
       newSource = source.withState(state)
       id <- dbLayer.sourceDao.insert(newSource).orDie
       resultSource = newSource.withId(id).toView
-      _ <- stream.fire(SourcesKeeperActor.NewSource(resultSource))
+      _ <- fire(SourcesKeeperActor.NewSource(resultSource))
     } yield resultSource
   }
 
@@ -94,11 +92,11 @@ class SourcesService(private val dbLayer: DbLayer,
     for {
       _ <- sourceValidator.validateSource(dto)
       source = dto.toSource
-      state = appPlugins.getState(source.url)
+      state = appPluginService.getState(source.url)
       updatedSource = source.withState(state).withId(sourceId)
       _ <- dbLayer.sourceDao.updateSource(updatedSource).orDie
       view = updatedSource.toView
-      _ <- stream.fire(SourcesKeeperActor.ReloadSource(view))
+      _ <- fire(SourcesKeeperActor.ReloadSource(view))
     } yield view
   }
 

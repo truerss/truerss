@@ -5,7 +5,7 @@ import java.time.{Clock, LocalDateTime}
 import slick.jdbc.JdbcBackend.DatabaseDef
 import truerss.db.driver.CurrentDriver
 import truerss.services.NotFoundError
-import zio.{IO, Task, ZIO}
+import zio.{IO, Task}
 
 class SourcesDao(val db: DatabaseDef)(implicit
                                       driver: CurrentDriver

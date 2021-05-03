@@ -1,6 +1,8 @@
 project/project
 project/target
-target
+*.tdb*
+sqlite-test.tdb-journal
+*.jar
 output*
 *.class
 *.log

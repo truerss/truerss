@@ -9,3 +9,5 @@ object ValidationError {
 case class ContentReadError(error: String) extends Throwable
 
 case class NotFoundError(entityId: Long) extends Throwable
+
+case object PluginNotFoundError extends Throwable

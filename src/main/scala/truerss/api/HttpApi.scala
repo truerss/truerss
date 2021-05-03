@@ -3,9 +3,8 @@ package truerss.api
 import com.github.fntz.omhs.{BodyWriter, CommonResponse}
 import io.netty.handler.codec.http.HttpResponseStatus
 import io.netty.util.CharsetUtil
-
 import play.api.libs.json._
-import truerss.services.{ContentReadError, NotFoundError, ValidationError}
+import truerss.services.{ContentReadError, NotFoundError, PluginNotFoundError, ValidationError}
 import zio.Task
 
 /**
@@ -43,6 +42,7 @@ object HttpApi {
           content = printErrors(error :: Nil).getBytes(CharsetUtil.UTF_8)
         )
       case NotFoundError(_) => notFound
+      case PluginNotFoundError => notFound
       case _ => internal
     }, identity)
   }

@@ -6,8 +6,9 @@ import akka.actor.{Actor, ActorLogging}
 import com.github.truerss.base.PublishActions.NewEntries
 import com.github.truerss.base.{BasePublishPlugin, Entry, PublishActions}
 import truerss.dto.FeedDto
+import truerss.services.ApplicationPluginsService
 
-class PublishPluginActor(plugins: Vector[BasePublishPlugin])
+class PublishPluginActor(appPluginService: ApplicationPluginsService)
   extends Actor with ActorLogging {
 
   import PublishActions.Favorite
@@ -15,13 +16,13 @@ class PublishPluginActor(plugins: Vector[BasePublishPlugin])
 
   def receive: Receive = {
     case AddToFavorites(feed) =>
-      plugins.foreach { pp =>
+      appPluginService.publishPlugins.foreach { pp =>
         log.info(s"Publish to ${pp.pluginName}")
         pp.publish(Favorite(feed.toEntry))
       }
 
     case NewEntriesReceived(xs) =>
-      plugins.foreach(_.publish(NewEntries(xs.map(_.toEntry))))
+      appPluginService.publishPlugins.foreach(_.publish(NewEntries(xs.map(_.toEntry))))
   }
 
 }
