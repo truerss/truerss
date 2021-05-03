@@ -19,7 +19,7 @@ class SourcesKeeperActor(config: SourcesKeeperActor.SourcesSettings,
 
   private val ticker = new Ticker[ActorRef](config.parallelFeedUpdate)
 
-  override val supervisorStrategy = OneForOneStrategy() {
+  override val supervisorStrategy: OneForOneStrategy = OneForOneStrategy() {
     case x: Throwable =>
       log.warning(s"exception in source actor: $x")
       Resume
@@ -91,7 +91,7 @@ class SourcesKeeperActor(config: SourcesKeeperActor.SourcesSettings,
 
   def receive: Receive = uninitialized
 
-  private def startSourceActor(source: SourceViewDto) = {
+  private def startSourceActor(source: SourceViewDto): Unit = {
     val feedReader = appPluginService.getSourceReader(source)
     log.info(s"Start source actor for ${source.normalized} -> ${source.id}, state=${source.state}")
     val props = SourceActor.props(source, feedReader)

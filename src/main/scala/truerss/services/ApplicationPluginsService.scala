@@ -15,7 +15,7 @@ class ApplicationPluginsService(val pluginDir: String, val config: Config) {
   import ApplicationPluginsService._
   private type CR = BaseContentReader with UrlMatcher with Priority with PluginInfo
 
-  @volatile private var currentState: ApplicationPlugins = ApplicationPlugins()
+  @volatile protected var currentState: ApplicationPlugins = ApplicationPlugins()
 
   def reload(): Unit = {
     currentState = PluginLoader.load(pluginDir, config.getConfig(fPlugins))

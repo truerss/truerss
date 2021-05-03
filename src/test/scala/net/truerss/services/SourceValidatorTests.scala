@@ -8,7 +8,7 @@ import truerss.db.driver.CurrentDriver
 import truerss.db.{DbLayer, SourcesDao}
 import truerss.db.validation.{SourceUrlValidator, SourceValidator}
 import truerss.dto.ApplicationPlugins
-import truerss.services.ValidationError
+import truerss.services.{ApplicationPluginsService, ValidationError}
 import zio.Task
 
 class SourceValidatorTests extends Specification with Mockito {
@@ -97,13 +97,16 @@ class SourceValidatorTests extends Specification with Mockito {
     val dbLayer = mock[DbLayer]
     val sourceDao = mock[SourcesDao]
     val sourceUrlValidator = mock[SourceUrlValidator]
-    val appPlugins = mock[ApplicationPlugins]
+    val appPluginsService = mock[ApplicationPluginsService]
     dbLayer.sourceDao returns sourceDao
 
     var validator: SourceValidator = _
 
     def init() = {
-      validator = new SourceValidator(dbLayer, sourceUrlValidator, appPlugins)
+      validator = new SourceValidator(
+        dbLayer,
+        sourceUrlValidator,
+        appPluginsService)
     }
 
   }

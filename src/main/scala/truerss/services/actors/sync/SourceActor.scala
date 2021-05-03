@@ -12,8 +12,7 @@ import truerss.services.actors.sync.SourcesKeeperActor.{Update, UpdateMe, Update
 
 import scala.concurrent.duration._
 
-class SourceActor(source: SourceViewDto,
-                  feedReader: BaseFeedReader)
+class SourceActor(source: SourceViewDto, feedReader: BaseFeedReader)
   extends Actor with ActorLogging {
 
   import SourceActor._

@@ -1,14 +1,13 @@
 package net.truerss.services
 
-import java.net.URL
-
 import com.github.truerss.base._
-import com.typesafe.config.Config
+import com.typesafe.config.ConfigFactory
 import net.truerss.Gen
-import org.specs2.mock.Mockito
 import org.specs2.mutable.SpecificationLike
-import truerss.dto.ApplicationPlugins
+import truerss.dto.{ApplicationPlugins, PluginWithSourcePath}
 import truerss.services.ApplicationPluginsService
+
+import java.net.URL
 
 class ApplicationPluginsServiceTest extends SpecificationLike {
 
@@ -28,12 +27,18 @@ class ApplicationPluginsServiceTest extends SpecificationLike {
 
 
       val ap = ApplicationPlugins(
-        feedPlugins = Vector(new TestFeedBasePlugin(testUrl1)),
-        contentPlugins = Vector(new TestBaseContentPlugin(testUrl2)),
-        sitePlugins = Vector(new TestSitePlugin(testUrl3))
+        feedPlugins = Vector(PluginWithSourcePath(new TestFeedBasePlugin(testUrl1), "")),
+        contentPlugins = Vector(PluginWithSourcePath(new TestBaseContentPlugin(testUrl2), "")),
+        sitePlugins = Vector(PluginWithSourcePath(new TestSitePlugin(testUrl3), ""))
       )
 
-      val service = new ApplicationPluginsService(ap)
+      val service = new ApplicationPluginsService("/tmp/test", ConfigFactory.empty()) {
+        override def reload(): Unit = {
+          currentState = ap
+        }
+      }
+      service.reload()
+
 
       service.matchUrl(testUrl1) must beTrue
       service.matchUrl(testUrl2) must beTrue
@@ -50,12 +55,18 @@ class ApplicationPluginsServiceTest extends SpecificationLike {
       val c = new TestBaseContentPlugin(testUrl1)
 
       val ap = ApplicationPlugins(
-        feedPlugins = Vector(f),
-        contentPlugins = Vector(c),
-        sitePlugins = Vector(s)
+        feedPlugins = Vector(PluginWithSourcePath(f, "")),
+        contentPlugins = Vector(PluginWithSourcePath(c, "")),
+        sitePlugins = Vector(PluginWithSourcePath(s, ""))
       )
 
-      val service = new ApplicationPluginsService(ap)
+      val service = new ApplicationPluginsService("/tmp/test", ConfigFactory.empty()) {
+        override def reload(): Unit = {
+          currentState = ap
+        }
+      }
+      service.reload()
+
 
       service.getFeedReader(testUrl1).get ==== s
     }
@@ -68,12 +79,17 @@ class ApplicationPluginsServiceTest extends SpecificationLike {
       val c = new TestBaseContentPlugin(testUrl1)
 
       val ap = ApplicationPlugins(
-        feedPlugins = Vector(f),
-        contentPlugins = Vector(c),
-        sitePlugins = Vector(s)
+        feedPlugins = Vector(PluginWithSourcePath(f, "")),
+        contentPlugins = Vector(PluginWithSourcePath(c, "")),
+        sitePlugins = Vector(PluginWithSourcePath(s, ""))
       )
 
-      val service = new ApplicationPluginsService(ap)
+      val service = new ApplicationPluginsService("/tmp/test", ConfigFactory.empty()) {
+        override def reload(): Unit = {
+          currentState = ap
+        }
+      }
+      service.reload()
 
       service.getContentReader(testUrl1).get ==== c
     }
