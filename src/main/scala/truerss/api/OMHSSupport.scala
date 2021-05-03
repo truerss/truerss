@@ -4,10 +4,10 @@ import com.github.fntz.omhs.{BodyReader, BodyWriter, CommonResponse}
 import com.github.fntz.omhs.playjson.JsonSupport
 import io.netty.handler.codec.http.HttpResponseStatus
 import io.netty.util.CharsetUtil
-import truerss.dto.{AvailableSetup, UninstallPlugin, FeedContent, FeedDto, InstallPlugin, NewPluginSource, NewSetup, NewSourceDto, Page, PluginSourceDto, PluginsViewDto, SearchRequest, SourceOverview, SourceViewDto, UpdateSourceDto}
+import truerss.dto.{AvailableSetup, FeedContent, FeedDto, InstallPlugin, NewPluginSource, NewSetup, NewSourceDto, Page, PluginSourceDto, PluginsViewDto, Processing, SearchRequest, SourceOverview, SourceViewDto, UninstallPlugin, UpdateSourceDto}
 
 object OMHSSupport {
-  import JsonFormats._
+  import truerss.json.JsonFormats._
 
   implicit val pageWriter: BodyWriter[Page[FeedDto]] = JsonSupport.writer[Page[FeedDto]]()
   implicit val feedDtoWriter: BodyWriter[FeedDto] = JsonSupport.writer[FeedDto]()

@@ -1,7 +1,7 @@
 package truerss.clients
 
-import truerss.api.JsonFormats
 import truerss.dto._
+import truerss.json.JsonFormats
 import zio.Task
 
 class FeedsApiHttpClient(baseUrl: String) extends BaseHttpClient(baseUrl) {

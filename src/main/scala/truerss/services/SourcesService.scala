@@ -3,10 +3,10 @@ package truerss.services
 import akka.event.EventStream
 import truerss.db.{DbLayer, Source}
 import truerss.db.validation.SourceValidator
-import truerss.dto.{NewSourceDto, Notify, NotifyLevel, SourceViewDto, UpdateSourceDto}
+import truerss.dto.{NewSourceDto, SourceViewDto, UpdateSourceDto}
 import truerss.services.actors.sync.SourcesKeeperActor
 import truerss.util.FeedSourceDtoModelImplicits
-import truerss.api.ws.WebSocketController
+import truerss.api.ws.{Notify, NotifyLevel, WebSocketController}
 import truerss.services.actors.events.EventHandlerActor
 import zio._
 

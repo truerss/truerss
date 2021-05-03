@@ -1,8 +1,8 @@
 package truerss.clients
 
 import play.api.libs.json.Json
-import truerss.api.JsonFormats
 import truerss.dto.{AvailableSetup, NewSetup}
+import truerss.json.JsonFormats
 import zio.Task
 
 class SettingsApiHttpClient(baseUrl: String) extends BaseHttpClient(baseUrl) {

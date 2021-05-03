@@ -1,8 +1,8 @@
 package truerss.clients
 
 import play.api.libs.json.Json
-import truerss.api.JsonFormats
 import truerss.dto.{FeedDto, Page, SearchRequest}
+import truerss.json.JsonFormats
 import zio.Task
 
 class SearchApiHttpClient(baseUrl: String) extends BaseHttpClient(baseUrl) {

@@ -1,8 +1,8 @@
-package truerss.dto
-
-import java.util.Date
+package truerss.plugins
 
 import com.github.truerss.base.Entry
+
+import java.util.Date
 
 case class EntryDto(
    url: Option[String],

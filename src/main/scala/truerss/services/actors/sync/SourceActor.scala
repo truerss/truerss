@@ -1,8 +1,8 @@
 package truerss.services.actors.sync
 
 import akka.actor.{Actor, ActorLogging, Props}
-import truerss.api.ws.WebSocketController
-import truerss.dto.{Notify, NotifyLevel, SourceViewDto}
+import truerss.api.ws.{Notify, NotifyLevel, WebSocketController}
+import truerss.dto.SourceViewDto
 import truerss.services.ApplicationPluginsService
 import truerss.services.actors.events.EventHandlerActor
 import truerss.services.actors.sync.SourcesKeeperActor.{Update, UpdateMe, Updated}

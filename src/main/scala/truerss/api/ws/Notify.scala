@@ -1,4 +1,4 @@
-package truerss.dto
+package truerss.api.ws
 
 case class Notify(message: String, level: NotifyLevel.Value)
 

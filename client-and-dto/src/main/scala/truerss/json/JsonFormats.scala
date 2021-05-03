@@ -1,10 +1,9 @@
-package truerss.api
-
-import java.util.Date
+package truerss.json
 
 import play.api.libs.json._
-import truerss.db._
 import truerss.dto._
+
+import java.util.Date
 
 object JsonFormats {
 

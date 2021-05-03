@@ -1,8 +1,8 @@
 package truerss.clients
 
 import scalaj.http.Http
-import truerss.api.JsonFormats
 import truerss.dto.PluginsViewDto
+import truerss.json.JsonFormats
 import zio.Task
 
 class PluginsApiHttpClient(baseUrl: String) extends BaseHttpClient(baseUrl) {

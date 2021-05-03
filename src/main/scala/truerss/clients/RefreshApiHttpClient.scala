@@ -1,6 +1,6 @@
 package truerss.clients
 
-import truerss.api.JsonFormats
+import truerss.json.JsonFormats
 import zio.Task
 
 class RefreshApiHttpClient(baseUrl: String) extends BaseHttpClient(baseUrl) {
