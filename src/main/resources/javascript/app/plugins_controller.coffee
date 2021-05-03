@@ -34,7 +34,10 @@ PluginsController =
             }
           obj
 
-        result = Templates.plugins_template.render({plugins: list, available: available})
+        is_empty = true
+        for _, v of list
+          is_empty = false unless v.is_empty()
+        result = Templates.plugins_template.render({plugins: list, is_empty: is_empty, available: available})
         Templates.plugins_view.render(result).html()
 
   show: () ->

@@ -2,7 +2,6 @@ package truerss.plugins
 
 import com.github.truerss.base.{BaseFeedPlugin, _}
 import com.typesafe.config.Config
-import truerss.dto.{ApplicationPlugins, PluginWithSourcePath}
 
 import java.io.File
 import java.net.URLClassLoader
@@ -13,19 +12,13 @@ import scala.language.existentials
 object PluginLoader {
 
   import scala.jdk.CollectionConverters._
+  import JarImplicits._
 
   val base = "com.github.truerss.base"
   val contentPluginName = s"$base.BaseContentPlugin"
   val feedPluginName = s"$base.BaseFeedPlugin"
   val publishPluginName = s"$base.BasePublishPlugin"
   val sitePluginName = s"$base.BaseSitePlugin"
-
-  def read(instance: PluginInfo, files: Iterator[String]): Vector[String] = {
-    files.map { file =>
-      val stream = instance.getClass.getResourceAsStream(s"/$file")
-      scala.io.Source.fromInputStream(stream).mkString
-    }.toVector
-  }
 
   def load(dirName: String,
            pluginConfig: Config): ApplicationPlugins = {
@@ -45,55 +38,49 @@ object PluginLoader {
 
     val classLoader = URLClassLoader.newInstance(packages, getClass.getClassLoader)
 
+    def init[T](c: Class[_]) = {
+      val constructor = c.getConstructor(classOf[Config])
+      constructor.newInstance(pluginConfig).asInstanceOf[T]
+    }
+
     jars.foreach { file =>
       val sourcePath = file.getAbsolutePath
       val jar = new JarFile(sourcePath)
 
-      val js = jar.entries().asScala.filter(x => x.getName.endsWith(".js")).map(_.getName)
+      val js = jar.reads(".js")
 
-      val css = jar.entries().asScala.filter(x => x.getName.endsWith(".css")).map(_.getName)
+      val css = jar.reads(".css")
 
-      jar.entries().asScala.filter(_.getName.contains(".class"))
-      .filterNot(_.getName.contains("$")).foreach { entry =>
-        val cc = entry.getName.split("""/""")
-          .mkString(".").replaceAll(""".class""", "")
-        val clz = classLoader.loadClass(cc)
+      jar.classes.foreach { entry =>
+        val clz = classLoader.loadClass(entry.klass)
         try {
           val superClass = clz.getSuperclass
+
           if (superClass != null) {
             superClass.getCanonicalName match {
               case `contentPluginName` =>
-                val constructor = clz.getConstructor(classOf[Config])
-                val instance = constructor.newInstance(pluginConfig)
-                  .asInstanceOf[BaseContentPlugin]
-
+                val instance = init[BaseContentPlugin](clz)
                 contentPlugins += PluginWithSourcePath(instance, sourcePath)
-                read(instance, js).foreach(jsFiles += _)
-                read(instance, css).foreach(cssFiles += _)
+                readAssets(instance, js).foreach(jsFiles += _)
+                readAssets(instance, css).foreach(cssFiles += _)
 
               case `feedPluginName` =>
-                val constructor = clz.getConstructor(classOf[Config])
-                val instance = constructor.newInstance(pluginConfig)
-                  .asInstanceOf[BaseFeedPlugin]
+                val instance = init[BaseFeedPlugin](clz)
                 feedPlugins += PluginWithSourcePath(instance, sourcePath)
-                read(instance, js).foreach(jsFiles += _)
-                read(instance, css).foreach(cssFiles += _)
+                readAssets(instance, js).foreach(jsFiles += _)
+                readAssets(instance, css).foreach(cssFiles += _)
 
               case `publishPluginName` =>
-                val constructor = clz.getConstructor(classOf[Config])
-                val instance = constructor.newInstance(pluginConfig)
-                  .asInstanceOf[BasePublishPlugin]
+                val instance = init[BasePublishPlugin](clz)
                 publishPlugins += PluginWithSourcePath(instance, sourcePath)
-                read(instance, js).foreach(jsFiles += _)
-                read(instance, css).foreach(cssFiles += _)
+                readAssets(instance, js).foreach(jsFiles += _)
+                readAssets(instance, css).foreach(cssFiles += _)
 
               case `sitePluginName` =>
-                val constructor = clz.getConstructor(classOf[Config])
-                val instance = constructor.newInstance(pluginConfig)
-                  .asInstanceOf[BaseSitePlugin]
+                val instance = init[BaseSitePlugin](clz)
                 sitePlugins += PluginWithSourcePath(instance, sourcePath)
-                read(instance, js).foreach(jsFiles += _)
-                read(instance, css).foreach(cssFiles += _)
+                readAssets(instance, js).foreach(jsFiles += _)
+                readAssets(instance, css).foreach(cssFiles += _)
 
               case _ =>
             }
@@ -115,5 +102,36 @@ object PluginLoader {
       css = cssFiles.toVector,
       js = jsFiles.toVector
     )
+  }
+
+  private def readAssets(instance: PluginInfo, files: Iterator[String]): Vector[String] = {
+    files.map { file =>
+      val stream = instance.getClass.getResourceAsStream(s"/$file")
+      scala.io.Source.fromInputStream(stream).mkString
+    }.toVector
+  }
+}
+
+object JarImplicits {
+  import scala.jdk.CollectionConverters._
+
+  implicit class JarEntryExt(val entry: JarEntry) extends AnyVal {
+    def klass: String = {
+      entry.getName.split("""/""")
+        .mkString(".").replaceAll(""".class""", "")
+    }
+  }
+
+  implicit class JarFileExt(val jar: JarFile) extends AnyVal {
+    def reads(ext: String): Iterator[String] = {
+      jar.entries().asScala.filter(x => x.getName.endsWith(ext))
+        .map(_.getName)
+    }
+
+    def classes: Iterator[JarEntry] = {
+      jar.entries().asScala
+        .filter(_.getName.contains(".class"))
+        .filterNot(_.getName.contains("$"))
+    }
   }
 }

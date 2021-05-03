@@ -5,49 +5,53 @@
     </div>
     <div class="uk-modal-body">
         <div class="uk-section uk-padding-small">
-            <div>
-                <% if (plugins.feed.length > 0) { %>
-                    <dl class="uk-description-list">
-                        <% for(var i = 0; i < plugins.feed.length; i++) { %>
-                            <dt><%= plugins.feed[i].pluginName %> (v<%= plugins.feed[i].version %>)</dt>
-                            <dd><%= plugins.feed[i].about %></dd>
-                        <% } %>
-                    </dl>
+           <div>
+                <% if (!is_empty) { %>
+                    <% if (plugins.feed.length > 0) { %>
+                        <dl class="uk-description-list">
+                            <% for(var i = 0; i < plugins.feed.length; i++) { %>
+                                <dt><%= plugins.feed[i].pluginName %> (v<%= plugins.feed[i].version %>)</dt>
+                                <dd><%= plugins.feed[i].about %></dd>
+                            <% } %>
+                        </dl>
+                    <% } %>
+
+                    <% if (plugins.content.length > 0) { %>
+                        <dl class="uk-description-list">
+                            <% for(var i = 0; i < plugins.content.length; i++) { %>
+                                <dt><%= plugins.content[i].pluginName %> (v<%= plugins.content[i].version %>)</dt>
+                                <dd><%= plugins.content[i].about %></dd>
+                            <% } %>
+                        </dl>
+                    <% } %>
+
+                    <% if (plugins.publish.length > 0) { %>
+                        <dl class="uk-description-list">
+                            <% for(var i = 0; i < plugins.publish.length; i++) { %>
+                                <dt><%= plugins.publish[i].pluginName %> (v<%= plugins.publish[i].version %>)</dt>
+                                <dd><%= plugins.publish[i].about %></dd>
+                            <% } %>
+                        </dl>
+                    <% } %>
+
+                    <% if (plugins.site.length > 0) { %>
+                        <dl class="uk-description-list">
+                            <% for(var i = 0; i < plugins.site.length; i++) { %>
+                                <dt><%= plugins.site[i].pluginName %> (v<%= plugins.site[i].version %>)</dt>
+                                <dd><%= plugins.site[i].about %></dd>
+                            <% } %>
+                        </dl>
+                    <% } %>
+                <% } else { %>
+                    <h5>No plugins installed<h5>
                 <% } %>
 
-                <% if (plugins.content.length > 0) { %>
-                    <dl class="uk-description-list">
-                        <% for(var i = 0; i < plugins.content.length; i++) { %>
-                            <dt><%= plugins.content[i].pluginName %> (v<%= plugins.content[i].version %>)</dt>
-                            <dd><%= plugins.content[i].about %></dd>
-                        <% } %>
-                    </dl>
-                <% } %>
-
-                <% if (plugins.publish.length > 0) { %>
-                    <dl class="uk-description-list">
-                        <% for(var i = 0; i < plugins.publish.length; i++) { %>
-                            <dt><%= plugins.publish[i].pluginName %> (v<%= plugins.publish[i].version %>)</dt>
-                            <dd><%= plugins.publish[i].about %></dd>
-                        <% } %>
-                    </dl>
-                <% } %>
-
-                <% if (plugins.site.length > 0) { %>
-                    <dl class="uk-description-list">
-                        <% for(var i = 0; i < plugins.site.length; i++) { %>
-                            <dt><%= plugins.site[i].pluginName %> (v<%= plugins.site[i].version %>)</dt>
-                            <dd><%= plugins.site[i].about %></dd>
-                        <% } %>
-                    </dl>
-                <% } %>
-
-            </div>
+          </div>
         </div>
         <div class="uk-section uk-padding-small">
-           <h5>Available<h5>
+<!--            <h5>Available<h5> -->
            <% for (var i = 0; i < available.length; i++) { %>
-              <h6 id="plugin-source-<%= available[i].id %>"><a href="<%= available[i].url %>"><%= available[i].url %></a></h6>
+<!--               <h6 id="plugin-source-<%= available[i].id %>"><a href="<%= available[i].url %>"><%= available[i].url %></a></h6> -->
               <table class="uk-table">
                   <% for (var j = 0; j < available[i].plugins.length; j++) { %>
                     <tbody>

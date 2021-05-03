@@ -3,9 +3,9 @@ package truerss.services
 import java.net.URL
 import com.github.truerss.base._
 import com.typesafe.config.{Config, ConfigFactory}
-import truerss.dto.{ApplicationPlugins, PluginDto, PluginWithSourcePath, PluginsViewDto, SourceViewDto}
+import truerss.dto.{PluginDto, PluginsViewDto, SourceViewDto}
 import truerss.db.{SourceState, SourceStates}
-import truerss.plugins.PluginLoader
+import truerss.plugins.{ApplicationPlugins, PluginLoader, PluginWithSourcePath}
 import zio.{Task, UIO}
 
 import scala.util.Try

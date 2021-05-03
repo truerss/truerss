@@ -1,17 +1,10 @@
-package truerss.dto
-
-import java.net.URL
+package truerss.plugins
 
 import com.github.truerss.base._
 import com.typesafe.config.ConfigFactory
-import truerss.plugins.DefaultSiteReader
 
+import java.net.URL
 import scala.util.Try
-
-case class PluginWithSourcePath[T <: PluginInfo](
-                     plugin: T,
-                     jarSourcePath: String
-                   )
 
 case class ApplicationPlugins(
                                feedPlugins: Vector[PluginWithSourcePath[BaseFeedPlugin]] = Vector.empty,

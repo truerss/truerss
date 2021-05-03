@@ -4,7 +4,7 @@ import com.github.truerss.base._
 import com.typesafe.config.ConfigFactory
 import net.truerss.Gen
 import org.specs2.mutable.SpecificationLike
-import truerss.dto.{ApplicationPlugins, PluginWithSourcePath}
+import truerss.plugins.{ApplicationPlugins, PluginWithSourcePath}
 import truerss.services.ApplicationPluginsService
 
 import java.net.URL
