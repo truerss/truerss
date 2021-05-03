@@ -6,6 +6,7 @@ import org.specs2.specification.AfterAll
 import truerss.db.validation.PluginSourceValidator
 import truerss.db.{DbLayer, PluginSource, PluginSourcesDao}
 import truerss.dto.NewPluginSource
+import truerss.plugins_discrovery.PluginJar
 import truerss.services.{ApplicationPluginsService, PluginNotFoundError, PluginSourcesService, ValidationError}
 import truerss.util.{PluginInstaller, TaskImplicits}
 import zio.Task
@@ -63,12 +64,23 @@ class PluginSourcesServiceTests extends Specification with AfterAll {
   }
   appPluginService.reload()
 
+  private var retryCounter = 0
+  private var inRetryPath = false
   private val service = new PluginSourcesService(
     dbLayer = dbLayer,
     pluginInstaller = installer,
     validator = validator,
     appPluginsService = appPluginService,
-  )
+  ) {
+    override def fetch(tmp: String): Task[Iterable[PluginJar]] = {
+      if (inRetryPath && tmp == url) {
+        retryCounter = retryCounter + 1
+        throw new Exception("boom")
+      } else {
+        super.fetch(tmp)
+      }
+    }
+  }
 
   private val url = "https://github.com/truerss/plugins/releases/tag/1.0.0"
 
@@ -98,6 +110,11 @@ class PluginSourcesServiceTests extends Specification with AfterAll {
           _ => failure("bad branch")
         )
       } yield x).materialize
+
+      // retry
+      inRetryPath = true
+      service.availablePluginSources.materialize must throwA[Exception]("boom")
+      inRetryPath = false
 
       // install plugin
       val first = available.head.plugins.head

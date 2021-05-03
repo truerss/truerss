@@ -5,7 +5,6 @@ import truerss.db.validation.PluginSourceValidator
 import truerss.db.{DbLayer, PluginSource}
 import truerss.dto.{NewPluginSource, PluginSourceDto}
 import truerss.plugins_discrovery.DiscoveryProvider
-import truerss.services.actors.MainActor
 import truerss.util.PluginInstaller
 import zio.Task
 
@@ -17,6 +16,8 @@ class PluginSourcesService(
                           ) extends DiscoveryProvider {
 
   import PluginSourcesService._
+
+  private val retryCount = 3
 
   def installPlugin(urlToJar: String): Task[Unit] = {
     for {
@@ -30,13 +31,12 @@ class PluginSourcesService(
       _ <- pluginInstaller.remove(urlToJar)
       _ <- Task(appPluginsService.reload())
     } yield ()
-
   }
 
   def availablePluginSources: Task[Iterable[PluginSourceDto]] = {
     for {
       all <- dbLayer.pluginSourcesDao.all
-      pluginJars <- Task.foreachPar(all)(fetch)
+      pluginJars <- Task.foreachPar(all)(fetch(_).retryN(retryCount))
     } yield pluginJars
   }
 
