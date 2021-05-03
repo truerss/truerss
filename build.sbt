@@ -37,17 +37,14 @@ val setup = Seq(
 
 lazy val RealTest = config("real") extend(Test)
 
-val clientAndDtos = Project("client-and-dto", file("client-and-dto"))
-  .settings(
-    setup,
-    libraryDependencies ++= deps
-  )
+val dtos = project.in(file("dtos"))
+  .settings(setup)
 
-val client = project.in(file("clients"))
+val clients = project.in(file("clients"))
   .settings(setup)
   .settings(
     libraryDependencies ++= zio ++ logs ++ Seq(scalaj, playJson)
-  ).dependsOn(clientAndDtos)
+  ).dependsOn(dtos)
 
 val mainProject = Project("truerss", file("."))
   .configs(RealTest)
@@ -85,4 +82,4 @@ val mainProject = Project("truerss", file("."))
     packageOptions := Seq(ManifestAttributes(("Built-By", s"${new Date()}"))),
     libraryDependencies ++= deps
   )
-).dependsOn(clientAndDtos)
+).dependsOn(dtos, clients)
