@@ -1,6 +1,5 @@
 package truerss.services
 
-import akka.event.EventStream
 import truerss.db.validation.PluginSourceValidator
 import truerss.db.{DbLayer, PluginSource}
 import truerss.dto.{NewPluginSource, PluginSourceDto}
