@@ -27,12 +27,6 @@ object JsonFormats {
     }
   }
 
-  implicit lazy val unitReads: Reads[Unit] = new Reads[Unit] {
-    override def reads(json: JsValue): JsResult[Unit] = {
-      JsSuccess(())
-    }
-  }
-
   implicit lazy val processingWrites: Writes[Processing] = new Writes[Processing] {
     override def writes(o: Processing): JsValue = {
       JsNull
