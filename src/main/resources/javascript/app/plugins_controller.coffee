@@ -44,8 +44,12 @@ PluginsController =
     @_modal.show()
 
   install: (e, url) ->
-    ajax.install_plugin(url)
+    ajax.install_plugin url, () ->
+      Sirius.Application.get_adapter().and_then (adapter) =>
+        adapter.fire(document, "plugins:load")
 
-  remove: (e, url) ->
-    ajax.remove_plugin(url)
+  uninstall: (e, url) ->
+    ajax.uninstall_plugin url, () ->
+      Sirius.Application.get_adapter().and_then (adapter) =>
+         adapter.fire(document, "plugins:load")
 

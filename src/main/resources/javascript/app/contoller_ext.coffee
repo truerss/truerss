@@ -24,17 +24,17 @@ class AjaxService
   available_plugins: (success) ->
     @_get("#{@plugin_sources_api}", success, @k)
 
-  remove_plugin: (url) ->
+  uninstall_plugin: (url,  success) ->
     params = JSON.stringify({
       url: url
     })
-    @_post("#{@plugin_sources_api}/uninstall", params, @k, @k)
+    @_post("#{@plugin_sources_api}/uninstall", params, success, @k)
 
-  install_plugin: (url) ->
+  install_plugin: (url, success) ->
     params = JSON.stringify({
       url: url
     })
-    @_post("#{@plugin_sources_api}/install", params, @k, @k)
+    @_post("#{@plugin_sources_api}/install", params, success, @k)
 
   plugins_all: (success, error) ->
     @_get("#{@plugin_api}/all", success, error)
