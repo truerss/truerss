@@ -2,19 +2,16 @@ package truerss.services
 
 import akka.event.EventStream
 import truerss.services.actors.sync.SourcesKeeperActor
-import truerss.util.EventStreamExt
 import zio.Task
 
-class RefreshSourcesService(private val stream: EventStream) {
-
-  import EventStreamExt._
+class RefreshSourcesService(override val stream: EventStream) extends StreamProvider {
 
   def refreshSource(sourceId: Long): Task[Unit] = {
-    stream.fire(SourcesKeeperActor.UpdateOne(sourceId))
+    fire(SourcesKeeperActor.UpdateOne(sourceId))
   }
 
   def refreshAll: Task[Unit] = {
-    stream.fire(SourcesKeeperActor.Update)
+    fire(SourcesKeeperActor.Update)
   }
 
 }

@@ -25,7 +25,6 @@ class PluginSourcesServiceTests extends Specification with AfterAll {
   tempDir.delete()
   tempDir.mkdir()
   private val installedPlugins = scala.collection.mutable.ArrayBuffer[String]()
-  private val system = ActorSystem("plugin-sources-service-tests")
 
   println(s"-------> path to config: ${tempDir.getPath}")
 
@@ -57,8 +56,6 @@ class PluginSourcesServiceTests extends Specification with AfterAll {
   }
   private val validator = new PluginSourceValidator(dbLayer)
 
-  private val stream = system.eventStream
-
   private var reloadTimes = 0
   private val appPluginService = new ApplicationPluginsService(
     tempDir.getPath, ConfigFactory.empty()
@@ -70,23 +67,19 @@ class PluginSourcesServiceTests extends Specification with AfterAll {
   }
   appPluginService.reload()
 
+  private var reloadActorTimes = 0
   private val service = new PluginSourcesService(
     dbLayer = dbLayer,
     pluginInstaller = installer,
     validator = validator,
     appPluginsService = appPluginService,
-    stream = stream
-  )
-
-  private var reloadActorTimes = 0
-  private class TestActor extends Actor {
-    def receive = {
-      case _ =>
-        reloadActorTimes = reloadActorTimes + 1
+    stream = null
+  ) {
+    override def fire(x: Any): Task[Unit] = {
+      reloadActorTimes = reloadActorTimes + 1
+      Task.unit
     }
   }
-  private val ref = system.actorOf(Props(new TestActor()))
-  stream.subscribe(ref, classOf[MainActor.MainActorMessage])
 
   private val url = "https://github.com/truerss/plugins/releases/tag/1.0.0"
 
@@ -153,6 +146,5 @@ class PluginSourcesServiceTests extends Specification with AfterAll {
   override def afterAll(): Unit = {
     installedPlugins.foreach(x => new File(x).delete())
     tempDir.delete()
-    Await.result(system.terminate(), 1 seconds)
   }
 }

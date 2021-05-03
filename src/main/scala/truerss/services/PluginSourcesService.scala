@@ -6,34 +6,32 @@ import truerss.db.{DbLayer, PluginSource}
 import truerss.dto.{NewPluginSource, PluginSourceDto}
 import truerss.plugins_discrovery.DiscoveryProvider
 import truerss.services.actors.MainActor
-import truerss.util.{EventStreamExt, PluginInstaller}
+import truerss.util.PluginInstaller
 import zio.Task
 
 class PluginSourcesService(
-                           private val dbLayer: DbLayer,
-                           private val pluginInstaller: PluginInstaller,
-                           private val validator: PluginSourceValidator,
-                           private val appPluginsService: ApplicationPluginsService,
-                           private val stream: EventStream
-                          ) extends DiscoveryProvider {
+                           val dbLayer: DbLayer,
+                           val pluginInstaller: PluginInstaller,
+                           val validator: PluginSourceValidator,
+                           val appPluginsService: ApplicationPluginsService,
+                           override val stream: EventStream
+                          ) extends DiscoveryProvider with StreamProvider {
 
   import PluginSourcesService._
-  import EventStreamExt._
 
   def installPlugin(urlToJar: String): Task[Unit] = {
     for {
       _ <- pluginInstaller.install(urlToJar)
       _ <- Task(appPluginsService.reload())
-      _ <- stream.fire(MainActor.Restart)
+      _ <- fire(MainActor.Restart)
     } yield()
-
   }
 
   def removePlugin(urlToJar: String): Task[Unit] = {
     for {
       _ <- pluginInstaller.remove(urlToJar)
       _ <- Task(appPluginsService.reload())
-      _ <- stream.fire(MainActor.Restart)
+      _ <- fire(MainActor.Restart)
     } yield ()
 
   }
