@@ -17,7 +17,7 @@ object FeedSourceDtoModelImplicits {
         interval = x.interval,
         state = SourceStates.Neutral,
         normalized = x.name.normalize,
-        lastUpdate = LocalDateTime.now(Clock.systemUTC())
+        lastUpdate = LocalDateTime.now(Clock.systemUTC()).minusHours(x.interval+1)
       )
     }
   }

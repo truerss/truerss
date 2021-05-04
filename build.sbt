@@ -8,8 +8,6 @@ name := "TrueRSS"
 
 version := "1.0.5"
 
-maintainer := "mike <mike.fch1@gmail.com>"
-
 val setup = Seq(
   resolvers += Resolver.sonatypeRepo("snapshots"),
   resolvers += "Typesafe Releases" at "https://repo.typesafe.com/typesafe/releases",
@@ -39,12 +37,14 @@ lazy val RealTest = config("real") extend(Test)
 
 val dtos = project.in(file("dtos"))
   .settings(setup)
+  .disablePlugins(sbtassembly.AssemblyPlugin)
 
 val clients = project.in(file("clients"))
   .settings(setup)
   .settings(
     libraryDependencies ++= zio ++ logs ++ Seq(scalaj, playJson)
   ).dependsOn(dtos)
+  .disablePlugins(sbtassembly.AssemblyPlugin)
 
 val mainProject = Project("truerss", file("."))
   .configs(RealTest)
@@ -82,4 +82,5 @@ val mainProject = Project("truerss", file("."))
     packageOptions := Seq(ManifestAttributes(("Built-By", s"${new Date()}"))),
     libraryDependencies ++= deps
   )
-).dependsOn(dtos, clients)
+).dependsOn(dtos, clients % "real, test")
+ .aggregate(dtos, clients)
