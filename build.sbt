@@ -79,7 +79,6 @@ val mainProject = Project("truerss", file("."))
     assembly / target := file("."),
     assembly / assemblyExcludedJars := {
       val cp = (assembly / fullClasspath).value
-      cp.foreach {x => println(x)}
       cp filter {x => x.data.getName.contains("scala-reflect")}
     },
     Test / publishArtifact := false,
