@@ -77,6 +77,11 @@ val mainProject = Project("truerss", file("."))
     },
     assembly / test := {},
     assembly / target := file("."),
+    assembly / assemblyExcludedJars := {
+      val cp = (assembly / fullClasspath).value
+      cp.foreach {x => println(x)}
+      cp filter {x => x.data.getName.contains("scala-reflect")}
+    },
     Test / publishArtifact := false,
     licenses += ("MIT", url("http://opensource.org/licenses/MIT")),
     packageOptions := Seq(ManifestAttributes(("Built-By", s"${new Date()}"))),
