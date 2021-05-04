@@ -1,11 +1,10 @@
 package truerss.util
 
 import java.time.ZoneOffset
-
 import com.github.truerss.base.Entry
 import org.jsoup.Jsoup
 import truerss.db.Feed
-import truerss.dto.EntryDto
+import truerss.plugins.EntryDto
 
 object EntryImplicits {
 

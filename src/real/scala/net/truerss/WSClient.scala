@@ -1,12 +1,12 @@
 package net.truerss
 
 import java.net.URI
-
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
 import play.api.libs.json.Json
+import truerss.api.ws.Notify
 import truerss.api.ws.WebSocketController.{NewFeeds, NewSource, NotifyMessage}
-import truerss.dto.{FeedDto, Notify, SourceViewDto}
+import truerss.dto.{FeedDto, SourceViewDto}
 
 import scala.collection.mutable.{ArrayBuffer => AB}
 

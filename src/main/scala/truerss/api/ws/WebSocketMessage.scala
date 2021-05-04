@@ -1,4 +1,4 @@
-package truerss.dto
+package truerss.api.ws
 
 // ws protocol
 object WSMessageType extends Enumeration {

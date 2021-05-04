@@ -3,6 +3,7 @@ package net.truerss.tests
 import net.truerss.{Gen, Resources, ZIOMaterializer}
 import org.specs2.mutable.Specification
 import org.specs2.specification.BeforeAfterAll
+import truerss.api.ws.NotifyLevel
 import truerss.clients.{EntityNotFoundError, _}
 import truerss.dto._
 

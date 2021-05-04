@@ -3,7 +3,7 @@ package truerss.services
 import java.net.URL
 import com.github.truerss.base._
 import com.typesafe.config.{Config, ConfigFactory}
-import truerss.dto.{PluginDto, PluginsViewDto, SourceViewDto}
+import truerss.dto.{PluginDto, PluginsViewDto, SourceViewDto, State}
 import truerss.db.{SourceState, SourceStates}
 import truerss.plugins.{ApplicationPlugins, PluginLoader, PluginWithSourcePath}
 import zio.{Task, UIO}
@@ -71,9 +71,9 @@ class ApplicationPluginsService(private val pluginDir: String, private val confi
   def getSourceReader(source: SourceViewDto): BaseFeedReader = {
     val url = new URL(source.url)
     source.state match {
-      case SourceStates.Enable =>
+      case State.Enable =>
         currentState.getSourceReader(url)
-      case SourceStates.Neutral | SourceStates.Disable =>
+      case _ =>
         currentState.defaultPlugin
     }
   }

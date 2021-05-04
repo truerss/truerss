@@ -1,13 +1,12 @@
 package truerss.clients
 
 import play.api.libs.json.Json
-import truerss.api.JsonFormats
 import truerss.dto._
 import zio.Task
 
 class SourcesApiHttpClient(baseUrl: String) extends BaseHttpClient(baseUrl) {
 
-  import JsonFormats._
+  import JsonSupport._
 
   protected val sourcesUrl = s"$baseUrl/$api/sources"
 

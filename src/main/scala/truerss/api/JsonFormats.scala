@@ -1,10 +1,9 @@
 package truerss.api
 
-import java.util.Date
-
 import play.api.libs.json._
-import truerss.db._
 import truerss.dto._
+
+import java.util.Date
 
 object JsonFormats {
 
@@ -28,52 +27,27 @@ object JsonFormats {
     }
   }
 
-  implicit lazy val unitWrites: Writes[Unit] = new Writes[Unit] {
-    override def writes(o: Unit): JsValue = {
-      JsNull
-    }
-  }
-
-  implicit lazy val unitReads: Reads[Unit] = new Reads[Unit] {
-    override def reads(json: JsValue): JsResult[Unit] = {
-      JsSuccess(())
-    }
-  }
-
   implicit lazy val processingWrites: Writes[Processing] = new Writes[Processing] {
     override def writes(o: Processing): JsValue = {
       JsNull
     }
   }
 
-  implicit lazy val processingReads: Reads[Processing] = new Reads[Processing] {
-    override def reads(json: JsValue): JsResult[Processing] = {
-      JsSuccess(Processing())
-    }
-  }
-
-  implicit object StateFormat extends Format[SourceState] {
-    override def reads(json: JsValue): JsResult[SourceState] = {
+  implicit object StateFormat extends Format[State.Value] {
+    override def reads(json: JsValue): JsResult[State.Value] = {
       json match {
-        case JsNumber(value) if value == SourceStates.Neutral.number =>
-          JsSuccess(SourceStates.Neutral)
-
-        case JsNumber(value) if value == SourceStates.Enable.number =>
-          JsSuccess(SourceStates.Enable)
-
-        case JsNumber(value) if value == SourceStates.Disable.number =>
-          JsSuccess(SourceStates.Disable)
-
-        case JsNumber(_) =>
-          JsError("Invalid state")
+        case JsNumber(value) =>
+          State.values.find(_.id == value)
+            .map(JsSuccess(_))
+            .getOrElse(JsError(s"Invalid state: $value"))
 
         case _ =>
           JsError("Number required")
       }
     }
 
-    override def writes(o: SourceState): JsValue = {
-      JsNumber(o.number)
+    override def writes(o: State.Value): JsValue = {
+      JsNumber(o.id)
     }
   }
 
@@ -102,7 +76,7 @@ object JsonFormats {
     }
   }
 
-  implicit lazy val availableValueFormat: Format[AvailableValue] = new Format[AvailableValue] {
+  implicit lazy val availableValueWrites: Writes[AvailableValue] = new Writes[AvailableValue] {
     private final val r = JsObject(Seq("type" -> "radio".j))
     override def writes(o: AvailableValue): JsValue = {
       o match {
@@ -113,35 +87,15 @@ object JsonFormats {
           r // + ("value" -> JsBoolean(x))
       }
     }
-
-    override def reads(json: JsValue): JsResult[AvailableValue] = {
-      json match {
-        case JsObject(map) if map.keys.exists(_ == "type") =>
-          JsSuccess(AvailableRadio)
-        case JsArray(xs) =>
-          JsSuccess(AvailableSelect(xs.collect { case JsNumber(x) => x.toInt }))
-        case _ =>
-          JsError("Invalid format")
-      }
-    }
   }
 
-  implicit lazy val currentValueFormat: Format[CurrentValue[_]] = new Format[CurrentValue[_]] {
+  implicit lazy val currentValueWrites: Writes[CurrentValue[_]] = new Writes[CurrentValue[_]] {
     override def writes(o: CurrentValue[_]): JsValue = {
       o match {
         case CurrentValue(o: Int) => JsNumber(o)
         case CurrentValue(o: Boolean) => JsBoolean(o)
         case CurrentValue(o: String) => JsString(o)
         case _ => JsNull
-      }
-    }
-
-    override def reads(json: JsValue): JsResult[CurrentValue[_]] = {
-      json match {
-        case JsNumber(o) => JsSuccess(CurrentValue[Int](o.toInt))
-        case JsBoolean(o) => JsSuccess(CurrentValue[Boolean](o))
-        case JsString(o) => JsSuccess(CurrentValue[String](o))
-        case x => JsError(s"Unkwnown type: $x")
       }
     }
   }
@@ -152,31 +106,25 @@ object JsonFormats {
         Seq(
           "key" -> o.key.j,
           "description" -> o.description.j,
-          "options" -> availableValueFormat.writes(o.options),
-          "value" -> currentValueFormat.writes(o.value)
+          "options" -> availableValueWrites.writes(o.options),
+          "value" -> currentValueWrites.writes(o.value)
         )
       )
     }
   }
 
-  implicit lazy val availableSetupReads: Reads[AvailableSetup[_]] = new Reads[AvailableSetup[_]] {
-    override def reads(json: JsValue): JsResult[AvailableSetup[_]] = {
-      val key = (json \ "key").as[String]
-      val description = (json \ "description").as[String]
-      val value = (json \ "value").as[CurrentValue[_]]
-      val options = (json \ "options").as[AvailableValue]
-      JsSuccess(
-        AvailableSetup(
-          key = key,
-          description = description,
-          value = value,
-          options = options
-        )
-      )
+  implicit lazy val currentValueReads: Reads[CurrentValue[_]] = new Reads[CurrentValue[_]] {
+    override def reads(json: JsValue): JsResult[CurrentValue[_]] = {
+      json match {
+        case JsNumber(o) => JsSuccess(CurrentValue[Int](o.toInt))
+        case JsBoolean(o) => JsSuccess(CurrentValue[Boolean](o))
+        case JsString(o) => JsSuccess(CurrentValue[String](o))
+        case x => JsError(s"Unknown type: $x")
+      }
     }
   }
 
-  implicit lazy val newSetupFormat: Format[NewSetup[_]] = new Format[NewSetup[_]] {
+  implicit lazy val newSetupFormat: Reads[NewSetup[_]] = new Reads[NewSetup[_]] {
     private final val fKey = "key"
     private final val fValue = "value"
     override def reads(json: JsValue): JsResult[NewSetup[_]] = {
@@ -184,7 +132,7 @@ object JsonFormats {
         case JsObject(obj) =>
           val r = for {
             k <- obj.get(fKey).collect { case JsString(x) => x }
-            v <- obj.get(fValue).map(currentValueFormat.reads)
+            v <- obj.get(fValue).map(currentValueReads.reads)
             cv <- v.asOpt
           } yield {
             cv match {
@@ -202,15 +150,6 @@ object JsonFormats {
         case _ =>
           JsError("Object is required")
       }
-    }
-
-    override def writes(o: NewSetup[_]): JsValue = {
-      JsObject(
-        Seq(
-          "key" -> o.key.j,
-          "value" -> currentValueFormat.writes(o.value)
-        )
-      )
     }
   }
 
@@ -237,28 +176,6 @@ object JsonFormats {
     }
   }
 
-  implicit def pageReader[T](implicit f: Reads[T]): Reads[Page[T]] = new Reads[Page[T]] {
-    override def reads(json: JsValue): JsResult[Page[T]] = {
-      json match {
-        case JsObject(obj) =>
-          val tmp = for {
-            total <- obj.get("total").collect { case JsNumber(x) => x.toInt }
-            resources <- obj.get("resources").collect {
-              case JsArray(xs) => xs.map(f.reads).collect {
-                case JsSuccess(x, _) => x
-              }
-            }
-          } yield Page(total, resources)
-
-          tmp.map { x => JsSuccess(x) }.getOrElse(JsError("Failed to deserialize"))
-
-        case _ =>
-          JsError("Object is required")
-      }
-    }
-  }
-
   implicit val pageFeedsWriter = pageWriter[FeedDto]
-  implicit val pageFeedsReader = pageReader[FeedDto]
 
 }

@@ -1,7 +1,6 @@
 package truerss.api.ws
 
 import play.api.libs.json._
-import truerss.dto.{Notify, WSMessageType, WebSocketMessage}
 
 object WebSocketJsonFormats {
 

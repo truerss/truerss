@@ -1,11 +1,10 @@
 package truerss.clients
 
-import truerss.api.JsonFormats
 import zio.Task
 
 class RefreshApiHttpClient(baseUrl: String) extends BaseHttpClient(baseUrl) {
 
-  import JsonFormats._
+  import JsonSupport._
 
   protected val refreshUrl = s"$baseUrl/$api/refresh"
 

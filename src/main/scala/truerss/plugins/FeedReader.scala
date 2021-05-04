@@ -3,8 +3,6 @@ package truerss.plugins
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Date
-
-import truerss.dto.EntryDto
 import truerss.util.CommonImplicits
 
 import scala.util.Try

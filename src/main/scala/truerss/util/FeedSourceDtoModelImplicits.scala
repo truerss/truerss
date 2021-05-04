@@ -1,9 +1,8 @@
 package truerss.util
 
 import java.time.{Clock, LocalDateTime}
-
 import truerss.db.{Feed, Source, SourceStates}
-import truerss.dto.{FeedDto, NewSourceDto, SourceViewDto, UpdateSourceDto}
+import truerss.dto.{FeedDto, NewSourceDto, SourceViewDto, State, UpdateSourceDto}
 
 object FeedSourceDtoModelImplicits {
 
@@ -18,7 +17,7 @@ object FeedSourceDtoModelImplicits {
         interval = x.interval,
         state = SourceStates.Neutral,
         normalized = x.name.normalize,
-        lastUpdate = LocalDateTime.now(Clock.systemUTC())
+        lastUpdate = LocalDateTime.now(Clock.systemUTC()).minusHours(x.interval+1)
       )
     }
   }
@@ -44,7 +43,7 @@ object FeedSourceDtoModelImplicits {
         url = x.url,
         name = x.name,
         interval = x.interval,
-        state = x.state,
+        state = State(x.state.number),
         normalized = x.normalized,
         lastUpdate = x.lastUpdate,
         count = x.count

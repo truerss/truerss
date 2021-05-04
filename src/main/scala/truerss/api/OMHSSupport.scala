@@ -4,7 +4,7 @@ import com.github.fntz.omhs.{BodyReader, BodyWriter, CommonResponse}
 import com.github.fntz.omhs.playjson.JsonSupport
 import io.netty.handler.codec.http.HttpResponseStatus
 import io.netty.util.CharsetUtil
-import truerss.dto.{AvailableSetup, UninstallPlugin, FeedContent, FeedDto, InstallPlugin, NewPluginSource, NewSetup, NewSourceDto, Page, PluginSourceDto, PluginsViewDto, SearchRequest, SourceOverview, SourceViewDto, UpdateSourceDto}
+import truerss.dto.{AvailableSetup, FeedContent, FeedDto, InstallPlugin, NewPluginSource, NewSetup, NewSourceDto, Page, PluginSourceDto, PluginsViewDto, Processing, SearchRequest, SourceOverview, SourceViewDto, UninstallPlugin, UpdateSourceDto}
 
 object OMHSSupport {
   import JsonFormats._

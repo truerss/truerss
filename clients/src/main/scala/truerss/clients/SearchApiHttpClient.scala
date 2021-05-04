@@ -1,13 +1,12 @@
 package truerss.clients
 
 import play.api.libs.json.Json
-import truerss.api.JsonFormats
 import truerss.dto.{FeedDto, Page, SearchRequest}
 import zio.Task
 
 class SearchApiHttpClient(baseUrl: String) extends BaseHttpClient(baseUrl) {
 
-  import JsonFormats._
+  import JsonSupport._
 
   protected val searchUrl = s"$baseUrl/$api/search"
 

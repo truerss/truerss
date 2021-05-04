@@ -4,6 +4,7 @@ import com.github.fntz.omhs.{BodyWriter, CommonResponse}
 import io.netty.handler.codec.http.HttpResponseStatus
 import io.netty.util.CharsetUtil
 import play.api.libs.json._
+import truerss.dto.Processing
 import truerss.services.{ContentReadError, NotFoundError, PluginNotFoundError, ValidationError}
 import zio.Task
 

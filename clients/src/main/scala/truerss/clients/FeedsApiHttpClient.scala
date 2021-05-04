@@ -1,12 +1,11 @@
 package truerss.clients
 
-import truerss.api.JsonFormats
 import truerss.dto._
 import zio.Task
 
 class FeedsApiHttpClient(baseUrl: String) extends BaseHttpClient(baseUrl) {
 
-  import JsonFormats._
+  import JsonSupport._
 
   protected val feedsUrl = s"$baseUrl/$api/feeds"
 

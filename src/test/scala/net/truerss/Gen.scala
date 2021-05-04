@@ -2,9 +2,8 @@ package net.truerss
 
 import java.time.LocalDateTime
 import java.util.{Date, Random, UUID}
-
 import truerss.db.{Feed, Source, SourceStates}
-import truerss.dto.{AvailableSelect, AvailableSetup, CurrentValue, FeedDto, NewSetup, NewSourceDto, SourceViewDto, UpdateSourceDto}
+import truerss.dto.{AvailableSelect, AvailableSetup, CurrentValue, FeedDto, NewSetup, NewSourceDto, SourceViewDto, State, UpdateSourceDto}
 
 object Gen {
   import truerss.util.CommonImplicits._
@@ -82,7 +81,7 @@ object Gen {
       url = genUrl,
       name = n,
       interval = genInt,
-      state = SourceStates.Neutral,
+      state = State.Neutral,
       normalized = n.normalize,
       lastUpdate = now
     )
