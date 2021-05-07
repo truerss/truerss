@@ -57,22 +57,6 @@ class RoutingEndpoint(
     serveWith(xs, "templates", "application/x-template")
   }
 
-  private val fonts = get("fonts" / *) ~> {(xs: List[String]) =>
-    // maybe probeContentType ?
-    xs.headOption match {
-      case Some(v) if v.endsWith("otf") =>
-        serveFile(s"/fonts/$v", "application/vnd.ms-opentype")
-      case Some(v) if v.endsWith("eot") =>
-        serveFile(s"/fonts/$v","application/vnd.ms-fontobject")
-      case Some(v) if v.endsWith("ttf") =>
-        serveFile(s"/fonts/$v","font/sfnt")
-      case Some(v) if v.endsWith("woff2") =>
-        serveFile(s"/fonts/$v","application/octet-stream")
-      case _ =>
-        notFound("file not found")
-    }
-  }
-
   val route = apis :: additional.route :: css :: js :: templates
 
   private def serveWith(xs: List[String], dir: String, contentType: String): CommonResponse = {

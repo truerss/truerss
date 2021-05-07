@@ -28,14 +28,6 @@ object Tasks {
     s"$cdnjs/uikit/$uiKitVersion/css/uikit.min.css"
   )
 
-  val fonts = Seq(
-    "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/fonts/FontAwesome.otf",
-    "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/fonts/fontawesome-webfont.eot",
-    "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/fonts/fontawesome-webfont.ttf",
-    "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/fonts/fontawesome-webfont.ttf",
-    "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/fonts/fontawesome-webfont.woff2"
-  )
-
   def download(url: String, dir: String): Unit = {
     val fileName = url.split("""/""").last
     val d = new File(dir)
@@ -62,9 +54,8 @@ object Tasks {
 
     val jsPath = p("javascript")
     val cssPath = p("css")
-    val fontsPath = p("fonts")
 
-    Seq(jsLibs, cssLibs, fonts) zip Seq(jsPath, cssPath, fontsPath) foreach { case p @ (libs, path) =>
+    Seq(jsLibs, cssLibs) zip Seq(jsPath, cssPath) foreach { case _ @ (libs, path) =>
       libs.foreach(download(_, path))
     }
 
