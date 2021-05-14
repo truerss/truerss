@@ -2,8 +2,10 @@ package truerss.db.driver
 
 import java.time.{Clock, LocalDateTime}
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
+import slick.dbio.Effect.Schema
 import slick.jdbc.JdbcBackend
 import slick.jdbc.meta.MTable
+import slick.lifted.AbstractTable
 import slick.migration.api.{GenericDialect, ReversibleMigrationSeq, TableMigration}
 import truerss.db.{DbLayer, PluginSource, Predefined, Version}
 import truerss.util.DbConfig
@@ -71,27 +73,36 @@ object DbInitializer {
 
     val tableNames = tables.toList.map(_.name).map(_.name)
 
-    if (!tableNames.contains(names.sources)) {
-      run("create db", (driver.query.sources.schema ++ driver.query.feeds.schema).create)
+    def createIfNotExist[T](tableName: String)(f: () => DBIOAction[T, NoStream, Nothing]) = {
+      if (!tableNames.contains(tableName)) {
+        run(s"create $tableName table", f())
+      }
     }
 
-    if (!tableNames.contains(names.predefinedSettings)) {
-      run("add predefined settings tables", driver.query.predefinedSettings.schema.create)
+    createIfNotExist(names.sources) { () =>
+      (driver.query.sources.schema ++ driver.query.feeds.schema).create
     }
 
-    if (!tableNames.contains(names.userSettings)) {
-      run("add user settings tables", driver.query.userSettings.schema.create)
+    createIfNotExist(names.predefinedSettings) {() =>
+      driver.query.predefinedSettings.schema.create
     }
 
-    if (!tableNames.contains(names.versions)) {
-      // no versions
-      run("create versions table", driver.query.versions.schema.create)
+    createIfNotExist(names.userSettings) {() =>
+      driver.query.userSettings.schema.create
     }
 
-    if (!tableNames.contains(names.pluginSources)) {
-      // no plugin sources
-      run("create plugin_sources table", driver.query.pluginSources.schema.create)
+    createIfNotExist(names.versions) {() =>
+      driver.query.versions.schema.create
     }
+
+    createIfNotExist(names.pluginSources) {() =>
+      driver.query.pluginSources.schema.create
+    }
+
+    createIfNotExist(names.sourceUpdateFrequency) {() =>
+      driver.query.sourceUpdateFrequencies.schema.create
+    }
+
   }
 
   private def runMigrations(db: JdbcBackend.DatabaseDef, dbProfile: DBProfile, driver: CurrentDriver): Unit = {

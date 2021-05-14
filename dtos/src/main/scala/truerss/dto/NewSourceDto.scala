@@ -1,7 +1,6 @@
 package truerss.dto
 
 import java.time.LocalDateTime
-import java.util.Date
 
 object State extends Enumeration {
   type State = Value
@@ -77,14 +76,14 @@ case class FeedDto(
                    delete: Boolean = false
                 )
 
-case class FeedsFrequency(
+case class FeedsFrequencyDto(
   perDay: Double,
   perWeek: Double,
   perMonth: Double
 )
-object FeedsFrequency {
+object FeedsFrequencyDto {
   val empty = {
-    FeedsFrequency(
+    FeedsFrequencyDto(
       perDay = 0d,
       perWeek = 0d,
       perMonth = 0d
@@ -97,7 +96,7 @@ case class SourceOverview(
                          unreadCount: Int,
                          favoritesCount: Int,
                          feedsCount: Int,
-                         frequency: FeedsFrequency
+                         frequency: FeedsFrequencyDto
                          )
 
 object SourceOverview {
@@ -107,7 +106,7 @@ object SourceOverview {
       unreadCount = 0,
       favoritesCount = 0,
       feedsCount = 0,
-      frequency = FeedsFrequency.empty
+      frequency = FeedsFrequencyDto.empty
     )
   }
 }

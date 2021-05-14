@@ -135,7 +135,7 @@ object JsonSupport {
     }
   }
 
-  implicit val feedsFrequencyFormat: Format[FeedsFrequency] = Json.format[FeedsFrequency]
+  implicit val feedsFrequencyFormat: Format[FeedsFrequencyDto] = Json.format[FeedsFrequencyDto]
   implicit val sourceOverviewFormat: Format[SourceOverview] = Json.format[SourceOverview]
 
   implicit val feedContentFormat: Format[FeedContent] = Json.format[FeedContent]

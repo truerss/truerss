@@ -160,6 +160,13 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
     override def * = (id.?, url) <> (PluginSource.tupled, PluginSource.unapply)
   }
 
+  class SourceUpdateFrequenciesTable(tag: Tag) extends Table[SourceUpdateFrequency](tag, tableNames.sourceUpdateFrequency) {
+    def sourceId = column[Long]("source_id", O.Unique)
+    def perDay = column[Double]("per_day")
+
+    override def * = (sourceId, perDay) <> (SourceUpdateFrequency.tupled, SourceUpdateFrequency.unapply)
+  }
+
   object query {
     lazy val sources = TableQuery[Sources]
     lazy val feeds = TableQuery[Feeds]
@@ -174,6 +181,7 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
     lazy val predefinedSettings = TableQuery[PredefinedSettingsTable]
     lazy val userSettings = TableQuery[UserSettingsTable]
     lazy val pluginSources = TableQuery[PluginSourcesTable]
+    lazy val sourceUpdateFrequencies = TableQuery[SourceUpdateFrequenciesTable]
 
     implicit class FeedsTQExt(val x: TableQuery[Feeds]) {
       def unreadOnly: Query[Feeds, Feed, Seq] = {
@@ -206,7 +214,8 @@ case class TableNames(sources: String,
                       versions: String,
                       predefinedSettings: String,
                       userSettings: String,
-                      pluginSources: String
+                      pluginSources: String,
+                      sourceUpdateFrequency: String
                      )
 object TableNames {
   val default = TableNames(
@@ -215,7 +224,8 @@ object TableNames {
     versions = "versions",
     predefinedSettings = "predefined_settings",
     userSettings = "user_settings",
-    pluginSources = "plugin_sources"
+    pluginSources = "plugin_sources",
+    sourceUpdateFrequency = "source_update_frequencies"
   )
 
   def withPrefix(prefix: String): TableNames = {
@@ -225,7 +235,8 @@ object TableNames {
       versions = s"${prefix}_versions",
       predefinedSettings = s"${prefix}_predefined_settings",
       userSettings = s"${prefix}_user_settings",
-      pluginSources = s"${prefix}_plugin_sources"
+      pluginSources = s"${prefix}_plugin_sources",
+      sourceUpdateFrequency = s"${prefix}_source_update_frequencies"
     )
   }
 }

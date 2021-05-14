@@ -4,7 +4,7 @@ import java.time.{LocalDateTime, ZoneOffset}
 import java.util.concurrent.TimeUnit
 
 import truerss.db.{DbLayer, Feed}
-import truerss.dto.{FeedsFrequency, SourceOverview}
+import truerss.dto.{FeedsFrequencyDto, SourceOverview}
 import zio.Task
 
 class SourceOverviewService(private val dbLayer: DbLayer) {
@@ -45,9 +45,9 @@ object SourceOverviewService {
     )
   }
 
-  def calculateFrequency(feeds: Seq[Feed]): FeedsFrequency = {
+  def calculateFrequency(feeds: Seq[Feed]): FeedsFrequencyDto = {
     if (feeds.isEmpty) {
-      FeedsFrequency.empty
+      FeedsFrequencyDto.empty
     } else {
       val count = feeds.length
       val dates = feeds.map(_.publishedDate).sorted
@@ -66,7 +66,7 @@ object SourceOverviewService {
         )
       }
 
-      FeedsFrequency(
+      FeedsFrequencyDto(
         perDay = perDay,
         perWeek = perWeek,
         perMonth = perMonth
