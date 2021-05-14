@@ -47,6 +47,7 @@ object Predefined {
   val fReadContent = "read_content"
   val fFeedsPerPage = "feeds_per_page"
   val fShortView = "short_view"
+  val fEnableSmartUpdates = "enable_smart_updates"
 
   val parallelism = PredefinedSettings(
     key = fFeedParallelism,
@@ -72,5 +73,11 @@ object Predefined {
     value = RadioValue(false)
   )
 
-  val predefined = parallelism :: feedsPerPage :: shortView :: Nil
+  val enableSmartUpdates = PredefinedSettings(
+    key = fEnableSmartUpdates,
+    description = "Calculates update time based on Frequency per Period, instead of raw Interval usage",
+    value = RadioValue(false)
+  )
+
+  val predefined = parallelism :: feedsPerPage :: shortView :: enableSmartUpdates :: Nil
 }
