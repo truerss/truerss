@@ -73,36 +73,18 @@ object DbInitializer {
 
     val tableNames = tables.toList.map(_.name).map(_.name)
 
-    def createIfNotExist[T](tableName: String)(f: () => DBIOAction[T, NoStream, Nothing]) = {
-      if (!tableNames.contains(tableName)) {
-        run(s"create $tableName table", f())
+    Map(
+      names.sources -> (driver.query.sources.schema ++ driver.query.feeds.schema),
+      names.predefinedSettings -> driver.query.predefinedSettings.schema,
+      names.userSettings -> driver.query.userSettings.schema,
+      names.versions -> driver.query.versions.schema,
+      names.pluginSources -> driver.query.pluginSources.schema,
+      names.sourceUpdateFrequency -> driver.query.sourceUpdateFrequencies.schema
+    ).foreach { case (tName, act) =>
+      if (!tableNames.contains(tName)) {
+        run(s"create $tName table", act.create)
       }
     }
-
-    createIfNotExist(names.sources) { () =>
-      (driver.query.sources.schema ++ driver.query.feeds.schema).create
-    }
-
-    createIfNotExist(names.predefinedSettings) {() =>
-      driver.query.predefinedSettings.schema.create
-    }
-
-    createIfNotExist(names.userSettings) {() =>
-      driver.query.userSettings.schema.create
-    }
-
-    createIfNotExist(names.versions) {() =>
-      driver.query.versions.schema.create
-    }
-
-    createIfNotExist(names.pluginSources) {() =>
-      driver.query.pluginSources.schema.create
-    }
-
-    createIfNotExist(names.sourceUpdateFrequency) {() =>
-      driver.query.sourceUpdateFrequencies.schema.create
-    }
-
   }
 
   private def runMigrations(db: JdbcBackend.DatabaseDef, dbProfile: DBProfile, driver: CurrentDriver): Unit = {
