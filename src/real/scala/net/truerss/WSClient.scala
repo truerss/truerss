@@ -5,7 +5,7 @@ import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
 import play.api.libs.json.Json
 import truerss.api.ws.Notify
-import truerss.api.ws.WebSocketController.{NewFeeds, NewSource, NotifyMessage}
+import truerss.api.ws.WebSocketController.{NewFeeds, NewSource, NotifyMessage, NotifySourceError}
 import truerss.dto.{FeedDto, SourceViewDto}
 
 import scala.collection.mutable.{ArrayBuffer => AB}
@@ -17,6 +17,7 @@ class WSClient(val url: String) extends WebSocketClient(new URI(url)) {
   val notifications = AB[Notify]()
   val newFeeds = AB[Iterable[FeedDto]]()
   val newSources = AB[SourceViewDto]()
+  val sourceUpdateErrors = AB[NotifySourceError]()
 
   override def onOpen(handshakedata: ServerHandshake): Unit = {
   }
@@ -31,6 +32,9 @@ class WSClient(val url: String) extends WebSocketClient(new URI(url)) {
 
           case NewFeeds(feeds) =>
             newFeeds += feeds
+
+          case msg: NotifySourceError =>
+            sourceUpdateErrors += msg
 
           case NotifyMessage(notify) =>
             notifications += notify

@@ -299,11 +299,14 @@ trait FullFlowTests extends Specification with Resources with BeforeAfterAll {
 
       sourcesStatusesApiClient.findOne(sourceId3).m.errorCount must beGreaterThanOrEqualTo(1)
 
-      wsClient.notifications.size ==== 4 // 3 from import + 1 from read invalid rss ^ (produceErrors)
+      // 3 from import + 1 from read invalid rss ^ (produceErrors)
+      wsClient.notifications.size ==== 3
+      wsClient.sourceUpdateErrors.size ==== 1
+      wsClient.sourceUpdateErrors.map(_.sourceId) must contain(allOf(sourceId3))
 
-      val notification = wsClient.notifications.last 
-      notification.level ==== NotifyLevel.Danger
-      notification.message must contain(s"Connection error for $rssUrlWithError")
+      val notification = wsClient.sourceUpdateErrors.last
+      notification.message.level ==== NotifyLevel.Danger
+      notification.message.message must contain(s"Connection error for $rssUrlWithError")
 
       // delete source
       sourceApiClient.deleteOne(sourceId).m

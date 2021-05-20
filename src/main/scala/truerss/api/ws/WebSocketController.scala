@@ -30,11 +30,13 @@ object WebSocketController {
   sealed trait WSMessage
   case class NewFeeds(newFeeds: Iterable[FeedDto]) extends WSMessage
   case class NotifyMessage(message: Notify) extends WSMessage
+  case class NotifySourceError(sourceId: Long, message: Notify) extends WSMessage
   case class NewSource(newSource: SourceViewDto) extends WSMessage
 
   object Fields {
     final val mtF = "messageType"
     final val bF = "body"
+    final val idF = "sourceId"
   }
 
   implicit class WSMessageJson(val x: WSMessage) extends AnyVal {
@@ -47,6 +49,15 @@ object WebSocketController {
             Seq(
               mtF -> JsString(WSMessageType.NewSource.toString),
               bF -> Json.toJson(x)
+            )
+          )
+
+        case NotifySourceError(sourceId, message) =>
+          JsObject(
+            Seq(
+              mtF -> JsString(WSMessageType.SourceError.toString),
+              idF -> JsNumber(sourceId),
+              bF -> Json.toJson(message)
             )
           )
 

@@ -39,8 +39,9 @@ class SourceActor(source: SourceViewDto, appPluginsService: ApplicationPluginsSe
           stream.publish(EventHandlerActor.RegisterNewFeeds(source.id, xs))
         case Left(error) =>
           log.warning(s"Error when update source $error")
-          stream.publish(WebSocketController.NotifyMessage(
-            Notify(error.error, NotifyLevel.Danger)
+          stream.publish(WebSocketController.NotifySourceError(
+            sourceId = source.id,
+            message = Notify(error.error, NotifyLevel.Danger)
           ))
           stream.publish(EventHandlerActor.SourceError(source.id))
       }
