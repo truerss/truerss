@@ -14,4 +14,5 @@ case class DbLayer(
   val settingsDao = new PredefinedSettingsDao(db)(driver)
   val userSettingsDao = new UserSettingsDao(db)(driver)
   val pluginSourcesDao = new PluginSourcesDao(db)(driver)
+  val frequencyDao = new SourceUpdatingFrequencyDao(db)(driver)
 }

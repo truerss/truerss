@@ -5,7 +5,7 @@ import slick.jdbc.JdbcBackend.DatabaseDef
 import truerss.db.driver.CurrentDriver
 import truerss.services.NotFoundError
 import truerss.util.FeedsMerger
-import zio.{IO, Task}
+import zio.{IO, Task, ZIO}
 
 class FeedsDao(val db: DatabaseDef)(implicit driver: CurrentDriver) {
 
@@ -104,6 +104,34 @@ class FeedsDao(val db: DatabaseDef)(implicit driver: CurrentDriver) {
 
   def findBySource(sourceId: Long): Task[Seq[Feed]] = {
     bySource(sourceId).result ~> db
+  }
+
+  def findStartEndDates(sourceId: Long): Task[Option[StartEndDates]] = {
+    for {
+      startF <-
+        bySource(sourceId).sortBy(_.publishedDate.asc)
+          .take(1).result.headOption ~> db
+      endF <-
+        bySource(sourceId).sortBy(_.publishedDate.desc)
+          .take(1).result.headOption ~> db
+    } yield {
+      for {
+        start <- startF.map(_.publishedDate)
+        end <- endF.map(_.publishedDate)
+      } yield StartEndDates(start, end)
+    }
+  }
+
+  def findFeedCount(sourceId: Long): Task[Int] = {
+    bySource(sourceId).length.result ~> db
+  }
+
+  def findFavoritesCount(sourceId: Long): Task[Int] = {
+    bySource(sourceId).filter(_.favorite).length.result ~> db
+  }
+
+  def findUnReadCount(sourceId: Long): Task[Int] = {
+    bySource(sourceId).filter(x => !x.read).length.result ~> db
   }
 
   def search(inFavorites: Boolean, query: String, offset: Int, limit: Int): TPage = {

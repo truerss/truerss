@@ -1,6 +1,6 @@
 package truerss.db
 
-case class SourceUpdateFrequency(
+case class SourceUpdatingFrequency(
                            sourceId: Long,
                            perDay: Double
                          )

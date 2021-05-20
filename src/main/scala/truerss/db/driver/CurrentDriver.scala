@@ -160,11 +160,11 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
     override def * = (id.?, url) <> (PluginSource.tupled, PluginSource.unapply)
   }
 
-  class SourceUpdateFrequenciesTable(tag: Tag) extends Table[SourceUpdateFrequency](tag, tableNames.sourceUpdateFrequency) {
+  class SourceUpdateFrequenciesTable(tag: Tag) extends Table[SourceUpdatingFrequency](tag, tableNames.sourceUpdateFrequency) {
     def sourceId = column[Long]("source_id", O.Unique)
     def perDay = column[Double]("per_day")
 
-    override def * = (sourceId, perDay) <> (SourceUpdateFrequency.tupled, SourceUpdateFrequency.unapply)
+    override def * = (sourceId, perDay) <> (SourceUpdatingFrequency.tupled, SourceUpdatingFrequency.unapply)
   }
 
   object query {

@@ -2,18 +2,24 @@ package truerss.services.actors.sync
 
 import akka.actor.{Actor, ActorLogging, Props}
 import truerss.api.ws.{Notify, NotifyLevel, WebSocketController}
+import truerss.db.Predefined
 import truerss.dto.SourceViewDto
-import truerss.services.ApplicationPluginsService
+import truerss.services.{ApplicationPluginsService, SettingsService}
 import truerss.services.actors.events.EventHandlerActor
 import truerss.services.actors.sync.SourcesKeeperActor.{Update, UpdateMe, Updated}
+import truerss.util.TaskImplicits
 
 import java.time.{Clock, Instant, ZoneOffset}
 import scala.concurrent.duration._
 
-class SourceActor(source: SourceViewDto, appPluginsService: ApplicationPluginsService)
+class SourceActor(source: SourceViewDto,
+                  appPluginsService: ApplicationPluginsService,
+                  settingsService: SettingsService
+                 )
   extends Actor with ActorLogging {
 
   import SourceActor._
+  import TaskImplicits._
   import context.dispatcher
   import util._
 
@@ -21,14 +27,11 @@ class SourceActor(source: SourceViewDto, appPluginsService: ApplicationPluginsSe
 
   val updTime = UpdateTime(source)
 
-  log.info(s"Next time update for ${source.name} -> ${updTime.tickTime}; " +
-    s"Interval: ${updTime.interval}")
-
   context.system.scheduler.scheduleWithFixedDelay(
     updTime.tickTime,
     updTime.interval,
-    context.parent,
-    UpdateMe(self)
+    self,
+    Tick
   )
 
   def receive = {
@@ -46,15 +49,31 @@ class SourceActor(source: SourceViewDto, appPluginsService: ApplicationPluginsSe
 
       context.parent ! Updated
       stream.publish(EventHandlerActor.ModifySource(source.id))
+
+    case Tick =>
+      for {
+        isSmartUpdateEnabled <- settingsService.where[Boolean](
+          Predefined.enableSmartUpdates.toKey,
+          Predefined.enableSmartUpdates.default[Boolean]
+        )
+      } yield ()
+
+
+      context.parent ! UpdateMe(self)
   }
 
 
 }
 
 object SourceActor {
-  def props(source: SourceViewDto, appPluginsService: ApplicationPluginsService): Props = {
-    Props(classOf[SourceActor], source, appPluginsService)
+  def props(source: SourceViewDto,
+            appPluginsService: ApplicationPluginsService,
+            settingsService: SettingsService
+           ): Props = {
+    Props(classOf[SourceActor], source, appPluginsService, settingsService)
   }
+
+  case object Tick
 
   case class UpdateTime(
                          tickTime: FiniteDuration,

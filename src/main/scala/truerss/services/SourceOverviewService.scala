@@ -1,16 +1,17 @@
 package truerss.services
 
-import java.time.{LocalDateTime, ZoneOffset}
-import java.util.concurrent.TimeUnit
-
 import truerss.db.{DbLayer, Feed}
 import truerss.dto.{FeedsFrequencyDto, SourceOverview}
+import truerss.util.FrequencyUtil
 import zio.Task
+
+import java.time.LocalDateTime
 
 class SourceOverviewService(private val dbLayer: DbLayer) {
 
   import SourceOverviewService.calculate
 
+  // todo check performance vs sql queries
   def getSourceOverview(sourceId: Long): Task[SourceOverview] = {
     dbLayer.sourceDao.findOne(sourceId) *>
     dbLayer.feedDao.findBySource(sourceId).map(calculate(sourceId, _))
@@ -51,25 +52,12 @@ object SourceOverviewService {
     } else {
       val count = feeds.length
       val dates = feeds.map(_.publishedDate).sorted
-      val start = dates.head.toInstant(ZoneOffset.UTC).getEpochSecond
-      val end = dates.last.toInstant(ZoneOffset.UTC).getEpochSecond
-
-      val diff = scala.math.abs(end - start)
-      val daysDiff = TimeUnit.SECONDS.toDays(diff) * 1.0
-
-      val (perDay, perWeek, perMonth) = if (daysDiff < 1) {
-        (0d, 0d, 0d)
-      } else {
-        (count / daysDiff,
-          count / (daysDiff / 7.0),
-          count / (daysDiff / 30.0)
-        )
-      }
+      val perDay = FrequencyUtil.calculatePerDay(count, dates.head, dates.last)
 
       FeedsFrequencyDto(
-        perDay = perDay,
-        perWeek = perWeek,
-        perMonth = perMonth
+        perDay = perDay.value,
+        perWeek = perDay.perWeek,
+        perMonth = perDay.perMonth
       )
     }
   }
