@@ -60,7 +60,11 @@ object AppRunner {
 
     actorSystem.actorOf(
       MainActor.props(actualConfig.withParallelism(feedParallelism),
-        appPluginsService, sourcesService,  feedsService),
+        appPluginsService,
+        sourcesService,
+        feedsService,
+        sourceStatusesService
+      ),
       "main-actor"
     )
 

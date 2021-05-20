@@ -42,6 +42,7 @@ class SourceActor(source: SourceViewDto, appPluginsService: ApplicationPluginsSe
           stream.publish(WebSocketController.NotifyMessage(
             Notify(error.error, NotifyLevel.Danger)
           ))
+          stream.publish(EventHandlerActor.SourceError(source.id))
       }
 
       context.parent ! Updated

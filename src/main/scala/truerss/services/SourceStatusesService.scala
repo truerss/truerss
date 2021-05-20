@@ -16,6 +16,10 @@ class SourceStatusesService(private val dbLayer: DbLayer) {
     dbLayer.sourceStatusesDao.findOne(sourceId).map(_.toDto)
   }
 
+  def incrementError(sourceId: Long): Task[Unit] = {
+    dbLayer.sourceStatusesDao.insertOne(sourceId)
+  }
+
 }
 
 object SourceStatusesService {
