@@ -32,7 +32,6 @@ case class Source(id: Option[Long],
                   count: Int = 0) {
 
   def normalize: Source = copy(normalized = name.normalize)
-  def recount(x: Int): Source = copy(count = x)
   def withId(x: Long): Source = copy(id = Some(x))
   def withState(x: SourceState): Source = copy(state = x)
 
