@@ -1,10 +1,10 @@
 package net.truerss
 
-import com.github.fntz.omhs.OMHSServer
 import net.truerss.tests.AllTestsTogether
 import org.specs2.specification.BeforeAfterAll
 import org.testcontainers.containers.PostgreSQLContainer
-import truerss.AppRunner
+import truerss.db.DbLayer
+import truerss.{AppInstance, AppRunner}
 import truerss.util.DbConfig
 
 class PostgresTests extends AllTestsTogether with BeforeAfterAll with Resources {
@@ -13,7 +13,8 @@ class PostgresTests extends AllTestsTogether with BeforeAfterAll with Resources 
 
   val container = new PostgreSQLContainer("postgres:9.6.12")
 
-  private var appServer: OMHSServer.Instance = _
+  private var appServer: AppInstance = _
+  override protected def dbLayer: DbLayer = appServer.dbLayer
 
   override def beforeAll(): Unit = {
     container.start()

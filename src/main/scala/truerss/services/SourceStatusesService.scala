@@ -17,7 +17,7 @@ class SourceStatusesService(private val dbLayer: DbLayer) {
   }
 
   def incrementError(sourceId: Long): Task[Unit] = {
-    dbLayer.sourceStatusesDao.insertOne(sourceId)
+    dbLayer.sourceStatusesDao.incrementError(sourceId)
   }
 
 }

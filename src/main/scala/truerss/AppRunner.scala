@@ -23,7 +23,7 @@ object AppRunner {
 
   def run(actualConfig: TrueRSSConfig,
           dbConf: DbConfig,
-          isUserConf: Boolean)(implicit actorSystem: ActorSystem): OMHSServer.Instance = {
+          isUserConf: Boolean)(implicit actorSystem: ActorSystem): AppInstance = {
     val dbLayer = DbInitializer.initialize(dbConf, isUserConf)
 
     val stream = actorSystem.eventStream
@@ -99,6 +99,6 @@ object AppRunner {
       server.stop()
       logger.info(s"========> ActorSytem[${actorSystem.name}] is terminating...")
     }
-    server
+    AppInstance(server, dbLayer)
   }
 }

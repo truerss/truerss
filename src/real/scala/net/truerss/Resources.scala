@@ -4,6 +4,7 @@ import java.net.ServerSocket
 import java.util.concurrent.TimeUnit
 import akka.actor.ActorSystem
 import com.github.fntz.omhs.OMHSServer
+import truerss.db.DbLayer
 import truerss.util.TrueRSSConfig
 
 import java.io.File
@@ -12,6 +13,8 @@ import java.util.UUID
 trait Resources {
 
   private val allocated = scala.collection.mutable.ArrayBuffer[ServerSocket]()
+
+  protected def dbLayer: DbLayer = ???
 
   def allocatePort: Int = {
     val server = new ServerSocket(0)
