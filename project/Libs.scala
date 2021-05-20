@@ -8,7 +8,7 @@ object Libs {
     val mysqlVersion = "8.0.21"
     val sqliteVersion = "3.32.3"
     val commonValidatorVersion = "1.6"
-    val contentExtractorVersion = "1.0.2"
+    val contentExtractorVersion = "1.0.3"
     val akkaVersion  = "2.6.3"
     val slickVersion = "3.3.2"
     val configVersion = "1.3.0"
@@ -40,7 +40,7 @@ object Libs {
   val scalaLib = "org.scala-lang" % "scala-library" % scalaVersion
 
   val truerss = Seq(
-    "io.github.truerss" % "content-extractor_2.12" % contentExtractorVersion,
+    "io.github.truerss" % "content-extractor" % contentExtractorVersion,
     "io.github.truerss" %% "base" % basePluginVersion
   )
 
