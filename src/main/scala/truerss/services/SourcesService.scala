@@ -46,6 +46,7 @@ class SourcesService(val dbLayer: DbLayer,
       view = source.toView
       _ <- dbLayer.sourceDao.delete(sourceId)
       _ <- dbLayer.feedDao.deleteFeedsBySource(sourceId)
+      _ <- dbLayer.sourceStatusesDao.delete(sourceId)
       _ <- fire(SourcesKeeperActor.SourceDeleted(view))
     } yield ()
   }
@@ -84,6 +85,7 @@ class SourcesService(val dbLayer: DbLayer,
       newSource = source.withState(state)
       id <- dbLayer.sourceDao.insert(newSource).orDie
       resultSource = newSource.withId(id).toView
+      _ <- dbLayer.sourceStatusesDao.insertOne(id)
       _ <- fire(SourcesKeeperActor.NewSource(resultSource))
     } yield resultSource
   }

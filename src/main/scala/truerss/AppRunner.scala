@@ -35,6 +35,7 @@ object AppRunner {
     val sourceUrlValidator = new SourceUrlValidator()
     val sourceValidator = new SourceValidator(dbLayer, sourceUrlValidator, appPluginsService)
     val sourcesService = new SourcesService(dbLayer, appPluginsService, stream, sourceValidator)
+    val sourceStatusesService = new SourceStatusesService(dbLayer)
 
     val opmlService = new OpmlService(sourcesService)
     val feedsService = new FeedsService(dbLayer)
@@ -75,6 +76,7 @@ object AppRunner {
       refreshSourcesService = refreshSourcesService,
       markService = markService,
       pluginSourcesService = pluginSourcesService,
+      sourceStatusesService = sourceStatusesService,
       wsPort = actualConfig.wsPort
     )
 

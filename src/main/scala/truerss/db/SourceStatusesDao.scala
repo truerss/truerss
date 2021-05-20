@@ -23,7 +23,11 @@ class SourceStatusesDao(val db: DatabaseDef)(implicit
   }
 
   def insertOne(sourceId: Long): Task[Unit] = {
-    ((sourceStatuses += SourceStatus(sourceId, 1)) ~> db).unit
+    ((sourceStatuses += SourceStatus(sourceId, 0)) ~> db).unit
+  }
+
+  def delete(sourceId: Long): Task[Unit] = {
+    (sourceStatuses.filter(_.sourceId === sourceId).delete ~> db).unit
   }
 
   def incrementError(sourceId: Long): Task[Unit] = {
