@@ -29,7 +29,7 @@ class Source extends Sirius.BaseModel
     "#{@href()}/all"
 
   has_errors: () ->
-    parseInt(@errorsCount()) > 0
+    parseInt(@errors_count()) > 0
 
   ajaxify: () ->
     JSON.stringify({url: @url(), interval: parseInt(@interval()), name: @name(), id: @id()})

@@ -47,7 +47,7 @@ class RespourcesRoute(private val wsPort: Int) {
   }
 
   private val orRoutes = get("about" | "settings" | "plugins" |
-    "favorites" | "show" | "search") ~> { (_: String, c: CurrentHttpRequest) =>
+    "favorites" | "show" | "search" | "sources") ~> { (_: String, c: CurrentHttpRequest) =>
     commonHandler(c)
   }
 

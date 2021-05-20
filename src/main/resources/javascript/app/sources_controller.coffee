@@ -111,4 +111,3 @@ SourcesController =
       sources = sources.sort (a, b) -> parseInt(a.count()) - parseInt(b.count())
 
       sources.forEach((x) -> Sources.add(x))
-
