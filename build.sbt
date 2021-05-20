@@ -9,12 +9,10 @@ name := "TrueRSS"
 version := "1.0.5"
 
 val setup = Seq(
-  resolvers += Resolver.sonatypeRepo("snapshots"),
   resolvers += "Typesafe Releases" at "https://repo.typesafe.com/typesafe/releases",
-  resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
+  resolvers += "Sonatype OSS" at "https://s01.oss.sonatype.org/content/repositories/releases",
   resolvers += "JCenter" at "https://jcenter.bintray.com/",
   resolvers += "karussell_releases" at "https://github.com/karussell/mvnrepo",
-  resolvers += Resolver.bintrayRepo("truerss", "maven"),
   scalaVersion := "2.13.5",
   scalacOptions ++= Seq(
     "-deprecation",
