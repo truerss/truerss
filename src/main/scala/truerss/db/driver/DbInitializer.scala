@@ -92,6 +92,10 @@ object DbInitializer {
       // no plugin sources
       run("create plugin_sources table", driver.query.pluginSources.schema.create)
     }
+
+    if (!tableNames.contains(names.sourceStatuses)) {
+      run(s"create ${names.sourceStatuses} table", driver.query.sourceStatuses.schema.create)
+    }
   }
 
   private def runMigrations(db: JdbcBackend.DatabaseDef, dbProfile: DBProfile, driver: CurrentDriver): Unit = {

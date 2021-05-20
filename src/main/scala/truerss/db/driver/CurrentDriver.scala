@@ -160,6 +160,13 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
     override def * = (id.?, url) <> (PluginSource.tupled, PluginSource.unapply)
   }
 
+  class SourceStatusesTable(tag: Tag) extends Table[SourceStatus](tag, tableNames.sourceStatuses) {
+    def sourceId = column[Long]("sourceId", O.Unique)
+    def errorCount = column[Int]("errorCount")
+
+    override def * = (sourceId, errorCount) <> (SourceStatus.tupled, SourceStatus.unapply)
+  }
+
   object query {
     lazy val sources = TableQuery[Sources]
     lazy val feeds = TableQuery[Feeds]
@@ -174,6 +181,7 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
     lazy val predefinedSettings = TableQuery[PredefinedSettingsTable]
     lazy val userSettings = TableQuery[UserSettingsTable]
     lazy val pluginSources = TableQuery[PluginSourcesTable]
+    lazy val sourceStatuses = TableQuery[SourceStatusesTable]
 
     implicit class FeedsTQExt(val x: TableQuery[Feeds]) {
       def unreadOnly: Query[Feeds, Feed, Seq] = {
@@ -206,7 +214,8 @@ case class TableNames(sources: String,
                       versions: String,
                       predefinedSettings: String,
                       userSettings: String,
-                      pluginSources: String
+                      pluginSources: String,
+                      sourceStatuses: String,
                      )
 object TableNames {
   val default = TableNames(
@@ -215,7 +224,8 @@ object TableNames {
     versions = "versions",
     predefinedSettings = "predefined_settings",
     userSettings = "user_settings",
-    pluginSources = "plugin_sources"
+    pluginSources = "plugin_sources",
+    sourceStatuses = "source_statuses"
   )
 
   def withPrefix(prefix: String): TableNames = {
@@ -225,7 +235,8 @@ object TableNames {
       versions = s"${prefix}_versions",
       predefinedSettings = s"${prefix}_predefined_settings",
       userSettings = s"${prefix}_user_settings",
-      pluginSources = s"${prefix}_plugin_sources"
+      pluginSources = s"${prefix}_plugin_sources",
+      sourceStatuses = s"${prefix}_source_statuses"
     )
   }
 }
