@@ -18,8 +18,14 @@ class SourcesService(val dbLayer: DbLayer,
 
   import FeedSourceDtoModelImplicits._
 
-  def getAllForOpml: Task[Vector[SourceViewDto]] = {
-    dbLayer.sourceDao.all.map { xs => xs.map(_.toView).toVector }
+  def getAllForOpml: Task[Iterable[SourceViewDto]] = {
+    dbLayer.sourceDao.all.map { sources =>
+      sources.flatMap { source =>
+        source.id.map { sourceId =>
+          source.toView(sourceId)
+        }
+      }
+    }
   }
 
   def findAll: Task[Vector[SourceViewDto]] = {
@@ -34,7 +40,7 @@ class SourcesService(val dbLayer: DbLayer,
       val errorsMap = errors.map(x => x.sourceId -> x.sourceId).toMap
       sources.flatMap { source =>
         source.id.map { sourceId =>
-          source.toView
+          source.toView(sourceId)
             .recount(feedsBySource.getOrElse(sourceId, 0))
             .errors(errorsMap.getOrElse(sourceId, 0L))
         }
@@ -43,13 +49,13 @@ class SourcesService(val dbLayer: DbLayer,
   }
 
   def getSource(sourceId: Long): Task[SourceViewDto] = {
-    fetchOne(sourceId) { _.toView }
+    fetchOne(sourceId) { _.toView(sourceId) }
   }
 
   def delete(sourceId: Long): Task[Unit] = {
     for {
       source <- dbLayer.sourceDao.findOne(sourceId)
-      view = source.toView
+      view = source.toView(sourceId)
       _ <- dbLayer.sourceDao.delete(sourceId)
       _ <- dbLayer.feedDao.deleteFeedsBySource(sourceId)
       _ <- dbLayer.sourceStatusesDao.delete(sourceId)
@@ -90,7 +96,7 @@ class SourcesService(val dbLayer: DbLayer,
       state = appPluginService.getState(source.url)
       newSource = source.withState(state)
       id <- dbLayer.sourceDao.insert(newSource).orDie
-      resultSource = newSource.withId(id).toView
+      resultSource = newSource.withId(id).toView(id)
       _ <- dbLayer.sourceStatusesDao.insertOne(id)
       _ <- fire(SourcesKeeperActor.NewSource(resultSource))
     } yield resultSource
@@ -103,7 +109,7 @@ class SourcesService(val dbLayer: DbLayer,
       state = appPluginService.getState(source.url)
       updatedSource = source.withState(state).withId(sourceId)
       _ <- dbLayer.sourceDao.updateSource(updatedSource).orDie
-      view = updatedSource.toView
+      view = updatedSource.toView(sourceId)
       _ <- fire(SourcesKeeperActor.ReloadSource(view))
     } yield view
   }

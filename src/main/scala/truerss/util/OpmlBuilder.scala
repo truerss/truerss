@@ -8,7 +8,7 @@ object OpmlBuilder {
   // util variables
   private val exportText = "Newsfeeds exported from TrueRSS"
 
-  def build(sources: Seq[SourceViewDto]): String = {
+  def build(sources: Iterable[SourceViewDto]): String = {
     val outlines = sources.map { source =>
       s"""<outline type="rss" text="${e(source.name)}" title="${e(source.name)}" xmlUrl="${e(source.url)}"></outline>"""
     }.mkString("\n")
