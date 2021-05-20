@@ -35,8 +35,12 @@ case class SourceViewDto(id: Long,
                          state: State.Value,
                          normalized: String,
                          lastUpdate: LocalDateTime,
-                         count: Int = 0) {
+                         count: Int = 0,
+                         errorsCount: Long = 0
+                        ) {
   def recount(x: Int): SourceViewDto = copy(count = x)
+
+  def errors(x: Long): SourceViewDto = copy(errorsCount = x)
 
   def isEnabled: Boolean = {
     state != State.Disable

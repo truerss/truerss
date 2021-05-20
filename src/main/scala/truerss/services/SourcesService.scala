@@ -29,9 +29,15 @@ class SourcesService(val dbLayer: DbLayer,
         .feedBySourceCount(false)
         .map(_.toVector.toMap)
       sources <- dbLayer.sourceDao.all.map(_.toVector)
+      errors <- dbLayer.sourceStatusesDao.all
     } yield {
-      sources.map { s =>
-        s.toView.recount(feedsBySource.getOrElse(s.id.get, 0))
+      val errorsMap = errors.map(x => x.sourceId -> x.sourceId).toMap
+      sources.flatMap { source =>
+        source.id.map { sourceId =>
+          source.toView
+            .recount(feedsBySource.getOrElse(sourceId, 0))
+            .errors(errorsMap.getOrElse(sourceId, 0L))
+        }
       }
     }
   }
