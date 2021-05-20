@@ -26,8 +26,9 @@ MainController =
 
     ws.onmessage = (e) ->
       message = JSON.parse(e.data)
-      logger.info("ws-message received: #{message.messageType}")
-      adapter.fire(document, "ws:#{message.messageType.toLowerCase()}", message.body)
+      c("ws-message received: #{message.messageType.camelize()}")
+      logger.info("ws-message received: #{message.messageType} ~> #{message.messageType.camelize()}")
+      adapter.fire(document, "ws:#{message.messageType.camelize()}", message.body)
     ws.onclose = () ->
       logger.info("ws closed")
 

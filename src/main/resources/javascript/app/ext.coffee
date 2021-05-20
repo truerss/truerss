@@ -71,6 +71,9 @@ String::htmlize = () ->
   .replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&')
   .replace(/@/,'`at`')
 
+String::camelize = () ->
+  @split(/(?=[A-Z])/).join('_').toLowerCase()
+
 Array::group_by = (key) ->
   o = {}
   for a in @

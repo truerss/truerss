@@ -213,6 +213,8 @@ ControllerExt =
 
   _materializer: null
 
+  _source_materializer: null
+
   ajax: new AjaxService()
 
   get_source_overview: (source_id) ->
@@ -337,7 +339,6 @@ ControllerExt =
 
     Templates.article_view.render(result).html()
 
-
   render_feeds_and_source_overview: (source, overview, feeds, current_page, total_feeds) ->
     href = if overview.is_loaded_all()
       source.href_all()
@@ -369,6 +370,21 @@ ControllerExt =
         else
           "no feeds"
       )
+
+    @_source_materializer = Sirius.Materializer.build(source, overview_view)
+      .field((x) -> x.errorsCount)
+      .to((v) -> v.zoom('.source-errors-count'))
+      .transform((x) ->
+        if x != 0
+          source.errors_message()
+        else
+          "No Errors"
+      )
+
+    if @_source_materializer?
+      @_source_materializer.stop()
+
+    @_source_materializer.run()
 
     @_materializer.run()
 
