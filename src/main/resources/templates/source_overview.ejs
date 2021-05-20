@@ -48,5 +48,8 @@
             <%= overview.favoritesCount %>
         </span>
     </li>
+    <% if (source.has_errors()) { %>
+    <li>Errors?: <%= source.errors_message() %></li>
+    <% } %>
 
 </ul>

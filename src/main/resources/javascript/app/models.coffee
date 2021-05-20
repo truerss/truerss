@@ -31,6 +31,12 @@ class Source extends Sirius.BaseModel
   has_errors: () ->
     parseInt(@errors_count()) > 0
 
+  errors_message: () ->
+    if parseInt(@errors_count()) == 1
+      "Has 1 Error"
+    else
+      "Has #{@errors_count()} Errors"
+
   ajaxify: () ->
     JSON.stringify({url: @url(), interval: parseInt(@interval()), name: @name(), id: @id()})
 

@@ -54,7 +54,6 @@ MainController =
       ajax.load_ejs("source_overview")
       ajax.load_ejs("about")
       ajax.load_ejs("short_view_feeds_list")
-      ajax.load_ejs("sources_management")
     ).done (sources, feeds_list, favorites, plugins, settings,
     source_description, about, short_view, sources_management_view) =>
       # TODO use async loading in controllers
@@ -66,7 +65,6 @@ MainController =
       Templates.source_overview_template = new EJS(source_description[0])
       Templates.about_template = new EJS(about[0])
       Templates.short_view_feeds_list_template = new EJS(short_view[0])
-      Templates.sources_management_template = new EJS(sources_management_view[0])
 
       @_load_js_and_css(ajax)
       port = read_cookie("port")
