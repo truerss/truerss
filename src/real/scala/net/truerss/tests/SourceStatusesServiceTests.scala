@@ -26,6 +26,10 @@ trait SourceStatusesServiceTests extends Specification with Resources {
       service.incrementError(sourceId).m
       service.findOne(sourceId).m ==== SourceStatusDto(sourceId, 3)
       service.findAll.m.filter(_.sourceId == sourceId) ==== Iterable(SourceStatusDto(sourceId, 3))
+      // reset
+      service.resetErrors(sourceId).m
+      // check
+      service.findOne(sourceId).m ==== SourceStatusDto(sourceId, 0)
       // delete source
       dbLayer.sourceDao.delete(sourceId).m
       dbLayer.sourceStatusesDao.delete(sourceId).m

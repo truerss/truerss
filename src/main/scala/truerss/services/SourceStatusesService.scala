@@ -20,6 +20,10 @@ class SourceStatusesService(private val dbLayer: DbLayer) {
     dbLayer.sourceStatusesDao.incrementError(sourceId)
   }
 
+  def resetErrors(sourceId: Long): Task[Unit] = {
+    dbLayer.sourceStatusesDao.resetErrors(sourceId)
+  }
+
 }
 
 object SourceStatusesService {

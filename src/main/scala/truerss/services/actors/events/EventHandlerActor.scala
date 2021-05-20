@@ -22,6 +22,7 @@ class EventHandlerActor(private val sourcesService: SourcesService,
     case RegisterNewFeeds(sourceId, entries) =>
       val f = for {
         feeds <- feedsService.registerNewFeeds(sourceId, entries)
+        _ <- sourcesStatusesService.resetErrors(sourceId)
         _ <- fire(PublishPluginActor.NewEntriesReceived(feeds)).when(feeds.nonEmpty)
         _ <- fire(WebSocketController.NewFeeds(feeds)).when(feeds.nonEmpty)
       } yield ()

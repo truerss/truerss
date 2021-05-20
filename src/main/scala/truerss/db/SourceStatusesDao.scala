@@ -30,6 +30,11 @@ class SourceStatusesDao(val db: DatabaseDef)(implicit
     (sourceStatuses.filter(_.sourceId === sourceId).delete ~> db).unit
   }
 
+  def resetErrors(sourceId: Long): Task[Unit] = {
+    (sourceStatuses.filter(_.sourceId === sourceId)
+      .map(_.errorCount).update(0) ~> db).unit
+  }
+
   def incrementError(sourceId: Long): Task[Unit] = {
     Task.fromFuture { implicit ec =>
       val action = (for {

@@ -1,7 +1,7 @@
 
 class Source extends Sirius.BaseModel
   @attrs: ["id", "url", "name", {"interval" : 1}, "state", "normalized",
-    "lastUpdate", "count", {"active": true}, {"favorites_count": 0}]
+    "lastUpdate", "count", {"active": true}, {"favorites_count": 0}, "errorsCount"]
 
   @skip : true
   @validate:
@@ -27,6 +27,9 @@ class Source extends Sirius.BaseModel
 
   href_all: () ->
     "#{@href()}/all"
+
+  has_errors: () ->
+    parseInt(@errorsCount()) > 0
 
   ajaxify: () ->
     JSON.stringify({url: @url(), interval: parseInt(@interval()), name: @name(), id: @id()})
