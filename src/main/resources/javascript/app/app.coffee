@@ -22,8 +22,8 @@ $ ->
     "about:load": controller: AboutController, action: "load"
     "ws:new": controller: WSController, action: "fresh"
     "ws:notify": controller: WSController, action: "notify"
-    "ws:new_source": controller: WSController, action: "new_source"
-    "ws:source_error": controller: WSController, action: "source_error"
+    "ws:newsource": controller: WSController, action: "new_source"
+    "ws:sourceerror": controller: WSController, action: "source_error"
     "/favorites" : controller: FeedsController, action: "favorites"
     "/favorites/search": controller: SearchController, action: "show", after: () -> scroll_to_top()
     "/favorites/search/page/:page": controller: SearchController, action: "show", after: () -> scroll_to_top()
@@ -54,7 +54,7 @@ $ ->
     "input #search": controller: SearchController, action: "filter"
 
   setup =
-    enable_logging: true
+    enable_logging: false
     route: routes
     adapter: new JQueryAdapter()
     controller_wrapper: ControllerExt

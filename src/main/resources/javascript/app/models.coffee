@@ -141,6 +141,34 @@ Sources.subscribe "add", (source) ->
         "#{x}"
     )
     .handle((view, value) -> view.render(value).toggle())
+    .field((x) -> x.errorsCount)
+    .to((v) -> v.zoom('.source-errors-count-badge'))
+    .transform((x) ->
+        # TODO pass as object Some/None slt
+        x = parseInt(x, 10)
+        if isNaN(x) or x <= 0
+          ""
+        else
+          if x == 1
+            "Has 1 Error"
+          else
+            "Has #{x} Errors"
+    )
+    .handle((view, value_to_show) ->
+       invisible = ['uk-invisible']
+       visible = ['uk-badge', 'uk-label-danger']
+       add = (klass) -> view.render(klass).add_class()
+       remove = (klass) -> view.render(klass).remove_class()
+       unless value_to_show.is_empty()
+         add klass for klass in visible
+         remove klass for klass in invisible
+         view.render('e').text()
+         view.render(value_to_show).tooltip('uk-tooltip')
+       else
+         add klass for klass in invisible
+         remove klass for klass in visible
+         view.render('').text()
+    )
     .run()
 
 

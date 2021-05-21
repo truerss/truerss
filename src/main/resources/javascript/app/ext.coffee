@@ -8,11 +8,24 @@ Sirius.View.register_strategy('html',
       throw new Error("Html strategy work only for text, not for #{attribute}")
 )
 
+Sirius.View.register_strategy('text',
+  transform: (oldvalue, newvalue) -> newvalue
+  render: (adapter, element, result, attribute) ->
+    $(element).text(result)
+)
+
 Sirius.View.register_strategy('add_class',
   transform: (oldvalue, newvalue) -> newvalue
   render: (adapter, element, result, attribute) ->
     $(element).addClass(result)
 )
+
+Sirius.View.register_strategy('tooltip',
+  transform: (oldvalue, newvalue) -> newvalue
+  render: (adapter, element, result, attribute) ->
+    adapter.set_attr(element, attribute, result)
+)
+
 
 Sirius.View.register_strategy('remove_class',
   transform: (oldvalue, newvalue) -> newvalue
