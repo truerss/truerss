@@ -36,7 +36,6 @@ WSController =
         @logger.warn("Source #{source_id} was not found")
 
   source_error: (e, message, source_id) ->
-    c("-----------------------")
     @notify(e, message)
     source = Sources.find('id', source_id)
     if source
