@@ -162,7 +162,7 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
 
   class SourceStatusesTable(tag: Tag) extends Table[SourceStatus](tag, tableNames.sourceStatuses) {
     def sourceId = column[Long]("sourceId", O.Unique)
-    def errorCount = column[Int]("errorCount")
+    def errorCount = column[Int]("errorsCount")
 
     override def * = (sourceId, errorCount) <> (SourceStatus.tupled, SourceStatus.unapply)
   }

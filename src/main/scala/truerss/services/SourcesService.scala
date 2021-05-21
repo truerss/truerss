@@ -37,7 +37,7 @@ class SourcesService(val dbLayer: DbLayer,
       sources <- dbLayer.sourceDao.all.map(_.toVector)
       errors <- dbLayer.sourceStatusesDao.all
     } yield {
-      val errorsMap = errors.map(x => x.sourceId -> x.errorCount).toMap
+      val errorsMap = errors.map(x => x.sourceId -> x.errorsCount).toMap
       sources.flatMap { source =>
         source.id.map { sourceId =>
           source.toView(sourceId)

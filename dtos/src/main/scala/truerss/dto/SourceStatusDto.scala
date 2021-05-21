@@ -1,3 +1,3 @@
 package truerss.dto
 
-case class SourceStatusDto(sourceId: Long, errorCount: Int)
+case class SourceStatusDto(sourceId: Long, errorsCount: Int)

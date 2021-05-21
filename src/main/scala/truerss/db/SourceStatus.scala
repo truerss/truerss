@@ -1,3 +1,3 @@
 package truerss.db
 
-case class SourceStatus(sourceId: Long, errorCount: Int)
+case class SourceStatus(sourceId: Long, errorsCount: Int)

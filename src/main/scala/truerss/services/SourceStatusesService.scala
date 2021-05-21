@@ -31,7 +31,7 @@ object SourceStatusesService {
     def toDto: SourceStatusDto = {
       SourceStatusDto(
         sourceId = x.sourceId,
-        errorCount = x.errorCount
+        errorsCount = x.errorsCount
       )
     }
   }

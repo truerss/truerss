@@ -297,7 +297,7 @@ trait FullFlowTests extends Specification with Resources with BeforeAfterAll {
 
       sleep()
 
-      sourcesStatusesApiClient.findOne(sourceId3).m.errorCount must beGreaterThanOrEqualTo(1)
+      sourcesStatusesApiClient.findOne(sourceId3).m.errorsCount must beGreaterThanOrEqualTo(1)
 
       // 3 from import + 1 from read invalid rss ^ (produceErrors)
       wsClient.notifications.size ==== 3
