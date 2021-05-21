@@ -37,9 +37,9 @@ object FeedSourceDtoModelImplicits {
   }
 
   implicit class SourceExt(val x: Source) extends AnyVal {
-    def toView: SourceViewDto = {
+    def toView(sourceId: Long): SourceViewDto = {
       SourceViewDto(
-        id = x.id.getOrElse(0L),
+        id = sourceId,
         url = x.url,
         name = x.name,
         interval = x.interval,

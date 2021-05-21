@@ -1,12 +1,11 @@
 package net.truerss
 
-import com.github.fntz.omhs.OMHSServer
-
 import java.io.File
 import java.nio.file.Files
 import net.truerss.tests.AllTestsTogether
 import org.specs2.specification.BeforeAfterAll
-import truerss.AppRunner
+import truerss.db.DbLayer
+import truerss.{AppInstance, AppRunner}
 import truerss.util.DbConfig
 
 class Sqlite3Tests
@@ -16,7 +15,8 @@ class Sqlite3Tests
   override def suiteName: String = "sqlite-tests"
 
   private val dbName = "sqlite-test.tdb"
-  private var appServer: OMHSServer.Instance = _
+  private var appServer: AppInstance = _
+  override protected def dbLayer: DbLayer = appServer.dbLayer
 
   override def beforeAll(): Unit = {
     startServer()

@@ -4,19 +4,21 @@ import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.event.EventStream
 import truerss.services.actors.events.{EventHandlerActor, PublishPluginActor}
 import truerss.services.actors.sync.SourcesKeeperActor
-import truerss.services.{ApplicationPluginsService, FeedsService, SourcesService}
+import truerss.services.{ApplicationPluginsService, FeedsService, SourceStatusesService, SourcesService}
 import truerss.util.TrueRSSConfig
 
 class MainActor(config: TrueRSSConfig,
                 applicationPluginsService: ApplicationPluginsService,
                 sourcesService: SourcesService,
-                feedsService: FeedsService)
+                feedsService: FeedsService,
+                sourcesStatusesService: SourceStatusesService
+               )
   extends Actor with ActorLogging {
 
   private val stream: EventStream = context.system.eventStream
 
   val eventHandlerActor = create(
-    EventHandlerActor.props(sourcesService, feedsService),
+    EventHandlerActor.props(sourcesService, sourcesStatusesService, feedsService),
     "event-handler-actor")
 
   val publishActor = create(Props(
@@ -49,9 +51,13 @@ object MainActor {
   def props(config: TrueRSSConfig,
             applicationPluginsService: ApplicationPluginsService,
             sourcesService: SourcesService,
-            feedsService: FeedsService) = {
+            feedsService: FeedsService,
+            sourcesStatusesService: SourceStatusesService
+           ) = {
     Props(classOf[MainActor], config, applicationPluginsService,
       sourcesService,
-      feedsService)
+      feedsService,
+      sourcesStatusesService
+    )
   }
 }

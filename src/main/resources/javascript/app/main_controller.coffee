@@ -26,8 +26,9 @@ MainController =
 
     ws.onmessage = (e) ->
       message = JSON.parse(e.data)
-      logger.info("ws-message received: #{message.messageType}")
-      adapter.fire(document, "ws:#{message.messageType.toLowerCase()}", message.body)
+      logger.info("ws-message received: #{message.messageType} ~> #{message.messageType.toLowerCase()}")
+      adapter.fire(document, "ws:#{message.messageType.toLowerCase()}", message.body, message.sourceId)
+
     ws.onclose = () ->
       logger.info("ws closed")
 
@@ -54,7 +55,8 @@ MainController =
       ajax.load_ejs("source_overview")
       ajax.load_ejs("about")
       ajax.load_ejs("short_view_feeds_list")
-    ).done (sources, feeds_list, favorites, plugins, settings, source_description, about, short_view) =>
+    ).done (sources, feeds_list, favorites, plugins, settings,
+    source_description, about, short_view, sources_management_view) =>
       # TODO use async loading in controllers
       Templates.source_list = new EJS(sources[0])
       Templates.feeds_list = new EJS(feeds_list[0])

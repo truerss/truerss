@@ -16,7 +16,7 @@ class UpdateTimeTests extends Specification {
   "update time" should {
     "calculate diff" in {
       val now = LocalDateTime.now(Clock.systemUTC())
-      val source1 = Gen.genSource(Some(1L)).toView.copy(
+      val source1 = Gen.genSource(Some(1L)).toView(1L).copy(
         lastUpdate = now.minusHours(4),
         interval = 3
       )

@@ -1,10 +1,10 @@
 package net.truerss
 
-import com.github.fntz.omhs.OMHSServer
 import net.truerss.tests.AllTestsTogether
 import org.specs2.specification.BeforeAfterAll
 import org.testcontainers.containers.MySQLContainer
-import truerss.AppRunner
+import truerss.db.DbLayer
+import truerss.{AppInstance, AppRunner}
 import truerss.util.DbConfig
 
 class MySqlTests extends AllTestsTogether with BeforeAfterAll with Resources {
@@ -13,8 +13,8 @@ class MySqlTests extends AllTestsTogether with BeforeAfterAll with Resources {
 
   val container = new MySQLContainer("mysql:8.0.23")
 
-
-  private var appServer: OMHSServer.Instance = _
+  private var appServer: AppInstance = _
+  override protected def dbLayer: DbLayer = appServer.dbLayer
 
   override def beforeAll(): Unit = {
     container.start()

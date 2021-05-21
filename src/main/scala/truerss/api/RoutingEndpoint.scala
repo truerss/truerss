@@ -20,6 +20,7 @@ class RoutingEndpoint(
                        refreshSourcesService: RefreshSourcesService,
                        markService: MarkService,
                        pluginSourcesService: PluginSourcesService,
+                       sourceStatusesService: SourceStatusesService,
                        wsPort: Int
                      ) {
 
@@ -36,12 +37,14 @@ class RoutingEndpoint(
   val markApi = new MarkApi(markService)
   val sourcesOverviewApi = new SourcesOverviewApi(sourceOverviewService)
   val pluginSourcesApi = new PluginSourcesApi(pluginSourcesService)
+  val sourceStatusesApi = new SourceStatusesApi(sourceStatusesService)
 
   protected val logger = LoggerFactory.getLogger(getClass)
 
   val apis = sourcesApi.route :: feedsApi.route :: pluginsApi.route ::
     settingsApi.route :: searchApi.route :: refreshApi.route ::
-    opmlApi.route :: markApi.route :: sourcesOverviewApi.route :: pluginSourcesApi.route
+    opmlApi.route :: markApi.route :: sourcesOverviewApi.route :: pluginSourcesApi.route ::
+    sourceStatusesApi.route
 
   val additional = new RespourcesRoute(wsPort)
 

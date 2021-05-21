@@ -35,11 +35,11 @@
     <li><%= overview.feedsCount %> feeds</li>
     <li>unread count:
         <span class="source-overview-unread-count" data-source-id="<%= source.id() %>">
-        <% if (overview.unreadCount != 0) { %>
-            <%= source.count() %>
-        <% } else { %>
-            -
-        <% } %>
+            <% if (overview.unreadCount != 0) { %>
+                <%= source.count() %>
+            <% } else { %>
+                -
+            <% } %>
         </span>
     </li>
 
@@ -49,4 +49,11 @@
         </span>
     </li>
 
+    <li>Errors?:
+        <span class="source-errors-count" data-source-id="<%= source.id() %>">
+            <% if (source.has_errors()) { %>
+            <%= source.errors_message() %>
+            <% } %>
+        </span>
+    </li>
 </ul>

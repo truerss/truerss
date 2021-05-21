@@ -129,7 +129,7 @@ object SourcesKeeperActor {
   case class ReloadSource(source: SourceViewDto) extends SourcesMessage
 
   // not message, just tmp class with all sources
-  case class Sources(xs: Seq[SourceViewDto])
+  case class Sources(xs: Iterable[SourceViewDto])
 
   // config
   case class SourcesSettings(

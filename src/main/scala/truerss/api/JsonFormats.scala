@@ -165,6 +165,8 @@ object JsonFormats {
   implicit val installPluginFormat: Format[InstallPlugin] = Json.format[InstallPlugin]
   implicit val uninstallPluginFormat: Format[UninstallPlugin] = Json.format[UninstallPlugin]
 
+  implicit val sourceStatusDtoFormat: Format[SourceStatusDto] = Json.format[SourceStatusDto]
+
   implicit def pageWriter[T](implicit f: Writes[T]): Writes[Page[T]] = new Writes[Page[T]] {
     override def writes(o: Page[T]): JsValue = {
       JsObject(

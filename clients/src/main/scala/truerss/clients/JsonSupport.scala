@@ -147,6 +147,8 @@ object JsonSupport {
   implicit val installPluginFormat: Format[InstallPlugin] = Json.format[InstallPlugin]
   implicit val uninstallPluginFormat: Format[UninstallPlugin] = Json.format[UninstallPlugin]
 
+  implicit val sourceStatusDtoFormat: Format[SourceStatusDto] = Json.format[SourceStatusDto]
+
   implicit def pageReader[T](implicit f: Reads[T]): Reads[Page[T]] = new Reads[Page[T]] {
     override def reads(json: JsValue): JsResult[Page[T]] = {
       json match {

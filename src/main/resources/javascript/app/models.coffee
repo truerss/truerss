@@ -1,7 +1,7 @@
 
 class Source extends Sirius.BaseModel
   @attrs: ["id", "url", "name", {"interval" : 1}, "state", "normalized",
-    "lastUpdate", "count", {"active": true}, {"favorites_count": 0}]
+    "lastUpdate", "count", {"active": true}, {"favorites_count": 0}, "errorsCount"]
 
   @skip : true
   @validate:
@@ -27,6 +27,15 @@ class Source extends Sirius.BaseModel
 
   href_all: () ->
     "#{@href()}/all"
+
+  has_errors: () ->
+    parseInt(@errors_count()) > 0
+
+  errors_message: () ->
+    if parseInt(@errors_count()) == 1
+      "Has 1 Error"
+    else
+      "Has #{@errors_count()} Errors"
 
   ajaxify: () ->
     JSON.stringify({url: @url(), interval: parseInt(@interval()), name: @name(), id: @id()})
@@ -132,6 +141,34 @@ Sources.subscribe "add", (source) ->
         "#{x}"
     )
     .handle((view, value) -> view.render(value).toggle())
+    .field((x) -> x.errorsCount)
+    .to((v) -> v.zoom('.source-errors-count-badge'))
+    .transform((x) ->
+        # TODO pass as object Some/None slt
+        x = parseInt(x, 10)
+        if isNaN(x) or x <= 0
+          ""
+        else
+          if x == 1
+            "Has 1 Error"
+          else
+            "Has #{x} Errors"
+    )
+    .handle((view, value_to_show) ->
+       invisible = ['uk-invisible']
+       visible = ['uk-badge', 'uk-label-danger']
+       add = (klass) -> view.render(klass).add_class()
+       remove = (klass) -> view.render(klass).remove_class()
+       unless value_to_show.is_empty()
+         add klass for klass in visible
+         remove klass for klass in invisible
+         view.render('e').text()
+         view.render(value_to_show).tooltip('uk-tooltip')
+       else
+         add klass for klass in invisible
+         remove klass for klass in visible
+         view.render('').text()
+    )
     .run()
 
 

@@ -8,12 +8,22 @@
   <% } %>
 
 
+
     <a id="source-count-<%=source.id()%>"
        class="uk-badge uk-align-right uk-margin-remove uk-text-small source-count"
        data-source-id="<%= source.id() %>">
         <% if (!source.is_empty()) { %>
-            <%= source.count() %>
+          <%= source.count() %>
         <% } %>
     </a>
+
+    <a id="source-errors-count-<%=source.id()%>"
+       class="uk-align-right uk-margin-remove uk-text-small
+       source-errors-count-badge"
+       data-source-id='<%=source.id() %>'>
+    </a>
+
+
+
 
 </li>

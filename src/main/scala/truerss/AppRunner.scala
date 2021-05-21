@@ -23,7 +23,7 @@ object AppRunner {
 
   def run(actualConfig: TrueRSSConfig,
           dbConf: DbConfig,
-          isUserConf: Boolean)(implicit actorSystem: ActorSystem): OMHSServer.Instance = {
+          isUserConf: Boolean)(implicit actorSystem: ActorSystem): AppInstance = {
     val dbLayer = DbInitializer.initialize(dbConf, isUserConf)
 
     val stream = actorSystem.eventStream
@@ -35,6 +35,7 @@ object AppRunner {
     val sourceUrlValidator = new SourceUrlValidator()
     val sourceValidator = new SourceValidator(dbLayer, sourceUrlValidator, appPluginsService)
     val sourcesService = new SourcesService(dbLayer, appPluginsService, stream, sourceValidator)
+    val sourceStatusesService = new SourceStatusesService(dbLayer)
 
     val opmlService = new OpmlService(sourcesService)
     val feedsService = new FeedsService(dbLayer)
@@ -59,7 +60,11 @@ object AppRunner {
 
     actorSystem.actorOf(
       MainActor.props(actualConfig.withParallelism(feedParallelism),
-        appPluginsService, sourcesService,  feedsService),
+        appPluginsService,
+        sourcesService,
+        feedsService,
+        sourceStatusesService
+      ),
       "main-actor"
     )
 
@@ -75,6 +80,7 @@ object AppRunner {
       refreshSourcesService = refreshSourcesService,
       markService = markService,
       pluginSourcesService = pluginSourcesService,
+      sourceStatusesService = sourceStatusesService,
       wsPort = actualConfig.wsPort
     )
 
@@ -93,6 +99,6 @@ object AppRunner {
       server.stop()
       logger.info(s"========> ActorSytem[${actorSystem.name}] is terminating...")
     }
-    server
+    AppInstance(server, dbLayer)
   }
 }

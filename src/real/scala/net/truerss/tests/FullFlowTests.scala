@@ -19,6 +19,7 @@ trait FullFlowTests extends Specification with Resources with BeforeAfterAll {
   private val searchApiClient = new SearchApiHttpClient(url)
   private val opmlApiClient = new OpmlApiHttpClient(url)
   private val settingsClient = new SettingsApiHttpClient(url)
+  private val sourcesStatusesApiClient = new SourcesStatusesApiHttpClient(url)
 
   "APIs" should {
     "scenario" in {
@@ -43,6 +44,9 @@ trait FullFlowTests extends Specification with Resources with BeforeAfterAll {
       getSource.url ==== newSource.url
       getSource.name ==== newSource.name
       getSource.interval ==== newSource.interval
+
+      p("No Errors at the current time")
+      sourcesStatusesApiClient.findOne(sourceId).m ==== SourceStatusDto(sourceId, 0)
 
       p("Try to create with the same name")
       val newSourceInvalidName = newSource.copy(url = "http://example.com/rss")
@@ -121,6 +125,7 @@ trait FullFlowTests extends Specification with Resources with BeforeAfterAll {
 
       p("Get Overview for not existing source")
       overviewApiClient.overview(1000).e must be equalTo Left(EntityNotFoundError)
+      sourcesStatusesApiClient.findOne(1000).e must be equalTo Left(EntityNotFoundError)
 
       sourceApiClient.unread(sourceId, 0, 10).m.resources must have size 1
       val latest = sourceApiClient.latest(0, 100).m
@@ -292,17 +297,23 @@ trait FullFlowTests extends Specification with Resources with BeforeAfterAll {
 
       sleep()
 
-      wsClient.notifications.size ==== 4 // 3 from import + 1 from read invalid rss ^ (produceErrors)
+      sourcesStatusesApiClient.findOne(sourceId3).m.errorsCount must beGreaterThanOrEqualTo(1)
 
-      val notification = wsClient.notifications.last 
-      notification.level ==== NotifyLevel.Danger
-      notification.message must contain(s"Connection error for $rssUrlWithError")
+      // 3 from import + 1 from read invalid rss ^ (produceErrors)
+      wsClient.notifications.size ==== 3
+      wsClient.sourceUpdateErrors.size ==== 1
+      wsClient.sourceUpdateErrors.map(_.sourceId) must contain(allOf(sourceId3))
+
+      val notification = wsClient.sourceUpdateErrors.last
+      notification.message.level ==== NotifyLevel.Danger
+      notification.message.message must contain(s"Connection error for $rssUrlWithError")
 
       // delete source
       sourceApiClient.deleteOne(sourceId).m
 
       sourceApiClient.findOne(sourceId).e must be equalTo Left(EntityNotFoundError)
       feedsApiClient.findOne(feedId).e must be equalTo Left(EntityNotFoundError)
+      sourcesStatusesApiClient.findOne(sourceId).e must be equalTo Left(EntityNotFoundError)
       sourceApiClient.unread(sourceId, 0, 10).m.resources must be empty
 
       success
