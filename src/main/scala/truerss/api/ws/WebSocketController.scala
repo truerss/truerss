@@ -24,7 +24,7 @@ class WebSocketController(private val ws: WebSocket) extends Actor with ActorLog
 
 object WebSocketController {
 
-  import JsonFormats.{feedDtoFormat, sourceViewDtoFormat}
+  import JsonFormats.{feedDtoFormatWrites, sourceViewDtoWrites}
   import WebSocketJsonFormats._
 
   sealed trait WSMessage

@@ -9,24 +9,15 @@ object State extends Enumeration {
 }
 
 
-sealed trait SourceDto {
-  def url: String
-  def name: String
-  def interval: Int
-
-  def getId: Option[Long] = None
-}
 
 case class NewSourceDto(url: String,
                         name: String,
-                        interval: Int) extends SourceDto
+                        interval: Int)
 
 case class UpdateSourceDto(id: Long,
                            url: String,
                            name: String,
-                           interval: Int) extends SourceDto {
-  override def getId: Option[Long] = Some(id)
-}
+                           interval: Int)
 
 case class SourceViewDto(id: Long,
                          url: String,

@@ -60,7 +60,6 @@ object JsonSupport {
 
   implicit lazy val newSourceDtoFormat = Json.format[NewSourceDto]
   implicit lazy val updateSourceDtoFormat = Json.format[UpdateSourceDto]
-  implicit lazy val sourceDtoFormat = Json.format[SourceDto]
   implicit lazy val sourceViewDtoFormat = Json.format[SourceViewDto]
 
   implicit lazy val pluginDtoFormat = Json.format[PluginDto]

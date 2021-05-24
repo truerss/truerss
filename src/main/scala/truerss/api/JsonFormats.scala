@@ -3,28 +3,10 @@ package truerss.api
 import play.api.libs.json._
 import truerss.dto._
 
-import java.util.Date
-
 object JsonFormats {
 
   implicit class StringExtJson(val x: String) extends AnyVal {
     def j: JsString = JsString(x)
-  }
-
-  implicit object DateFormat extends Format[Date] {
-    private final val f = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-    override def reads(json: JsValue): JsResult[Date] = {
-      json match {
-        case JsString(value) =>
-          JsSuccess(f.parse(value))
-        case _ =>
-          JsError("String required")
-      }
-    }
-
-    override def writes(o: Date): JsValue = {
-      JsString(f.format(o))
-    }
   }
 
   implicit lazy val processingWrites: Writes[Processing] = new Writes[Processing] {
@@ -33,32 +15,15 @@ object JsonFormats {
     }
   }
 
-  implicit object StateFormat extends Format[State.Value] {
-    override def reads(json: JsValue): JsResult[State.Value] = {
-      json match {
-        case JsNumber(value) =>
-          State.values.find(_.id == value)
-            .map(JsSuccess(_))
-            .getOrElse(JsError(s"Invalid state: $value"))
+  implicit val stateWrites: Writes[State.Value] = Writes.enumNameWrites
 
-        case _ =>
-          JsError("Number required")
-      }
-    }
+  implicit lazy val newSourceDtoReads = Json.reads[NewSourceDto]
+  implicit lazy val updateSourceDtoReads = Json.reads[UpdateSourceDto]
+  implicit lazy val sourceViewDtoWrites = Json.writes[SourceViewDto]
 
-    override def writes(o: State.Value): JsValue = {
-      JsNumber(o.id)
-    }
-  }
-
-  implicit lazy val newSourceDtoFormat = Json.format[NewSourceDto]
-  implicit lazy val updateSourceDtoFormat = Json.format[UpdateSourceDto]
-  implicit lazy val sourceDtoFormat = Json.format[SourceDto]
-  implicit lazy val sourceViewDtoFormat = Json.format[SourceViewDto]
-
-  implicit lazy val pluginDtoFormat = Json.format[PluginDto]
-  implicit lazy val pluginsViewDto = Json.format[PluginsViewDto]
-  implicit lazy val feedDtoFormat = Json.format[FeedDto]
+  implicit lazy val pluginDtoWrites = Json.writes[PluginDto]
+  implicit lazy val pluginsViewDtoWrites = Json.writes[PluginsViewDto]
+  implicit lazy val feedDtoFormatWrites = Json.writes[FeedDto]
 
   implicit lazy val newSourceFromFile = Json.format[NewSourceFromFileWithErrors]
 
@@ -67,7 +32,7 @@ object JsonFormats {
       val r = o.map { case (k, v) =>
         val tmp = v match {
           case Left(x) => newSourceFromFile.writes(x)
-          case Right(x) => sourceViewDtoFormat.writes(x)
+          case Right(x) => sourceViewDtoWrites.writes(x)
         }
         k.toString -> tmp
       }
@@ -153,30 +118,21 @@ object JsonFormats {
     }
   }
 
-  implicit val feedsFrequencyFormat: Format[FeedsFrequency] = Json.format[FeedsFrequency]
-  implicit val sourceOverviewFormat: Format[SourceOverview] = Json.format[SourceOverview]
+  implicit val feedsFrequencyWrites = Json.writes[FeedsFrequency]
+  implicit val sourceOverviewWrites = Json.writes[SourceOverview]
 
-  implicit val feedContentFormat: Format[FeedContent] = Json.format[FeedContent]
+  implicit val feedContentWrites = Json.writes[FeedContent]
 
-  implicit val searchRequestFormat: Format[SearchRequest] = Json.format[SearchRequest]
+  implicit val searchRequestFormat = Json.format[SearchRequest]
 
-  implicit val newPluginSourceFormat: Format[NewPluginSource] = Json.format[NewPluginSource]
-  implicit val pluginSourceDtoFormat: Format[PluginSourceDto] = Json.format[PluginSourceDto]
-  implicit val installPluginFormat: Format[InstallPlugin] = Json.format[InstallPlugin]
-  implicit val uninstallPluginFormat: Format[UninstallPlugin] = Json.format[UninstallPlugin]
+  implicit val newPluginSourceReads = Json.reads[NewPluginSource]
+  implicit val pluginSourceDtoWrites = Json.writes[PluginSourceDto]
+  implicit val installPluginReads = Json.reads[InstallPlugin]
+  implicit val uninstallPluginReads = Json.reads[UninstallPlugin]
 
-  implicit val sourceStatusDtoFormat: Format[SourceStatusDto] = Json.format[SourceStatusDto]
+  implicit val sourceStatusDtoWrites = Json.writes[SourceStatusDto]
 
-  implicit def pageWriter[T](implicit f: Writes[T]): Writes[Page[T]] = new Writes[Page[T]] {
-    override def writes(o: Page[T]): JsValue = {
-      JsObject(
-        Seq(
-          "total" -> JsNumber(o.total),
-          "resources" -> JsArray(o.resources.map(x => f.writes(x)).toSeq)
-        )
-      )
-    }
-  }
+  implicit def pageWriter[T](implicit f: Writes[T]): Writes[Page[T]] = Json.writes
 
   implicit val pageFeedsWriter = pageWriter[FeedDto]
 
