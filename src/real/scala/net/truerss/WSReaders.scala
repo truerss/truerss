@@ -1,14 +1,14 @@
 package net.truerss
 
 import play.api.libs.json._
-import truerss.api.JsonFormats
+import truerss.clients.JsonSupport
 import truerss.api.ws.{Notify, NotifyLevel, WSMessageType}
 import truerss.api.ws.WebSocketController.{NewFeeds, NewSource, NotifyMessage, NotifySourceError, WSMessage}
 import truerss.dto.{FeedDto, SourceViewDto}
 
 object WSReaders {
 
-  import JsonFormats.{feedDtoFormat, sourceViewDtoFormat}
+  import JsonSupport.{feedDtoReads, sourceViewDtoReads}
 
   private implicit lazy val notifyLevelsReads: Reads[NotifyLevel.Value] = Reads.enumNameReads(NotifyLevel)
 
