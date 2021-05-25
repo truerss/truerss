@@ -14,6 +14,11 @@ object Main extends App {
 
       val (actualConfig, dbConf, isUserConf) = TrueRSSConfig.loadConfiguration(trueRSSConfig)
 
+      if (!isUserConf) {
+        // create default configuration file
+        TrueRSSConfig.createDefaultConfigFile(actualConfig)
+      }
+
       implicit val system: ActorSystem = ActorSystem("truerss")
 
       AppRunner.run(actualConfig, dbConf, isUserConf).start()
