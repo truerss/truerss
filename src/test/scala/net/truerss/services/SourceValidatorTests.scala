@@ -49,8 +49,8 @@ class SourceValidatorTests extends Specification with Mockito {
     "validate source" should {
       "url is not unique" in new Test() {
         val url = Gen.genUrl
-        val newSource = Gen.genNewSource
-        val tmp = newSource.toTmp.copy(url = url)
+        val newSource = Gen.genNewSource.copy(url = url)
+        val tmp = newSource.toTmp
         sourceDao.findByUrl(url, None) returns Task.succeed(1)
         sourceDao.findByName(anyString, any) returns Task.succeed(0)
         sourceUrlValidator.validateUrl(tmp) returns Right(tmp)
@@ -62,8 +62,8 @@ class SourceValidatorTests extends Specification with Mockito {
 
       "name is not unique" in new Test() {
         val name = "test"
-        val newSource = Gen.genNewSource
-        val tmp = newSource.toTmp.copy(name = name)
+        val newSource = Gen.genNewSource.copy(name = name)
+        val tmp = newSource.toTmp
         sourceDao.findByUrl(anyString, any[Option[Long]]) returns Task.succeed(0)
         sourceDao.findByName(name, None) returns Task.succeed(1)
         sourceUrlValidator.validateUrl(tmp) returns Right(tmp)
