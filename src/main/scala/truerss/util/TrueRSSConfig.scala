@@ -117,7 +117,6 @@ object TrueRSSConfig {
           x.write(actual.config.root().render(renderOptions))
         }
         Console.println(s"Write default configuration to: $appConfig")
-        System.exit(0)
       } else {
         Console.println(s"Can not write default configuration in: ${appDir.toPath}")
       }
