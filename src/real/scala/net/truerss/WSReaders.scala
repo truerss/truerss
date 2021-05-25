@@ -3,7 +3,7 @@ package net.truerss
 import play.api.libs.json._
 import truerss.clients.JsonSupport
 import truerss.api.ws.{Notify, NotifyLevel, WSMessageType}
-import truerss.api.ws.WebSocketController.{NewFeeds, NewSource, NotifyMessage, NotifySourceError, WSMessage}
+import truerss.api.ws.WebSocketController.{NotifyNewFeeds, NotifyNewSource, NotifyMessage, NotifySourceError, WSNotifyMessage}
 import truerss.dto.{FeedDto, SourceViewDto}
 
 object WSReaders {
@@ -14,8 +14,8 @@ object WSReaders {
 
   private implicit lazy val notifyReads: Reads[Notify] = Json.reads[Notify]
 
-  implicit lazy val wsMessageReaders: Reads[WSMessage] = new Reads[WSMessage] {
-    override def reads(jsValue: JsValue): JsResult[WSMessage] = {
+  implicit lazy val wsMessageReaders: Reads[WSNotifyMessage] = new Reads[WSNotifyMessage] {
+    override def reads(jsValue: JsValue): JsResult[WSNotifyMessage] = {
       jsValue match {
         case JsString(value) =>
           val json = Json.parse(value)
@@ -23,11 +23,11 @@ object WSReaders {
           tpe match {
             case WSMessageType.NewSource =>
               val x = (json \ "body").as[SourceViewDto]
-              JsSuccess(NewSource(x))
+              JsSuccess(NotifyNewSource(x))
 
             case WSMessageType.New =>
               val xs = (json \ "body").as[Iterable[FeedDto]]
-              JsSuccess(NewFeeds(xs))
+              JsSuccess(NotifyNewFeeds(xs))
 
             case WSMessageType.SourceError =>
               val notify = (json \ "body").as[Notify]

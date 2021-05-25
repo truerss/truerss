@@ -24,7 +24,7 @@ class EventHandlerActor(private val sourcesService: SourcesService,
         feeds <- feedsService.registerNewFeeds(sourceId, entries)
         _ <- sourcesStatusesService.resetErrors(sourceId)
         _ <- fire(PublishPluginActor.NewEntriesReceived(feeds)).when(feeds.nonEmpty)
-        _ <- fire(WebSocketController.NewFeeds(feeds)).when(feeds.nonEmpty)
+        _ <- fire(WebSocketController.NotifyNewFeeds(feeds)).when(feeds.nonEmpty)
       } yield ()
       f.materialize
 
@@ -32,7 +32,7 @@ class EventHandlerActor(private val sourcesService: SourcesService,
       sourcesService.changeLastUpdateTime(sourceId).materialize
 
     case NewSourceCreated(source) =>
-      fire(WebSocketController.NewSource(source)).materialize
+      fire(WebSocketController.NotifyNewSource(source)).materialize
 
     case SourceError(sourceId) =>
       sourcesStatusesService.incrementError(sourceId).materialize

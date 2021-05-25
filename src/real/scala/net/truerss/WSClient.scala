@@ -5,7 +5,7 @@ import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
 import play.api.libs.json.Json
 import truerss.api.ws.Notify
-import truerss.api.ws.WebSocketController.{NewFeeds, NewSource, NotifyMessage, NotifySourceError}
+import truerss.api.ws.WebSocketController.{NotifyNewFeeds, NotifyNewSource, NotifyMessage, NotifySourceError}
 import truerss.dto.{FeedDto, SourceViewDto}
 
 import scala.collection.mutable.{ArrayBuffer => AB}
@@ -27,10 +27,10 @@ class WSClient(val url: String) extends WebSocketClient(new URI(url)) {
     result match {
       case Some(value) =>
         value match {
-          case NewSource(xs) =>
+          case NotifyNewSource(xs) =>
             newSources += xs
 
-          case NewFeeds(feeds) =>
+          case NotifyNewFeeds(feeds) =>
             newFeeds += feeds
 
           case msg: NotifySourceError =>

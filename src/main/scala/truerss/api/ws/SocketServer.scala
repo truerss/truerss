@@ -23,7 +23,7 @@ case class SocketServer(port: Int, system: ActorSystem)
   override def onOpen(ws: WebSocket, clientHandshake: ClientHandshake): Unit = {
     logger.info(s"ws connection open")
     val socketActor = system.actorOf(Props(classOf[WebSocketController], ws))
-    stream.subscribe(socketActor, classOf[WebSocketController.WSMessage])
+    stream.subscribe(socketActor, classOf[WebSocketController.WSNotifyMessage])
     connectionMap(ws) = socketActor
   }
 
