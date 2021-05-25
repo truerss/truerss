@@ -1,8 +1,10 @@
 package truerss.util
 
 import java.io.File
-import com.typesafe.config.{Config, ConfigException, ConfigFactory}
+import com.typesafe.config.{Config, ConfigException, ConfigFactory, ConfigRenderOptions}
+import java.io.PrintWriter
 import scopt.OptionParser
+import scala.util.Using
 
 import scala.util.control.Exception._
 import scala.jdk.CollectionConverters._
@@ -93,6 +95,10 @@ object TrueRSSConfig {
 
   import Fields._
 
+  private val configFileName = "truerss.config"
+
+  private val renderOptions = ConfigRenderOptions.concise().setFormatted(true)
+
   val parser = new OptionParser[TrueRSSConfig]("truerss") {
     head("truerss", "0.0.1")
     opt[String]('d', "dir") action { (x, c) =>
@@ -101,8 +107,24 @@ object TrueRSSConfig {
     help("help") text "print usage text"
   }
 
+  def createDefaultConfigFile(actual: TrueRSSConfig) = {
+    val appConfig = s"${actual.appDir}/$configFileName"
+    val appDir = new File(actual.appDir)
+    val f = new File(appConfig)
+    if (!f.exists()) {
+      if (appDir.canWrite) {
+        Using(new PrintWriter(appConfig)) { x =>
+          x.write(actual.config.root().render(renderOptions))
+        }
+        Console.println(s"Write default configuration to: $appConfig")
+        System.exit(0)
+      } else {
+        Console.println(s"Can not write default configuration in: ${appDir.toPath}")
+      }
+    }
+  }
+
   def loadConfiguration(trueRSSConfig: TrueRSSConfig): (TrueRSSConfig, DbConfig, Boolean) = {
-    val configFileName = "truerss.config"
     val appDir = trueRSSConfig.appDir
     val confPath = s"$appDir/$configFileName"
     val pluginDir = s"$appDir/plugins"
