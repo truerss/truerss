@@ -4,8 +4,7 @@ import java.net.URI
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
 import play.api.libs.json.Json
-import truerss.api.ws.Notify
-import truerss.api.ws.WebSocketController.{NotifyNewFeeds, NotifyNewSource, NotifyMessage, NotifySourceError}
+import truerss.api.ws.{Notify, WebSocketNewFeedsMessage, WebSocketNewSourceMessage, WebSocketNotifyMessage, WebSocketNotifySourceErrorMessage}
 import truerss.dto.{FeedDto, SourceViewDto}
 
 import scala.collection.mutable.{ArrayBuffer => AB}
@@ -17,7 +16,7 @@ class WSClient(val url: String) extends WebSocketClient(new URI(url)) {
   val notifications = AB[Notify]()
   val newFeeds = AB[Iterable[FeedDto]]()
   val newSources = AB[SourceViewDto]()
-  val sourceUpdateErrors = AB[NotifySourceError]()
+  val sourceUpdateErrors = AB[WebSocketNotifySourceErrorMessage]()
 
   override def onOpen(handshakedata: ServerHandshake): Unit = {
   }
@@ -27,17 +26,17 @@ class WSClient(val url: String) extends WebSocketClient(new URI(url)) {
     result match {
       case Some(value) =>
         value match {
-          case NotifyNewSource(xs) =>
+          case WebSocketNewSourceMessage(xs) =>
             newSources += xs
 
-          case NotifyNewFeeds(feeds) =>
+          case WebSocketNewFeedsMessage(feeds) =>
             newFeeds += feeds
 
-          case msg: NotifySourceError =>
+          case msg: WebSocketNotifySourceErrorMessage =>
             sourceUpdateErrors += msg
 
-          case NotifyMessage(notify) =>
-            notifications += notify
+          case WebSocketNotifyMessage(message, level) =>
+            notifications += Notify(message, level)
         }
       case _ => onError(new RuntimeException(s"Unexpected result: $result"))
     }
