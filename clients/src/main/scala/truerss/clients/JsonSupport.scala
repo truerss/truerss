@@ -1,7 +1,6 @@
 package truerss.clients
 
 import truerss.dto._
-import java.util.Date
 import play.api.libs.json._
 
 object JsonSupport {
@@ -10,29 +9,11 @@ object JsonSupport {
     def j: JsString = JsString(x)
   }
 
-  implicit object DateFormat extends Format[Date] {
-    private final val f = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-    override def reads(json: JsValue): JsResult[Date] = {
-      json match {
-        case JsString(value) =>
-          JsSuccess(f.parse(value))
-        case _ =>
-          JsError("String required")
-      }
-    }
-
-    override def writes(o: Date): JsValue = {
-      JsString(f.format(o))
-    }
-  }
-
   implicit lazy val unitReads: Reads[Unit] = new Reads[Unit] {
     override def reads(json: JsValue): JsResult[Unit] = {
       JsSuccess(())
     }
   }
-
-
 
   implicit lazy val processingReads: Reads[Processing] = new Reads[Processing] {
     override def reads(json: JsValue): JsResult[Processing] = {
@@ -40,32 +21,15 @@ object JsonSupport {
     }
   }
 
-  implicit object StateFormat extends Format[State.Value] {
-    override def reads(json: JsValue): JsResult[State.Value] = {
-      json match {
-        case JsNumber(value) =>
-          State.values.find(_.id == value)
-            .map(JsSuccess(_))
-            .getOrElse(JsError(s"Invalid state: $value"))
+  implicit val stateReads = Reads.enumNameReads(State)
 
-        case _ =>
-          JsError("Number required")
-      }
-    }
+  implicit lazy val newSourceDtoWrites = Json.writes[NewSourceDto]
+  implicit lazy val updateSourceDtoWrites = Json.writes[UpdateSourceDto]
+  implicit lazy val sourceViewDtoReads = Json.reads[SourceViewDto]
 
-    override def writes(o: State.Value): JsValue = {
-      JsNumber(o.id)
-    }
-  }
-
-  implicit lazy val newSourceDtoFormat = Json.format[NewSourceDto]
-  implicit lazy val updateSourceDtoFormat = Json.format[UpdateSourceDto]
-  implicit lazy val sourceDtoFormat = Json.format[SourceDto]
-  implicit lazy val sourceViewDtoFormat = Json.format[SourceViewDto]
-
-  implicit lazy val pluginDtoFormat = Json.format[PluginDto]
-  implicit lazy val pluginsViewDto = Json.format[PluginsViewDto]
-  implicit lazy val feedDtoFormat = Json.format[FeedDto]
+  implicit lazy val pluginDtoReads = Json.reads[PluginDto]
+  implicit lazy val pluginsViewDtoReads = Json.reads[PluginsViewDto]
+  implicit lazy val feedDtoReads = Json.reads[FeedDto]
 
   implicit lazy val newSourceFromFile = Json.format[NewSourceFromFileWithErrors]
 
@@ -135,40 +99,21 @@ object JsonSupport {
     }
   }
 
-  implicit val feedsFrequencyFormat: Format[FeedsFrequency] = Json.format[FeedsFrequency]
-  implicit val sourceOverviewFormat: Format[SourceOverview] = Json.format[SourceOverview]
+  implicit val feedsFrequencyReads: Reads[FeedsFrequency] = Json.reads
+  implicit val sourceOverviewReads: Reads[SourceOverview] = Json.reads
 
-  implicit val feedContentFormat: Format[FeedContent] = Json.format[FeedContent]
+  implicit val feedContentReads: Reads[FeedContent] = Json.reads
 
-  implicit val searchRequestFormat: Format[SearchRequest] = Json.format[SearchRequest]
+  implicit val searchRequestWrites: Writes[SearchRequest] = Json.writes
 
-  implicit val newPluginSourceFormat: Format[NewPluginSource] = Json.format[NewPluginSource]
-  implicit val pluginSourceDtoFormat: Format[PluginSourceDto] = Json.format[PluginSourceDto]
-  implicit val installPluginFormat: Format[InstallPlugin] = Json.format[InstallPlugin]
-  implicit val uninstallPluginFormat: Format[UninstallPlugin] = Json.format[UninstallPlugin]
+  implicit val newPluginSourceWrites: Writes[NewPluginSource] = Json.writes
+  implicit val pluginSourceDtoReads: Reads[PluginSourceDto] = Json.reads
+  implicit val installPluginWrites: Writes[InstallPlugin] = Json.writes
+  implicit val uninstallPluginWrites: Writes[UninstallPlugin] = Json.writes
 
-  implicit val sourceStatusDtoFormat: Format[SourceStatusDto] = Json.format[SourceStatusDto]
+  implicit val sourceStatusDtoReads: Reads[SourceStatusDto] = Json.reads
 
-  implicit def pageReader[T](implicit f: Reads[T]): Reads[Page[T]] = new Reads[Page[T]] {
-    override def reads(json: JsValue): JsResult[Page[T]] = {
-      json match {
-        case JsObject(obj) =>
-          val tmp = for {
-            total <- obj.get("total").collect { case JsNumber(x) => x.toInt }
-            resources <- obj.get("resources").collect {
-              case JsArray(xs) => xs.map(f.reads).collect {
-                case JsSuccess(x, _) => x
-              }
-            }
-          } yield Page(total, resources)
-
-          tmp.map { x => JsSuccess(x) }.getOrElse(JsError("Failed to deserialize"))
-
-        case _ =>
-          JsError("Object is required")
-      }
-    }
-  }
+  implicit def pageReader[T](implicit f: Reads[T]): Reads[Page[T]] = Json.reads
 
   implicit val pageFeedsReader = pageReader[FeedDto]
 

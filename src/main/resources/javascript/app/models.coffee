@@ -17,10 +17,10 @@ class Source extends Sirius.BaseModel
     active() is true
 
   is_plugin_disabled: () ->
-    parseInt(@state()) is 2
+    @state() is "Disable"
 
   has_plugin: () ->
-    (parseInt(@state()) is 1) || (parseInt(@state()) is 2)
+    @state is not "Neutral"
 
   href: () ->
     "/show/sources/#{@normalized()}"

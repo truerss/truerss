@@ -1,10 +1,8 @@
 package truerss.db.validation
 
 import org.slf4j.LoggerFactory
-import truerss.dto.SourceDto
 import truerss.http_support.Request
 import truerss.util.syntax
-import zio.{Task, ZIO}
 
 import scala.util.Try
 
@@ -13,6 +11,7 @@ import scala.util.Try
 class SourceUrlValidator extends Request {
 
   import SourceUrlValidator._
+  import SourceValidator.TmpSource
   import syntax._
   import ext._
 
@@ -21,7 +20,7 @@ class SourceUrlValidator extends Request {
   override protected val connectionTimeout: Int = 1000
   override protected val readTimeout: Int = 1000
 
-  def validateUrl(dto: SourceDto): Either[String, SourceDto] = {
+  def validateUrl(dto: TmpSource): Either[String, TmpSource] = {
     Try {
       makeRequest(dto.url).get(contentTypeHeaderName).map(isValid)
     }.toOption.flatten match {

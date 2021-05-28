@@ -3,17 +3,17 @@ package truerss.api.ws
 import akka.actor.{Actor, ActorLogging}
 import org.java_websocket.WebSocket
 import play.api.libs.json._
-import truerss.api.JsonFormats
 import truerss.dto.{FeedDto, SourceViewDto}
 
 // one actor per one user connection
 class WebSocketController(private val ws: WebSocket) extends Actor with ActorLogging {
 
   import WebSocketController._
+  import WebSocketJsonFormats._
 
   def receive: Receive = {
-    case m: WSMessage =>
-      ws.send(m.asJsonString)
+    case m: WSNotifyMessage =>
+      ws.send(Json.toJson(m.toData).toString())
   }
 
   override def postStop(): Unit = {
@@ -24,61 +24,24 @@ class WebSocketController(private val ws: WebSocket) extends Actor with ActorLog
 
 object WebSocketController {
 
-  import JsonFormats.{feedDtoFormat, sourceViewDtoFormat}
-  import WebSocketJsonFormats._
+  sealed trait WSNotifyMessage
+  case class NotifyNewFeeds(newFeeds: Iterable[FeedDto]) extends WSNotifyMessage
+  case class NotifyMessage(message: Notify) extends WSNotifyMessage
+  case class NotifySourceError(sourceId: Long, message: Notify) extends WSNotifyMessage
+  case class NotifyNewSource(newSource: SourceViewDto) extends WSNotifyMessage
 
-  sealed trait WSMessage
-  case class NewFeeds(newFeeds: Iterable[FeedDto]) extends WSMessage
-  case class NotifyMessage(message: Notify) extends WSMessage
-  case class NotifySourceError(sourceId: Long, message: Notify) extends WSMessage
-  case class NewSource(newSource: SourceViewDto) extends WSMessage
-
-  object Fields {
-    final val mtF = "messageType"
-    final val bF = "body"
-    final val idF = "sourceId"
-  }
-
-  implicit class WSMessageJson(val x: WSMessage) extends AnyVal {
-    import Fields._
-
-    def asJsonString: String = {
-      val result = x match {
-        case NewSource(x) =>
-          JsObject(
-            Seq(
-              mtF -> JsString(WSMessageType.NewSource.toString),
-              bF -> Json.toJson(x)
-            )
-          )
-
-        case NotifySourceError(sourceId, message) =>
-          JsObject(
-            Seq(
-              mtF -> JsString(WSMessageType.SourceError.toString),
-              idF -> JsNumber(sourceId),
-              bF -> Json.toJson(message)
-            )
-          )
-
-        case NewFeeds(xs) =>
-          JsObject(
-            Seq(
-              mtF -> JsString(WSMessageType.New.toString),
-              bF -> Json.toJson(xs)
-            )
-          )
-
+  implicit class WSMessageExt(val m: WSNotifyMessage) extends AnyVal {
+    def toData: WebSocketData = {
+      m match {
+        case NotifyNewFeeds(newFeeds) =>
+          WebSocketNewFeedsMessage(newFeeds)
         case NotifyMessage(message) =>
-          JsObject(
-            Seq(
-              mtF -> JsString(WSMessageType.Notify.toString),
-              bF -> Json.toJson(message)
-            )
-          )
+          WebSocketNotifyMessage(message.message, message.level)
+        case NotifySourceError(sourceId, message) =>
+          WebSocketNotifySourceErrorMessage(sourceId, message.message, message.level)
+        case NotifyNewSource(newSource) =>
+          WebSocketNewSourceMessage(newSource)
       }
-
-      Json.stringify(result)
     }
   }
 
