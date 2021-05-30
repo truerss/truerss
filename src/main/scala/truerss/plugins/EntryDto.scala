@@ -1,6 +1,8 @@
 package truerss.plugins
 
 import com.github.truerss.base.Entry
+import truerss.dto.EnclosureDto
+import truerss.util.EnclosureImplicits.EnclosureDtoExt
 
 import java.util.Date
 
@@ -9,27 +11,23 @@ case class EntryDto(
    title: Option[String],
    author: Option[String],
    publishedDate: Date,
-   description: Option[String]
+   description: Option[String],
+   enclosure: Option[EnclosureDto]
 ) {
 
   import EntryDto.maxLength
 
   def toEntry: Entry = {
-    val length = title.map(_.length).map{ length =>
-      if (length > maxLength) {
-        maxLength
-      } else {
-        length
-      }
-    }.getOrElse(0)
+    val length = title.map(t => Math.min(t.length, maxLength)).getOrElse(0)
 
     Entry(
       url = url.get,
-      title = title.map(x => x.substring(0, length)).getOrElse("no-title"),
+      title = title.map(_.take(length)).getOrElse("no-title"),
       author = author.getOrElse(""),
       description = description,
       publishedDate = publishedDate,
-      content = None
+      content = None,
+      enclosure = enclosure.flatMap(_.toEnclosure)
     )
   }
 }

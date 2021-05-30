@@ -1,7 +1,7 @@
 package truerss.util
 
 import java.time.ZoneOffset
-import com.github.truerss.base.Entry
+import com.github.truerss.base.{Enclosure, Entry}
 import org.jsoup.Jsoup
 import truerss.db.Feed
 import truerss.plugins.EntryDto
@@ -9,6 +9,11 @@ import truerss.plugins.EntryDto
 object EntryImplicits {
 
   import CommonImplicits._
+
+  private def enclosuretoStr(enc: Enclosure): String = {
+    import enc._
+    s"${`type`}|$url|$length"
+  }
 
   implicit class EntryExt(val entry: Entry) extends AnyVal {
     def toFeed(sourceId: Long): Feed = Feed(
@@ -21,6 +26,7 @@ object EntryImplicits {
       author = entry.author,
       description = entry.description,
       content = entry.content,
+      enclosure = entry.enclosure.map(enclosuretoStr),
       normalized = entry.title.normalize,
       favorite = false,
       read = false,

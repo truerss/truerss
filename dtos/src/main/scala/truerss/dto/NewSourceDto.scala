@@ -64,6 +64,9 @@ case class PluginsViewDto(
                          ) {
   val size: Int = feed.size + content.size + publish.size + site.size
 }
+
+final case class EnclosureDto(`type`: String, url: String, length: Int)
+
 case class FeedContent(content: Option[String])
 
 case class FeedDto(
@@ -75,6 +78,7 @@ case class FeedDto(
                    publishedDate: LocalDateTime,
                    description: Option[String],
                    content: Option[String],
+                   enclosure: Option[EnclosureDto],
                    normalized: String,
                    favorite: Boolean = false,
                    read: Boolean = false,

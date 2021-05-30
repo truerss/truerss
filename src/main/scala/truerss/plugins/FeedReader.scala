@@ -1,5 +1,7 @@
 package truerss.plugins
 
+import truerss.dto.EnclosureDto
+
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Date
@@ -13,14 +15,15 @@ trait FeedParser {
 
   def from(tagName: String)(implicit source: Node): Option[String] = {
     val x = source \ tagName
-    if (x.isEmpty) { None }
-    else { Some(x.text) }
+    Option.unless(x.isEmpty)(x.text)
   }
   def parse(x: Elem): Iterable[EntryDto]
 
   def getDate(x: String)(implicit format: DateTimeFormatter): Option[Date] = {
     Try(LocalDateTime.parse(x, format)).toOption.map(_.toDate)
   }
+
+  def getEnclosure(implicit node: Node): Option[EnclosureDto]
 }
 
 case object FeedParser {
@@ -40,6 +43,7 @@ case object RSSParser extends FeedParser {
   val _item = "item"
   val _pubDate = "pubDate"
   val _author = "author"
+  val _enclosure = "enclosure"
 
   implicit val format: DateTimeFormatter = DateTimeFormatter.RFC_1123_DATE_TIME
 
@@ -50,7 +54,23 @@ case object RSSParser extends FeedParser {
         url = from(_link),
         description = from(_description),
         publishedDate = from(_pubDate).flatMap(getDate).getOrElse(new java.util.Date),
-        author = from(_author)
+        author = from(_author),
+        enclosure = getEnclosure
+      )
+    }
+  }
+
+  override def getEnclosure(implicit node: Node): Option[EnclosureDto] = {
+    for {
+      n <- (node \\ _enclosure).headOption
+      tp <- n.attribute("type").map(_.text)
+      url <- n.attribute("url").map(_.text)
+      length <- n.attribute("length").flatMap(_.text.toIntOption)
+    } yield {
+      EnclosureDto(
+        `type` = tp,
+        url = url,
+        length = length
       )
     }
   }
@@ -104,8 +124,12 @@ case object AtomParser extends FeedParser {
         title = from(_title),
         author = getAuthors(entry).orElse(g),
         publishedDate = from(_updated).flatMap(getDate).getOrElse(new java.util.Date),
-        description = from(_summary)
+        description = from(_summary),
+        enclosure = getEnclosure
       )
     }
   }
+
+  // TODO: need to find example of enclosure in Atom
+  override def getEnclosure(implicit node: Node): Option[EnclosureDto] = None
 }

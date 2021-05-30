@@ -98,6 +98,7 @@ object Gen {
       publishedDate = now,
       description = Some(genText),
       content = None,
+      enclosure = None,
       normalized = title.normalize,
       favorite = tOf,
       read = tOf,
@@ -115,6 +116,7 @@ object Gen {
       publishedDate = now,
       description = None,
       content = None,
+      enclosure = None,
       normalized = Gen.genName
     )
   }
