@@ -29,7 +29,8 @@ class FeedsMergerTests extends Specification {
         publishedDate = new Date(),
         description = None,
         content = None,
-        forceUpdate = false
+        forceUpdate = false,
+        enclosure = None
       )
 
       val entry2 = Entry(
@@ -39,7 +40,8 @@ class FeedsMergerTests extends Specification {
         publishedDate = new Date(),
         description = None,
         content = None,
-        forceUpdate = true
+        forceUpdate = true,
+        enclosure = None
       )
 
       val entry3 = Entry(
@@ -49,7 +51,8 @@ class FeedsMergerTests extends Specification {
         publishedDate = new Date(),
         description = None,
         content = None,
-        forceUpdate = false
+        forceUpdate = false,
+        enclosure = None
       )
 
       val result = FeedsMerger.calculate(sourceId,

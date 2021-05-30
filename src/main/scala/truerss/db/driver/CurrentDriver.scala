@@ -99,6 +99,8 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
 
     def content = column[String]("content", Nullable, SqlType("TEXT"))
 
+    def enclosure = column[String]("enclosure", Nullable, SqlType("TEXT"))
+
     def normalized = column[String]("normalized")
 
     def favorite = column[Boolean]("favorite", O.Default(false))
@@ -117,7 +119,7 @@ case class CurrentDriver(profile: JdbcProfile, tableNames: TableNames) {
 
     def bySourceAndFavorite = index("idx_source_favorite", (sourceId, favorite))
 
-    def * = (id.?, sourceId, url, title, author, publishedDate, description.?, content.?, normalized, favorite, read, delete) <> (Feed.tupled, Feed.unapply)
+    def * = (id.?, sourceId, url, title, author, publishedDate, description.?, content.?, enclosure.?, normalized, favorite, read, delete) <> (Feed.tupled, Feed.unapply)
 
     def source = foreignKey("source_fk", sourceId, query.sources)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
   }

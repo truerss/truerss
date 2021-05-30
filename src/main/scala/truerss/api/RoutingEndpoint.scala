@@ -7,6 +7,7 @@ import io.netty.handler.codec.http.HttpResponseStatus
 import io.netty.util.CharsetUtil
 
 import scala.io.Source
+import scala.util.Try
 
 class RoutingEndpoint(
                        feedsService: FeedsService,
@@ -69,19 +70,22 @@ class RoutingEndpoint(
   }
 
   private def serveFile(path: String, contentType: String): CommonResponse = {
-    val stream = getClass.getResourceAsStream(path)
-    val source = Source.fromInputStream(stream)
-    val content = try {
-      source.mkString.getBytes(CharsetUtil.UTF_8)
-    } finally {
-      source.close()
-      stream.close()
-    }
-    CommonResponse(
-      status = HttpResponseStatus.OK,
-      contentType = contentType,
-      content = content
-    )
+    Try(getClass.getResourceAsStream(path).readAllBytes())
+      .fold(
+        exc => {
+          logger.warn(s"Resource not found: $path")
+          CommonResponse(
+            status = HttpResponseStatus.NOT_FOUND,
+            contentType = contentType,
+            content = Array.emptyByteArray
+          )
+        },
+        content => CommonResponse(
+          status = HttpResponseStatus.OK,
+          contentType = contentType,
+          content = content
+        ),
+      )
   }
 
   private def notFound(text: String): CommonResponse =

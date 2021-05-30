@@ -59,7 +59,7 @@ class SourceOverview extends Sirius.BaseModel
 class Feed extends Sirius.BaseModel
   @attrs: ["id", "sourceId", "url",
            "title", "author", "publishedDate",
-           "description", "content", "normalized",
+           "description", "content", "normalized", "enclosure",
            "favorite", "read", "delete"]
 
   @skip: true

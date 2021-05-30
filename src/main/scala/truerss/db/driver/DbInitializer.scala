@@ -2,9 +2,11 @@ package truerss.db.driver
 
 import java.time.{Clock, LocalDateTime}
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
-import slick.jdbc.JdbcBackend
-import slick.jdbc.meta.MTable
-import slick.migration.api.{GenericDialect, ReversibleMigrationSeq, TableMigration}
+import slick.ast.FieldSymbol
+import slick.dbio.DBIO
+import slick.jdbc.{JdbcBackend, JdbcProfile}
+import slick.jdbc.meta.{MColumn, MQName, MTable}
+import slick.migration.api.{Dialect, GenericDialect, ReversibleMigrationSeq, TableMigration}
 import truerss.db.{DbLayer, PluginSource, Predefined, Version}
 import truerss.util.DbConfig
 
@@ -108,12 +110,15 @@ object DbInitializer {
 
     val v1 = Migration.addIndexes(dbProfile, driver, currentSourceIndexes)
 
+    val v2 = Migration.addEnclosure(db, dbProfile, driver)
+
     runPredefinedChanges(db, driver)
 
     addDefaultSource(db, driver)
 
     val all = Vector(
-      v1
+      v1,
+      v2
     )
     val allVersions = versions.map(_.id)
 
@@ -201,6 +206,23 @@ object DbInitializer {
       }
 
       Migration(1L, "add indexes", changes)
+    }
+
+    def addEnclosure(
+      db: JdbcBackend.DatabaseDef,
+      dbProfile: DBProfile,
+      driver: CurrentDriver
+    ): Migration = {
+      val feedsColumnsQuery = MColumn.getColumns(
+        MQName.local(driver.query.feeds.baseTableRow.tableName),
+        "enclosure"
+      )
+      val columns = Await.result(db.run(feedsColumnsQuery), waitTime)
+      implicit val dialect: Dialect[_ <: JdbcProfile] = GenericDialect(dbProfile.profile)
+      val changes = Option.when(columns.isEmpty)(new ReversibleMigrationSeq(
+        TableMigration(driver.query.feeds).addColumns(_.enclosure)
+      ))
+      Migration(2L, "add enclosure", changes)
     }
   }
 }
