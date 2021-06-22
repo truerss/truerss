@@ -9,7 +9,6 @@ object Libs {
     val sqliteVersion = "3.32.3"
     val commonValidatorVersion = "1.6"
     val contentExtractorVersion = "1.0.3"
-    val akkaVersion  = "2.6.3"
     val slickVersion = "3.3.2"
     val configVersion = "1.3.0"
     val scoptVersion = "4.0.1"
@@ -50,9 +49,8 @@ object Libs {
 
   val jsoup = "org.jsoup" % "jsoup" % jsoupVersion
 
-  val akka = Seq(
-    "com.typesafe.akka" %% "akka-actor" % akkaVersion exclude("com.typesafe.akka", "akka-protobuf-v3"),
-    "com.typesafe.akka" %% "akka-slf4j" % akkaVersion
+  val actorika = Seq(
+    "io.github.truerss" %% "actorika" % "0.0.1-SNAPSHOT"
   )
 
   val scalaj = "org.scalaj" %% "scalaj-http" % scalajVersion
@@ -88,10 +86,10 @@ object Libs {
     "io.netty" % "netty-codec-http2" % "4.1.60.Final",
     "com.github.fntz" %% "omhs-dsl" % "0.0.5",
     "com.github.fntz" %% "omhs-play-support" % "0.0.5",
-    "org.scala-lang" % "scala-reflect" % scalaVersion % "compile"
+    "org.scala-lang" % "scala-reflect" % scalaVersion
   )
 
-  val deps = db ++ akka ++ truerss ++ logs ++
+  val deps = db ++ actorika ++ truerss ++ logs ++
     Seq(jsoup, playJson) ++ utils ++ zio ++ tests ++ nettyL
 
 }

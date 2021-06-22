@@ -1,6 +1,7 @@
 package truerss.services.actors.sync
 
-import akka.actor.{Actor, ActorLogging, Props}
+import io.truerss.actorika._
+import org.slf4j.LoggerFactory
 import truerss.api.ws.{Notify, NotifyLevel, WebSocketController}
 import truerss.dto.SourceViewDto
 import truerss.services.ApplicationPluginsService
@@ -11,51 +12,52 @@ import java.time.{Clock, Instant, ZoneOffset}
 import scala.concurrent.duration._
 
 class SourceActor(source: SourceViewDto, appPluginsService: ApplicationPluginsService)
-  extends Actor with ActorLogging {
+  extends Actor {
 
   import SourceActor._
-  import context.dispatcher
   import util._
+  import ActorDsl._
 
-  val stream = context.system.eventStream
+  private val logger = LoggerFactory.getLogger(getClass)
 
   val updTime = UpdateTime(source)
 
-  log.info(s"Next time update for ${source.name} -> ${updTime.tickTime}; " +
+  logger.info(s"Next time update for ${source.name} -> ${updTime.tickTime}; " +
     s"Interval: ${updTime.interval}")
 
-  context.system.scheduler.scheduleWithFixedDelay(
-    updTime.tickTime,
-    updTime.interval,
-    context.parent,
-    UpdateMe(self)
-  )
+  override def preStart(): Unit = {
+    scheduler.every(updTime.interval, updTime.tickTime) {() =>
+      parent() ! UpdateMe(me)
+    }
+  }
+
 
   def receive = {
     case Update =>
-      log.info(s"Update ${source.normalized} -> ${source.url}")
+      logger.info(s"Update ${source.normalized} -> ${source.url}")
       appPluginsService.getSourceReader(source).newEntries(source.url) match {
         case Right(xs) =>
-          stream.publish(EventHandlerActor.RegisterNewFeeds(source.id, xs))
+          system.publish(EventHandlerActor.RegisterNewFeeds(source.id, xs))
         case Left(error) =>
-          log.warning(s"Error when update source $error")
-          stream.publish(WebSocketController.NotifySourceError(
+          logger.warn(s"Error when update source $error")
+          system.publish(WebSocketController.NotifySourceError(
             sourceId = source.id,
             message = Notify(error.error, NotifyLevel.Danger)
           ))
-          stream.publish(EventHandlerActor.SourceError(source.id))
+          system.publish(EventHandlerActor.SourceError(source.id))
       }
 
-      context.parent ! Updated
-      stream.publish(EventHandlerActor.ModifySource(source.id))
+      parent() ! Updated
+      system.publish(EventHandlerActor.ModifySource(source.id))
   }
 
 
 }
 
 object SourceActor {
-  def props(source: SourceViewDto, appPluginsService: ApplicationPluginsService): Props = {
-    Props(classOf[SourceActor], source, appPluginsService)
+  def props(source: SourceViewDto,
+            appPluginsService: ApplicationPluginsService): SourceActor = {
+    new SourceActor(source, appPluginsService)
   }
 
   case class UpdateTime(

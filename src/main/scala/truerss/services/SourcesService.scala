@@ -1,6 +1,6 @@
 package truerss.services
 
-import akka.event.EventStream
+import io.truerss.actorika._
 import truerss.db.{DbLayer, Source}
 import truerss.db.validation.SourceValidator
 import truerss.dto.{NewSourceDto, SourceViewDto, UpdateSourceDto}
@@ -12,9 +12,9 @@ import zio._
 
 class SourcesService(val dbLayer: DbLayer,
                      val appPluginService: ApplicationPluginsService,
-                     override val stream: EventStream,
+                     val system: ActorSystem,
                      val sourceValidator: SourceValidator
-                    ) extends StreamProvider {
+                    ) {
 
   import FeedSourceDtoModelImplicits._
 
@@ -59,7 +59,7 @@ class SourcesService(val dbLayer: DbLayer,
       _ <- dbLayer.sourceDao.delete(sourceId)
       _ <- dbLayer.feedDao.deleteFeedsBySource(sourceId)
       _ <- dbLayer.sourceStatusesDao.delete(sourceId)
-      _ <- fire(SourcesKeeperActor.SourceDeleted(view))
+      _ <- IO.effect { system.publish(SourcesKeeperActor.SourceDeleted(view)) }
     } yield ()
   }
 
@@ -71,18 +71,22 @@ class SourcesService(val dbLayer: DbLayer,
         addSource(dto).foldM(
         {
           case ValidationError(errors) =>
-            fire(WebSocketController.NotifyMessage(
-              Notify(errors.mkString(", "), NotifyLevel.Warning)
-            ))
+            IO.effect {
+              system.publish(WebSocketController.NotifyMessage(
+                Notify(errors.mkString(", "), NotifyLevel.Warning)
+              ))
+            }
           case ex: Throwable =>
-            fire(WebSocketController.NotifyMessage(
-              Notify(ex.getMessage, NotifyLevel.Warning)
-            ))
+            IO.effect {
+              system.publish(WebSocketController.NotifyMessage(
+                Notify(ex.getMessage, NotifyLevel.Warning)
+              ))
+            }
         },
           validSource => {
-            fire(
-              EventHandlerActor.NewSourceCreated(validSource)
-            )
+            IO.effect {
+              system.publish(EventHandlerActor.NewSourceCreated(validSource))
+            }
           }
         )
       }
@@ -98,7 +102,9 @@ class SourcesService(val dbLayer: DbLayer,
       id <- dbLayer.sourceDao.insert(newSource).orDie
       resultSource = newSource.withId(id).toView(id)
       _ <- dbLayer.sourceStatusesDao.insertOne(id)
-      _ <- fire(SourcesKeeperActor.NewSource(resultSource))
+      _ <- IO.effect {
+        system.publish(SourcesKeeperActor.NewSource(resultSource))
+      }
     } yield resultSource
   }
 
@@ -110,7 +116,7 @@ class SourcesService(val dbLayer: DbLayer,
       updatedSource = source.withState(state).withId(sourceId)
       _ <- dbLayer.sourceDao.updateSource(updatedSource).orDie
       view = updatedSource.toView(sourceId)
-      _ <- fire(SourcesKeeperActor.ReloadSource(view))
+      _ <- IO.effect { system.publish(SourcesKeeperActor.ReloadSource(view)) }
     } yield view
   }
 

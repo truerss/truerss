@@ -2,22 +2,25 @@ package truerss.services.actors.events
 
 import java.time.ZoneOffset
 import java.util.Date
-import akka.actor.{Actor, ActorLogging}
+import io.truerss.actorika._
 import com.github.truerss.base.PublishActions.NewEntries
-import com.github.truerss.base.{BasePublishPlugin, Entry, PublishActions}
+import com.github.truerss.base.{Entry, PublishActions}
+import org.slf4j.LoggerFactory
 import truerss.dto.FeedDto
 import truerss.services.ApplicationPluginsService
 
 class PublishPluginActor(appPluginService: ApplicationPluginsService)
-  extends Actor with ActorLogging {
+  extends Actor {
 
   import PublishActions.Favorite
   import PublishPluginActor._
 
+  private val logger = LoggerFactory.getLogger(getClass)
+
   def receive: Receive = {
     case AddToFavorites(feed) =>
       appPluginService.publishPlugins.foreach { pp =>
-        log.info(s"Publish to ${pp.pluginName}")
+        logger.info(s"Publish to ${pp.pluginName}")
         pp.publish(Favorite(feed.toEntry))
       }
 

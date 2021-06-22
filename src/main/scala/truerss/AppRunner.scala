@@ -1,6 +1,6 @@
 package truerss
 
-import akka.actor.ActorSystem
+import io.truerss.actorika._
 import com.github.fntz.omhs.OMHSServer
 import org.slf4j.LoggerFactory
 import truerss.api.RoutingEndpoint
@@ -12,7 +12,6 @@ import truerss.services._
 import truerss.services.actors.MainActor
 import truerss.util.{DbConfig, PluginInstaller, TaskImplicits, TrueRSSConfig}
 
-import java.io.File
 import scala.language.postfixOps
 
 object AppRunner {
@@ -26,15 +25,13 @@ object AppRunner {
           isUserConf: Boolean)(implicit actorSystem: ActorSystem): AppInstance = {
     val dbLayer = DbInitializer.initialize(dbConf, isUserConf)
 
-    val stream = actorSystem.eventStream
-
     val appPluginsService = new ApplicationPluginsService(actualConfig.pluginsDir, actualConfig.config)
     appPluginsService.reload()
     val settingsService = new SettingsService(dbLayer)
     val sourceOverviewService = new SourceOverviewService(dbLayer)
     val sourceUrlValidator = new SourceUrlValidator()
     val sourceValidator = new SourceValidator(dbLayer, sourceUrlValidator, appPluginsService)
-    val sourcesService = new SourcesService(dbLayer, appPluginsService, stream, sourceValidator)
+    val sourcesService = new SourcesService(dbLayer, appPluginsService, actorSystem, sourceValidator)
     val sourceStatusesService = new SourceStatusesService(dbLayer)
 
     val opmlService = new OpmlService(sourcesService)
@@ -42,7 +39,7 @@ object AppRunner {
     val readerClient = new ReaderClient(appPluginsService)
     val contentReaderService = new ContentReaderService(feedsService, readerClient)
     val searchService = new SearchService(dbLayer)
-    val refreshSourcesService = new RefreshSourcesService(stream)
+    val refreshSourcesService = new RefreshSourcesService(actorSystem)
     val markService = new MarkService(dbLayer)
     val pluginInstaller = new PluginInstaller(actualConfig.pluginsDir)
     val pluginSourcesValidator = new PluginSourceValidator(dbLayer)
@@ -58,7 +55,7 @@ object AppRunner {
       Predefined.parallelism.default[Int]
     ).materialize.value
 
-    actorSystem.actorOf(
+    actorSystem.spawn(
       MainActor.props(actualConfig.withParallelism(feedParallelism),
         appPluginsService,
         sourcesService,
@@ -94,11 +91,11 @@ object AppRunner {
 
     val webSocketServer = SocketServer(actualConfig.wsPort, actorSystem)
     webSocketServer.start()
-    actorSystem.registerOnTermination {
+    actorSystem.registerOnTermination(() => {
       webSocketServer.stop()
       server.stop()
-      logger.info(s"========> ActorSytem[${actorSystem.name}] is terminating...")
-    }
+      logger.info(s"====> ${actorSystem} is terminating...")
+    })
     AppInstance(server, dbLayer)
   }
 }

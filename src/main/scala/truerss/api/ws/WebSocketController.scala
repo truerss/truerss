@@ -1,13 +1,13 @@
 package truerss.api.ws
 
-import akka.actor.{Actor, ActorLogging}
+import io.truerss.actorika._
 import org.java_websocket.WebSocket
 import play.api.libs.json._
 import truerss.api.JsonFormats
 import truerss.dto.{FeedDto, SourceViewDto}
 
 // one actor per one user connection
-class WebSocketController(private val ws: WebSocket) extends Actor with ActorLogging {
+class WebSocketController(private val ws: WebSocket) extends Actor {
 
   import WebSocketController._
 

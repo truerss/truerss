@@ -2,7 +2,6 @@ package net.truerss.plugins
 
 import java.net.URL
 
-import akka.util.Timeout
 import com.github.truerss.base.ContentTypeParam.UrlRequest
 import com.github.truerss.base.Errors.UnexpectedError
 import com.typesafe.config.ConfigFactory
@@ -17,7 +16,7 @@ import scala.jdk.CollectionConverters._
 
 class DefaultReaderTests extends Specification {
 
-  implicit val timeout = Timeout(10 seconds)
+  implicit val timeout = 10 seconds
 
   val url = s"http://example.com"
   val okRss = s"$url/ok-rss"

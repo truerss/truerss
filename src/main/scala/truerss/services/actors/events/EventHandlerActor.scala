@@ -1,22 +1,19 @@
 package truerss.services.actors.events
 
-import akka.actor.{Actor, ActorLogging, Props}
-import akka.event.EventStream
 import com.github.truerss.base.Entry
-import truerss.api.ws.WebSocketController
 import truerss.dto.SourceViewDto
 import truerss.util.TaskImplicits
 import truerss.services.{FeedsService, SourceStatusesService, SourcesService, StreamProvider}
+import io.truerss.actorika._
+import truerss.api.ws.WebSocketController
 
 class EventHandlerActor(private val sourcesService: SourcesService,
                         private val sourcesStatusesService: SourceStatusesService,
                         private val feedsService: FeedsService)
-  extends Actor with ActorLogging with StreamProvider {
+  extends Actor with StreamProvider {
 
   import EventHandlerActor._
   import TaskImplicits._
-
-  override val stream: EventStream = context.system.eventStream
 
   def receive: Receive = {
     case RegisterNewFeeds(sourceId, entries) =>
@@ -43,8 +40,8 @@ class EventHandlerActor(private val sourcesService: SourcesService,
 object EventHandlerActor {
   def props(sourcesService: SourcesService,
             sourcesStatusesService: SourceStatusesService,
-            feedsService: FeedsService): Props = {
-    Props(classOf[EventHandlerActor], sourcesService, sourcesStatusesService, feedsService)
+            feedsService: FeedsService) = {
+    new EventHandlerActor(sourcesService, sourcesStatusesService, feedsService)
   }
 
   sealed trait EventHandlerActorMessage

@@ -1,7 +1,7 @@
 package truerss.services.actors
 
-import akka.actor.{Actor, ActorLogging, ActorRef, Props}
-import akka.event.EventStream
+import io.truerss.actorika._
+import org.slf4j.LoggerFactory
 import truerss.services.actors.events.{EventHandlerActor, PublishPluginActor}
 import truerss.services.actors.sync.SourcesKeeperActor
 import truerss.services.{ApplicationPluginsService, FeedsService, SourceStatusesService, SourcesService}
@@ -13,35 +13,35 @@ class MainActor(config: TrueRSSConfig,
                 feedsService: FeedsService,
                 sourcesStatusesService: SourceStatusesService
                )
-  extends Actor with ActorLogging {
+  extends Actor {
 
-  private val stream: EventStream = context.system.eventStream
+  private val logger = LoggerFactory.getLogger(getClass)
 
-  val eventHandlerActor = create(
-    EventHandlerActor.props(sourcesService, sourcesStatusesService, feedsService),
-    "event-handler-actor")
+  override def preStart(): Unit = {
+    val eventHandlerActor = spawn(
+      EventHandlerActor.props(sourcesService, sourcesStatusesService, feedsService),
+      "event-handler-actor"
+    )
 
-  val publishActor = create(Props(
-    classOf[PublishPluginActor], applicationPluginsService),
-    "publish-plugin-actor")
+    val publishActor = spawn(new PublishPluginActor(applicationPluginsService),
+      "publish-plugin-actor")
 
-  val sourcesRef = create(SourcesKeeperActor.props(
-    SourcesKeeperActor.SourcesSettings(config.feedParallelism),
-    applicationPluginsService,
-    sourcesService
-  ), s"source-keeper-actor")
+    val sourcesRef = spawn(SourcesKeeperActor.props(
+      SourcesKeeperActor.SourcesSettings(config.feedParallelism),
+      applicationPluginsService,
+      sourcesService
+    ), "source-keeper-actor")
 
-  stream.subscribe(publishActor, classOf[PublishPluginActor.PublishEvent])
-  stream.subscribe(eventHandlerActor, classOf[EventHandlerActor.EventHandlerActorMessage])
-  stream.subscribe(sourcesRef, classOf[SourcesKeeperActor.SourcesMessage])
-
-  def receive = {
-    case x =>
-      log.warning(s"Unhandled message: $x, from: ${sender()}")
+    system.subscribe(publishActor, classOf[PublishPluginActor.PublishEvent])
+    system.subscribe(eventHandlerActor, classOf[EventHandlerActor.EventHandlerActorMessage])
+    system.subscribe(sourcesRef, classOf[SourcesKeeperActor.SourcesMessage])
   }
 
-  private def create(props: Props, name: String): ActorRef = {
-    context.actorOf(props, name)
+
+
+  def receive: Receive = {
+    case x =>
+      logger.warn(s"Unhandled message: $x, from: $sender")
   }
 
 }
@@ -54,7 +54,7 @@ object MainActor {
             feedsService: FeedsService,
             sourcesStatusesService: SourceStatusesService
            ) = {
-    Props(classOf[MainActor], config, applicationPluginsService,
+    new MainActor(config, applicationPluginsService,
       sourcesService,
       feedsService,
       sourcesStatusesService

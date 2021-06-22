@@ -11,6 +11,7 @@ version := "1.0.5"
 val setup = Seq(
   resolvers += "Typesafe Releases" at "https://repo.typesafe.com/typesafe/releases",
   resolvers += "Sonatype OSS" at "https://s01.oss.sonatype.org/content/repositories/releases",
+  resolvers += "Sonatype Snapshots" at "https://s01.oss.sonatype.org/content/repositories/snapshots",
   resolvers += "JCenter" at "https://jcenter.bintray.com/",
   resolvers += "karussell_releases" at "https://github.com/karussell/mvnrepo",
   scalaVersion := "2.13.5",

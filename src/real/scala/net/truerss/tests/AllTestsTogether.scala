@@ -4,9 +4,10 @@ import net.truerss.Resources
 import org.specs2.mutable.Specification
 
 trait AllTestsTogether extends Specification
-  with PluginsApiTests
-  with SettingsApiTests
+//  with PluginsApiTests
+//  with SettingsApiTests
   with FullFlowTests
-  with SourceStatusesServiceTests { self: Resources =>
+//  with SourceStatusesServiceTests
+{ self: Resources =>
 
 }

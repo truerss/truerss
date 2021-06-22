@@ -1,9 +1,7 @@
 package truerss.services.actors.sync
 
-import akka.actor.SupervisorStrategy.Resume
-import akka.actor._
-import akka.pattern.pipe
-import org.slf4j.LoggerFactory
+import io.truerss.actorika.{ActorStrategies, _}
+import org.slf4j.{Logger, LoggerFactory}
 import truerss.dto.SourceViewDto
 import truerss.services.{ApplicationPluginsService, SourcesService}
 
@@ -12,44 +10,48 @@ import scala.concurrent.duration._
 class SourcesKeeperActor(config: SourcesKeeperActor.SourcesSettings,
                          appPluginService: ApplicationPluginsService,
                          sourcesService: SourcesService
-                  ) extends Actor with ActorLogging {
+                  ) extends Actor {
 
   import SourcesKeeperActor._
-  import context.dispatcher
+  import ActorDsl._
 
   private val ticker = new Ticker[ActorRef](config.parallelFeedUpdate)
 
-  override val supervisorStrategy: OneForOneStrategy = OneForOneStrategy() {
-    case x: Throwable =>
-      log.warning(s"exception in source actor: $x")
-      Resume
+  private val logger = LoggerFactory.getLogger(getClass)
+
+  override def applyRestartStrategy(ex: Throwable, failedMessage: Option[Any], count: Int): ActorStrategies.Value = {
+    logger.warn(s"exception in source actor: $ex")
+    ActorStrategies.Skip
   }
 
-  log.info(s"Feed parallelism: ${config.parallelFeedUpdate}")
+  logger.info(s"Feed parallelism: ${config.parallelFeedUpdate}")
 
   override def preStart(): Unit = {
+    implicit val ec = system.context
     zio.Runtime.default.unsafeRunToFuture(sourcesService.getAllForOpml)
-      .map(Sources) pipeTo self
+      .map(Sources).foreach { result =>
+      me ! result
+    }
   }
 
   def uninitialized: Receive = {
     case Sources(xs) =>
-      log.info("Start actor per source")
+      logger.info("Start actor per source")
       xs.filter(_.isEnabled).foreach(startSourceActor)
-
-      context.become(initialized)
-
-    case any =>
-      log.warning(s"Oops, something went wrong, when load sources from db: $any")
+      become(initialized)
   }
 
   def initialized: Receive = {
+    case Sources(xs) =>
+      logger.info("Start actor per source")
+      xs.filter(_.isEnabled).foreach(startSourceActor)
+
     case NewSource(source) =>
       startSourceActor(source)
 
     case Update =>
-      log.info(s"Update for ${context.children.size} actors")
-      context.children.foreach { _ ! Update }
+      logger.info(s"Update for ${children.size} actors")
+      children.foreach { _ ! Update }
 
     case UpdateMe(ref) =>
       ticker.push(ref) match {
@@ -76,45 +78,47 @@ class SourcesKeeperActor(config: SourcesKeeperActor.SourcesSettings,
       ticker.getOne(num).foreach(_ ! Update)
 
     case SourceDeleted(source) =>
-      log.info(s"Stop ${source.name} actor")
+      logger.info(s"Stop ${source.name} actor")
       ticker.deleteOne(source.id).foreach { ref =>
-        context.stop(ref)
+        stop(ref)
       }
 
     case ReloadSource(source) =>
       ticker.deleteOne(source.id).foreach { ref =>
-        context.stop(ref)
+        stop(ref)
       }
       startSourceActor(source)
   }
 
-
   def receive: Receive = uninitialized
+
 
   private def startSourceActor(source: SourceViewDto): Unit = {
     val props = SourceActor.props(source, appPluginService)
-    val ref = context.actorOf(props)
+    val ref = spawn(props, s"actor-${source.id}")
     ticker.addOne(source.id, ref)
   }
 
   private def nextTick = {
     if (ticker.nonEmpty) {
-      context.system.scheduler.scheduleOnce(defaultDelay, self, Tick)
+      scheduler.once(defaultDelay) { () =>
+        me ! Tick
+      }
     }
   }
 }
 
 object SourcesKeeperActor {
 
-  protected val logger = LoggerFactory.getLogger(getClass)
+  protected val logger: Logger = LoggerFactory.getLogger(getClass)
 
-  private val defaultDelay = 15 seconds
+  val defaultDelay: FiniteDuration = 15 seconds
 
   def props(config: SourcesSettings,
             appPluginService: ApplicationPluginsService,
             sourcesService: SourcesService
-           ): Props = {
-    Props(classOf[SourcesKeeperActor], config, appPluginService, sourcesService)
+           ): SourcesKeeperActor = {
+    new SourcesKeeperActor(config, appPluginService, sourcesService)
   }
 
   sealed trait SourcesMessage

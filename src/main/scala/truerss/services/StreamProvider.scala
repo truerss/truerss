@@ -1,13 +1,13 @@
 package truerss.services
 
-import akka.event.EventStream
+import io.truerss.actorika._
 import zio.Task
+import scala.reflect.runtime.universe._
 
-trait StreamProvider {
-  val stream: EventStream
-  def fire(x: Any): Task[Unit] = {
+trait StreamProvider { self: Actor =>
+  def fire[T](x: T)(implicit _tag: TypeTag[T]): Task[Unit] = {
     Task.fromFunction { _ =>
-      stream.publish(x)
+      self.system.publish(x)
     }
   }
 }

@@ -1,20 +1,22 @@
 package truerss.api.ws
 
 import java.net.InetSocketAddress
-
-import akka.actor.{ActorRef, ActorSystem, Props}
+import io.truerss.actorika._
 import org.java_websocket.WebSocket
 import org.java_websocket.handshake.ClientHandshake
 import org.java_websocket.server.WebSocketServer
+import java.util.concurrent.{ConcurrentHashMap => CHM}
+import scala.jdk.CollectionConverters._
 import org.slf4j.LoggerFactory
 
 case class SocketServer(port: Int, system: ActorSystem)
   extends WebSocketServer(new InetSocketAddress(port)) {
 
-  private val logger = LoggerFactory.getLogger(getClass)
-  private val stream = system.eventStream
+  import SocketServer._
 
-  private val connectionMap = scala.collection.mutable.Map[WebSocket, ActorRef]()
+  private val logger = LoggerFactory.getLogger(getClass)
+
+  private val connectionMap = new CHM[WebSocket, ActorRef]()
 
   override def onStart(): Unit = {
     logger.info(s"socket server started, port: $port")
@@ -22,9 +24,9 @@ case class SocketServer(port: Int, system: ActorSystem)
 
   override def onOpen(ws: WebSocket, clientHandshake: ClientHandshake): Unit = {
     logger.info(s"ws connection open")
-    val socketActor = system.actorOf(Props(classOf[WebSocketController], ws))
-    stream.subscribe(socketActor, classOf[WebSocketController.WSMessage])
-    connectionMap(ws) = socketActor
+    val socketActor = system.spawn(new WebSocketController(ws), generator)
+    system.subscribe(socketActor, classOf[WebSocketController.WSMessage])
+    connectionMap.put(ws, socketActor)
   }
 
   override def onClose(webSocket: WebSocket, code: Int, reason: String, remote: Boolean): Unit = {
@@ -43,7 +45,7 @@ case class SocketServer(port: Int, system: ActorSystem)
 
 
   override def stop(): Unit = {
-    connectionMap.foreach { case (ws, _) =>
+    connectionMap.asScala.foreach { case (ws, _) =>
       stopConnection(ws)
     }
     super.stop()
@@ -51,11 +53,14 @@ case class SocketServer(port: Int, system: ActorSystem)
 
   private def stopConnection(webSocket: WebSocket): Unit = {
     Option(webSocket).foreach { key =>
-      val actor = connectionMap(key)
-      connectionMap -= webSocket
-      stream.unsubscribe(actor)
-      system.stop(actor)
+      Option(connectionMap.remove(key)).foreach { ref =>
+        system.unsubscribe(ref)
+        system.stop(ref)
+      }
     }
   }
 
+}
+object SocketServer {
+  val generator = new ActorNameGenerator("ws")
 }

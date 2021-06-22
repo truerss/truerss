@@ -1,5 +1,5 @@
 
-import akka.actor.ActorSystem
+import io.truerss.actorika._
 import truerss.AppRunner
 import truerss.util.TrueRSSConfig
 
@@ -20,6 +20,8 @@ object Main extends App {
       }
 
       implicit val system: ActorSystem = ActorSystem("truerss")
+
+      system.start()
 
       AppRunner.run(actualConfig, dbConf, isUserConf).start()
 
