@@ -50,7 +50,7 @@ object Libs {
   val jsoup = "org.jsoup" % "jsoup" % jsoupVersion
 
   val actorika = Seq(
-    "io.github.truerss" %% "actorika" % "0.0.1-SNAPSHOT"
+    "io.github.truerss" %% "actorika" % "0.0.1.10-SNAPSHOT"
   )
 
   val scalaj = "org.scalaj" %% "scalaj-http" % scalajVersion

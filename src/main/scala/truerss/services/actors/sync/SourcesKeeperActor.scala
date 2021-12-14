@@ -19,15 +19,16 @@ class SourcesKeeperActor(config: SourcesKeeperActor.SourcesSettings,
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  override def applyRestartStrategy(ex: Throwable, failedMessage: Option[Any], count: Int): ActorStrategies.Value = {
-    logger.warn(s"exception in source actor: $ex")
+  override def applyStrategy(throwable: Throwable, failedMessage: Option[Any], restartCount: Int): ActorStrategies.Value = {
+    logger.warn(s"exception in source actor: $throwable")
     ActorStrategies.Skip
   }
+
 
   logger.info(s"Feed parallelism: ${config.parallelFeedUpdate}")
 
   override def preStart(): Unit = {
-    implicit val ec = system.context
+    implicit val ec = system.defaultExecutor
     zio.Runtime.default.unsafeRunToFuture(sourcesService.getAllForOpml)
       .map(Sources).foreach { result =>
       me ! result

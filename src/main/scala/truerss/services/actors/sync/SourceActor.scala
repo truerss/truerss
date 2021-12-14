@@ -27,7 +27,7 @@ class SourceActor(source: SourceViewDto, appPluginsService: ApplicationPluginsSe
 
   override def preStart(): Unit = {
     scheduler.every(updTime.interval, updTime.tickTime) {() =>
-      parent() ! UpdateMe(me)
+      parent ! UpdateMe(me)
     }
   }
 
@@ -47,7 +47,7 @@ class SourceActor(source: SourceViewDto, appPluginsService: ApplicationPluginsSe
           system.publish(EventHandlerActor.SourceError(source.id))
       }
 
-      parent() ! Updated
+      parent ! Updated
       system.publish(EventHandlerActor.ModifySource(source.id))
   }
 

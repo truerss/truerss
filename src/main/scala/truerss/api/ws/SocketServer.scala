@@ -54,7 +54,7 @@ case class SocketServer(port: Int, system: ActorSystem)
   private def stopConnection(webSocket: WebSocket): Unit = {
     Option(webSocket).foreach { key =>
       Option(connectionMap.remove(key)).foreach { ref =>
-        system.unsubscribe(ref)
+        system.unsubscribeAll(ref)
         system.stop(ref)
       }
     }
@@ -62,5 +62,5 @@ case class SocketServer(port: Int, system: ActorSystem)
 
 }
 object SocketServer {
-  val generator = new ActorNameGenerator("ws")
+  val generator = ActorNameGenerator.create("ws")
 }
