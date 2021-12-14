@@ -14,6 +14,8 @@ class RespourcesRoute(private val wsPort: Int) {
 
   protected val fileName = "index.html"
   private val indexStr = Source.fromInputStream(getClass.getResourceAsStream(s"/$fileName")).mkString
+  private val iconName = "favicon.ico"
+  private val iconData = getClass.getResourceAsStream(s"/$iconName").readAllBytes()
 
   def pass(redirectTo: Option[String]) = {
     val headers = redirectTo.map { location =>
@@ -38,6 +40,17 @@ class RespourcesRoute(private val wsPort: Int) {
     pass(None)
   }
 
+  private val faviconR = get("/favicon.ico") ~> { () =>
+    AsyncResult.completed(
+      CommonResponse(
+        status = HttpResponseStatus.OK,
+        contentType = "image/x-icon",
+        content = iconData,
+        headers = Iterable.empty
+      )
+    )
+  }
+
   private val commonHandler = (c: CurrentHttpRequest) => {
     if (c.isXHR) {
       AsyncResult.completed(aboutResponse)
@@ -51,7 +64,7 @@ class RespourcesRoute(private val wsPort: Int) {
     commonHandler(c)
   }
 
-  val route = indexR :: orRoutes
+  val route = indexR :: faviconR :: orRoutes
 
 }
 

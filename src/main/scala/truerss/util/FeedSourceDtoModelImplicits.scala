@@ -7,6 +7,7 @@ import truerss.dto.{FeedDto, NewSourceDto, SourceViewDto, State, UpdateSourceDto
 object FeedSourceDtoModelImplicits {
 
   import CommonImplicits._
+  import EnclosureImplicits.EnclosureDtoStringExt
 
   implicit class NewSourceDtoExt(val x: NewSourceDto) extends AnyVal {
     def toSource: Source = {
@@ -62,6 +63,7 @@ object FeedSourceDtoModelImplicits {
         publishedDate = x.publishedDate,
         description = x.description,
         content = x.content,
+        enclosure = x.enclosure.map(_.toEnclosureDto),
         normalized = x.normalized,
         favorite = x.favorite,
         read = x.read,

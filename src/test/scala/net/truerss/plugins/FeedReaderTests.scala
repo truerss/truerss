@@ -1,6 +1,7 @@
 package net.truerss.plugins
 
 import org.specs2.mutable.Specification
+import truerss.dto.EnclosureDto
 import truerss.plugins.{AtomParser, RSSParser}
 
 class FeedReaderTests extends Specification {
@@ -21,6 +22,16 @@ class FeedReaderTests extends Specification {
         x.author must beNone
         x.description must beSome
       }
+
+      val enclosures = result.flatMap(_.enclosure)
+      enclosures must have size 1
+
+      enclosures.head ==== EnclosureDto(
+        `type` = "video/wmv",
+        url = "https://www.w3schools.com/media/3d.wmv",
+        length = 78645
+      )
+
       result.flatMap(_.url).toVector should have size 3
     }
 
@@ -39,6 +50,7 @@ class FeedReaderTests extends Specification {
         x.url must beSome
         x.author must beSome
         x.description must beSome
+        x.enclosure must beNone
       }
 
       result.flatMap(_.author).toVector.distinct ==== Vector(

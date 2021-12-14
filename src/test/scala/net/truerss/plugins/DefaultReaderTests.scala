@@ -131,6 +131,7 @@ object HtmlFixtures {
         <description>
           <![CDATA[<a href="https://news.ycombinator.com/item?id=10061833">Comments</a>]]>
         </description>
+        <enclosure url="https://www.w3schools.com/media/3d.wmv" length="78645" type="video/wmv" />
       </item>
       <item>
         <title>Memory Efficient Hard Real-Time Garbage Collection [pdf]</title>

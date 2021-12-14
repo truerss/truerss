@@ -1,5 +1,6 @@
 package truerss.api
 
+import com.github.truerss.base.EnclosureType.jsonFormat
 import play.api.libs.json._
 import truerss.dto._
 
@@ -58,6 +59,7 @@ object JsonFormats {
 
   implicit lazy val pluginDtoFormat = Json.format[PluginDto]
   implicit lazy val pluginsViewDto = Json.format[PluginsViewDto]
+  implicit lazy val enclosureDtoFormat = Json.format[EnclosureDto]
   implicit lazy val feedDtoFormat = Json.format[FeedDto]
 
   implicit lazy val newSourceFromFile = Json.format[NewSourceFromFileWithErrors]

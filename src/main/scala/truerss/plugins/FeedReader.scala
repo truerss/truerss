@@ -1,5 +1,7 @@
 package truerss.plugins
 
+import truerss.dto.EnclosureDto
+
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Date
@@ -7,7 +9,7 @@ import truerss.util.CommonImplicits
 
 import scala.util.Try
 import scala.xml.NodeSeq.seqToNodeSeq
-import scala.xml.{Elem, Node, NodeSeq}
+import scala.xml.{Elem, Node}
 
 trait FeedParser {
   import CommonImplicits._
@@ -18,13 +20,14 @@ trait FeedParser {
 
   protected def from(tagName: String)(implicit source: Node): Option[String] = {
     val x = source \ tagName
-    if (x.isEmpty) { None }
-    else { Some(x.text) }
+    Option.unless(x.isEmpty)(x.text)
   }
 
   protected def getDate(x: String)(implicit format: DateTimeFormatter): Option[Date] = {
     Try(LocalDateTime.parse(x, format)).toOption.map(_.toDate)
   }
+
+  protected def getEnclosure(node: Node): Option[EnclosureDto]
 
   protected def toMap(entry: Node): Map[String, Node] = {
     entry.child.filter(x => tags.contains(x.label))
@@ -50,10 +53,11 @@ case object RSSParser extends FeedParser {
   private val _item = "item"
   private val _pubDate = "pubDate"
   private val _author = "author"
+  private val _enclosure = "enclosure"
 
   implicit private val format: DateTimeFormatter = DateTimeFormatter.RFC_1123_DATE_TIME
 
-  override protected val tags = Vector(_title, _link, _description, _pubDate, _author)
+  override protected val tags = Vector(_title, _link, _description, _pubDate, _author, _enclosure)
 
   override def parse(x: Elem): Iterable[EntryDto] = {
     val now = new java.util.Date
@@ -65,7 +69,22 @@ case object RSSParser extends FeedParser {
         url = get(_link),
         description = get(_description),
         publishedDate = get(_pubDate).flatMap(getDate).getOrElse(now),
-        author = get(_author)
+        author = get(_author),
+        enclosure = children.get(_enclosure).flatMap(getEnclosure)
+      )
+    }
+  }
+
+  override protected def getEnclosure(node: Node): Option[EnclosureDto] = {
+    for {
+      tp <- node.attribute("type").map(_.text)
+      url <- node.attribute("url").map(_.text)
+      length <- node.attribute("length").flatMap(_.text.toIntOption)
+    } yield {
+      EnclosureDto(
+        `type` = tp,
+        url = url,
+        length = length
       )
     }
   }
@@ -113,7 +132,8 @@ case object AtomParser extends FeedParser {
         title = get(_title),
         author = get(_author).orElse(globalAuthor),
         publishedDate = get(_updated).flatMap(getDate).getOrElse(new java.util.Date),
-        description = get(_summary)
+        description = get(_summary),
+        enclosure = getEnclosure(entry)
       )
     }
   }
@@ -138,4 +158,7 @@ case object AtomParser extends FeedParser {
       r
     }
   }
+
+  // TODO: need to find example of enclosure in Atom
+  override def getEnclosure(node: Node): Option[EnclosureDto] = None
 }
