@@ -15,7 +15,11 @@ target/
 lib_managed/
 src_managed/
 project/boot/
+project/metals.sbt
 project/plugins/project/
+.bloop/
+.metals/
+.vscode/
 .idea/*
 .idea_modules/*
 .idea/
@@ -36,4 +40,5 @@ truerss.db
 Gemfile.lock
 .java-version
 .bsp
+.DS_Store
 1.rb

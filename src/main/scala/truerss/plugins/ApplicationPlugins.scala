@@ -62,13 +62,11 @@ case class ApplicationPlugins(
   }
 
   def matchUrl(url: URL): Boolean = {
-    feedsP.exists(_.matchUrl(url)) ||
-      contentsP.exists(_.matchUrl(url)) ||
-      sitesP.exists(_.matchUrl(url))
+    inFeed(url) || inContent(url) || inSite(url)
   }
 
   def matchUrl(url: String): Boolean = {
-    Try(matchUrl(new java.net.URL(url))).toOption.getOrElse(false)
+    Try(matchUrl(new java.net.URL(url))).getOrElse(false)
   }
 
 }

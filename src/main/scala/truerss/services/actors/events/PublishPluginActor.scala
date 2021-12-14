@@ -8,6 +8,7 @@ import com.github.truerss.base.{Entry, PublishActions}
 import org.slf4j.LoggerFactory
 import truerss.dto.FeedDto
 import truerss.services.ApplicationPluginsService
+import truerss.util.EnclosureImplicits.EnclosureDtoExt
 
 class PublishPluginActor(appPluginService: ApplicationPluginsService)
   extends Actor {
@@ -43,7 +44,8 @@ object PublishPluginActor {
         author = x.author,
         publishedDate = new Date(x.publishedDate.toEpochSecond(ZoneOffset.UTC)),
         description = x.description,
-        content = x.content
+        content = x.content,
+        enclosure = x.enclosure.flatMap(_.toEnclosure)
       )
     }
   }

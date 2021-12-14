@@ -1,7 +1,6 @@
 package truerss.db
 
 import java.time.LocalDateTime
-
 import truerss.util.CommonImplicits._
 
 import scala.language.postfixOps
@@ -46,6 +45,7 @@ case class Feed(id: Option[Long],
                 publishedDate: LocalDateTime,
                 description: Option[String],
                 content: Option[String],
+                enclosure: Option[String],
                 normalized: String,
                 favorite: Boolean = false,
                 read: Boolean = false,

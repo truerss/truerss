@@ -2,7 +2,7 @@ import sbt._
 
 object Libs {
   object Versions {
-    val scalaVersion = "2.12.4"
+    val scalaVersion = "2.13.6"
     val scalajVersion = "2.4.2"
     val postgresqlVersion = "42.2.14"
     val mysqlVersion = "8.0.21"
@@ -15,7 +15,7 @@ object Libs {
     val hikariCPVersion = "3.4.5"
     val jwsVersion = "1.5.1"
     val logbackVersion = "1.1.2"
-    val basePluginVersion = "1.0.1"
+    val basePluginVersion = "1.0.2"
     val jsoupVersion = "1.8.3"
     val specsVersion = "4.10.0"
     val playJsonVersion = "2.9.2"
