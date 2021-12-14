@@ -60,9 +60,7 @@ object DbInitializer {
     def run[T](description: String, act: DBIOAction[T, NoStream, Nothing]) = {
       Console.out.println(s"----> $description")
       Await.result(
-        db.run {
-          act
-        },
+        db.run(act),
         waitTime
       )
     }
@@ -74,7 +72,7 @@ object DbInitializer {
     val tableNames = tables.toList.map(_.name).map(_.name)
 
     if (!tableNames.contains(names.sources)) {
-      run("create db", (driver.query.sources.schema ++ driver.query.feeds.schema).create)
+      run("create sources and feeds", (driver.query.sources.schema ++ driver.query.feeds.schema).create)
     }
 
     if (!tableNames.contains(names.predefinedSettings)) {
@@ -213,15 +211,24 @@ object DbInitializer {
       dbProfile: DBProfile,
       driver: CurrentDriver
     ): Migration = {
+      val tableName = driver.query.feeds.baseTableRow.tableName
       val feedsColumnsQuery = MColumn.getColumns(
-        MQName.local(driver.query.feeds.baseTableRow.tableName),
+        MQName.local(tableName),
         "enclosure"
       )
+
       val columns = Await.result(db.run(feedsColumnsQuery), waitTime)
-      implicit val dialect: Dialect[_ <: JdbcProfile] = GenericDialect(dbProfile.profile)
-      val changes = Option.when(columns.isEmpty)(new ReversibleMigrationSeq(
-        TableMigration(driver.query.feeds).addColumns(_.enclosure)
-      ))
+      val tables = Await.result(db.run(MTable.getTables), waitTime)
+      val changes =
+      if (tables.nonEmpty) {
+        // do not run migration because no tables (mysql only)
+        implicit val dialect: Dialect[_ <: JdbcProfile] = GenericDialect(dbProfile.profile)
+        Option.when(columns.isEmpty)(new ReversibleMigrationSeq(
+          TableMigration(driver.query.feeds).addColumns(_.enclosure)
+        ))
+      } else {
+        None
+      }
       Migration(2L, "add enclosure", changes)
     }
   }
