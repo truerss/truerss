@@ -1,7 +1,5 @@
 package net.truerss.plugins
 
-import java.net.URL
-
 import akka.util.Timeout
 import com.github.truerss.base.ContentTypeParam.UrlRequest
 import com.github.truerss.base.Errors.UnexpectedError
@@ -12,6 +10,7 @@ import org.specs2.specification.Scope
 import scalaj.http.HttpResponse
 import truerss.plugins.DefaultSiteReader
 
+import java.net.URL
 import scala.concurrent.duration._
 import scala.jdk.CollectionConverters._
 
@@ -132,6 +131,7 @@ object HtmlFixtures {
         <description>
           <![CDATA[<a href="https://news.ycombinator.com/item?id=10061833">Comments</a>]]>
         </description>
+        <enclosure url="https://www.w3schools.com/media/3d.wmv" length="78645" type="video/wmv" />
       </item>
       <item>
         <title>Memory Efficient Hard Real-Time Garbage Collection [pdf]</title>
@@ -176,4 +176,41 @@ object HtmlFixtures {
       <script type="application/javascript">alert(1);</script>
     </article>
   </div>"""
+
+  val atom = """<?xml version="1.0" encoding="utf-8"?>
+    <feed xmlns="http://www.w3.org/2005/Atom">
+      <title>Example Feed</title>
+      <link href="http://example.org/"/>
+      <updated>2003-12-13T18:30:02Z</updated>
+      <author>
+        <name>John Doe</name>
+      </author>
+      <id>urn:uuid:60a76c80-d399-11d9-b93C-0003939e0af6</id>
+      <entry>
+        <title>Atom-Powered Robots Run Amok</title>
+        <link href="http://example.org/2003/12/13/atom"/>
+        <id>urn:uuid:1225c695-cfb8-4ebb-aaaa-80da344efa6a</id>
+        <updated>2003-12-13T18:30:02Z</updated>
+        <summary>Some text.</summary>
+        <author>
+          <name>Local</name>
+          <email>JohnDoe@example.com</email>
+          <uri>http://example.com/~johndoe</uri>
+        </author>
+      </entry>
+      <entry>
+        <title>Atom-Powered Robots Run Amok#1</title>
+        <link href="http://example.org/2003/12/13/atom03"/>
+        <id>urn:uuid:1225c695-cfb8-4ebb-aaaa-80da344efadd</id>
+        <updated>2004-12-13T18:30:02Z</updated>
+        <summary>Some text#100.</summary>
+      </entry>
+      <entry>
+        <title>title123</title>
+        <link href="http://example.org/2003/12/13/atom01"/>
+        <id>urn:uuid:1225c695-cfb8-4ebb-aaaa-80da344efadd</id>
+        <updated>2004-10-13T18:30:02Z</updated>
+        <summary>summary</summary>
+      </entry>
+    </feed>"""
 }

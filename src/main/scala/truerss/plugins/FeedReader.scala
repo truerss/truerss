@@ -8,22 +8,32 @@ import java.util.Date
 import truerss.util.CommonImplicits
 
 import scala.util.Try
+import scala.xml.NodeSeq.seqToNodeSeq
 import scala.xml.{Elem, Node}
 
 trait FeedParser {
   import CommonImplicits._
 
-  def from(tagName: String)(implicit source: Node): Option[String] = {
+  def parse(x: Elem): Iterable[EntryDto]
+
+  protected val tags: Vector[String] = Vector.empty
+
+  protected def from(tagName: String)(implicit source: Node): Option[String] = {
     val x = source \ tagName
     Option.unless(x.isEmpty)(x.text)
   }
-  def parse(x: Elem): Iterable[EntryDto]
 
-  def getDate(x: String)(implicit format: DateTimeFormatter): Option[Date] = {
+  protected def getDate(x: String)(implicit format: DateTimeFormatter): Option[Date] = {
     Try(LocalDateTime.parse(x, format)).toOption.map(_.toDate)
   }
 
-  def getEnclosure(implicit node: Node): Option[EnclosureDto]
+  protected def getEnclosure(node: Node): Option[EnclosureDto]
+
+  protected def toMap(entry: Node): Map[String, Node] = {
+    entry.child.filter(x => tags.contains(x.label))
+      .map(x => x.label -> x)
+      .toMap
+  }
 }
 
 case object FeedParser {
@@ -37,35 +47,39 @@ case object FeedParser {
 }
 
 case object RSSParser extends FeedParser {
-  val _title = "title"
-  val _link = "link"
-  val _description = "description"
-  val _item = "item"
-  val _pubDate = "pubDate"
-  val _author = "author"
-  val _enclosure = "enclosure"
+  private val _title = "title"
+  private val _link = "link"
+  private val _description = "description"
+  private val _item = "item"
+  private val _pubDate = "pubDate"
+  private val _author = "author"
+  private val _enclosure = "enclosure"
 
-  implicit val format: DateTimeFormatter = DateTimeFormatter.RFC_1123_DATE_TIME
+  implicit private val format: DateTimeFormatter = DateTimeFormatter.RFC_1123_DATE_TIME
+
+  override protected val tags = Vector(_title, _link, _description, _pubDate, _author, _enclosure)
 
   override def parse(x: Elem): Iterable[EntryDto] = {
+    val now = new java.util.Date
     (x \\ _item).map { implicit item =>
+      val children = toMap(item)
+      def get(attr: String) = children.get(attr).map(_.text)
       EntryDto(
-        title = from(_title),
-        url = from(_link),
-        description = from(_description),
-        publishedDate = from(_pubDate).flatMap(getDate).getOrElse(new java.util.Date),
-        author = from(_author),
-        enclosure = getEnclosure
+        title = get(_title),
+        url = get(_link),
+        description = get(_description),
+        publishedDate = get(_pubDate).flatMap(getDate).getOrElse(now),
+        author = get(_author),
+        enclosure = children.get(_enclosure).flatMap(getEnclosure)
       )
     }
   }
 
-  override def getEnclosure(implicit node: Node): Option[EnclosureDto] = {
+  override protected def getEnclosure(node: Node): Option[EnclosureDto] = {
     for {
-      n <- (node \\ _enclosure).headOption
-      tp <- n.attribute("type").map(_.text)
-      url <- n.attribute("url").map(_.text)
-      length <- n.attribute("length").flatMap(_.text.toIntOption)
+      tp <- node.attribute("type").map(_.text)
+      url <- node.attribute("url").map(_.text)
+      length <- node.attribute("length").flatMap(_.text.toIntOption)
     } yield {
       EnclosureDto(
         `type` = tp,
@@ -77,25 +91,63 @@ case object RSSParser extends FeedParser {
 }
 
 case object AtomParser extends FeedParser {
-  val _author = "author"
-  val _name = "name"
-  val _link = "link"
-  val _updated = "updated"
-  val _title = "title"
-  val _entry = "entry"
-  val _summary = "summary"
+  private val _author = "author"
+  private val _name = "name"
+  private val _link = "link"
+  private val _updated = "updated"
+  private val _title = "title"
+  private val _entry = "entry"
+  private val _summary = "summary"
 
-  protected def getAuthors(x: Node): Option[String] = {
-    val r = x \ _author
-    if (r.isEmpty) {
-      None
+  implicit private val format: DateTimeFormatter = DateTimeFormatter.ISO_DATE_TIME
+
+  override protected val tags = Vector(_updated, _title, _summary, _link, _author)
+
+  override def parse(x: Elem): Iterable[EntryDto] = {
+    // global author
+    val xs = x \ _author \ _name
+    val globalAuthor = if (xs.nonEmpty) {
+      xs.headOption.map(_.text)
     } else {
-      Some(r.flatMap(e => (e \ _name).map(_.text)).mkString(", "))
+      None
+    }
+
+    (x \ _entry).map { implicit entry =>
+      val children = toMap(entry)
+      def get(attr: String) = {
+        children.get(attr) match {
+          case Some(node) if attr == _link =>
+            getLinks(node)
+          case Some(node) if attr == _author =>
+            getAuthors(node)
+          case Some(node) =>
+            Some(node.text)
+          case _ =>
+            None
+        }
+      }
+
+      EntryDto(
+        url = get(_link),
+        title = get(_title),
+        author = get(_author).orElse(globalAuthor),
+        publishedDate = get(_updated).flatMap(getDate).getOrElse(new java.util.Date),
+        description = get(_summary),
+        enclosure = getEnclosure(entry)
+      )
     }
   }
 
-  protected def getLinks(x: Node): Option[String] = {
-    val links = x \ _link
+  private def getAuthors(x: Node): Option[String] = {
+    val xs = (x \ _name).map(_.text)
+    if (xs.nonEmpty) {
+      Some(xs.mkString(", "))
+    } else {
+      None
+    }
+  }
+
+  protected def getLinks(links: Node): Option[String] = {
     val r = links
       .filter(_.attribute("rel").exists(_.forall(_.text == "alternate")))
       .flatMap(_.attribute("href").map(_.text)).headOption
@@ -107,29 +159,6 @@ case object AtomParser extends FeedParser {
     }
   }
 
-  implicit val format: DateTimeFormatter = DateTimeFormatter.ISO_DATE_TIME
-
-  override def parse(x: Elem): Iterable[EntryDto] = {
-    // global author
-    val xs = x \ _author
-    val g = if (xs.nonEmpty) {
-      (xs \ _name).headOption.map(_.text).orElse(Some(xs.text))
-    } else {
-      None
-    }
-
-    (x \ _entry).map { implicit entry =>
-      EntryDto(
-        url = getLinks(entry),
-        title = from(_title),
-        author = getAuthors(entry).orElse(g),
-        publishedDate = from(_updated).flatMap(getDate).getOrElse(new java.util.Date),
-        description = from(_summary),
-        enclosure = getEnclosure
-      )
-    }
-  }
-
   // TODO: need to find example of enclosure in Atom
-  override def getEnclosure(implicit node: Node): Option[EnclosureDto] = None
+  override def getEnclosure(node: Node): Option[EnclosureDto] = None
 }
