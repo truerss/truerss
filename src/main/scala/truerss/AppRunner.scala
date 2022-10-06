@@ -84,7 +84,7 @@ object AppRunner {
     val server = OMHSServer.init(
       actualConfig.host,
       actualConfig.port,
-      endpoint.route.toHandler,
+      endpoint.route.toHandler(com.github.fntz.omhs.Setup.default.withoutCompression),
       None,
       OMHSServer.noServerBootstrapChanges
     )

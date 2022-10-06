@@ -21,8 +21,6 @@ object Main extends App {
 
       implicit val system: ActorSystem = ActorSystem("truerss")
 
-      system.start()
-
       AppRunner.run(actualConfig, dbConf, isUserConf).start()
 
     case None =>
