@@ -16,6 +16,7 @@ WSController =
 
       if source
         source.count(source.count() + feeds.length)
+        ControllerExt.change_count(source.count())
         if source.count() > 0
           # push to the top
           current_source = jQuery("#source-#{source_id}")
