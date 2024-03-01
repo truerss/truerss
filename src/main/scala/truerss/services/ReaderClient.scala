@@ -1,6 +1,6 @@
 package truerss.services
 
-import java.net.URL
+import java.net.URI
 
 import com.github.truerss.base.aliases.WithContent
 import com.github.truerss.base.{ContentTypeParam, Errors}
@@ -13,7 +13,7 @@ class ReaderClient(private val applicationPluginsService: ApplicationPluginsServ
   import ReaderClient._
 
   def read(url: String): Task[Option[String]] = {
-    val tmp = new URL(url)
+    val tmp = URI.create(url)
     val plugin = applicationPluginsService.getContentReaderOrDefault(tmp)
       .asInstanceOf[WithContent]
 

@@ -51,10 +51,10 @@ object DbConfig {
   val need = Vector(fBackend, fPort, fHost, fDbName, fUserName, fPassword)
 
   def load(dbConf: Config) = {
-    val given = dbConf.entrySet().asScala.map(_.getKey).toVector
+    val `given` = dbConf.entrySet().asScala.map(_.getKey).toVector
 
-    val diff1 = given.diff(need)
-    val diff2 = need.diff(given)
+    val diff1 = `given`.diff(need)
+    val diff2 = need.diff(`given`)
     if (diff1.nonEmpty) {
       Console.err.println(s"""Unexpected option name for 'db': ${diff1.mkString(",")}""")
       sys.exit(1)

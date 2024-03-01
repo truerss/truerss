@@ -1,5 +1,6 @@
 import sbt.Keys._
 import sbt._
+import java.net.URI
 import java.nio.file.{Files, Paths}
 import java.nio.charset.StandardCharsets
 
@@ -41,7 +42,7 @@ object Tasks {
     }
     println(s"Download $fileName")
 
-    new URL(url) #> pf !!
+    URI.create(url).toString #> pf !!
   }
 
   val install = TaskKey[Unit]("install", "install all dependencies for web ui")

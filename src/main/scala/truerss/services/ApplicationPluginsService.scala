@@ -1,6 +1,6 @@
 package truerss.services
 
-import java.net.URL
+import java.net.URI
 import com.github.truerss.base._
 import com.typesafe.config.{Config, ConfigFactory}
 import truerss.dto.{PluginDto, PluginsViewDto, SourceViewDto, State}
@@ -36,24 +36,24 @@ class ApplicationPluginsService(private val pluginDir: String, private val confi
   }
 
   def matchUrl(url: String): Boolean = {
-    Try(matchUrl(new URL(url))).getOrElse(false)
+    Try(matchUrl(URI.create(url))).getOrElse(false)
   }
 
-  def matchUrl(url: URL): Boolean = {
+  def matchUrl(url: URI): Boolean = {
     currentState.inFeed(url) ||
       currentState.inContent(url) ||
       currentState.inSite(url)
   }
 
-  def getFeedReader(url: URL): Option[BasePlugin] = {
+  def getFeedReader(url: URI): Option[BasePlugin] = {
     currentState.getFeedReader(url)
   }
 
-  def getContentReader(url: URL): Option[BasePlugin] = {
+  def getContentReader(url: URI): Option[BasePlugin] = {
     currentState.getContentReader(url)
   }
 
-  def getContentReaderOrDefault(url: URL): BasePlugin = {
+  def getContentReaderOrDefault(url: URI): BasePlugin = {
     currentState.getContentReaderOrDefault(url)
   }
 
@@ -69,7 +69,7 @@ class ApplicationPluginsService(private val pluginDir: String, private val confi
   }
 
   def getSourceReader(source: SourceViewDto): BaseFeedReader = {
-    val url = new URL(source.url)
+    val url = URI.create(source.url)
     source.state match {
       case State.Enable =>
         currentState.getSourceReader(url)

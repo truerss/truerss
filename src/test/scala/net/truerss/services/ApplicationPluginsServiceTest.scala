@@ -7,7 +7,7 @@ import org.specs2.mutable.SpecificationLike
 import truerss.plugins.{ApplicationPlugins, PluginWithSourcePath}
 import truerss.services.ApplicationPluginsService
 
-import java.net.URL
+import java.net.URI
 
 class ApplicationPluginsServiceTest extends SpecificationLike {
 
@@ -102,29 +102,29 @@ class ApplicationPluginsServiceTest extends SpecificationLike {
     override val version: String = "test"
   }
 
-  private class TestFeedBasePlugin(expected: URL) extends BaseFeedPlugin(null) with TestPluginInfo {
+  private class TestFeedBasePlugin(expected: URI) extends BaseFeedPlugin(null) with TestPluginInfo {
     override val priority: Int = fPrioriry
 
     override val pluginName: String = fName
 
     override def newEntries(url: String): Either[Errors.Error, Vector[Entry]] = Right(Vector.empty)
 
-    override def matchUrl(url: URL): Boolean = url == expected
+    override def matchUrl(url: URI): Boolean = url == expected
   }
 
-  private class TestBaseContentPlugin(expected: URL) extends BaseContentPlugin(null) with TestPluginInfo {
+  private class TestBaseContentPlugin(expected: URI) extends BaseContentPlugin(null) with TestPluginInfo {
     override val priority: Int = cPrioriry
 
     override val pluginName: String = cName
 
     override val contentType: BaseType = Text
 
-    override def matchUrl(url: URL): Boolean = expected == url
+    override def matchUrl(url: URI): Boolean = expected == url
 
     override def content(urlOrContent: ContentTypeParam.RequestParam): Response = Right(Some("test"))
   }
 
-  private class TestSitePlugin(expected: URL) extends BaseSitePlugin(null) with TestPluginInfo {
+  private class TestSitePlugin(expected: URI) extends BaseSitePlugin(null) with TestPluginInfo {
     override val priority: Int = sPrioriry
 
     override val pluginName: String = sName
@@ -133,11 +133,11 @@ class ApplicationPluginsServiceTest extends SpecificationLike {
 
     override def newEntries(url: String): Either[Errors.Error, Vector[Entry]] = Right(Vector.empty)
 
-    override def matchUrl(url: URL): Boolean = expected == url
+    override def matchUrl(url: URI): Boolean = expected == url
 
     override def content(urlOrContent: ContentTypeParam.RequestParam): Response = Right(Some("test"))
   }
 
-  private def u(x: String): URL = new URL(x)
+  private def u(x: String): URI = URI.create(x)
 
 }

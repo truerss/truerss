@@ -57,7 +57,7 @@ truerss {
 
 `sbt test` - unit tests
 
-`sbt real:test` - integration tests 
+`sbt 'Real / test'` - integration tests 
  
 
 Compile app with `rake` or with `sbt jsbuild` command
