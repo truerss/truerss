@@ -1,6 +1,6 @@
 package truerss.plugins
 
-import java.net.URL
+import java.net.URI
 
 import com.github.truerss.ContentExtractor
 import com.github.truerss.base.ContentTypeParam.{HtmlRequest, UrlRequest}
@@ -37,11 +37,11 @@ class DefaultSiteReader(config: Config)
   override val pluginName = "Default"
   override val version = "0.0.3"
   override val contentType: BaseType = Text
-  override val contentTypeParam: ContentTypeParam.URL.type = ContentTypeParam.URL
+  override val contentTypeParam: ContentTypeParam.ContentTypeParam = ContentTypeParam.URI
 
   override val priority: Int = -1
 
-  override def matchUrl(url: URL) = true
+  override def matchUrl(url: URI) = true
 
   override def newEntries(url: String): Error \/ Vector[Entry] = {
     val response = getResponse(url)
@@ -105,8 +105,8 @@ object DefaultSiteReader {
 
   // float link to hard
   def normalizeLink(url0: String, link: String): String = {
-    val url = new URL(url0)
-    val (protocol, host, port) = (url.getProtocol, url.getHost, url.getPort)
+    val url = URI.create(url0)
+    val (protocol, host, port) = (url.getScheme, url.getHost, url.getPort)
 
     val before = s"http"
 

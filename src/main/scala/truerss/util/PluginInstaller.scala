@@ -7,7 +7,7 @@ import sys.process._
 import zio.Task
 
 import java.io.File
-import java.net.URL
+import java.net.URI
 
 class PluginInstaller(private val pluginHomeDir: String) {
   import PluginInstaller._
@@ -20,7 +20,7 @@ class PluginInstaller(private val pluginHomeDir: String) {
     for {
       _ <- Task.effectTotal(logger.debug(s"Install $urlToJar to $fileName"))
       _ <- Task {
-        new URL(urlToJar) #> new File(fileName) !!
+        URI.create(urlToJar).toString #> new File(fileName) !!
       }
     } yield ()
   }

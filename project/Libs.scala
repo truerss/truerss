@@ -2,25 +2,25 @@ import sbt._
 
 object Libs {
   object Versions {
-    val scalaVersion = "2.13.6"
+    val scalaVersion = "2.13.12"
     val scalajVersion = "2.4.2"
-    val postgresqlVersion = "42.2.14"
-    val mysqlVersion = "8.0.21"
-    val sqliteVersion = "3.32.3"
+    val postgresqlVersion = "42.7.1"
+    val mysqlVersion = "8.0.33"
+    val sqliteVersion = "3.45.1.0"
     val commonValidatorVersion = "1.6"
-    val contentExtractorVersion = "1.0.5"
-    val akkaVersion  = "2.6.3"
-    val slickVersion = "3.3.2"
-    val configVersion = "1.3.0"
-    val scoptVersion = "4.0.1"
-    val hikariCPVersion = "3.4.5"
-    val jwsVersion = "1.5.1"
-    val logbackVersion = "1.1.2"
-    val basePluginVersion = "1.0.2"
-    val jsoupVersion = "1.15.3"
-    val specsVersion = "4.10.0"
-    val playJsonVersion = "2.9.2"
-    val zioVersion = "1.0.3"
+    val contentExtractorVersion = "1.1.0"
+    val akkaVersion  = "2.8.5"
+    val slickVersion = "3.4.1"
+    val configVersion = "1.4.3"
+    val scoptVersion = "4.1.0"
+    val hikariCPVersion = "5.1.0"
+    val jwsVersion = "1.5.6"
+    val logbackVersion = "1.4.14"
+    val basePluginVersion = "1.1.1"
+    val jsoupVersion = "1.17.2"
+    val specsVersion = "4.20.5"
+    val playJsonVersion = "3.0.2"
+    val zioVersion = "1.0.18"
   }
 
   import Versions._
@@ -32,10 +32,10 @@ object Libs {
     "com.zaxxer" % "HikariCP" % hikariCPVersion,
     "com.typesafe.slick" %% "slick" %  slickVersion,
     "com.typesafe.slick" %% "slick-hikaricp" %  slickVersion,
-    "io.github.nafg.slick-migration-api" %% "slick-migration-api" % "0.8.2"
+    "io.github.nafg.slick-migration-api" %% "slick-migration-api" % "0.9.0"
   )
 
-  val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
+  val playJson = "org.playframework" %% "play-json" % playJsonVersion
 
   val scalaLib = "org.scala-lang" % "scala-library" % scalaVersion
 
@@ -59,7 +59,7 @@ object Libs {
 
   val utils = Seq(
     scalaj,
-    "org.scala-lang.modules" %% "scala-xml" % "1.3.0",
+    "org.scala-lang.modules" %% "scala-xml" % "2.2.0",
    ("commons-validator" % "commons-validator" % commonValidatorVersion)
       .exclude("commons-beanutils", "commons-beanutils")
       .exclude("commons-logging", "commons-logging")
@@ -78,14 +78,14 @@ object Libs {
     "org.specs2" %% "specs2-core" % specsVersion % Test,
     "org.specs2" %% "specs2-mock" % specsVersion % Test,
 
-    "org.testcontainers" % "testcontainers" % "1.15.2" % Test,
-    "org.testcontainers" % "mysql" % "1.15.2" % Test,
-    "org.testcontainers" % "postgresql" % "1.15.2" % Test
+    "org.testcontainers" % "testcontainers" % "1.19.5" % Test,
+    "org.testcontainers" % "mysql" % "1.19.5" % Test,
+    "org.testcontainers" % "postgresql" % "1.19.5" % Test
   )
 
   val nettyL = Seq(
-    "io.netty" % "netty-codec-http" % "4.1.60.Final",
-    "io.netty" % "netty-codec-http2" % "4.1.60.Final",
+    "io.netty" % "netty-codec-http" % "4.1.106.Final",
+    "io.netty" % "netty-codec-http2" % "4.1.106.Final",
     "com.github.fntz" %% "omhs-dsl" % "0.0.5",
     "com.github.fntz" %% "omhs-play-support" % "0.0.5",
     "org.scala-lang" % "scala-reflect" % scalaVersion % "compile"

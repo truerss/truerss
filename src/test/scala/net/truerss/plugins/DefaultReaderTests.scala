@@ -10,13 +10,13 @@ import org.specs2.specification.Scope
 import scalaj.http.HttpResponse
 import truerss.plugins.DefaultSiteReader
 
-import java.net.URL
+import java.net.URI
 import scala.concurrent.duration._
 import scala.jdk.CollectionConverters._
 
 class DefaultReaderTests extends Specification {
 
-  implicit val timeout = Timeout(10 seconds)
+  implicit val timeout: Timeout = Timeout(10.seconds)
 
   val url = s"http://example.com"
   val okRss = s"$url/ok-rss"
@@ -27,9 +27,9 @@ class DefaultReaderTests extends Specification {
 
   "matchUrl" should {
     "match any url" in new ReaderScope(HtmlFixtures.content) {
-      defaultReader.matchUrl(new URL(url)) must beTrue
-      defaultReader.matchUrl(new URL("https://www.youtube.com")) must beTrue
-      defaultReader.matchUrl(new URL("https://news.ycombinator.com/")) must beTrue
+      defaultReader.matchUrl(URI.create(url)) must beTrue
+      defaultReader.matchUrl(URI.create("https://www.youtube.com")) must beTrue
+      defaultReader.matchUrl(URI.create("https://news.ycombinator.com/")) must beTrue
     }
   }
 
@@ -75,7 +75,7 @@ class DefaultReaderTests extends Specification {
 
   "Content" should {
     "extract content" in new ReaderScope(HtmlFixtures.content) {
-      val result = defaultReader.content(UrlRequest(new URL(content1Url)))
+      val result = defaultReader.content(UrlRequest(URI.create(content1Url)))
       result.isRight must beTrue
       result.map { _.get must contain(HtmlFixtures.text) }
       success

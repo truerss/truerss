@@ -1,6 +1,6 @@
 package truerss.util
 
-import java.net.URL
+import java.net.URI
 import java.time.{LocalDateTime, ZoneOffset}
 import java.util.Date
 
@@ -16,14 +16,12 @@ object CommonImplicits {
       Try(s.toInt).getOrElse(recover)
     }
 
-    def toUrl: URL = {
-      new URL(s)
-    }
+    def toUrl: URI = URI.create(s)
   }
 
-  implicit class UrlExt(val x: URL) extends AnyVal {
+  implicit class UrlExt(val x: URI) extends AnyVal {
     def toBase: String = {
-      s"${x.getProtocol}://${x.getHost}"
+      s"${x.getScheme}://${x.getHost}"
     }
   }
 

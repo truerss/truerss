@@ -6,14 +6,14 @@ import Tasks._
 
 name := "TrueRSS"
 
-version := "1.0.6"
+version := "1.1.0"
 
 val setup = Seq(
   resolvers += "Typesafe Releases" at "https://repo.typesafe.com/typesafe/releases",
   resolvers += "Sonatype OSS" at "https://s01.oss.sonatype.org/content/repositories/releases",
   resolvers += "JCenter" at "https://jcenter.bintray.com/",
   resolvers += "karussell_releases" at "https://github.com/karussell/mvnrepo",
-  scalaVersion := "2.13.6",
+  scalaVersion := "2.13.12",
   scalacOptions ++= Seq(
     "-deprecation",
     "-encoding", "UTF-8",
@@ -26,7 +26,7 @@ val setup = Seq(
     "-Xverify",
     "-Ydelambdafy:inline"
   ),
-  javacOptions ++= Seq("-source", "14", "-target", "14")
+  javacOptions ++= Seq("-source", "21", "-target", "21")
 )
 
 // integrations testing

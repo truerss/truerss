@@ -3,7 +3,7 @@ package truerss.plugins
 import com.github.truerss.base._
 import com.typesafe.config.ConfigFactory
 
-import java.net.URL
+import java.net.URI
 import scala.util.Try
 
 case class ApplicationPlugins(
@@ -21,23 +21,23 @@ case class ApplicationPlugins(
   private val sitesP = sitePlugins.map(_.plugin)
   private val contentsP = contentPlugins.map(_.plugin)
 
-  def getFeedReader(url: URL): Option[BasePlugin] = {
+  def getFeedReader(url: URI): Option[BasePlugin] = {
     (feedsP.filter(_.matchUrl(url)) ++
       sitesP.filter(_.matchUrl(url)))
       .sortBy(_.priority).reverse.headOption
   }
 
-  def getContentReader(url: URL): Option[BasePlugin] = {
+  def getContentReader(url: URI): Option[BasePlugin] = {
     (contentsP.filter(_.matchUrl(url)) ++
       sitesP.filter(_.matchUrl(url)))
       .sortBy(_.priority).reverse.headOption
   }
 
-  def getContentReaderOrDefault(url: URL): BasePlugin = {
+  def getContentReaderOrDefault(url: URI): BasePlugin = {
     getContentReader(url).getOrElse(defaultPlugin)
   }
 
-  def getSourceReader(url: URL): BaseFeedReader = {
+  def getSourceReader(url: URI): BaseFeedReader = {
     (getFeedReader(url), getContentReader(url)) match {
       case (None, None) =>
         defaultPlugin
@@ -49,24 +49,24 @@ case class ApplicationPlugins(
   }
 
 
-  def inFeed(url: URL): Boolean = {
+  def inFeed(url: URI): Boolean = {
     feedsP.exists(_.matchUrl(url))
   }
 
-  def inContent(url: URL): Boolean = {
+  def inContent(url: URI): Boolean = {
     contentsP.exists(_.matchUrl(url))
   }
 
-  def inSite(url: URL): Boolean = {
+  def inSite(url: URI): Boolean = {
     sitesP.exists(_.matchUrl(url))
   }
 
-  def matchUrl(url: URL): Boolean = {
+  def matchUrl(url: URI): Boolean = {
     inFeed(url) || inContent(url) || inSite(url)
   }
 
   def matchUrl(url: String): Boolean = {
-    Try(matchUrl(new java.net.URL(url))).getOrElse(false)
+    Try(matchUrl(URI.create(url))).getOrElse(false)
   }
 
 }
