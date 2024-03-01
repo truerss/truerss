@@ -6,7 +6,7 @@ import Tasks._
 
 name := "TrueRSS"
 
-version := "1.0.7"
+version := "1.1.0"
 
 val setup = Seq(
   resolvers += "Typesafe Releases" at "https://repo.typesafe.com/typesafe/releases",
