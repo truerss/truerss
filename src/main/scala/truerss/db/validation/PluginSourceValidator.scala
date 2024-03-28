@@ -5,7 +5,7 @@ import truerss.db.DbLayer
 import truerss.dto.NewPluginSource
 import truerss.plugins_discrovery.GithubPluginDiscovery
 import truerss.services.ValidationError
-import zio.IO
+import zio.{IO, ZIO}
 
 class PluginSourceValidator(private val dbLayer: DbLayer) {
   import PluginSourceValidator._
@@ -23,7 +23,7 @@ class PluginSourceValidator(private val dbLayer: DbLayer) {
     val url = newPluginSource.url
     for {
       count <- dbLayer.pluginSourcesDao.findByUrl(url).orDie
-      _ <- IO.fail(ValidationError(notUniqueUrlError(url))).when(count > 0)
+      _ <- ZIO.fail(ValidationError(notUniqueUrlError(url))).when(count > 0)
     } yield newPluginSource
   }
 
@@ -46,17 +46,17 @@ object PluginSourceValidator {
 
   private def isValidSourceUrl(newPluginSource: NewPluginSource): R = {
     if (availableDiscoveries.exists(_.isValidSource(newPluginSource.url))) {
-      IO.succeed(newPluginSource)
+      ZIO.succeed(newPluginSource)
     } else {
-      IO.fail(ValidationError(unknownSource(newPluginSource.url)))
+      ZIO.fail(ValidationError(unknownSource(newPluginSource.url)))
     }
   }
 
   private def validateUrl(newPluginSource: NewPluginSource): R = {
     if (isValidUrl(newPluginSource.url)) {
-      IO.succeed(newPluginSource)
+      ZIO.succeed(newPluginSource)
     } else {
-      IO.fail(ValidationError(urlError :: Nil))
+      ZIO.fail(ValidationError(urlError :: Nil))
     }
   }
 

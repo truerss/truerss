@@ -1,12 +1,12 @@
 package truerss.services
 
 import akka.event.EventStream
-import zio.Task
+import zio.{Task, ZIO}
 
 trait StreamProvider {
   val stream: EventStream
   def fire(x: Any): Task[Unit] = {
-    Task.fromFunction { _ =>
+    ZIO.environmentWith { _ =>
       stream.publish(x)
     }
   }

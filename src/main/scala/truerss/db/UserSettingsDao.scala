@@ -3,7 +3,7 @@ package truerss.db
 import slick.jdbc.JdbcBackend.DatabaseDef
 import slick.sql.FixedSqlAction
 import truerss.db.driver.CurrentDriver
-import zio.Task
+import zio.{Task, ZIO}
 
 class UserSettingsDao(val db: DatabaseDef)(implicit driver: CurrentDriver) {
 
@@ -24,7 +24,7 @@ class UserSettingsDao(val db: DatabaseDef)(implicit driver: CurrentDriver) {
   }
 
   def bulkUpdate(settings: Iterable[UserSettings]): Task[Unit] = {
-    Task.collectAll(settings.map(toStatement).map { _ ~> db }).unit
+    ZIO.collectAll(settings.map(toStatement).map { _ ~> db }).unit
   }
 
   def insert(xs: Iterable[UserSettings]): Task[Option[Int]] = {

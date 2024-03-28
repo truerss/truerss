@@ -1,8 +1,7 @@
 package truerss.http_support
 
 import scalaj.http._
-import zio.Task
-import zio.blocking._
+import zio.{Task, ZIO}
 import truerss.util.TaskImplicits
 
 trait Request {
@@ -16,7 +15,7 @@ trait Request {
   protected val retryCount = 3
 
   def getResponseT(url: String): Task[HttpResponse[String]] = {
-    effectBlockingIO(handle(defaultRequest(url))).provideLayer(Blocking.live)
+    ZIO.attemptBlockingIO(handle(defaultRequest(url)))
   }
 
   def getResponse(url: String): HttpResponse[String] = {

@@ -5,7 +5,7 @@ import io.netty.handler.codec.http.multipart.FileUpload
 import io.netty.util.CharsetUtil
 import truerss.services.OpmlService
 import truerss.util.OpmlExtractor
-import zio.Task
+import zio.{Unsafe, ZIO}
 
 class OpmlApi(private val opmlService: OpmlService) {
 
@@ -13,6 +13,8 @@ class OpmlApi(private val opmlService: OpmlService) {
   import OpmlExtractor._
   import RoutingDSL._
   import ZIOSupport._
+
+  private val runtime = zio.Runtime.default
 
   private val opml = get("api" / "v1" / "opml") ~> { () =>
     opmlService.build.map(Xml)
@@ -26,13 +28,13 @@ class OpmlApi(private val opmlService: OpmlService) {
     val content = fs.map(_.content().toString(CharsetUtil.UTF_8)).headOption.getOrElse("")
     reprocessToOpml(content)
     runImportAsync(content)
-    Task.unit
+    ZIO.unit
   }
 
   val route = opml :: importFile :: rawOpml
 
   private def runImportAsync(text: String) = {
-    zio.Runtime.default.unsafeRunTask(opmlService.create(text).forkDaemon)
+    Unsafe.unsafe { implicit unsafe => runtime.unsafe.run(opmlService.create(text)).getOrThrow() }
   }
 
 }

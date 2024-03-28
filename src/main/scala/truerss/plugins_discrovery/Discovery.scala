@@ -2,7 +2,7 @@ package truerss.plugins_discrovery
 
 import org.jsoup.Jsoup
 import truerss.http_support.Request
-import zio.Task
+import zio.{Task, ZIO}
 
 import scala.jdk.CollectionConverters._
 
@@ -14,10 +14,11 @@ sealed trait Discovery {
 
 object Discovery {
   val available = Vector(GithubPluginDiscovery, LocalhostPluginDiscovery)
+
   def fetch(url: String): Task[Iterable[PluginJar]] = {
     available.find(_.isValidSource(url)).map { x =>
       x.fetch(url)
-    }.getOrElse(Task.succeed(Nil))
+    }.getOrElse(ZIO.succeed(Nil))
   }
 }
 
@@ -65,6 +66,6 @@ case object LocalhostPluginDiscovery extends Discovery {
   }
 
   override def fetch(url: String): Task[Iterable[PluginJar]] = {
-    Task.succeed(Nil)
+    ZIO.succeed(Nil)
   }
 }

@@ -66,9 +66,9 @@ class SourcesService(val dbLayer: DbLayer,
   // opml
   def addSources(dtos: Iterable[NewSourceDto]): Task[Unit] = {
     // todo use settings instead of constant
-    Task.collectAllParN_(10) {
+    ZIO.collectAll {
       dtos.map { dto =>
-        addSource(dto).foldM(
+        addSource(dto).foldZIO(
         {
           case ValidationError(errors) =>
             fire(WebSocketController.NotifyMessage(
@@ -86,7 +86,7 @@ class SourcesService(val dbLayer: DbLayer,
           }
         )
       }
-    }
+    }.unit
   }
 
   def addSource(dto: NewSourceDto): Task[SourceViewDto] = {
