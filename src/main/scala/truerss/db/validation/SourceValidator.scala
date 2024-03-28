@@ -37,9 +37,9 @@ class SourceValidator(private val dbLayer: DbLayer,
   // skip validation if it's
   private def validateRss(source: SourceDto): IO[ValidationError, SourceDto] = {
     if (isPlugin(source)) {
-      IO.effectTotal(source)
+      ZIO.succeed(source)
     } else {
-      IO.fromEither(sourceUrlValidator.validateUrl(source))
+      ZIO.fromEither(sourceUrlValidator.validateUrl(source))
         .mapError { err => ValidationError(err :: Nil) }
     }
   }
@@ -51,14 +51,14 @@ class SourceValidator(private val dbLayer: DbLayer,
   private def urlIsUnique(source: SourceDto): IO[ValidationError, Unit] = {
     for {
       count <- dbLayer.sourceDao.findByUrl(source.url, source.getId).orDie
-      _ <- IO.fail(ValidationError(urlError(source) :: Nil)).when(count > 0)
+      _ <- ZIO.fail(ValidationError(urlError(source) :: Nil)).when(count > 0)
     } yield ()
   }
 
   private def nameIsUnique(source: SourceDto): IO[ValidationError, Unit] = {
     for {
       count <- dbLayer.sourceDao.findByName(source.name, source.getId).orDie
-      _ <- IO.fail(ValidationError(nameError(source) :: Nil)).when(count > 0)
+      _ <- ZIO.fail(ValidationError(nameError(source) :: Nil)).when(count > 0)
     } yield ()
   }
 }
@@ -76,9 +76,9 @@ object SourceValidator {
 
   def validateUrlLength(source: SourceDto): IO[ValidationError, SourceDto] = {
     if (isValidUrlLength(source)) {
-      IO.succeed(source)
+      ZIO.succeed(source)
     } else {
-      IO.fail(ValidationError(urlLengthError :: Nil))
+      ZIO.fail(ValidationError(urlLengthError :: Nil))
     }
   }
 
@@ -88,9 +88,9 @@ object SourceValidator {
 
   def validateNameLength(source: SourceDto): IO[ValidationError, SourceDto] = {
     if (isValidNameLength(source)) {
-      IO.succeed(source)
+      ZIO.succeed(source)
     } else {
-      IO.fail(ValidationError(nameLengthError :: Nil))
+      ZIO.fail(ValidationError(nameLengthError :: Nil))
     }
   }
 
@@ -100,9 +100,9 @@ object SourceValidator {
 
   def validateInterval(source: SourceDto): IO[ValidationError, SourceDto] = {
     if (isValidInterval(source)) {
-      IO.succeed(source)
+      ZIO.succeed(source)
     } else {
-      IO.fail(ValidationError(intervalError :: Nil))
+      ZIO.fail(ValidationError(intervalError :: Nil))
     }
   }
 
@@ -112,9 +112,9 @@ object SourceValidator {
 
   def validateUrl(source: SourceDto): IO[ValidationError, SourceDto] = {
     if (isValidUrl(source)) {
-      IO.succeed(source)
+      ZIO.succeed(source)
     } else {
-      IO.fail(ValidationError(urlError :: Nil))
+      ZIO.fail(ValidationError(urlError :: Nil))
     }
   }
 

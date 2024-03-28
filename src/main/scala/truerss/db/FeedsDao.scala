@@ -5,7 +5,7 @@ import slick.jdbc.JdbcBackend.DatabaseDef
 import truerss.db.driver.CurrentDriver
 import truerss.services.NotFoundError
 import truerss.util.FeedsMerger
-import zio.{IO, Task}
+import zio.{IO, Task, ZIO}
 
 class FeedsDao(val db: DatabaseDef)(implicit driver: CurrentDriver) {
 
@@ -99,7 +99,7 @@ class FeedsDao(val db: DatabaseDef)(implicit driver: CurrentDriver) {
   }
 
   private def updateByUrl(feeds: Iterable[Feed]): Task[Iterable[Int]] = {
-    Task.collectAll(feeds.map { x => updateByUrl(x) })
+    ZIO.collectAll(feeds.map { x => updateByUrl(x) })
   }
 
   def findBySource(sourceId: Long): Task[Seq[Feed]] = {

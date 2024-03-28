@@ -2,7 +2,7 @@ package truerss.services
 
 import truerss.db.Predefined
 import truerss.dto.{FeedContent, FeedDto, SetupKey}
-import zio.Task
+import zio.{Task, ZIO}
 
 class ContentReaderService(
                             feedsService: FeedsService,
@@ -18,7 +18,7 @@ class ContentReaderService(
 
   protected def readFeedContent(feedId: Long, feed: FeedDto): Task[Option[String]] = {
     feed.content match {
-      case Some(_) => Task.succeed(feed.content)
+      case Some(_) => ZIO.succeed(feed.content)
       case None =>
         for {
           content <- readerClient.read(feed.url)
@@ -32,7 +32,7 @@ class ContentReaderService(
       case Some(content) =>
         feedsService.updateContent(feedId, content)
       case None =>
-        Task.succeed(())
+        ZIO.succeed(())
     }
   }
 

@@ -4,7 +4,7 @@ import org.slf4j.LoggerFactory
 import truerss.db.{DbLayer, UserSettings}
 import truerss.dto.{AvailableSetup, CurrentValue, NewSetup, Setup, SetupKey}
 import truerss.util.SettingsImplicits
-import zio.Task
+import zio.{Task, ZIO}
 
 import scala.reflect.ClassTag
 
@@ -23,8 +23,8 @@ class SettingsService(private val dbLayer: DbLayer) {
   def updateSetups(newSetups: Iterable[NewSetup[_]]): Task[Unit] = {
     for {
       xs <- getCurrentSetup
-      result <- Task.effectTotal(Reducer.reprocess(xs, newSetups))
-      _ <- Task.fail(ValidationError(result.errors.toList)).when(result.errors.nonEmpty)
+      result <- ZIO.succeed(Reducer.reprocess(xs, newSetups))
+      _ <- ZIO.fail(ValidationError(result.errors.toList)).when(result.errors.nonEmpty)
       _ <- dbLayer.userSettingsDao.bulkUpdate(result.setups)
     } yield ()
   }

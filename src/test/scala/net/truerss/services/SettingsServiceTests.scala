@@ -8,7 +8,7 @@ import truerss.dto.{AvailableSelect, AvailableSetup, CurrentValue, NewSetup}
 import truerss.services.SettingsService
 import truerss.util.SettingsImplicits
 import net.truerss.ZIOMaterializer
-import zio.Task
+import zio.{Task, ZIO}
 
 class SettingsServiceTests extends Specification with Mockito {
 
@@ -27,7 +27,7 @@ class SettingsServiceTests extends Specification with Mockito {
     def init(setups: Iterable[AvailableSetup[_]]) = {
       service = new SettingsService(dbLayer) {
         override def getCurrentSetup: Task[Iterable[AvailableSetup[_]]] = {
-          Task.succeed(setups)
+          ZIO.succeed(setups)
         }
       }
     }
@@ -68,7 +68,7 @@ class SettingsServiceTests extends Specification with Mockito {
         val newSetup = NewSetup("test#1", CurrentValue(1))
         val newSetups = Iterable(newSetup)
 
-        dao.bulkUpdate(Iterable(newSetup.toUserSetup)) returns Task.succeed(())
+        dao.bulkUpdate(Iterable(newSetup.toUserSetup)) returns ZIO.succeed(())
 
         init(availableSetups)
 

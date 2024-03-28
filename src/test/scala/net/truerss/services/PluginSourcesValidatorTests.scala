@@ -8,7 +8,7 @@ import truerss.db.{DbLayer, PluginSourcesDao}
 import truerss.db.validation.PluginSourceValidator
 import truerss.dto.NewPluginSource
 import truerss.services.ValidationError
-import zio.Task
+import zio.ZIO
 
 class PluginSourcesValidatorTests extends Specification with Mockito {
 
@@ -45,7 +45,7 @@ class PluginSourcesValidatorTests extends Specification with Mockito {
   private class MyTest(count: Int = 0) extends Scope {
     val dbLayer = mock[DbLayer]
     val dao = mock[PluginSourcesDao]
-    dao.findByUrl(anyString) returns Task.succeed(count)
+    dao.findByUrl(anyString) returns ZIO.succeed(count)
     dbLayer.pluginSourcesDao returns dao
     val validator = new PluginSourceValidator(dbLayer)
   }

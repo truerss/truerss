@@ -1,12 +1,11 @@
 package truerss.services
 
 import java.net.URI
-
 import com.github.truerss.base.aliases.WithContent
 import com.github.truerss.base.{ContentTypeParam, Errors}
 import org.jsoup.Jsoup
 import truerss.http_support.Request
-import zio.Task
+import zio.{Task, ZIO}
 
 class ReaderClient(private val applicationPluginsService: ApplicationPluginsService) {
 
@@ -34,15 +33,15 @@ object ReaderClient {
   def extractContent(url: String): Task[String] = {
     for {
       response <- Request.getResponseT(url)
-      _ <- Task.fail(ContentReadError(s"Connection error for $url")).when(response.isError)
-      result <- Task(Jsoup.parse(response.body).body().html())
+      _ <- ZIO.fail(ContentReadError(s"Connection error for $url")).when(response.isError)
+      result <- ZIO.succeed(Jsoup.parse(response.body).body().html())
     } yield result
   }
 
   def fromEither(result: Either[Errors.Error, Option[String]]): Task[Option[String]] = {
     result.fold(
-      err => Task.fail(ContentReadError(err.error)),
-      Task.succeed(_)
+      err => ZIO.fail(ContentReadError(err.error)),
+      ZIO.succeed(_)
     )
   }
 }

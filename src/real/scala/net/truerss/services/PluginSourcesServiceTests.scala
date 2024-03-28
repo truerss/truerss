@@ -9,7 +9,7 @@ import truerss.dto.NewPluginSource
 import truerss.plugins_discrovery.PluginJar
 import truerss.services.{ApplicationPluginsService, PluginNotFoundError, PluginSourcesService, ValidationError}
 import truerss.util.{PluginInstaller, TaskImplicits}
-import zio.Task
+import zio.{Task, ZIO}
 
 import java.io.File
 import java.util.UUID
@@ -32,22 +32,22 @@ class PluginSourcesServiceTests extends Specification with AfterAll {
       private val lastId = 0L
       private val hm = scala.collection.mutable.HashMap[Long, PluginSource]()
       override def all: Task[Seq[PluginSource]] = {
-        Task.effectTotal(hm.values.toSeq)
+        ZIO.succeed(hm.values.toSeq)
       }
 
       override def insert(p: PluginSource): Task[Long] = {
         val id = lastId + 1
         hm += id -> p.copy(id = Some(id))
-        Task.effectTotal(id)
+        ZIO.succeed(id)
       }
 
       override def findByUrl(url: String): Task[Int] = {
-        Task.effectTotal(hm.values.count(p => p.url == url))
+        ZIO.succeed(hm.values.count(p => p.url == url))
       }
 
       override def delete(id: Long): Task[Int] = {
         hm -= id
-        Task.effectTotal(1)
+        ZIO.succeed(1)
       }
     }
   }
