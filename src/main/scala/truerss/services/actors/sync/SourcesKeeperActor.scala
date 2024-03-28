@@ -6,6 +6,7 @@ import akka.pattern.pipe
 import org.slf4j.LoggerFactory
 import truerss.dto.SourceViewDto
 import truerss.services.{ApplicationPluginsService, SourcesService}
+import zio.{Unsafe, ZIO}
 
 import scala.concurrent.duration._
 
@@ -18,6 +19,7 @@ class SourcesKeeperActor(config: SourcesKeeperActor.SourcesSettings,
   import context.dispatcher
 
   private val ticker = new Ticker[ActorRef](config.parallelFeedUpdate)
+  private val runtime = zio.Runtime.default
 
   override val supervisorStrategy: OneForOneStrategy = OneForOneStrategy() {
     case x: Throwable =>
@@ -28,8 +30,9 @@ class SourcesKeeperActor(config: SourcesKeeperActor.SourcesSettings,
   log.info(s"Feed parallelism: ${config.parallelFeedUpdate}")
 
   override def preStart(): Unit = {
-    zio.Runtime.default.unsafeRunToFuture(sourcesService.getAllForOpml)
-      .map(Sources) pipeTo self
+    Unsafe.unsafe { implicit unsafe =>
+      runtime.unsafe.runToFuture(sourcesService.getAllForOpml).map(Sources)
+    } pipeTo self
   }
 
   def uninitialized: Receive = {

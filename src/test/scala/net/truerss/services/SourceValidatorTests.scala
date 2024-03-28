@@ -7,9 +7,8 @@ import org.specs2.specification.Scope
 import truerss.db.driver.CurrentDriver
 import truerss.db.{DbLayer, SourcesDao}
 import truerss.db.validation.{SourceUrlValidator, SourceValidator}
-import truerss.plugins.ApplicationPlugins
 import truerss.services.{ApplicationPluginsService, ValidationError}
-import zio.Task
+import zio.ZIO
 
 class SourceValidatorTests extends Specification with Mockito {
 
@@ -47,8 +46,8 @@ class SourceValidatorTests extends Specification with Mockito {
       "url is not unique" in new Test() {
         val url = Gen.genUrl
         val newSource = Gen.genNewSource.copy(url = url)
-        sourceDao.findByUrl(url, None) returns Task.succeed(1)
-        sourceDao.findByName(anyString, any[Option[Long]]) returns Task.succeed(0)
+        sourceDao.findByUrl(url, None) returns ZIO.succeed(1)
+        sourceDao.findByName(anyString, any[Option[Long]]) returns ZIO.succeed(0)
         sourceUrlValidator.validateUrl(newSource) returns Right(newSource)
 
         init()
@@ -59,8 +58,8 @@ class SourceValidatorTests extends Specification with Mockito {
       "name is not unique" in new Test() {
         val name = "test"
         val newSource = Gen.genNewSource.copy(name = name)
-        sourceDao.findByUrl(anyString, any[Option[Long]]) returns Task.succeed(0)
-        sourceDao.findByName(name, None) returns Task.succeed(1)
+        sourceDao.findByUrl(anyString, any[Option[Long]]) returns ZIO.succeed(0)
+        sourceDao.findByName(name, None) returns ZIO.succeed(1)
         sourceUrlValidator.validateUrl(newSource) returns Right(newSource)
 
         init()
@@ -71,8 +70,8 @@ class SourceValidatorTests extends Specification with Mockito {
       "url is not rss" in new Test() {
         val error = "boom"
         val newSource = Gen.genNewSource
-        sourceDao.findByUrl(anyString, any[Option[Long]]) returns Task.succeed(0)
-        sourceDao.findByName(anyString, any[Option[Long]]) returns Task.succeed(0)
+        sourceDao.findByUrl(anyString, any[Option[Long]]) returns ZIO.succeed(0)
+        sourceDao.findByName(anyString, any[Option[Long]]) returns ZIO.succeed(0)
         sourceUrlValidator.validateUrl(newSource) returns Left(error)
 
         init()
@@ -82,8 +81,8 @@ class SourceValidatorTests extends Specification with Mockito {
 
       "when ok" in new Test() {
         val newSource = Gen.genNewSource
-        sourceDao.findByUrl(anyString, any[Option[Long]]) returns Task.succeed(0)
-        sourceDao.findByName(anyString, any[Option[Long]]) returns Task.succeed(0)
+        sourceDao.findByUrl(anyString, any[Option[Long]]) returns ZIO.succeed(0)
+        sourceDao.findByName(anyString, any[Option[Long]]) returns ZIO.succeed(0)
         sourceUrlValidator.validateUrl(newSource) returns Right(newSource)
 
         init()

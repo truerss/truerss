@@ -1,6 +1,6 @@
 package truerss.util
 
-import zio.Task
+import zio.{Task, ZIO}
 
 import scala.xml._
 
@@ -16,7 +16,7 @@ object OpmlParser {
 
 
   def parse(s: String): Task[Iterable[Outline]] = {
-    Task(load(s))
+    ZIO.attempt(load(s))
   }
 
   private def present(attr: String)(implicit node: Node): Boolean = {

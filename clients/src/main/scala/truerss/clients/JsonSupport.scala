@@ -58,17 +58,17 @@ object JsonSupport {
     }
   }
 
-  implicit lazy val newSourceDtoFormat = Json.format[NewSourceDto]
-  implicit lazy val updateSourceDtoFormat = Json.format[UpdateSourceDto]
-  implicit lazy val sourceDtoFormat = Json.format[SourceDto]
-  implicit lazy val sourceViewDtoFormat = Json.format[SourceViewDto]
+  implicit lazy val newSourceDtoFormat: OFormat[NewSourceDto] = Json.format[NewSourceDto]
+  implicit lazy val updateSourceDtoFormat: OFormat[UpdateSourceDto] = Json.format[UpdateSourceDto]
+  implicit lazy val sourceDtoFormat: OFormat[SourceDto] = Json.format[SourceDto]
+  implicit lazy val sourceViewDtoFormat: OFormat[SourceViewDto] = Json.format[SourceViewDto]
 
-  implicit lazy val pluginDtoFormat = Json.format[PluginDto]
-  implicit lazy val pluginsViewDto = Json.format[PluginsViewDto]
-  implicit lazy val enclosureDtoFormat = Json.format[EnclosureDto]
-  implicit lazy val feedDtoFormat = Json.format[FeedDto]
+  implicit lazy val pluginDtoFormat: OFormat[PluginDto] = Json.format[PluginDto]
+  implicit lazy val pluginsViewDto: OFormat[PluginsViewDto] = Json.format[PluginsViewDto]
+  implicit lazy val enclosureDtoFormat: OFormat[EnclosureDto] = Json.format[EnclosureDto]
+  implicit lazy val feedDtoFormat: OFormat[FeedDto] = Json.format[FeedDto]
 
-  implicit lazy val newSourceFromFile = Json.format[NewSourceFromFileWithErrors]
+  implicit lazy val newSourceFromFile: OFormat[NewSourceFromFileWithErrors] = Json.format[NewSourceFromFileWithErrors]
 
   implicit lazy val availableValueReads: Reads[AvailableValue] = new Reads[AvailableValue] {
     override def reads(json: JsValue): JsResult[AvailableValue] = {

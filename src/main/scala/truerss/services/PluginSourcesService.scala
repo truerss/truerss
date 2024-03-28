@@ -5,7 +5,7 @@ import truerss.db.{DbLayer, PluginSource}
 import truerss.dto.{NewPluginSource, PluginSourceDto}
 import truerss.plugins_discrovery.DiscoveryProvider
 import truerss.util.PluginInstaller
-import zio.Task
+import zio.{Task, ZIO}
 
 class PluginSourcesService(
                            val dbLayer: DbLayer,
@@ -21,21 +21,21 @@ class PluginSourcesService(
   def installPlugin(urlToJar: String): Task[Unit] = {
     for {
       _ <- pluginInstaller.install(urlToJar)
-      _ <- Task(appPluginsService.reload())
+      _ <- ZIO.attempt(appPluginsService.reload())
     } yield()
   }
 
   def removePlugin(urlToJar: String): Task[Unit] = {
     for {
       _ <- pluginInstaller.remove(urlToJar)
-      _ <- Task(appPluginsService.reload())
+      _ <- ZIO.attempt(appPluginsService.reload())
     } yield ()
   }
 
   def availablePluginSources: Task[Iterable[PluginSourceDto]] = {
     for {
       all <- dbLayer.pluginSourcesDao.all
-      pluginJars <- Task.foreachPar(all)(fetch(_).retryN(retryCount))
+      pluginJars <- ZIO.foreachPar(all)(fetch(_).retryN(retryCount))
     } yield pluginJars
   }
 

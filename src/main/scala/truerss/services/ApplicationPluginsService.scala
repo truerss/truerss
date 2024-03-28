@@ -6,7 +6,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 import truerss.dto.{PluginDto, PluginsViewDto, SourceViewDto, State}
 import truerss.db.{SourceState, SourceStates}
 import truerss.plugins.{ApplicationPlugins, PluginLoader, PluginWithSourcePath}
-import zio.{Task, UIO}
+import zio.{UIO, ZIO}
 
 import scala.util.Try
 
@@ -27,9 +27,9 @@ class ApplicationPluginsService(private val pluginDir: String, private val confi
   def publishPlugins: Vector[BasePublishPlugin] =
     currentState.publishPlugins.map(_.plugin)
 
-  def js: UIO[String] = Task.effectTotal(currentState.js.mkString)
+  def js: UIO[String] = ZIO.succeed(currentState.js.mkString)
 
-  def css: UIO[String] = Task.effectTotal(currentState.css.mkString)
+  def css: UIO[String] = ZIO.succeed(currentState.css.mkString)
 
   def getState(url: String): SourceState = {
     currentState.getState(url)
@@ -58,7 +58,7 @@ class ApplicationPluginsService(private val pluginDir: String, private val confi
   }
 
   def view: UIO[PluginsViewDto] = {
-    UIO.effectTotal {
+    ZIO.succeed {
       PluginsViewDto(
         feed = currentState.feedPlugins.map(baseToDto),
         content = currentState.contentPlugins.map(baseToDto),

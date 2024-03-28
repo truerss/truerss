@@ -20,7 +20,7 @@ object Libs {
     val jsoupVersion = "1.17.2"
     val specsVersion = "4.20.5"
     val playJsonVersion = "3.0.2"
-    val zioVersion = "1.0.18"
+    val zioVersion = "2.0.21"
   }
 
   import Versions._

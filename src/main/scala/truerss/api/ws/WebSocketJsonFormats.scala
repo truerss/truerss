@@ -8,11 +8,11 @@ object WebSocketJsonFormats {
 
   implicit val notifyLevelWrites: Writes[Notify] = Json.writes[Notify]
 
-  implicit lazy val wSMessageTypeWrites = new Writes[WSMessageType.type] {
+  implicit lazy val wSMessageTypeWrites: Writes[WSMessageType.type] = new Writes[WSMessageType.type] {
     override def writes(o: WSMessageType.type): JsValue = {
       JsString(o.toString())
     }
   }
 
-  implicit lazy val wsMessageWrites = Json.writes[WebSocketMessage]
+  implicit lazy val wsMessageWrites: OWrites[WebSocketMessage] = Json.writes[WebSocketMessage]
 }

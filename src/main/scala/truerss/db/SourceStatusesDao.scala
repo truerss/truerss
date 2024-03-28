@@ -4,7 +4,7 @@ package truerss.db
 import slick.jdbc.JdbcBackend.DatabaseDef
 import truerss.db.driver.CurrentDriver
 import truerss.services.NotFoundError
-import zio.{IO, Task}
+import zio.{IO, Task, ZIO}
 
 class SourceStatusesDao(val db: DatabaseDef)(implicit
                                              driver: CurrentDriver
@@ -36,7 +36,7 @@ class SourceStatusesDao(val db: DatabaseDef)(implicit
   }
 
   def incrementError(sourceId: Long): Task[Unit] = {
-    Task.fromFuture { implicit ec =>
+    ZIO.fromFuture { implicit ec =>
       val action = (for {
         currentT <- sourceStatuses
           .filter(_.sourceId === sourceId)
